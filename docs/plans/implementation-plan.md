@@ -21,7 +21,7 @@ Ca mai multi agenti sa poata lucra in paralel fara sa se calce reciproc:
    `src/features/<feature>/` (componente, server actions, queries, teste). Conflictele
    de merge sunt minimizate pentru ca agentii ating fisiere diferite.
 3. **Migrari aditive, numerotate.** Fiecare task care are nevoie de schema noua adauga
-   *un singur* fisier de migrare cu prefix ordonat (`0007_orders.sql`). Nu se editeaza
+   _un singur_ fisier de migrare cu prefix ordonat (`0007_orders.sql`). Nu se editeaza
    migrari existente.
 4. **Un task = un PR.** Fiecare task produce un branch + PR mic, review-abil, cu teste.
 5. **Acceptance criteria sunt executabile.** Fiecare task se considera „done" doar cu
@@ -29,6 +29,7 @@ Ca mai multi agenti sa poata lucra in paralel fara sa se calce reciproc:
 6. **Romana in UI, engleza in cod** (conform handoff).
 
 ### Definition of Done (global, valabil pentru fiecare task)
+
 - [ ] `pnpm typecheck` + `pnpm lint` trec
 - [ ] Teste unitare/integrare pentru logica noua trec
 - [ ] RLS verificat (un tenant nu vede datele altui tenant)
@@ -39,16 +40,16 @@ Ca mai multi agenti sa poata lucra in paralel fara sa se calce reciproc:
 
 ## 2. Stack si arhitectura (recap din docs)
 
-| Strat | Tehnologie |
-|-------|-----------|
-| Framework | Next.js (App Router) + TypeScript |
-| UI | shadcn/ui retematizat (paleta pamant/verde, pattern subtil de fundal) |
-| Auth | Supabase Auth (widgeturi out-of-the-box) |
-| DB + Storage | Supabase Postgres (EU) + Supabase Storage |
-| Multi-tenant | Izolare logica prin RLS pe `organization_id` |
-| Diagrame | librarie React pt. Sankey (Recharts/Nivo) |
-| PDF | generare server-side certificat (ex. React-PDF / Puppeteer) |
-| Hosting | Vercel |
+| Strat        | Tehnologie                                                            |
+| ------------ | --------------------------------------------------------------------- |
+| Framework    | Next.js (App Router) + TypeScript                                     |
+| UI           | shadcn/ui retematizat (paleta pamant/verde, pattern subtil de fundal) |
+| Auth         | Supabase Auth (widgeturi out-of-the-box)                              |
+| DB + Storage | Supabase Postgres (EU) + Supabase Storage                             |
+| Multi-tenant | Izolare logica prin RLS pe `organization_id`                          |
+| Diagrame     | librarie React pt. Sankey (Recharts/Nivo)                             |
+| PDF          | generare server-side certificat (ex. React-PDF / Puppeteer)           |
+| Hosting      | Vercel                                                                |
 
 ---
 
@@ -66,6 +67,7 @@ Wave 3  Cross-cutting (paralel, dupa ce verticalele exista)
 ```
 
 Reguli de dependenta cheie in Wave 2:
+
 - **C (Stoc/Loturi)** trebuie sa expuna API-ul de consum FIFO + creare lot inainte ca
   **D (Productie)** si **E (Comenzi)** sa fie complete. Vezi „contracte interne" mai jos.
 - **G (Certificate)** depinde de modelul de trasabilitate produs de **D** si **E**.
@@ -76,6 +78,7 @@ Reguli de dependenta cheie in Wave 2:
 ## 4. WAVE 0 — Foundation (blocheaza tot, un singur agent)
 
 ### T0.1 — Scaffolding proiect Next.js + tooling
+
 - **Scop:** initializare Next.js (App Router, TS), Tailwind, ESLint/Prettier, Vitest +
   Playwright, structura de foldere `src/app`, `src/features`, `src/components/ui`,
   `src/lib`, husky/lint-staged.
@@ -88,6 +91,7 @@ Reguli de dependenta cheie in Wave 2:
     Placeholder-ul „de completat" din §3.1 nu mai exista dupa acest task.
 
 ### T0.2 — Design system & tema (din mockup)
+
 - **Scop:** instalare shadcn/ui; extragerea tokenilor din `Lateris_Trace.dc.html`
   (paleta pamant/verde/ocru/slate, tipografie, pattern de fundal, badge-uri de status);
   layout shell cu **sidebar fix** + componente comune (DataTable cu sortare/paginare/hover,
@@ -97,6 +101,7 @@ Reguli de dependenta cheie in Wave 2:
   refolosibile; suport white-label prin CSS variables (logo + culori per org).
 
 ### T0.3 — Integrare Supabase (clienti + env)
+
 - **Scop:** proiect Supabase (regiune EU), `supabase/` cu CLI + migrari, clienti server
   & browser, helper de sesiune (`@supabase/ssr`), script `gen-types`.
 - **Dependente:** T0.1
@@ -108,6 +113,7 @@ Reguli de dependenta cheie in Wave 2:
 ## 5. WAVE 1 — Schema de date, Auth, Multi-tenant (blocheaza Wave 2)
 
 ### T1.1 — Schema completa de baza de date + RLS (CONTRACTUL COMUN)
+
 - **Scop:** o migrare consolidata care defineste toate entitatile MVP si politicile RLS.
   Tabele minime:
   - `organizations` (white-label: logo, culori, domeniu, email settings)
@@ -135,6 +141,7 @@ Reguli de dependenta cheie in Wave 2:
   „inghetat" inainte de a porni Wave 2. Modificarile ulterioare de schema = migrari noi.
 
 ### T1.2 — Auth, rutare pe roluri, context de tenant
+
 - **Scop:** login email/parola (widget Supabase), invitatie + setare parola, reset;
   middleware Next.js care rezolva organizatia (din domeniu/white-label) si rolul; guard-uri
   de ruta `/(admin)`, `/(client)`; helper `getCurrentUser()` + `requireRole()`.
@@ -143,6 +150,7 @@ Reguli de dependenta cheie in Wave 2:
   acces neautorizat redirectat; teste pe guard-uri.
 
 ### T1.3 — Setari organizatie & white labeling (admin)
+
 - **Scop:** ecranul **Setari** (doar admin): logo, culori, domeniu, sender email; aplicarea
   temei per tenant in runtime; management useri (creare operator & client, invitatii).
 - **Dependente:** T1.1, T1.2
@@ -157,27 +165,32 @@ Fiecare task de mai jos este auto-continut: foloseste schema din T1.1, livreaza
 UI + server actions + queries + teste pentru ecranul/fluxul lui.
 
 ### Contracte interne (interfete intre verticale) — de definit la inceputul Wave 2
+
 Pentru a permite paralelismul, **Task C** publica primul un mic modul de „stock service":
+
 ```
 createLot(input): Lot
 consumeFIFO(item_id, qty, { manualSelection? }): { lot_id, qty }[]   // scade stoc + stock_events
 recordStockEvent(...)
 getAvailableStock(item_id): qty
 ```
+
 D (Productie) si E (Comenzi) consuma aceste functii. Pana exista, pot lucra contra unui
 stub tipat (mock) cu aceeasi semnatura.
 
 ---
 
 ### Task A — Clienti
+
 - **Ecrane:** lista clienti, detaliu/creare client, adrese de livrare, documente client.
 - **Scop:** CRUD clienti firme juridice; **lookup CUI** (research spike S1) cu precompletare
-  + confirmare manuala; adrese multiple; flag furnizor; upload documente.
+  - confirmare manuala; adrese multiple; flag furnizor; upload documente.
 - **Dependente:** T1.x; spike S1 (API CUI)
 - **Acceptare:** creezi client prin CUI lookup, editezi, adaugi 2 adrese, atasezi un PDF;
   RLS izoleaza per organizatie.
 
 ### Task B — Itemi, Catalog (definitie) & Retete
+
 - **Ecrane:** lista itemi, creare/editare item (titlu, descriere, poza, UM, flag `vandabil`,
   atasamente), **Retete** (componente in procente).
 - **Scop:** CRUD itemi; editor reteta (suma procente validata informativ); fara versionare.
@@ -186,9 +199,10 @@ stub tipat (mock) cu aceeasi semnatura.
   apare in catalogul clientului (Task G).
 
 ### Task C — Stoc & Loturi + Audit (FUNDAMENT pt. D & E)
+
 - **Ecrane:** lista loturi (mockup „Stoc"), adauga lot (provenienta: achizitie/productie/
   reciclare/retur/ajustare), blocare lot cu motiv, **Audit stoc** (listing `stock_events`
-  + **export CSV/Excel**).
+  - **export CSV/Excel**).
 - **Scop:** managementul loturilor; **stock service** (vezi contracte); FIFO; toate
   miscarile scriu in `stock_events`.
 - **Dependente:** T1.x
@@ -196,6 +210,7 @@ stub tipat (mock) cu aceeasi semnatura.
   audit; exportul CSV contine miscarile; **publica modulul stock service**.
 
 ### Task D — Productie & Reciclare (cu Sankey)
+
 - **Ecrane:** pornire proces — **4a output fix** (introduci cantitate output → consum FIFO
   calculat automat → confirmare → loturi noi) si **4b input fix/output variabil** (introduci
   input → output ideal pe reteta → tabel editabil → confirmare → loturi noi); istoric proces
@@ -208,6 +223,7 @@ stub tipat (mock) cu aceeasi semnatura.
   Sankey reda fluxul; cazul „stoc insuficient" tratat.
 
 ### Task E — Comenzi (admin/operator)
+
 - **Ecrane:** lista comenzi (mockup „Comenzi": client, produse, data livrare, status badge,
   actiuni rapide Accepta/Anuleaza, filtre+search), detaliu comanda, creare comanda in numele
   clientului (`created_by_admin`).
@@ -219,6 +235,7 @@ stub tipat (mock) cu aceeasi semnatura.
   de status respecta masina de stari; emite evenimentele consumate de notificari & certificat.
 
 ### Task F — Retur & Garantie & Inchiriere
+
 - **Ecrane:** pe o comanda finalizata — butoane Retur / Garantie; formular retur cu cantitati
   editabile; intrare in stoc dupa inspectie/acceptare manuala.
 - **Scop:** retur (creeaza comanda legata), garantie (retur + comanda de inlocuire automata);
@@ -228,6 +245,7 @@ stub tipat (mock) cu aceeasi semnatura.
   materialele intra in stoc (lot cu provenienta „retur").
 
 ### Task G — Certificate de trasabilitate (PDF + graf)
+
 - **Ecrane:** ecranul **Certificat** (mockup, cel mai important vizual): header logo+numar+data,
   date comanda, **graf de trasabilitate** (produs livrat → loturi → procese → loturi materie
   prima → surse), tabel „Materiale si origine" (procente per sursa), documente atasate, footer
@@ -240,6 +258,7 @@ stub tipat (mock) cu aceeasi semnatura.
   pana la sursele reciclate; template extensibil.
 
 ### Task H — Portal client
+
 - **Ecrane:** **Catalog** (grid carduri produs, search/filtre, cos), formular comanda (adresa
   livrare, data optionala, observatii), **Comenzile mele** (lista cu status, Retur/Garantie pe
   comenzi finalizate, repeta comanda), **Documente & Certificate** (download).
@@ -250,6 +269,7 @@ stub tipat (mock) cu aceeasi semnatura.
   RLS interzice accesul la alte comenzi/clienti.
 
 ### Task I — Super-admin (management organizatii)
+
 - **Ecrane:** lista organizatii, creare organizatie + admin initial, suspendare.
 - **Scop:** administrarea platformei (peste tenant).
 - **Dependente:** T1.x
@@ -261,19 +281,23 @@ stub tipat (mock) cu aceeasi semnatura.
 ## 7. WAVE 3 — Cross-cutting & finisare (paralel, dupa verticale)
 
 ### Task X1 — Notificari email
+
 - Sender per organizatie (white-label); template-uri pentru fiecare schimbare de status
   comanda + invitatii. Consuma evenimentele emise de Task E/Task 1.3.
 - **Acceptare:** la fiecare tranzitie de status pleaca un email; testat cu un mock SMTP.
 
 ### Task X2 — Cautare globala
+
 - Search peste comanda, client, lot, produs, certificat (mockup are bara de cautare).
 - **Acceptare:** cautarea returneaza rezultate cross-entitate, respectand RLS.
 
 ### Task X3 — Dashboard & KPI (nice-to-have)
+
 - Carduri KPI din mockup (comenzi active, de acceptat, livrate luna asta, certificate emise).
 - **Acceptare:** valorile reflecta datele reale ale tenantului.
 
 ### Task X4 — Seed data & E2E
+
 - Date demo pt. clientul pilot (moloz, nisip reciclat, pietris, caramizi, beton, balast);
   teste Playwright pe **fluxul complet MVP** (1→9 din handoff).
 - **Acceptare:** un singur test E2E parcurge: creare org → client → itemi/retete → lot →
@@ -283,11 +307,11 @@ stub tipat (mock) cu aceeasi semnatura.
 
 ## 8. Research spikes (de rezolvat in paralel, deblocheaza task-uri)
 
-| ID | Subiect | Deblocheaza | Output asteptat |
-|----|---------|-------------|-----------------|
-| S1 | API public lookup CUI Romania (cel mai simplu de integrat) | Task A | alegere sursa + adapter |
-| S2 | Standarde legale RO/EU pt. certificat trasabilitate materiale reciclate | Task G | continut minim obligatoriu |
-| S3 | Librarie Sankey React (Recharts vs Nivo) si abordare PDF (React-PDF vs Puppeteer) | Task D, G | decizie + POC mic |
+| ID  | Subiect                                                                           | Deblocheaza | Output asteptat            |
+| --- | --------------------------------------------------------------------------------- | ----------- | -------------------------- |
+| S1  | API public lookup CUI Romania (cel mai simplu de integrat)                        | Task A      | alegere sursa + adapter    |
+| S2  | Standarde legale RO/EU pt. certificat trasabilitate materiale reciclate           | Task G      | continut minim obligatoriu |
+| S3  | Librarie Sankey React (Recharts vs Nivo) si abordare PDF (React-PDF vs Puppeteer) | Task D, G   | decizie + POC mic          |
 
 ---
 
@@ -303,27 +327,27 @@ stub tipat (mock) cu aceeasi semnatura.
 
 ### Tabel rezumat tasks
 
-| Task | Wave | Depinde de | Paralelizabil |
-|------|------|-----------|---------------|
-| T0.1 Scaffolding | 0 | — | nu (primul) |
-| T0.2 Design system | 0 | T0.1 | cu T0.3 |
-| T0.3 Supabase | 0 | T0.1 | cu T0.2 |
-| T1.1 Schema+RLS | 1 | T0.3 | nu (contract) |
-| T1.2 Auth/tenant | 1 | T1.1, T0.2 | cu T1.3 |
-| T1.3 Setari/white-label | 1 | T1.1, T1.2 | cu T1.2 |
-| A Clienti | 2 | T1.x, S1 | da |
-| B Itemi/Retete | 2 | T1.x | da |
-| C Stoc/Loturi | 2 | T1.x | da (pornit primul) |
-| D Productie | 2 | C, B, S3 | da |
-| E Comenzi | 2 | C, A, B | da |
-| F Retur/Garantie | 2 | E, C | da |
-| G Certificate | 2 | E, D, S2, S3 | da |
-| H Portal client | 2 | B, E, G | da |
-| I Super-admin | 2 | T1.x | da |
-| X1 Notificari | 3 | E, T1.3 | da |
-| X2 Cautare | 3 | A,B,C,E,G | da |
-| X3 Dashboard/KPI | 3 | E, C, G | da |
-| X4 Seed + E2E | 3 | toate | la final |
+| Task                    | Wave | Depinde de   | Paralelizabil      |
+| ----------------------- | ---- | ------------ | ------------------ |
+| T0.1 Scaffolding        | 0    | —            | nu (primul)        |
+| T0.2 Design system      | 0    | T0.1         | cu T0.3            |
+| T0.3 Supabase           | 0    | T0.1         | cu T0.2            |
+| T1.1 Schema+RLS         | 1    | T0.3         | nu (contract)      |
+| T1.2 Auth/tenant        | 1    | T1.1, T0.2   | cu T1.3            |
+| T1.3 Setari/white-label | 1    | T1.1, T1.2   | cu T1.2            |
+| A Clienti               | 2    | T1.x, S1     | da                 |
+| B Itemi/Retete          | 2    | T1.x         | da                 |
+| C Stoc/Loturi           | 2    | T1.x         | da (pornit primul) |
+| D Productie             | 2    | C, B, S3     | da                 |
+| E Comenzi               | 2    | C, A, B      | da                 |
+| F Retur/Garantie        | 2    | E, C         | da                 |
+| G Certificate           | 2    | E, D, S2, S3 | da                 |
+| H Portal client         | 2    | B, E, G      | da                 |
+| I Super-admin           | 2    | T1.x         | da                 |
+| X1 Notificari           | 3    | E, T1.3      | da                 |
+| X2 Cautare              | 3    | A,B,C,E,G    | da                 |
+| X3 Dashboard/KPI        | 3    | E, C, G      | da                 |
+| X4 Seed + E2E           | 3    | toate        | la final           |
 
 ---
 

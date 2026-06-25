@@ -12,13 +12,16 @@ procesul de lucru si pentru regulile de business invatate pe parcurs.
 ## 1. Reguli de proces (obligatorii)
 
 ### 1.1 Planuri de implementare → `docs/plans/`
+
 Daca un task are un plan de implementare (oricat de mic), acesta **trebuie scris ca
 fisier markdown in `docs/plans/`** inainte de a incepe codarea. Numire:
 `docs/plans/<nume-scurt-task>.md`. Planul ramane in repo ca referinta.
 
 ### 1.2 Prompt log la fiecare commit → `docs/prompt-log.md`
+
 La **fiecare commit**, agentul adauga o intrare in [`docs/prompt-log.md`](docs/prompt-log.md)
 care contine:
+
 - **Data** (YYYY-MM-DD)
 - **Agent / model** care a facut munca (ex. `Claude Opus 4.8`)
 - **Ce s-a cerut** — un rezumat scurt al promptului/sarcinii
@@ -27,6 +30,7 @@ care contine:
 Intrarea se adauga in acelasi commit cu modificarile. Cele mai noi intrari sus.
 
 ### 1.3 Corectii → actualizeaza AGENTS.md
+
 Oricand un agent este corectat pe o **regula de business** (ex. „stocul se scade la
 acceptarea comenzii, nu la livrare") **sau pe o directie generica de dezvoltare**
 (ex. „in teste folosim mocks, nu spies"), regula nou invatata **trebuie adaugata in
@@ -34,6 +38,7 @@ acest fisier** (sectiunile 3 sau 4, dupa caz), in acelasi commit cu corectia. Sc
 nicio regula sa nu fie reinvatata de doua ori.
 
 ### 1.4 Un task = un commit/PR coerent
+
 Fiecare task produce modificari mici, review-abile, cu mesaj de commit clar.
 
 ---
@@ -41,17 +46,21 @@ Fiecare task produce modificari mici, review-abile, cu mesaj de commit clar.
 ## 2. Reguli de cod si testare
 
 ### 2.1 Teste unitare obligatorii
+
 **Tot codul nou trebuie sa aiba teste unitare.** Nu se cere acoperire 100%, dar
 **functionalitatea principala** (logica de business, edge case-urile critice,
 tranzitiile de stare) trebuie testata. Un task fara teste pentru logica lui noua nu
 este „done".
 
 ### 2.2 Stil de testare
+
 - Folosim **mocks**, nu spies. (regula de directie — vezi 1.3)
 - Testele nu depind de servicii externe reale; dependentele externe se mock-uiesc.
 
 ### 2.3 Definition of Done (global)
+
 Un task e gata doar cand:
+
 - [ ] `typecheck` + `lint` trec
 - [ ] testele unitare pentru logica noua trec
 - [ ] izolarea multi-tenant (RLS) e respectata acolo unde e cazul
@@ -73,16 +82,42 @@ EU), **shadcn/ui** retematizat, hosting **Vercel**. Roluri: super-admin, admin,
 operator, client.
 
 Referinte:
+
 - Cerinte si decizii: [`docs/handoff.md`](docs/handoff.md)
 - Design / mockup: [`docs/design-prompt.md`](docs/design-prompt.md),
   [`docs/design/Lateris_Trace.dc.html`](docs/design/)
 - Plan de implementare: [`docs/plans/implementation-plan.md`](docs/plans/implementation-plan.md)
 
-### 3.1 Cai catre domeniile principale & comenzi uzuale
-> _De completat imediat ce proiectul este scaffold-at (Wave 0)._ Aici se vor lista:
-> caile catre fiecare domeniu (`src/features/<domeniu>/`), locatia schemei/migrarilor
-> Supabase, tipurile generate, si comenzile uzuale (`dev`, `build`, `test`,
-> `typecheck`, `lint`, `db reset`, `gen-types`).
+### 3.1 Structura repo-ului
+
+| Cale                      | Continut                                                                                                                                                                                                                          |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `src/app/`                | Rute Next.js (App Router), layout-uri, `globals.css`.                                                                                                                                                                             |
+| `src/features/<domeniu>/` | Verticalele de business (vezi [`src/features/README.md`](src/features/README.md)). Domenii planificate: `clients`, `items`, `recipes`, `stock`, `production`, `orders`, `returns`, `certificates`, `client-portal`, `admin-orgs`. |
+| `src/components/ui/`      | Componente shadcn/ui retematizate (se populeaza in T0.2).                                                                                                                                                                         |
+| `src/lib/`                | Utilitare comune (`utils.ts` → `cn()`); clientii Supabase si `database.types.ts` se adauga in T0.3.                                                                                                                               |
+| `tests/e2e/`              | Teste Playwright (suita completa in Task X4).                                                                                                                                                                                     |
+| `supabase/`               | Migrari + config Supabase (se adauga in T0.3).                                                                                                                                                                                    |
+| `docs/`                   | Cerinte, design si planuri (vezi `docs/plans/`).                                                                                                                                                                                  |
+
+Testele unitare sunt **colocate** langa cod (`*.test.ts` / `*.test.tsx`).
+
+### 3.2 Comenzi uzuale
+
+| Comanda                             | Ce face                                                     |
+| ----------------------------------- | ----------------------------------------------------------- |
+| `pnpm install`                      | Instaleaza dependentele (Node 22, pnpm 10).                 |
+| `pnpm dev`                          | Porneste serverul de dezvoltare pe `http://localhost:3000`. |
+| `pnpm build`                        | Build de productie Next.js.                                 |
+| `pnpm typecheck`                    | `tsc --noEmit`.                                             |
+| `pnpm lint`                         | ESLint (flat config, `next` + `prettier`).                  |
+| `pnpm format` / `pnpm format:check` | Prettier (scrie / verifica).                                |
+| `pnpm test`                         | Teste unitare Vitest (o singura rulare).                    |
+| `pnpm test:watch`                   | Vitest in watch mode.                                       |
+| `pnpm test:e2e`                     | Teste E2E Playwright.                                       |
+
+> Comenzile Supabase (`supabase db reset`, `gen-types`) se adauga la §3.2 in T0.3,
+> odata cu integrarea Supabase.
 
 ---
 
