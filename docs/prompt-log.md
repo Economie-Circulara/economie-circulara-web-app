@@ -15,6 +15,18 @@ Format intrare:
 
 ## 2026-06-25 — Claude Opus 4.8
 
+- **Cerut:** continuarea cu urmatorul task din plan (T0.2 — design system & tema).
+- **Facut:** tokeni oklch extrasi din mockup → `globals.css` (paleta brand/accent, semantice
+  status, pattern grid, mapare shadcn cu Tailwind v4 `@theme`); fonturi Archivo/IBM Plex
+  Mono/Spectral via `next/font`. Primitive shadcn-style (`button`, `badge`, `table`, `input`,
+  `label`, `card`) + `components.json`. Componente partajate: `StatusBadge` (registru statusuri
+  din mockup), `DataTable` (TanStack: sortare/paginare/hover), `EmptyState`, `PageHeader`,
+  `FormField`, `BrandProvider` (white-label), sidebar fix + `AppShell` + `nav-config` pe roluri.
+  Pagina `/showcase` reda tot. Teste unitare pentru `StatusBadge` si `DataTable`. Verificat
+  vizual prin screenshot. Toate check-urile verzi (typecheck/lint/test/build/format).
+
+## 2026-06-25 — Claude Opus 4.8
+
 - **Cerut:** continuarea cu urmatorul task din plan (T0.3 — integrare Supabase).
 - **Facut:** `supabase init` (`config.toml`), migrare de baza `0000_extensions.sql`,
   clienti Supabase (`src/lib/supabase/{client,server,middleware}.ts`), helper `env.ts`,
