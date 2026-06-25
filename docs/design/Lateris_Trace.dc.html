@@ -1,0 +1,1122 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=Spectral:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  @keyframes scIn{from{transform:translateY(7px);}to{transform:none;}}
+  @keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+  @keyframes ribbonIn{from{opacity:0;}to{opacity:0.85;}}
+  ::selection{background:var(--accent);color:var(--onAccent);}
+  ::-webkit-scrollbar{width:11px;height:11px;}
+  ::-webkit-scrollbar-thumb{background:var(--line);border-radius:9px;border:3px solid var(--paper);}
+  ::-webkit-scrollbar-thumb:hover{background:var(--muted);}
+  input,button,select,textarea{font-family:inherit;}
+</style>
+</helmet>
+<div ref="{{ rootRef }}" style="--brand:oklch(0.32 0.04 158);--brand2:oklch(0.4 0.045 156);--brandLine:oklch(0.47 0.04 156);--onBrand:oklch(0.94 0.02 150);--onBrandMuted:oklch(0.78 0.03 150);--accent:oklch(0.74 0.13 66);--onAccent:oklch(0.27 0.06 60);--accentSoft:oklch(0.93 0.05 78);--paper:oklch(0.97 0.008 95);--surface:oklch(0.995 0.004 95);--surface2:oklch(0.985 0.006 95);--ink:oklch(0.26 0.02 150);--muted:oklch(0.53 0.015 150);--faint:oklch(0.68 0.012 150);--line:oklch(0.9 0.01 120);--gridDot:oklch(0.88 0.012 120);--ok:oklch(0.52 0.1 150);--okBg:oklch(0.94 0.045 150);--warn:oklch(0.6 0.12 60);--warnBg:oklch(0.94 0.05 70);--danger:oklch(0.55 0.16 25);--dangerBg:oklch(0.94 0.05 28);--info:oklch(0.52 0.07 230);--infoBg:oklch(0.94 0.035 230);position:relative;min-height:100vh;background:var(--paper);color:var(--ink);font-family:'Archivo',system-ui,sans-serif;-webkit-font-smoothing:antialiased;font-feature-settings:'ss01','cv11';">
+
+  <sc-if value="{{ showPattern }}" hint-placeholder-val="{{ true }}">
+    <div style="position:fixed;inset:0;pointer-events:none;z-index:0;background-image:radial-gradient(var(--gridDot) 1px,transparent 1px);background-size:26px 26px;opacity:0.55;"></div>
+    <div style="position:fixed;inset:0;pointer-events:none;z-index:0;mix-blend-mode:multiply;opacity:0.045;background-image:url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22160%22 height=%22160%22%3E%3Cfilter id=%22n%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.85%22 numOctaves=%222%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23n)%22/%3E%3C/svg%3E');"></div>
+  </sc-if>
+
+  <!-- ============================ LOGIN ============================ -->
+  <sc-if value="{{ isLogin }}" hint-placeholder-val="{{ true }}">
+    <div style="position:relative;z-index:1;display:grid;grid-template-columns:1.05fr 0.95fr;min-height:100vh;">
+      <div style="background:var(--brand);color:var(--onBrand);padding:54px 60px;display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden;">
+        <div style="position:absolute;inset:0;opacity:0.5;pointer-events:none;background-image:radial-gradient(oklch(0.5 0.04 156) 1px,transparent 1px);background-size:30px 30px;"></div>
+        <div style="position:relative;z-index:1;display:flex;align-items:center;gap:13px;">
+          <div style="width:38px;height:38px;position:relative;flex:none;">
+            <div style="position:absolute;left:2px;top:9px;width:24px;height:11px;border-radius:2px;background:var(--accent);transform:skewX(-12deg);"></div>
+            <div style="position:absolute;left:12px;top:21px;width:24px;height:11px;border-radius:2px;background:var(--onBrand);transform:skewX(-12deg);"></div>
+          </div>
+          <div style="font-weight:800;font-size:20px;letter-spacing:0.5px;">{{ orgName }}</div>
+        </div>
+        <div style="position:relative;z-index:1;max-width:440px;">
+          <div style="font-family:'Spectral',serif;font-size:46px;line-height:1.08;font-weight:600;letter-spacing:-0.5px;">Fiecare gram de material, urmărit de la sursă la livrare.</div>
+          <p style="margin:24px 0 0;color:var(--onBrandMuted);font-size:15.5px;line-height:1.6;max-width:400px;">Trasabilitate completă pentru loturi, procese de producție și reciclare. Certificate de proveniență emise automat pentru fiecare comandă.</p>
+        </div>
+        <div style="position:relative;z-index:1;display:flex;gap:32px;color:var(--onBrandMuted);font-size:12.5px;font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:1px;">
+          <div><div style="color:var(--onBrand);font-size:22px;font-family:'Archivo';font-weight:700;letter-spacing:0;">100%</div>trasabil</div>
+          <div><div style="color:var(--onBrand);font-size:22px;font-family:'Archivo';font-weight:700;letter-spacing:0;">FIFO</div>consum loturi</div>
+          <div><div style="color:var(--onBrand);font-size:22px;font-family:'Archivo';font-weight:700;letter-spacing:0;">ISO</div>conform</div>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:center;justify-content:center;padding:40px;">
+        <div style="width:100%;max-width:380px;animation:scIn .5s ease;">
+          <div style="font-size:13px;font-family:'IBM Plex Mono',monospace;letter-spacing:1.5px;text-transform:uppercase;color:var(--accent);font-weight:600;">Reverra Platform</div>
+          <h1 style="margin:10px 0 6px;font-size:27px;font-weight:700;letter-spacing:-0.4px;">Autentificare</h1>
+          <p style="margin:0 0 26px;color:var(--muted);font-size:14.5px;">Contul de organizație {{ orgName }}.</p>
+
+          <label style="display:block;font-size:12.5px;font-weight:600;color:var(--ink);margin:0 0 7px;">Email</label>
+          <input value="operator@lateris.ro" style="width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:9px;background:var(--surface);font-size:14.5px;color:var(--ink);outline:none;margin-bottom:16px;" style-focus="border-color:var(--accent);box-shadow:0 0 0 3px var(--accentSoft);" />
+
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;">
+            <label style="font-size:12.5px;font-weight:600;color:var(--ink);">Parolă</label>
+            <a href="#" style="font-size:12.5px;color:var(--accent);text-decoration:none;font-weight:600;">Ai uitat parola?</a>
+          </div>
+          <input type="password" value="............" style="width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:9px;background:var(--surface);font-size:14.5px;color:var(--ink);outline:none;margin-bottom:22px;" style-focus="border-color:var(--accent);box-shadow:0 0 0 3px var(--accentSoft);" />
+
+          <button onClick="{{ enterApp }}" style="width:100%;padding:13px;border:none;border-radius:9px;background:var(--accent);color:var(--onAccent);font-size:15px;font-weight:700;cursor:pointer;transition:filter .15s;letter-spacing:0.2px;" style-hover="filter:brightness(1.05);">Intră în cont</button>
+
+          <div style="display:flex;align-items:center;gap:14px;margin:22px 0;">
+            <div style="flex:1;height:1px;background:var(--line);"></div>
+            <span style="font-size:12px;color:var(--faint);font-family:'IBM Plex Mono',monospace;">SAU</span>
+            <div style="flex:1;height:1px;background:var(--line);"></div>
+          </div>
+          <button onClick="{{ enterApp }}" style="width:100%;padding:12px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--ink);font-size:14px;font-weight:600;cursor:pointer;" style-hover="background:var(--surface2);">Trimite link magic pe email</button>
+
+          <p style="margin:30px 0 0;text-align:center;font-size:12px;color:var(--faint);">Securizat de <span style="color:var(--muted);font-weight:600;">Reverra Auth</span> · white-label pentru {{ orgName }}</p>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ============================ APP SHELL ============================ -->
+  <sc-if value="{{ isApp }}" hint-placeholder-val="{{ true }}">
+    <div style="position:relative;z-index:1;display:flex;min-height:100vh;">
+
+      <!-- SIDEBAR -->
+      <aside style="width:248px;flex:none;background:var(--brand);color:var(--onBrand);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;">
+        <div style="padding:22px 20px 18px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--brandLine);">
+          <div style="width:32px;height:32px;position:relative;flex:none;">
+            <div style="position:absolute;left:1px;top:8px;width:20px;height:9px;border-radius:2px;background:var(--accent);transform:skewX(-12deg);"></div>
+            <div style="position:absolute;left:10px;top:18px;width:20px;height:9px;border-radius:2px;background:var(--onBrand);transform:skewX(-12deg);"></div>
+          </div>
+          <div>
+            <div style="font-weight:800;font-size:16px;letter-spacing:0.3px;line-height:1;">{{ orgName }}</div>
+            <div style="font-size:10.5px;color:var(--onBrandMuted);font-family:'IBM Plex Mono',monospace;letter-spacing:0.5px;margin-top:3px;">{{ roleLabel }}</div>
+          </div>
+        </div>
+
+        <nav style="flex:1;overflow-y:auto;padding:16px 12px;display:flex;flex-direction:column;gap:3px;">
+          <sc-if value="{{ isStaff }}" hint-placeholder-val="{{ true }}">
+            <div style="font-size:10.5px;font-family:'IBM Plex Mono',monospace;letter-spacing:1.2px;text-transform:uppercase;color:var(--onBrandMuted);padding:6px 12px 8px;">Operațional</div>
+            <button onClick="{{ navTo.orders }}" style="{{ navStyle.orders }}"><span style="{{ navDot.orders }}"></span>Comenzi<span style="{{ navBadgeStyle }}">3</span></button>
+            <button onClick="{{ navTo.stock }}" style="{{ navStyle.stock }}"><span style="{{ navDot.stock }}"></span>Stoc</button>
+            <button onClick="{{ navTo.production }}" style="{{ navStyle.production }}"><span style="{{ navDot.production }}"></span>Producție</button>
+            <div style="font-size:10.5px;font-family:'IBM Plex Mono',monospace;letter-spacing:1.2px;text-transform:uppercase;color:var(--onBrandMuted);padding:16px 12px 8px;">Administrare</div>
+            <button onClick="{{ navTo.clients }}" style="{{ navStyle.clients }}"><span style="{{ navDot.clients }}"></span>Clienți</button>
+            <button onClick="{{ navTo.recipes }}" style="{{ navStyle.recipes }}"><span style="{{ navDot.recipes }}"></span>Rețete</button>
+            <button onClick="{{ navTo.audit }}" style="{{ navStyle.audit }}"><span style="{{ navDot.audit }}"></span>Audit stoc</button>
+            <sc-if value="{{ isAdmin }}" hint-placeholder-val="{{ true }}">
+              <button onClick="{{ navTo.settings }}" style="{{ navStyle.settings }}"><span style="{{ navDot.settings }}"></span>Setări</button>
+            </sc-if>
+          </sc-if>
+          <sc-if value="{{ isClient }}" hint-placeholder-val="{{ false }}">
+            <div style="font-size:10.5px;font-family:'IBM Plex Mono',monospace;letter-spacing:1.2px;text-transform:uppercase;color:var(--onBrandMuted);padding:6px 12px 8px;">Portal client</div>
+            <button onClick="{{ navTo.catalog }}" style="{{ navStyle.catalog }}"><span style="{{ navDot.catalog }}"></span>Catalog</button>
+            <button onClick="{{ navTo.myorders }}" style="{{ navStyle.myorders }}"><span style="{{ navDot.myorders }}"></span>Comenzile mele</button>
+            <button onClick="{{ navTo.docs }}" style="{{ navStyle.docs }}"><span style="{{ navDot.docs }}"></span>Documente &amp; Certificate</button>
+          </sc-if>
+        </nav>
+
+        <div style="padding:14px 12px;border-top:1px solid var(--brandLine);">
+          <div style="font-size:10.5px;font-family:'IBM Plex Mono',monospace;letter-spacing:1px;text-transform:uppercase;color:var(--onBrandMuted);padding:0 12px 8px;">Vizualizează ca</div>
+          <div style="display:flex;gap:5px;padding:0 4px;">
+            <button onClick="{{ setStaff }}" style="{{ roleBtn.staff }}">Operator</button>
+            <button onClick="{{ setClient }}" style="{{ roleBtn.client }}">Client</button>
+          </div>
+          <button onClick="{{ goLogin }}" style="margin-top:10px;width:100%;display:flex;align-items:center;gap:9px;padding:9px 12px;border:none;background:transparent;color:var(--onBrandMuted);font-size:13px;cursor:pointer;border-radius:8px;" style-hover="background:var(--brand2);color:var(--onBrand);">↩ Deconectare</button>
+        </div>
+      </aside>
+
+      <!-- MAIN -->
+      <div style="flex:1;display:flex;flex-direction:column;min-width:0;">
+        <header style="height:64px;flex:none;background:var(--surface);border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 28px;position:sticky;top:0;z-index:20;">
+          <div style="display:flex;align-items:center;gap:11px;">
+            <h2 style="margin:0;font-size:18px;font-weight:700;letter-spacing:-0.3px;">{{ screenTitle }}</h2>
+            <span style="font-size:11px;font-family:'IBM Plex Mono',monospace;color:var(--faint);background:var(--surface2);padding:3px 8px;border-radius:6px;border:1px solid var(--line);">{{ screenCrumb }}</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:16px;">
+            <div style="display:flex;align-items:center;gap:9px;background:var(--surface2);border:1px solid var(--line);border-radius:9px;padding:7px 12px;width:230px;">
+              <span style="color:var(--faint);font-size:13px;">⌕</span>
+              <input placeholder="Caută comenzi, loturi, clienți…" style="border:none;background:transparent;outline:none;font-size:13px;color:var(--ink);width:100%;" />
+            </div>
+            <div style="width:34px;height:34px;border-radius:9px;background:var(--accent);color:var(--onAccent);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;">AM</div>
+          </div>
+        </header>
+
+        <main style="flex:1;overflow-y:auto;padding:30px 32px 60px;">
+
+          <!-- ===== COMENZI ===== -->
+          <sc-if value="{{ isOrders }}" hint-placeholder-val="{{ true }}">
+            <div style="animation:scIn .35s ease;">
+              <div style="display:flex;gap:14px;margin-bottom:22px;flex-wrap:wrap;">
+                <sc-for list="{{ orderStats }}" as="s" hint-placeholder-count="4">
+                  <div style="flex:1;min-width:170px;background:var(--surface);border:1px solid var(--line);border-radius:13px;padding:16px 18px;">
+                    <div style="font-size:12px;color:var(--muted);font-weight:500;">{{ s.label }}</div>
+                    <div style="display:flex;align-items:baseline;gap:8px;margin-top:6px;">
+                      <div style="font-size:26px;font-weight:700;letter-spacing:-0.5px;">{{ s.value }}</div>
+                      <div style="font-size:12px;font-weight:600;color:{{ s.trendColor }};">{{ s.trend }}</div>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+
+              <div style="background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden;">
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--line);flex-wrap:wrap;gap:12px;">
+                  <div style="display:flex;gap:6px;background:var(--surface2);padding:4px;border-radius:9px;">
+                    <sc-for list="{{ orderFilters }}" as="f" hint-placeholder-count="5">
+                      <button onClick="{{ f.onClick }}" style="{{ f.style }}">{{ f.label }}<span style="opacity:.6;margin-left:6px;font-family:'IBM Plex Mono',monospace;font-size:11px;">{{ f.count }}</span></button>
+                    </sc-for>
+                  </div>
+                  <div style="display:flex;gap:10px;">
+                    <button style="display:flex;align-items:center;gap:7px;padding:9px 14px;border:1px solid var(--line);background:var(--surface);border-radius:9px;font-size:13px;font-weight:600;color:var(--ink);cursor:pointer;" style-hover="background:var(--surface2);">⛃ Filtre</button>
+                    <button style="display:flex;align-items:center;gap:7px;padding:9px 16px;border:none;background:var(--brand);color:var(--onBrand);border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;" style-hover="filter:brightness(1.15);">+ Comandă nouă</button>
+                  </div>
+                </div>
+
+                <table style="width:100%;border-collapse:collapse;font-size:13.5px;">
+                  <thead>
+                    <tr style="text-align:left;color:var(--muted);font-size:11.5px;text-transform:uppercase;letter-spacing:0.6px;font-family:'IBM Plex Mono',monospace;">
+                      <th style="padding:12px 20px;font-weight:600;">Comandă ↓</th>
+                      <th style="padding:12px 14px;font-weight:600;">Client</th>
+                      <th style="padding:12px 14px;font-weight:600;">Produse</th>
+                      <th style="padding:12px 14px;font-weight:600;">Livrare</th>
+                      <th style="padding:12px 14px;font-weight:600;">Status</th>
+                      <th style="padding:12px 20px;font-weight:600;text-align:right;">Acțiuni</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <sc-for list="{{ ordersV }}" as="o" hint-placeholder-count="6">
+                      <tr style="border-top:1px solid var(--line);transition:background .12s;" style-hover="background:var(--surface2);">
+                        <td style="padding:14px 20px;"><div style="font-family:'IBM Plex Mono',monospace;font-weight:600;color:var(--ink);">{{ o.id }}</div><div style="font-size:11.5px;color:var(--faint);margin-top:2px;">{{ o.created }}</div></td>
+                        <td style="padding:14px 14px;font-weight:600;">{{ o.client }}</td>
+                        <td style="padding:14px 14px;color:var(--muted);">{{ o.products }}</td>
+                        <td style="padding:14px 14px;font-variant-numeric:tabular-nums;">{{ o.delivery }}</td>
+                        <td style="padding:14px 14px;"><span style="display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:20px;font-size:11.5px;font-weight:600;background:{{ o.stBg }};color:{{ o.stFg }};"><span style="width:6px;height:6px;border-radius:50%;background:{{ o.stFg }};"></span>{{ o.stLabel }}</span></td>
+                        <td style="padding:14px 20px;text-align:right;">
+                          <div style="display:inline-flex;gap:7px;justify-content:flex-end;">
+                            <sc-if value="{{ o.canAct }}" hint-placeholder-val="{{ true }}">
+                              <button style="padding:6px 12px;border:none;background:var(--okBg);color:var(--ok);border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;" style-hover="filter:brightness(0.96);">Acceptă</button>
+                              <button style="padding:6px 12px;border:none;background:var(--dangerBg);color:var(--danger);border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;" style-hover="filter:brightness(0.96);">Anulează</button>
+                            </sc-if>
+                            <button style="padding:6px 10px;border:1px solid var(--line);background:var(--surface);color:var(--muted);border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;" style-hover="background:var(--surface2);color:var(--ink);">Detalii</button>
+                          </div>
+                        </td>
+                      </tr>
+                    </sc-for>
+                  </tbody>
+                </table>
+
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-top:1px solid var(--line);font-size:13px;color:var(--muted);">
+                  <span>Afișez <b style="color:var(--ink);">6</b> din <b style="color:var(--ink);">38</b> comenzi</span>
+                  <div style="display:flex;gap:6px;align-items:center;">
+                    <button style="width:32px;height:32px;border:1px solid var(--line);background:var(--surface);border-radius:8px;cursor:pointer;color:var(--muted);">‹</button>
+                    <button style="width:32px;height:32px;border:none;background:var(--brand);color:var(--onBrand);border-radius:8px;cursor:pointer;font-weight:600;">1</button>
+                    <button style="width:32px;height:32px;border:1px solid var(--line);background:var(--surface);border-radius:8px;cursor:pointer;color:var(--ink);">2</button>
+                    <button style="width:32px;height:32px;border:1px solid var(--line);background:var(--surface);border-radius:8px;cursor:pointer;color:var(--ink);">3</button>
+                    <button style="width:32px;height:32px;border:1px solid var(--line);background:var(--surface);border-radius:8px;cursor:pointer;color:var(--muted);">›</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </sc-if>
+
+          <!-- ===== STOC ===== -->
+          <sc-if value="{{ isStock }}" hint-placeholder-val="{{ false }}">
+            <div style="animation:scIn .35s ease;">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:12px;">
+                <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+                  <div style="display:flex;gap:4px;background:var(--brand);padding:4px;border-radius:9px;">
+                    <button onClick="{{ setViewLots }}" style="padding:7px 14px;border:none;border-radius:7px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .14s;background:{{ viewLotsBg }};color:{{ viewLotsFg }};">Pe loturi</button>
+                    <button onClick="{{ setViewProduct }}" style="padding:7px 14px;border:none;border-radius:7px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .14s;background:{{ viewProductBg }};color:{{ viewProductFg }};">Pe produs</button>
+                  </div>
+                  <sc-if value="{{ isViewLots }}" hint-placeholder-val="{{ true }}">
+                    <div style="display:flex;gap:6px;background:var(--surface2);padding:4px;border-radius:9px;border:1px solid var(--line);">
+                      <sc-for list="{{ stockFilters }}" as="f" hint-placeholder-count="4">
+                        <button onClick="{{ f.onClick }}" style="{{ f.style }}">{{ f.label }}<span style="opacity:.6;margin-left:6px;font-family:'IBM Plex Mono',monospace;font-size:11px;">{{ f.count }}</span></button>
+                      </sc-for>
+                    </div>
+                  </sc-if>
+                </div>
+                <button onClick="{{ openLotForm }}" style="display:flex;align-items:center;gap:7px;padding:10px 18px;border:none;background:var(--accent);color:var(--onAccent);border-radius:9px;font-size:13.5px;font-weight:700;cursor:pointer;" style-hover="filter:brightness(1.05);">+ Adaugă lot</button>
+              </div>
+
+              <!-- LOTS VIEW -->
+              <sc-if value="{{ isViewLots }}" hint-placeholder-val="{{ true }}">
+                <div style="background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden;">
+                  <table style="width:100%;border-collapse:collapse;font-size:13.5px;">
+                    <thead>
+                      <tr style="text-align:left;color:var(--muted);font-size:11.5px;text-transform:uppercase;letter-spacing:0.6px;font-family:'IBM Plex Mono',monospace;">
+                        <th style="padding:12px 20px;font-weight:600;">Lot</th>
+                        <th style="padding:12px 14px;font-weight:600;">Item</th>
+                        <th style="padding:12px 14px;font-weight:600;text-align:right;">Cantitate rămasă</th>
+                        <th style="padding:12px 14px;font-weight:600;">Proveniență</th>
+                        <th style="padding:12px 14px;font-weight:600;">Intrare</th>
+                        <th style="padding:12px 20px;font-weight:600;">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <sc-for list="{{ lotsV }}" as="l" hint-placeholder-count="7">
+                        <tr style="border-top:1px solid var(--line);transition:background .12s;" style-hover="background:var(--surface2);">
+                          <td style="padding:13px 20px;font-family:'IBM Plex Mono',monospace;font-weight:600;">{{ l.code }}</td>
+                          <td style="padding:13px 14px;font-weight:600;">{{ l.item }}</td>
+                          <td style="padding:13px 14px;text-align:right;font-variant-numeric:tabular-nums;"><b>{{ l.qty }}</b> <span style="color:var(--faint);font-size:12px;">{{ l.um }}</span></td>
+                          <td style="padding:13px 14px;"><span style="display:inline-flex;align-items:center;gap:6px;padding:3px 9px;border-radius:7px;font-size:11.5px;font-weight:600;background:{{ l.srcBg }};color:{{ l.srcFg }};">{{ l.srcLabel }}</span></td>
+                          <td style="padding:13px 14px;color:var(--muted);font-variant-numeric:tabular-nums;">{{ l.date }}</td>
+                          <td style="padding:13px 20px;"><span style="display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:20px;font-size:11.5px;font-weight:600;background:{{ l.stBg }};color:{{ l.stFg }};"><span style="width:6px;height:6px;border-radius:50%;background:{{ l.stFg }};"></span>{{ l.stLabel }}</span></td>
+                        </tr>
+                      </sc-for>
+                    </tbody>
+                  </table>
+                </div>
+              </sc-if>
+
+              <!-- PRODUCT (AGGREGATED) VIEW -->
+              <sc-if value="{{ isViewProduct }}" hint-placeholder-val="{{ false }}">
+                <div style="background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden;">
+                  <table style="width:100%;border-collapse:collapse;font-size:13.5px;">
+                    <thead>
+                      <tr style="text-align:left;color:var(--muted);font-size:11.5px;text-transform:uppercase;letter-spacing:0.6px;font-family:'IBM Plex Mono',monospace;">
+                        <th style="padding:12px 20px;font-weight:600;">Produs / Item</th>
+                        <th style="padding:12px 14px;font-weight:600;text-align:right;">Total disponibil</th>
+                        <th style="padding:12px 14px;font-weight:600;text-align:right;">Loturi</th>
+                        <th style="padding:12px 14px;font-weight:600;">Proveniență</th>
+                        <th style="padding:12px 20px;font-weight:600;text-align:right;">Din care blocat</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <sc-for list="{{ stockAggV }}" as="a" hint-placeholder-count="6">
+                        <tr style="border-top:1px solid var(--line);transition:background .12s;" style-hover="background:var(--surface2);">
+                          <td style="padding:14px 20px;font-weight:700;">{{ a.item }}</td>
+                          <td style="padding:14px 14px;text-align:right;font-variant-numeric:tabular-nums;"><b style="font-size:15px;">{{ a.totalL }}</b> <span style="color:var(--faint);font-size:12px;">{{ a.um }}</span></td>
+                          <td style="padding:14px 14px;text-align:right;"><span style="display:inline-block;min-width:24px;font-family:'IBM Plex Mono',monospace;font-weight:600;background:var(--surface2);border:1px solid var(--line);border-radius:7px;padding:2px 9px;">{{ a.lots }}</span></td>
+                          <td style="padding:14px 14px;color:var(--muted);font-size:12.5px;">{{ a.sources }}</td>
+                          <td style="padding:14px 20px;text-align:right;">
+                            <sc-if value="{{ a.blockedL }}" hint-placeholder-val="{{ false }}">
+                              <span style="display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:20px;font-size:11.5px;font-weight:600;background:var(--dangerBg);color:var(--danger);">⛔ {{ a.blockedL }}</span>
+                            </sc-if>
+                            <sc-if value="{{ a.blockedL }}" hint-placeholder-val="{{ false }}"></sc-if>
+                            <span style="color:var(--faint);font-size:12px;">{{ a.noBlockDash }}</span>
+                          </td>
+                        </tr>
+                      </sc-for>
+                    </tbody>
+                  </table>
+                </div>
+              </sc-if>
+            </div>
+
+            <!-- ADD LOT DRAWER -->
+            <sc-if value="{{ lotFormOpen }}" hint-placeholder-val="{{ false }}">
+              <div onClick="{{ closeLotForm }}" style="position:fixed;inset:0;background:oklch(0.2 0.02 150 / 0.45);z-index:50;animation:fadeIn .2s ease;"></div>
+              <div style="position:fixed;top:0;right:0;height:100vh;width:460px;max-width:92vw;background:var(--surface);z-index:51;box-shadow:-12px 0 40px oklch(0.2 0.02 150 / 0.18);display:flex;flex-direction:column;animation:scIn .28s ease;">
+                <div style="padding:22px 26px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:between;justify-content:space-between;">
+                  <div><h3 style="margin:0;font-size:19px;font-weight:700;">Adaugă lot în stoc</h3><p style="margin:4px 0 0;font-size:13px;color:var(--muted);">Înregistrează un nou lot cu proveniență și documente.</p></div>
+                  <button onClick="{{ closeLotForm }}" style="width:32px;height:32px;border:1px solid var(--line);background:var(--surface);border-radius:8px;cursor:pointer;color:var(--muted);font-size:16px;">×</button>
+                </div>
+                <div style="flex:1;overflow-y:auto;padding:24px 26px;display:flex;flex-direction:column;gap:18px;">
+                  <div>
+                    <label style="display:block;font-size:12.5px;font-weight:600;margin-bottom:7px;">Item</label>
+                    <select style="width:100%;padding:11px 13px;border:1px solid var(--line);border-radius:9px;background:var(--surface);font-size:14px;color:var(--ink);outline:none;"><option>Argilă reciclată</option><option>Ciment Portland</option><option>Moloz beton</option><option>Agregat reciclat</option></select>
+                  </div>
+                  <div style="display:flex;gap:14px;">
+                    <div style="flex:2;"><label style="display:block;font-size:12.5px;font-weight:600;margin-bottom:7px;">Cantitate</label><input value="{{ lotQty }}" onChange="{{ onLotQty }}" style="{{ lotQtyInputStyle }}" style-focus="border-color:var(--accent);box-shadow:0 0 0 3px var(--accentSoft);" /><sc-if value="{{ lotQtyError }}" hint-placeholder-val="{{ false }}"><div style="margin-top:6px;font-size:11.5px;color:var(--danger);font-weight:600;">Introdu o cantitate mai mare ca zero.</div></sc-if></div>
+                    <div style="flex:1;"><label style="display:block;font-size:12.5px;font-weight:600;margin-bottom:7px;">UM</label><select style="width:100%;padding:11px 13px;border:1px solid var(--line);border-radius:9px;background:var(--surface);font-size:14px;color:var(--ink);outline:none;"><option>kg</option><option>buc</option><option>t</option><option>m³</option></select></div>
+                  </div>
+                  <div>
+                    <label style="display:block;font-size:12.5px;font-weight:600;margin-bottom:7px;">Proveniență</label>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                      <sc-for list="{{ sourceOptions }}" as="so" hint-placeholder-count="5">
+                        <button onClick="{{ so.onClick }}" style="{{ so.style }}">{{ so.label }}</button>
+                      </sc-for>
+                    </div>
+                  </div>
+                  <div>
+                    <label style="display:block;font-size:12.5px;font-weight:600;margin-bottom:7px;">Data intrare</label>
+                    <input value="25.06.2026" style="width:100%;padding:11px 13px;border:1px solid var(--line);border-radius:9px;background:var(--surface);font-size:14px;outline:none;font-variant-numeric:tabular-nums;" style-focus="border-color:var(--accent);box-shadow:0 0 0 3px var(--accentSoft);" />
+                  </div>
+                  <div>
+                    <label style="display:block;font-size:12.5px;font-weight:600;margin-bottom:7px;">Documente atașate</label>
+                    <div style="border:1.5px dashed var(--line);border-radius:11px;padding:24px;text-align:center;background:var(--surface2);cursor:pointer;" style-hover="border-color:var(--accent);">
+                      <div style="font-size:22px;margin-bottom:6px;color:var(--faint);">⇪</div>
+                      <div style="font-size:13px;color:var(--muted);">Trage fișiere aici sau <span style="color:var(--accent);font-weight:600;">răsfoiește</span></div>
+                      <div style="font-size:11.5px;color:var(--faint);margin-top:4px;">Aviz, factură, certificat conformitate · PDF, JPG</div>
+                    </div>
+                  </div>
+                </div>
+                <div style="padding:18px 26px;border-top:1px solid var(--line);display:flex;gap:12px;">
+                  <button onClick="{{ closeLotForm }}" style="flex:1;padding:12px;border:1px solid var(--line);background:var(--surface);border-radius:9px;font-size:14px;font-weight:600;color:var(--ink);cursor:pointer;">Anulează</button>
+                  <button onClick="{{ submitLot }}" style="flex:2;padding:12px;border:none;background:var(--accent);color:var(--onAccent);border-radius:9px;font-size:14px;font-weight:700;cursor:pointer;">Înregistrează lotul</button>
+                </div>
+              </div>
+            </sc-if>
+          </sc-if>
+
+          <!-- ===== PRODUCTIE ===== -->
+          <sc-if value="{{ isProduction }}" hint-placeholder-val="{{ false }}">
+            <div style="animation:scIn .35s ease;max-width:1180px;">
+              <div style="display:flex;background:var(--surface);border:1px solid var(--line);border-radius:14px 14px 0 0;border-bottom:none;overflow:hidden;">
+                <button onClick="{{ setProdFix }}" style="{{ prodTabFixStyle }}">
+                  <div style="font-size:14.5px;font-weight:700;">Output fix — Fabricație</div>
+                  <div style="font-size:12px;color:var(--muted);margin-top:2px;">Cărămizi, pavaje · consum FIFO automat</div>
+                </button>
+                <button onClick="{{ setProdVar }}" style="{{ prodTabVarStyle }}">
+                  <div style="font-size:14.5px;font-weight:700;">Output variabil — Reciclare</div>
+                  <div style="font-size:12px;color:var(--muted);margin-top:2px;">Moloz, demolări · fracții reale ajustabile</div>
+                </button>
+              </div>
+
+              <!-- FIX -->
+              <sc-if value="{{ isProdFix }}" hint-placeholder-val="{{ true }}">
+                <div style="display:grid;grid-template-columns:380px 1fr;gap:0;background:var(--surface);border:1px solid var(--line);border-radius:0 0 14px 14px;">
+                  <div style="padding:24px;border-right:1px solid var(--line);">
+                    <label style="display:block;font-size:12.5px;font-weight:600;margin-bottom:7px;">Rețetă / produs</label>
+                    <select style="width:100%;padding:11px 13px;border:1px solid var(--line);border-radius:9px;background:var(--surface);font-size:14px;color:var(--ink);outline:none;margin-bottom:18px;"><option>Cărămidă eco standard</option><option>Pavaj reciclat 20×20</option></select>
+                    <label style="display:block;font-size:12.5px;font-weight:600;margin-bottom:7px;">Cantitate output dorită</label>
+                    <div style="{{ prodQtyBoxStyle }}">
+                      <input value="{{ prodQty }}" onChange="{{ onProdQty }}" style="{{ prodQtyInputStyle }}" />
+                      <span style="display:flex;align-items:center;padding:0 14px;background:var(--surface2);color:var(--muted);font-size:13px;font-weight:600;border-left:1px solid var(--line);">{{ fixOutUm }}</span>
+                    </div>
+                    <div style="margin-top:7px;font-size:11.5px;color:var(--faint);font-family:'IBM Plex Mono',monospace;">Max posibil din stoc: {{ maxFixOutputL }} {{ fixOutUm }}</div>
+                    <sc-if value="{{ fixErrorMsg }}" hint-placeholder-val="{{ false }}">
+                      <div style="margin-top:12px;display:flex;gap:9px;padding:11px 13px;background:var(--dangerBg);border:1px solid var(--danger);border-radius:9px;"><span style="color:var(--danger);font-weight:700;">⚠</span><span style="font-size:12.5px;color:var(--danger);font-weight:600;line-height:1.4;">{{ fixErrorMsg }}</span></div>
+                    </sc-if>
+                    <div style="margin-top:22px;padding:14px;background:var(--surface2);border-radius:11px;border:1px solid var(--line);">
+                      <div style="font-size:11.5px;font-family:'IBM Plex Mono',monospace;letter-spacing:0.5px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;">Consum calculat (FIFO)</div>
+                      <sc-for list="{{ fixInputsV }}" as="i" hint-placeholder-count="3">
+                        <div style="padding:9px 0;border-top:1px solid var(--line);">
+                          <div style="display:flex;justify-content:space-between;align-items:baseline;"><span style="font-weight:600;font-size:13px;">{{ i.item }}</span><span style="font-weight:700;font-size:13px;font-variant-numeric:tabular-nums;color:{{ i.valColor }};">{{ i.totalL }}</span></div>
+                          <div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:3px;"><span style="font-size:11px;color:var(--faint);font-family:'IBM Plex Mono',monospace;">{{ i.lotsLabel }}</span><span style="font-size:10.5px;font-family:'IBM Plex Mono',monospace;color:{{ i.valColor }};">{{ i.availL }}</span></div>
+                        </div>
+                      </sc-for>
+                    </div>
+                  </div>
+                  <div style="padding:24px;display:flex;flex-direction:column;">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+                      <div style="font-size:13px;font-weight:700;">Flux materiale</div>
+                      <div style="font-size:11.5px;color:var(--faint);font-family:'IBM Plex Mono',monospace;">loturi → proces → output · plimbă cursorul</div>
+                    </div>
+                    <div style="flex:1;display:flex;align-items:center;min-height:240px;padding:8px 0;">{{ fixSankey }}</div>
+                    <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding-top:18px;border-top:1px solid var(--line);">
+                      <div style="font-size:13px;color:var(--muted);">Total intrare <b style="color:var(--ink);font-variant-numeric:tabular-nums;">{{ fixMassL }} kg</b> → <b style="color:var(--ink);">{{ prodQtyL }} {{ fixOutUm }}</b> {{ fixOut }}</div>
+                      <button style="{{ confirmFixStyle }}">Confirmă și pornește →</button>
+                    </div>
+                  </div>
+                </div>
+              </sc-if>
+
+              <!-- VAR -->
+              <sc-if value="{{ isProdVar }}" hint-placeholder-val="{{ false }}">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;background:var(--surface);border:1px solid var(--line);border-radius:0 0 14px 14px;">
+                  <div style="padding:24px;border-right:1px solid var(--line);">
+                    <label style="display:block;font-size:12.5px;font-weight:600;margin-bottom:7px;">Material input</label>
+                    <div style="display:flex;gap:10px;margin-bottom:18px;">
+                      <select style="flex:1;padding:11px 13px;border:1px solid var(--line);border-radius:9px;background:var(--surface);font-size:14px;color:var(--ink);outline:none;"><option>Moloz beton · LOT-3382</option></select>
+                      <div style="{{ varQtyBoxStyle }}">
+                        <input value="{{ varQty }}" onChange="{{ onVarQty }}" style="{{ varQtyInputStyle }}" />
+                        <span style="display:flex;align-items:center;padding:0 11px;background:var(--surface2);color:var(--muted);font-size:13px;font-weight:600;">kg</span>
+                      </div>
+                    </div>
+                    <sc-if value="{{ varErrorMsg }}" hint-placeholder-val="{{ false }}">
+                      <div style="margin-bottom:16px;display:flex;gap:9px;padding:11px 13px;background:var(--dangerBg);border:1px solid var(--danger);border-radius:9px;"><span style="color:var(--danger);font-weight:700;">⚠</span><span style="font-size:12.5px;color:var(--danger);font-weight:600;line-height:1.4;">{{ varErrorMsg }}</span></div>
+                    </sc-if>
+                    <div style="font-size:11.5px;font-family:'IBM Plex Mono',monospace;letter-spacing:0.5px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">Output real — ajustează fracțiile</div>
+                    <table style="width:100%;border-collapse:collapse;font-size:13px;">
+                      <thead><tr style="color:var(--faint);font-size:11px;text-align:left;"><th style="padding:6px 0;font-weight:600;">Fracție</th><th style="padding:6px 8px;font-weight:600;text-align:right;">Ideal</th><th style="padding:6px 0;font-weight:600;text-align:right;">Real (kg)</th></tr></thead>
+                      <tbody>
+                        <sc-for list="{{ varOutputsV }}" as="o" hint-placeholder-count="5">
+                          <tr style="border-top:1px solid var(--line);">
+                            <td style="padding:8px 0;"><div style="font-weight:600;">{{ o.item }}</div><div style="font-size:11px;color:var(--faint);">{{ o.pct }}% teoretic</div></td>
+                            <td style="padding:8px;text-align:right;color:var(--muted);font-variant-numeric:tabular-nums;">{{ o.ideal }}</td>
+                            <td style="padding:8px 0;text-align:right;"><input value="{{ o.real }}" onChange="{{ o.onChange }}" style="width:90px;padding:7px 9px;border:1px solid var(--line);border-radius:7px;background:var(--surface2);font-size:13px;font-weight:700;text-align:right;outline:none;font-variant-numeric:tabular-nums;color:var(--ink);" style-focus="border-color:var(--accent);box-shadow:0 0 0 3px var(--accentSoft);" /></td>
+                          </tr>
+                        </sc-for>
+                      </tbody>
+                    </table>
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:14px;padding:11px 14px;background:var(--surface2);border-radius:9px;">
+                      <span style="font-size:13px;color:var(--muted);">Total output <b style="color:var(--ink);font-variant-numeric:tabular-nums;">{{ varTotalRealL }} kg</b></span>
+                      <span style="font-size:13px;font-weight:700;color:{{ varBalanceColor }};">Balanță {{ varBalanceL }}</span>
+                    </div>
+                  </div>
+                  <div style="padding:24px;display:flex;flex-direction:column;">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+                      <div style="font-size:13px;font-weight:700;">Flux reciclare</div>
+                      <div style="font-size:11.5px;color:var(--faint);font-family:'IBM Plex Mono',monospace;">input → proces → fracții</div>
+                    </div>
+                    <div style="flex:1;display:flex;align-items:center;min-height:250px;">{{ varSankey }}</div>
+                    <div style="display:flex;justify-content:flex-end;padding-top:18px;border-top:1px solid var(--line);">
+                      <button style="{{ confirmVarStyle }}">Finalizează procesul →</button>
+                    </div>
+                  </div>
+                </div>
+              </sc-if>
+            </div>
+          </sc-if>
+
+          <!-- ===== CATALOG ===== -->
+          <sc-if value="{{ isCatalog }}" hint-placeholder-val="{{ false }}">
+            <div style="display:grid;grid-template-columns:1fr 330px;gap:24px;align-items:start;animation:scIn .35s ease;">
+              <div>
+                <div style="display:flex;gap:10px;margin-bottom:20px;">
+                  <div style="flex:1;display:flex;align-items:center;gap:9px;background:var(--surface);border:1px solid var(--line);border-radius:9px;padding:10px 14px;">
+                    <span style="color:var(--faint);">⌕</span><input placeholder="Caută în catalog…" style="border:none;background:transparent;outline:none;font-size:13.5px;width:100%;color:var(--ink);" />
+                  </div>
+                  <button style="padding:10px 16px;border:1px solid var(--line);background:var(--surface);border-radius:9px;font-size:13px;font-weight:600;color:var(--ink);cursor:pointer;">Toate categoriile ▾</button>
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:18px;">
+                  <sc-for list="{{ productsV }}" as="p" hint-placeholder-count="6">
+                    <div style="background:var(--surface);border:1px solid var(--line);border-radius:13px;overflow:hidden;transition:box-shadow .15s,transform .15s;" style-hover="box-shadow:0 8px 24px oklch(0.2 0.02 150 / 0.1);transform:translateY(-2px);">
+                      <div style="height:130px;background-image:repeating-linear-gradient(135deg,var(--surface2),var(--surface2) 9px,var(--paper) 9px,var(--paper) 18px);display:flex;align-items:center;justify-content:center;position:relative;border-bottom:1px solid var(--line);">
+                        <span style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--faint);background:var(--surface);padding:3px 9px;border-radius:6px;border:1px solid var(--line);">foto produs</span>
+                        <span style="position:absolute;top:10px;left:10px;font-size:10.5px;font-weight:700;background:var(--okBg);color:var(--ok);padding:3px 9px;border-radius:6px;">{{ p.tag }}</span>
+                      </div>
+                      <div style="padding:14px;">
+                        <div style="font-weight:700;font-size:14px;">{{ p.name }}</div>
+                        <div style="display:flex;align-items:baseline;justify-content:space-between;margin-top:8px;">
+                          <div style="font-size:16px;font-weight:700;">{{ p.price }}<span style="font-size:12px;color:var(--faint);font-weight:500;"> / {{ p.um }}</span></div>
+                        </div>
+                        <button onClick="{{ p.addToCart }}" style="margin-top:12px;width:100%;padding:9px;border:none;background:var(--brand);color:var(--onBrand);border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;" style-hover="filter:brightness(1.15);">+ Adaugă în coș</button>
+                      </div>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+              <div style="background:var(--surface);border:1px solid var(--line);border-radius:14px;position:sticky;top:90px;overflow:hidden;">
+                <div style="padding:16px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;">
+                  <div style="font-weight:700;font-size:15px;">Coș</div>
+                  <span style="font-size:12px;font-family:'IBM Plex Mono',monospace;color:var(--muted);">{{ cartLines }} produse</span>
+                </div>
+                <div style="padding:8px 18px;max-height:260px;overflow-y:auto;">
+                  <sc-for list="{{ cartV }}" as="c" hint-placeholder-count="2">
+                    <div style="padding:12px 0;border-bottom:1px solid var(--line);">
+                      <div style="display:flex;justify-content:space-between;gap:8px;"><span style="font-weight:600;font-size:13px;">{{ c.name }}</span><button onClick="{{ c.remove }}" style="border:none;background:none;color:var(--faint);cursor:pointer;font-size:14px;">×</button></div>
+                      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px;">
+                        <div style="display:flex;align-items:center;gap:0;border:1px solid var(--line);border-radius:7px;overflow:hidden;">
+                          <button onClick="{{ c.dec }}" style="width:26px;height:26px;border:none;background:var(--surface2);cursor:pointer;color:var(--ink);">−</button>
+                          <span style="padding:0 10px;font-size:12.5px;font-weight:700;font-variant-numeric:tabular-nums;">{{ c.qtyL }}</span>
+                          <button onClick="{{ c.inc }}" style="width:26px;height:26px;border:none;background:var(--surface2);cursor:pointer;color:var(--ink);">+</button>
+                        </div>
+                        <span style="font-size:12px;color:var(--muted);">{{ c.price }} / {{ c.um }}</span>
+                      </div>
+                    </div>
+                  </sc-for>
+                </div>
+                <div style="padding:16px 18px;border-top:1px solid var(--line);">
+                  <label style="display:block;font-size:11.5px;font-weight:600;margin-bottom:6px;color:var(--muted);">Adresă livrare</label>
+                  <input value="Str. Fabricii 14, Cluj-Napoca" style="width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:8px;background:var(--surface2);font-size:12.5px;outline:none;margin-bottom:10px;color:var(--ink);" />
+                  <div style="display:flex;gap:10px;margin-bottom:14px;">
+                    <div style="flex:1;"><label style="display:block;font-size:11.5px;font-weight:600;margin-bottom:6px;color:var(--muted);">Data (opțional)</label><input value="02.07.2026" style="width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:8px;background:var(--surface2);font-size:12.5px;outline:none;color:var(--ink);" /></div>
+                  </div>
+                  <button style="width:100%;padding:12px;border:none;background:var(--accent);color:var(--onAccent);border-radius:9px;font-size:14px;font-weight:700;cursor:pointer;" style-hover="filter:brightness(1.05);">Trimite comanda</button>
+                </div>
+              </div>
+            </div>
+          </sc-if>
+
+          <!-- ===== COMENZILE MELE ===== -->
+          <sc-if value="{{ isMyorders }}" hint-placeholder-val="{{ false }}">
+            <div style="max-width:880px;animation:scIn .35s ease;display:flex;flex-direction:column;gap:14px;">
+              <sc-for list="{{ clientOrdersV }}" as="o" hint-placeholder-count="4">
+                <div style="background:var(--surface);border:1px solid var(--line);border-radius:13px;padding:18px 22px;">
+                  <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;">
+                    <div>
+                      <div style="display:flex;align-items:center;gap:10px;"><span style="font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:14px;">{{ o.id }}</span><span style="display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:20px;font-size:11.5px;font-weight:600;background:{{ o.stBg }};color:{{ o.stFg }};"><span style="width:6px;height:6px;border-radius:50%;background:{{ o.stFg }};"></span>{{ o.stLabel }}</span></div>
+                      <div style="margin-top:7px;font-size:14px;font-weight:600;">{{ o.items }}</div>
+                      <div style="margin-top:3px;font-size:12.5px;color:var(--faint);">{{ o.date }} · {{ o.total }}</div>
+                    </div>
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                      <sc-if value="{{ o.done }}" hint-placeholder-val="{{ true }}">
+                        <button onClick="{{ o.viewCert }}" style="padding:8px 14px;border:none;background:var(--accent);color:var(--onAccent);border-radius:8px;font-size:12.5px;font-weight:700;cursor:pointer;">Certificat ⤓</button>
+                        <button style="padding:8px 14px;border:1px solid var(--line);background:var(--surface);border-radius:8px;font-size:12.5px;font-weight:600;color:var(--ink);cursor:pointer;" style-hover="background:var(--surface2);">Retur</button>
+                        <button style="padding:8px 14px;border:1px solid var(--line);background:var(--surface);border-radius:8px;font-size:12.5px;font-weight:600;color:var(--ink);cursor:pointer;" style-hover="background:var(--surface2);">Garanție</button>
+                      </sc-if>
+                      <sc-if value="{{ o.done }}" hint-placeholder-val="{{ false }}"></sc-if>
+                    </div>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+
+          <!-- ===== DOCUMENTE ===== -->
+          <sc-if value="{{ isDocs }}" hint-placeholder-val="{{ false }}">
+            <div style="max-width:820px;animation:scIn .35s ease;background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden;">
+              <sc-for list="{{ documents }}" as="d" hint-placeholder-count="4">
+                <div style="display:flex;align-items:center;gap:14px;padding:16px 20px;border-bottom:1px solid var(--line);transition:background .12s;" style-hover="background:var(--surface2);">
+                  <div style="width:42px;height:42px;border-radius:9px;background:var(--surface2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:700;color:var(--muted);">{{ d.type }}</div>
+                  <div style="flex:1;"><div style="font-weight:600;font-size:14px;">{{ d.name }}</div><div style="font-size:12px;color:var(--faint);margin-top:2px;">{{ d.date }} · {{ d.size }}</div></div>
+                  <sc-if value="{{ d.cert }}" hint-placeholder-val="{{ true }}">
+                    <button onClick="{{ viewCert }}" style="padding:8px 14px;border:none;background:var(--accent);color:var(--onAccent);border-radius:8px;font-size:12.5px;font-weight:700;cursor:pointer;">Vezi certificat</button>
+                  </sc-if>
+                  <button style="padding:8px 12px;border:1px solid var(--line);background:var(--surface);border-radius:8px;font-size:12.5px;font-weight:600;color:var(--ink);cursor:pointer;" style-hover="background:var(--surface2);">⤓ Descarcă</button>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+
+          <!-- ===== CLIENTI ===== -->
+          <sc-if value="{{ isClients }}" hint-placeholder-val="{{ false }}">
+            <div style="animation:scIn .35s ease;background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden;">
+              <table style="width:100%;border-collapse:collapse;font-size:13.5px;">
+                <thead><tr style="text-align:left;color:var(--muted);font-size:11.5px;text-transform:uppercase;letter-spacing:0.6px;font-family:'IBM Plex Mono',monospace;"><th style="padding:12px 20px;font-weight:600;">Client</th><th style="padding:12px 14px;font-weight:600;">CUI</th><th style="padding:12px 14px;font-weight:600;text-align:right;">Comenzi</th><th style="padding:12px 14px;font-weight:600;text-align:right;">Active</th><th style="padding:12px 20px;font-weight:600;">Status</th></tr></thead>
+                <tbody>
+                  <sc-for list="{{ clientsV }}" as="c" hint-placeholder-count="4">
+                    <tr style="border-top:1px solid var(--line);" style-hover="background:var(--surface2);"><td style="padding:14px 20px;font-weight:600;">{{ c.name }}</td><td style="padding:14px 14px;font-family:'IBM Plex Mono',monospace;color:var(--muted);">{{ c.cui }}</td><td style="padding:14px 14px;text-align:right;font-variant-numeric:tabular-nums;">{{ c.orders }}</td><td style="padding:14px 14px;text-align:right;font-variant-numeric:tabular-nums;">{{ c.active }}</td><td style="padding:14px 20px;"><span style="padding:4px 10px;border-radius:20px;font-size:11.5px;font-weight:600;background:{{ c.stBg }};color:{{ c.stFg }};">{{ c.stLabel }}</span></td></tr>
+                  </sc-for>
+                </tbody>
+              </table>
+            </div>
+          </sc-if>
+
+          <!-- ===== RETETE ===== -->
+          <sc-if value="{{ isRecipes }}" hint-placeholder-val="{{ false }}">
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;animation:scIn .35s ease;">
+              <sc-for list="{{ recipesListV }}" as="r" hint-placeholder-count="4">
+                <div style="background:var(--surface);border:1px solid var(--line);border-radius:13px;padding:18px;">
+                  <div style="display:flex;justify-content:space-between;align-items:flex-start;"><div style="font-weight:700;font-size:15px;">{{ r.name }}</div><span style="padding:3px 9px;border-radius:7px;font-size:11px;font-weight:700;background:{{ r.typeBg }};color:{{ r.typeFg }};">{{ r.type }}</span></div>
+                  <div style="margin-top:14px;display:flex;gap:20px;font-size:12.5px;">
+                    <div><div style="color:var(--faint);">Output</div><div style="font-weight:600;margin-top:2px;">{{ r.out }}</div></div>
+                    <div><div style="color:var(--faint);">Inputuri</div><div style="font-weight:600;margin-top:2px;">{{ r.inputs }}</div></div>
+                    <div><div style="color:var(--faint);">Randament</div><div style="font-weight:600;margin-top:2px;">{{ r.yield }}</div></div>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+
+          <!-- ===== AUDIT ===== -->
+          <sc-if value="{{ isAudit }}" hint-placeholder-val="{{ false }}">
+            <div style="max-width:860px;animation:scIn .35s ease;background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden;">
+              <table style="width:100%;border-collapse:collapse;font-size:13px;">
+                <thead><tr style="text-align:left;color:var(--muted);font-size:11.5px;text-transform:uppercase;letter-spacing:0.6px;font-family:'IBM Plex Mono',monospace;"><th style="padding:12px 20px;font-weight:600;">Timp</th><th style="padding:12px 14px;font-weight:600;">Utilizator</th><th style="padding:12px 14px;font-weight:600;">Acțiune</th><th style="padding:12px 14px;font-weight:600;">Referință</th><th style="padding:12px 20px;font-weight:600;text-align:right;">Delta</th></tr></thead>
+                <tbody>
+                  <sc-for list="{{ auditLog }}" as="a" hint-placeholder-count="5">
+                    <tr style="border-top:1px solid var(--line);" style-hover="background:var(--surface2);"><td style="padding:13px 20px;font-family:'IBM Plex Mono',monospace;color:var(--muted);">{{ a.ts }}</td><td style="padding:13px 14px;">{{ a.user }}</td><td style="padding:13px 14px;font-weight:600;">{{ a.action }}</td><td style="padding:13px 14px;font-family:'IBM Plex Mono',monospace;color:var(--accent);">{{ a.ref }}</td><td style="padding:13px 20px;text-align:right;font-family:'IBM Plex Mono',monospace;font-weight:600;">{{ a.delta }}</td></tr>
+                  </sc-for>
+                </tbody>
+              </table>
+            </div>
+          </sc-if>
+
+          <!-- ===== SETARI ===== -->
+          <sc-if value="{{ isSettings }}" hint-placeholder-val="{{ false }}">
+            <div style="max-width:640px;animation:scIn .35s ease;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:28px;">
+              <div style="font-size:11.5px;font-family:'IBM Plex Mono',monospace;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:18px;">Identitate organizație · white-label</div>
+              <div style="display:flex;align-items:center;gap:18px;margin-bottom:24px;">
+                <div style="width:64px;height:64px;border-radius:12px;background:var(--brand);display:flex;align-items:center;justify-content:center;position:relative;">
+                  <div style="position:absolute;left:16px;top:24px;width:22px;height:10px;border-radius:2px;background:var(--accent);transform:skewX(-12deg);"></div>
+                  <div style="position:absolute;left:26px;top:34px;width:22px;height:10px;border-radius:2px;background:var(--onBrand);transform:skewX(-12deg);"></div>
+                </div>
+                <button style="padding:9px 16px;border:1px solid var(--line);background:var(--surface);border-radius:8px;font-size:13px;font-weight:600;color:var(--ink);cursor:pointer;">Încarcă logo</button>
+              </div>
+              <label style="display:block;font-size:12.5px;font-weight:600;margin-bottom:7px;">Nume organizație</label>
+              <input value="Lateris" style="width:100%;padding:11px 13px;border:1px solid var(--line);border-radius:9px;background:var(--surface);font-size:14px;outline:none;margin-bottom:18px;color:var(--ink);" />
+              <label style="display:block;font-size:12.5px;font-weight:600;margin-bottom:9px;">Temă culori (apare în sidebar și certificate)</label>
+              <div style="display:flex;gap:12px;">
+                <div style="flex:1;padding:14px;border:2px solid var(--accent);border-radius:11px;cursor:pointer;"><div style="display:flex;gap:5px;margin-bottom:8px;"><span style="width:20px;height:20px;border-radius:5px;background:oklch(0.32 0.04 158);"></span><span style="width:20px;height:20px;border-radius:5px;background:oklch(0.74 0.13 66);"></span></div><div style="font-size:12px;font-weight:600;">Forest</div></div>
+                <div style="flex:1;padding:14px;border:1px solid var(--line);border-radius:11px;cursor:pointer;"><div style="display:flex;gap:5px;margin-bottom:8px;"><span style="width:20px;height:20px;border-radius:5px;background:oklch(0.34 0.045 45);"></span><span style="width:20px;height:20px;border-radius:5px;background:oklch(0.62 0.075 150);"></span></div><div style="font-size:12px;font-weight:600;">Terra</div></div>
+                <div style="flex:1;padding:14px;border:1px solid var(--line);border-radius:11px;cursor:pointer;"><div style="display:flex;gap:5px;margin-bottom:8px;"><span style="width:20px;height:20px;border-radius:5px;background:oklch(0.3 0.018 255);"></span><span style="width:20px;height:20px;border-radius:5px;background:oklch(0.82 0.17 128);"></span></div><div style="font-size:12px;font-weight:600;">Slate</div></div>
+              </div>
+              <p style="margin:14px 0 0;font-size:12px;color:var(--faint);">Schimbă tema live din panoul Tweaks (dreapta sus).</p>
+            </div>
+          </sc-if>
+
+          <!-- ===== CERTIFICAT ===== -->
+          <sc-if value="{{ isCertificate }}" hint-placeholder-val="{{ false }}">
+            <div style="animation:scIn .35s ease;display:flex;flex-direction:column;align-items:center;">
+              <div style="display:flex;align-items:center;justify-content:space-between;width:100%;max-width:840px;margin-bottom:18px;">
+                <button onClick="{{ goCatalog }}" style="padding:8px 14px;border:1px solid var(--line);background:var(--surface);border-radius:8px;font-size:13px;font-weight:600;color:var(--ink);cursor:pointer;">‹ Înapoi</button>
+                <div style="display:flex;gap:10px;">
+                  <button style="padding:9px 16px;border:1px solid var(--line);background:var(--surface);border-radius:8px;font-size:13px;font-weight:600;color:var(--ink);cursor:pointer;" style-hover="background:var(--surface2);">⎙ Tipărește</button>
+                  <button style="padding:9px 18px;border:none;background:var(--accent);color:var(--onAccent);border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;" style-hover="filter:brightness(1.05);">⤓ Descarcă PDF</button>
+                </div>
+              </div>
+
+              <div style="width:100%;max-width:840px;background:var(--surface);box-shadow:0 12px 40px oklch(0.2 0.02 150 / 0.14);border:1px solid var(--line);border-radius:4px;overflow:hidden;">
+                <div style="height:6px;background:var(--accent);"></div>
+                <div style="padding:42px 48px;">
+                  <!-- header -->
+                  <div style="display:flex;align-items:flex-start;justify-content:space-between;padding-bottom:24px;border-bottom:2px solid var(--ink);">
+                    <div style="display:flex;align-items:center;gap:14px;">
+                      <div style="width:46px;height:46px;position:relative;flex:none;">
+                        <div style="position:absolute;left:2px;top:12px;width:28px;height:13px;border-radius:2px;background:var(--accent);transform:skewX(-12deg);"></div>
+                        <div style="position:absolute;left:14px;top:26px;width:28px;height:13px;border-radius:2px;background:var(--brand);transform:skewX(-12deg);"></div>
+                      </div>
+                      <div>
+                        <div style="font-weight:800;font-size:22px;letter-spacing:0.3px;">{{ orgName }}</div>
+                        <div style="font-size:12px;color:var(--muted);">Materiale de construcții circulare · Cluj-Napoca</div>
+                      </div>
+                    </div>
+                    <div style="text-align:right;">
+                      <div style="font-family:'Spectral',serif;font-size:19px;font-weight:600;">Certificat de trasabilitate</div>
+                      <div style="font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:var(--muted);margin-top:4px;">Nr. CRT-2043-0617</div>
+                      <div style="font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:var(--muted);">Emis: 22.06.2026</div>
+                    </div>
+                  </div>
+
+                  <!-- order data -->
+                  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin:24px 0;">
+                    <div><div style="font-size:11px;font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:0.6px;color:var(--faint);">Client</div><div style="font-weight:600;margin-top:4px;font-size:14px;">Construcții Apex SRL</div><div style="font-size:12px;color:var(--muted);">RO14820391</div></div>
+                    <div><div style="font-size:11px;font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:0.6px;color:var(--faint);">Comandă</div><div style="font-weight:600;margin-top:4px;font-size:14px;">CMD-2043</div><div style="font-size:12px;color:var(--muted);">Livrat 24.06.2026</div></div>
+                    <div><div style="font-size:11px;font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:0.6px;color:var(--faint);">Produs livrat</div><div style="font-weight:600;margin-top:4px;font-size:14px;">Cărămidă eco standard</div><div style="font-size:12px;color:var(--muted);">4.000 buc · LOT-3391</div></div>
+                  </div>
+
+                  <!-- traceability graph -->
+                  <div style="background:var(--surface2);border:1px solid var(--line);border-radius:11px;padding:20px 22px;margin-bottom:24px;">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+                      <div style="font-weight:700;font-size:14px;">Lanț de trasabilitate</div>
+                      <div style="font-size:11px;font-family:'IBM Plex Mono',monospace;color:var(--faint);">surse → loturi → proces → produs → livrare</div>
+                    </div>
+                    <div style="padding:14px 0 4px;">{{ certSankey }}</div>
+                  </div>
+
+                  <!-- materials -->
+                  <div style="font-weight:700;font-size:14px;margin-bottom:10px;">Materiale și origine</div>
+                  <table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:26px;">
+                    <thead><tr style="text-align:left;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:0.5px;font-family:'IBM Plex Mono',monospace;border-bottom:1px solid var(--line);"><th style="padding:8px 0;font-weight:600;">Material</th><th style="padding:8px;font-weight:600;">Origine</th><th style="padding:8px;font-weight:600;">Sursă</th><th style="padding:8px 0;font-weight:600;text-align:right;">Pondere</th></tr></thead>
+                    <tbody>
+                      <sc-for list="{{ certMaterials }}" as="m" hint-placeholder-count="3">
+                        <tr style="border-bottom:1px solid var(--line);"><td style="padding:10px 0;font-weight:600;">{{ m.mat }}</td><td style="padding:10px;color:var(--muted);">{{ m.origin }}</td><td style="padding:10px;color:var(--muted);">{{ m.src }}</td><td style="padding:10px 0;text-align:right;font-weight:700;font-variant-numeric:tabular-nums;">{{ m.pct }}</td></tr>
+                      </sc-for>
+                    </tbody>
+                  </table>
+
+                  <div style="display:flex;gap:24px;align-items:flex-start;">
+                    <div style="flex:1;">
+                      <div style="font-weight:700;font-size:13px;margin-bottom:8px;">Documente atașate</div>
+                      <div style="font-size:12.5px;color:var(--info);line-height:1.9;"><div>↳ Aviz însoțire marfă CMD-2043.pdf</div><div>↳ Declarație conformitate LOT-3391.pdf</div><div>↳ Buletin analiză material reciclat.pdf</div></div>
+                    </div>
+                    <div style="width:200px;text-align:center;padding-top:14px;">
+                      <div style="font-family:'Spectral',serif;font-size:17px;font-style:italic;color:var(--brand);border-bottom:1px solid var(--ink);padding-bottom:6px;margin-bottom:6px;">Lateris S.R.L.</div>
+                      <div style="font-size:11px;color:var(--muted);">Semnătură & ștampilă electronică</div>
+                      <div style="font-size:10.5px;font-family:'IBM Plex Mono',monospace;color:var(--faint);margin-top:4px;">verificat blockchain ✓</div>
+                    </div>
+                  </div>
+                </div>
+                <div style="padding:16px 48px;background:var(--brand);color:var(--onBrandMuted);font-size:11px;font-family:'IBM Plex Mono',monospace;display:flex;justify-content:space-between;">
+                  <span>{{ orgName }} · trasabilitate emisă de Reverra Platform</span><span>CRT-2043-0617 · pagina 1/1</span>
+                </div>
+              </div>
+            </div>
+          </sc-if>
+
+        </main>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- TOOLTIP -->
+  <sc-if value="{{ tip.show }}" hint-placeholder-val="{{ false }}">
+    <div style="{{ tipStyle }}">
+      <div style="font-weight:700;font-size:12.5px;margin-bottom:3px;">{{ tip.title }}</div>
+      <sc-for list="{{ tip.lines }}" as="ln" hint-placeholder-count="2">
+        <div style="font-size:11.5px;color:var(--onBrandMuted);display:flex;justify-content:space-between;gap:18px;"><span>{{ ln.k }}</span><span style="color:var(--onBrand);font-family:'IBM Plex Mono',monospace;">{{ ln.v }}</span></div>
+      </sc-for>
+    </div>
+  </sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1320,&quot;height&quot;:860},&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;forest&quot;,&quot;terra&quot;,&quot;slate&quot;],&quot;default&quot;:&quot;forest&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;orgName&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Lateris&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;showPattern&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;}}">
+const THEMES = {
+  forest: {brand:'oklch(0.32 0.04 158)',brand2:'oklch(0.4 0.045 156)',brandLine:'oklch(0.47 0.04 156)',onBrand:'oklch(0.94 0.02 150)',onBrandMuted:'oklch(0.78 0.03 150)',accent:'oklch(0.74 0.13 66)',onAccent:'oklch(0.27 0.06 60)',accentSoft:'oklch(0.93 0.05 78)',paper:'oklch(0.97 0.008 95)',surface:'oklch(0.995 0.004 95)',surface2:'oklch(0.985 0.006 95)',ink:'oklch(0.26 0.02 150)',muted:'oklch(0.53 0.015 150)',faint:'oklch(0.68 0.012 150)',line:'oklch(0.9 0.01 120)',gridDot:'oklch(0.88 0.012 120)'},
+  terra: {brand:'oklch(0.34 0.045 45)',brand2:'oklch(0.42 0.05 45)',brandLine:'oklch(0.48 0.045 45)',onBrand:'oklch(0.95 0.02 60)',onBrandMuted:'oklch(0.8 0.03 55)',accent:'oklch(0.62 0.075 150)',onAccent:'oklch(0.98 0.02 150)',accentSoft:'oklch(0.91 0.04 150)',paper:'oklch(0.97 0.012 70)',surface:'oklch(0.995 0.006 70)',surface2:'oklch(0.984 0.009 70)',ink:'oklch(0.27 0.025 50)',muted:'oklch(0.53 0.02 50)',faint:'oklch(0.68 0.018 50)',line:'oklch(0.89 0.015 60)',gridDot:'oklch(0.86 0.018 60)'},
+  slate: {brand:'oklch(0.3 0.018 255)',brand2:'oklch(0.38 0.02 255)',brandLine:'oklch(0.44 0.02 255)',onBrand:'oklch(0.96 0.005 255)',onBrandMuted:'oklch(0.76 0.012 255)',accent:'oklch(0.82 0.17 128)',onAccent:'oklch(0.26 0.05 130)',accentSoft:'oklch(0.93 0.08 125)',paper:'oklch(0.97 0.004 255)',surface:'oklch(0.996 0.002 255)',surface2:'oklch(0.985 0.004 255)',ink:'oklch(0.25 0.012 255)',muted:'oklch(0.5 0.013 255)',faint:'oklch(0.66 0.01 255)',line:'oklch(0.9 0.006 255)',gridDot:'oklch(0.87 0.007 255)'}
+};
+
+const STATUS = {
+  trimisa:{l:'Trimisă',bg:'var(--infoBg)',fg:'var(--info)'},
+  acceptata:{l:'Acceptată',bg:'var(--warnBg)',fg:'var(--warn)'},
+  livrata:{l:'Livrată',bg:'var(--okBg)',fg:'var(--ok)'},
+  inchisa:{l:'Închisă',bg:'var(--surface2)',fg:'var(--muted)'},
+  anulata:{l:'Anulată',bg:'var(--dangerBg)',fg:'var(--danger)'}
+};
+const SOURCES = {
+  achizitie:{l:'Achiziție',bg:'var(--infoBg)',fg:'var(--info)'},
+  productie:{l:'Producție',bg:'var(--accentSoft)',fg:'var(--onAccent)'},
+  reciclare:{l:'Reciclare',bg:'var(--okBg)',fg:'var(--ok)'},
+  retur:{l:'Retur',bg:'var(--warnBg)',fg:'var(--warn)'},
+  ajustare:{l:'Ajustare',bg:'var(--surface2)',fg:'var(--muted)'}
+};
+
+class Component extends DCLogic {
+  constructor(props){
+    super(props);
+    this.rootRef = React.createRef();
+    this.state = {
+      screen:'login', role:'staff',
+      orderFilter:'toate', stockFilter:'toate', stockView:'loturi',
+      lotFormOpen:false, lotSource:'achizitie', lotQty:'12.000', lotTouched:false,
+      prodTab:'fix', prodRecipe:'caramida', prodQty:4000,
+      varInput:'moloz', varQty:20000,
+      varOutputs:[{item:'Agregat grosier 8-16mm',pct:54,real:10800,um:'kg'},{item:'Agregat fin 0-8mm',pct:31,real:6200,um:'kg'},{item:'Pulbere ciment',pct:9,real:1800,um:'kg'},{item:'Fier recuperat',pct:4,real:800,um:'kg'},{item:'Pierderi proces',pct:2,real:400,um:'kg'}],
+      cart:[{name:'Cărămidă eco standard',um:'buc',qty:4000,price:'1,85 lei'},{name:'Pavaj reciclat 20×20',um:'buc',qty:600,price:'9,40 lei'}],
+      tip:{show:false}
+    };
+
+    this.orders=[
+      {id:'CMD-2048',created:'24 iun, 14:20',client:'Construcții Apex SRL',products:'Cărămidă eco ×4.000, Pavaj ×600',delivery:'28 iun 2026',status:'trimisa'},
+      {id:'CMD-2047',created:'24 iun, 09:05',client:'Verde Habitat SA',products:'Cărămidă eco ×12.000',delivery:'02 iul 2026',status:'trimisa'},
+      {id:'CMD-2045',created:'23 iun, 16:40',client:'Domus Renova SRL',products:'Agregat reciclat ×18 t',delivery:'27 iun 2026',status:'acceptata'},
+      {id:'CMD-2043',created:'22 iun, 11:15',client:'Construcții Apex SRL',products:'Pavaj reciclat ×2.400',delivery:'24 iun 2026',status:'livrata'},
+      {id:'CMD-2041',created:'21 iun, 08:30',client:'EcoBuild Partener',products:'Cărămidă eco ×6.500',delivery:'23 iun 2026',status:'inchisa'},
+      {id:'CMD-2039',created:'20 iun, 13:55',client:'Verde Habitat SA',products:'Agregat fin ×9 t',delivery:'—',status:'anulata'}
+    ];
+    this.lots=[
+      {code:'LOT-3391',item:'Cărămidă eco standard',qty:'8.420',um:'buc',source:'productie',date:'24.06.2026',status:'liber'},
+      {code:'LOT-3388',item:'Argilă reciclată',qty:'14.200',um:'kg',source:'reciclare',date:'22.06.2026',status:'liber'},
+      {code:'LOT-3385',item:'Ciment Portland',qty:'3.100',um:'kg',source:'achizitie',date:'21.06.2026',status:'liber'},
+      {code:'LOT-3382',item:'Moloz beton',qty:'42.000',um:'kg',source:'reciclare',date:'20.06.2026',status:'blocat'},
+      {code:'LOT-3379',item:'Agregat reciclat 8-16',qty:'11.700',um:'kg',source:'productie',date:'19.06.2026',status:'liber'},
+      {code:'LOT-3377',item:'Pavaj reciclat 20×20',qty:'1.940',um:'buc',source:'productie',date:'18.06.2026',status:'liber'},
+      {code:'LOT-3374',item:'Argilă reciclată',qty:'2.300',um:'kg',source:'retur',date:'17.06.2026',status:'liber'}
+    ];
+
+    this.recipesFix=[
+      {id:'caramida',name:'Cărămidă eco standard',out:'Cărămidă eco standard',outUm:'buc',unitMass:2.8,
+        inputs:[{item:'Argilă reciclată',per:2.1,um:'kg'},{item:'Ciment Portland',per:0.4,um:'kg'},{item:'Apă tehnologică',per:0.3,um:'L'}]},
+      {id:'pavaj',name:'Pavaj reciclat 20×20',out:'Pavaj reciclat 20×20',outUm:'buc',unitMass:4.2,
+        inputs:[{item:'Agregat reciclat 8-16',per:3.0,um:'kg'},{item:'Ciment Portland',per:0.9,um:'kg'},{item:'Apă tehnologică',per:0.4,um:'L'}]}
+    ];
+    // FIFO raw stock per item (ordered oldest→newest)
+    this.rawStock={
+      'Argilă reciclată':[{code:'LOT-3374',avail:2300,date:'17.06'},{code:'LOT-3388',avail:14200,date:'22.06'}],
+      'Ciment Portland':[{code:'LOT-3385',avail:3100,date:'21.06'}],
+      'Apă tehnologică':[{code:'LOT-3360',avail:9000,date:'10.06'}],
+      'Agregat reciclat 8-16':[{code:'LOT-3379',avail:11700,date:'19.06'}]
+    };
+    this.recipesVar={moloz:{name:'Procesare moloz beton',input:'Moloz beton',inputLot:'LOT-3382',um:'kg',
+      outputs:[{item:'Agregat grosier 8-16mm',pct:54},{item:'Agregat fin 0-8mm',pct:31},{item:'Pulbere ciment',pct:9},{item:'Fier recuperat',pct:4},{item:'Pierderi proces',pct:2}]}};
+
+    this.products=[
+      {name:'Cărămidă eco standard',um:'buc',price:'1,85 lei',tag:'reciclat 75%',cat:'Cărămidă'},
+      {name:'Cărămidă eco portantă',um:'buc',price:'2,40 lei',tag:'reciclat 68%',cat:'Cărămidă'},
+      {name:'Pavaj reciclat 20×20',um:'buc',price:'9,40 lei',tag:'reciclat 90%',cat:'Pavaj'},
+      {name:'Pavaj reciclat 30×30',um:'buc',price:'14,80 lei',tag:'reciclat 88%',cat:'Pavaj'},
+      {name:'Agregat reciclat 8-16',um:'t',price:'78 lei',tag:'100% reciclat',cat:'Agregat'},
+      {name:'Agregat fin 0-8',um:'t',price:'64 lei',tag:'100% reciclat',cat:'Agregat'}
+    ];
+    this.clientOrders=[
+      {id:'CMD-2048',date:'24 iun 2026',items:'Cărămidă eco ×4.000, Pavaj ×600',total:'13.040 lei',status:'trimisa'},
+      {id:'CMD-2043',date:'22 iun 2026',items:'Pavaj reciclat 20×20 ×2.400',total:'22.560 lei',status:'livrata',done:true},
+      {id:'CMD-2031',date:'09 iun 2026',items:'Cărămidă eco ×8.000',total:'14.800 lei',status:'inchisa',done:true},
+      {id:'CMD-2018',date:'28 mai 2026',items:'Agregat reciclat ×24 t',total:'1.872 lei',status:'inchisa',done:true}
+    ];
+    this.documents=[
+      {name:'Certificat trasabilitate CMD-2043',type:'CERT',size:'1,2 MB',date:'22 iun 2026',cert:true},
+      {name:'Aviz însoțire marfă CMD-2043',type:'PDF',size:'340 KB',date:'22 iun 2026'},
+      {name:'Declarație conformitate lot 3377',type:'PDF',size:'210 KB',date:'18 iun 2026'},
+      {name:'Certificat trasabilitate CMD-2031',type:'CERT',size:'1,1 MB',date:'09 iun 2026',cert:true}
+    ];
+    this.clients=[
+      {name:'Construcții Apex SRL',cui:'RO14820391',orders:12,active:8,status:'activ'},
+      {name:'Verde Habitat SA',cui:'RO22910044',orders:7,active:3,status:'activ'},
+      {name:'Domus Renova SRL',cui:'RO38104722',orders:5,active:2,status:'activ'},
+      {name:'EcoBuild Partener',cui:'RO19283746',orders:9,active:0,status:'inactiv'}
+    ];
+    this.recipesList=[
+      {name:'Cărămidă eco standard',type:'fix',out:'Cărămidă eco · buc',inputs:3,yield:'—'},
+      {name:'Pavaj reciclat 20×20',type:'fix',out:'Pavaj · buc',inputs:3,yield:'—'},
+      {name:'Procesare moloz beton',type:'variabil',out:'5 fracții',inputs:1,yield:'98% valorificat'},
+      {name:'Reciclare cărămidă demolare',type:'variabil',out:'3 fracții',inputs:1,yield:'95% valorificat'}
+    ];
+    this.auditLog=[
+      {ts:'24.06 14:22',user:'A. Marin',action:'Intrare lot',ref:'LOT-3391',delta:'+8.420 buc'},
+      {ts:'24.06 11:08',user:'sistem',action:'Consum producție',ref:'P-0820',delta:'−8.400 kg'},
+      {ts:'23.06 16:50',user:'A. Marin',action:'Blocare lot',ref:'LOT-3382',delta:'0'},
+      {ts:'22.06 09:30',user:'I. Popescu',action:'Ajustare inventar',ref:'LOT-3388',delta:'−120 kg'},
+      {ts:'21.06 08:15',user:'A. Marin',action:'Intrare achiziție',ref:'LOT-3385',delta:'+3.100 kg'}
+    ];
+  }
+
+  componentDidMount(){ this.applyTheme(); }
+  componentDidUpdate(prev){ if(prev.theme!==this.props.theme) this.applyTheme(); }
+  applyTheme(){
+    const sem={'--okBg':'oklch(0.94 0.045 150)','--ok':'oklch(0.5 0.1 150)','--warnBg':'oklch(0.94 0.05 70)','--warn':'oklch(0.58 0.12 60)','--dangerBg':'oklch(0.94 0.05 28)','--danger':'oklch(0.55 0.16 25)','--infoBg':'oklch(0.94 0.035 230)','--info':'oklch(0.52 0.07 230)'};
+    const t=THEMES[this.props.theme]||THEMES.forest;
+    const el=this.rootRef.current; if(!el) return;
+    Object.entries(t).forEach(([k,v])=>el.style.setProperty('--'+k,v));
+    Object.entries(sem).forEach(([k,v])=>el.style.setProperty(k,v));
+  }
+
+  set=(p)=>this.setState(p);
+  showTip=(e,title,lines)=>{ this.setState({tip:{show:true,x:e.clientX,y:e.clientY,title,lines:lines||[]}}); };
+  moveTip=(e)=>{ if(this.state.tip.show) this.setState(s=>({tip:{...s.tip,x:e.clientX,y:e.clientY}})); };
+  hideTip=()=>this.setState(s=>({tip:{...s.tip,show:false}}));
+
+  // ---------- Sankey builder ----------
+  buildSankey(data,opt){
+    const W=opt.w, H=opt.h, NW=opt.nodeW||15, P=opt.pad||6, gap=opt.gap||9;
+    const cols={}; data.nodes.forEach(n=>{(cols[n.col]=cols[n.col]||[]).push(n);});
+    const keys=Object.keys(cols).map(Number).sort((a,b)=>a-b);
+    const nCols=keys.length;
+    let maxSum=0,maxCount=1;
+    keys.forEach(c=>{const s=cols[c].reduce((a,n)=>a+n.value,0);maxSum=Math.max(maxSum,s);maxCount=Math.max(maxCount,cols[c].length);});
+    const scaleH=(H-gap*(maxCount-1))/maxSum;
+    const colX={}; keys.forEach((c,i)=>{colX[c]=P+i*((W-2*P-NW)/Math.max(1,nCols-1));});
+    const pos={};
+    keys.forEach(c=>{
+      const arr=cols[c]; const sum=arr.reduce((a,n)=>a+n.value,0);
+      const tot=sum*scaleH+gap*(arr.length-1);
+      let y=(H-tot)/2;
+      arr.forEach(n=>{const h=Math.max(3,n.value*scaleH);pos[n.id]={...n,x:colX[c],y,h,oOff:0,iOff:0};y+=h+gap;});
+    });
+    const h=React.createElement;
+    const ribbons=[];
+    data.links.forEach((lk,i)=>{
+      const s=pos[lk.source], t=pos[lk.target]; if(!s||!t) return;
+      const lh=Math.max(1.5,lk.value*scaleH);
+      const sy0=s.y+s.oOff, sy1=sy0+lh; s.oOff+=lh;
+      const ty0=t.y+t.iOff, ty1=ty0+lh; t.iOff+=lh;
+      const x0=s.x+NW, x1=t.x, xm=(x0+x1)/2;
+      const d=`M${x0},${sy0} C${xm},${sy0} ${xm},${ty0} ${x1},${ty0} L${x1},${ty1} C${xm},${ty1} ${xm},${sy1} ${x0},${sy1} Z`;
+      ribbons.push(h('path',{key:'r'+i,d,fill:lk.color||'var(--accent)',opacity:0.4,
+        onMouseEnter:(e)=>this.showTip(e,lk.label||(s.label+' → '+t.label),[{k:'Cantitate',v:lk.vlabel||(lk.value.toLocaleString('ro-RO'))}]),
+        onMouseMove:this.moveTip,onMouseLeave:this.hideTip}));
+    });
+    const nodeEls=[];
+    Object.values(pos).forEach((n,i)=>{
+      nodeEls.push(h('rect',{key:'n'+i,x:n.x,y:n.y,width:NW,height:n.h,rx:3,fill:n.color||'var(--brand)',
+        onMouseEnter:(e)=>this.showTip(e,n.label,n.tip||[{k:'Cantitate',v:(n.vlabel||n.value.toLocaleString('ro-RO'))}]),
+        onMouseMove:this.moveTip,onMouseLeave:this.hideTip,style:{cursor:'pointer'}}));
+      const right=n.x>W/2;
+      nodeEls.push(h('text',{key:'t'+i,x:right?n.x-7:n.x+NW+7,y:n.y+n.h/2,'textAnchor':right?'end':'start','dominantBaseline':'middle',
+        fontSize:11,fontWeight:600,fill:'var(--ink)',style:{fontFamily:'Archivo'}}, n.label));
+      nodeEls.push(h('text',{key:'tv'+i,x:right?n.x-7:n.x+NW+7,y:n.y+n.h/2+13,'textAnchor':right?'end':'start','dominantBaseline':'middle',
+        fontSize:9.5,fill:'var(--faint)',style:{fontFamily:'IBM Plex Mono'}}, n.sub||''));
+    });
+    return h('svg',{viewBox:`0 0 ${W} ${H}`,width:'100%',style:{display:'block',overflow:'visible'}},
+      h('g',{},ribbons), h('g',{},nodeEls));
+  }
+
+  // ---------- nav styling ----------
+  navItemStyle(key){
+    const active=this.state.screen===key;
+    return `display:flex;align-items:center;gap:11px;width:100%;padding:10px 12px;border:none;border-radius:9px;font-size:13.5px;font-weight:${active?700:500};cursor:pointer;text-align:left;font-family:inherit;transition:all .14s;background:${active?'var(--brand2)':'transparent'};color:${active?'var(--onBrand)':'var(--onBrandMuted)'};`;
+  }
+  navDotStyle(key){
+    const active=this.state.screen===key;
+    return `width:7px;height:7px;border-radius:2px;flex:none;background:${active?'var(--accent)':'var(--brandLine)'};`;
+  }
+  tabStyle(active){
+    return `flex:1;padding:14px 18px;border:none;border-bottom:2.5px solid ${active?'var(--accent)':'transparent'};background:transparent;cursor:pointer;font-family:inherit;text-align:left;transition:all .15s;color:${active?'var(--ink)':'var(--muted)'};`;
+  }
+  filterStyle(active){
+    return `padding:7px 13px;border:none;border-radius:7px;font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .14s;background:${active?'var(--surface)':'transparent'};color:${active?'var(--ink)':'var(--muted)'};box-shadow:${active?'0 1px 3px oklch(0.2 0.02 150 / 0.1)':'none'};`;
+  }
+
+  renderVals(){
+    const s=this.state;
+    const screen=s.screen;
+    const role=s.role;
+    const titles={orders:'Comenzi',stock:'Stoc — Loturi',production:'Producție',clients:'Clienți',recipes:'Rețete',audit:'Audit stoc',settings:'Setări organizație',catalog:'Catalog',myorders:'Comenzile mele',docs:'Documente & Certificate',certificate:'Certificat de trasabilitate'};
+    const crumbs={orders:'/ comenzi',stock:'/ stoc',production:'/ producție',clients:'/ clienți',recipes:'/ rețete',audit:'/ audit',settings:'/ setări',catalog:'/ catalog',myorders:'/ comenzi',docs:'/ documente',certificate:'/ certificat'};
+
+    const navTo={}; ['orders','stock','production','clients','recipes','audit','settings','catalog','myorders','docs','certificate'].forEach(k=>navTo[k]=()=>this.set({screen:k}));
+    const navStyle={},navDot={};
+    ['orders','stock','production','clients','recipes','audit','settings','catalog','myorders','docs'].forEach(k=>{navStyle[k]=this.navItemStyle(k);navDot[k]=this.navDotStyle(k);});
+
+    // orders
+    const ofilter=s.orderFilter;
+    const ordersF=this.orders.filter(o=>ofilter==='toate'||o.status===ofilter);
+    const ordersV=ordersF.map(o=>({...o,...{stLabel:STATUS[o.status].l,stBg:STATUS[o.status].bg,stFg:STATUS[o.status].fg},canAct:o.status==='trimisa'}));
+    const fcount=(st)=>this.orders.filter(o=>o.status===st).length;
+    const orderFilters=[
+      {key:'toate',label:'Toate',count:this.orders.length},
+      {key:'trimisa',label:'Trimise',count:fcount('trimisa')},
+      {key:'acceptata',label:'Acceptate',count:fcount('acceptata')},
+      {key:'livrata',label:'Livrate',count:fcount('livrata')},
+      {key:'anulata',label:'Anulate',count:fcount('anulata')}
+    ].map(f=>({...f,style:this.filterStyle(ofilter===f.key),onClick:()=>this.set({orderFilter:f.key})}));
+    const orderStats=[
+      {label:'Comenzi active',value:'14',trend:'+3',trendColor:'var(--ok)'},
+      {label:'De acceptat',value:'3',trend:'urgent',trendColor:'var(--warn)'},
+      {label:'Livrate luna asta',value:'27',trend:'+12%',trendColor:'var(--ok)'},
+      {label:'Certificate emise',value:'27',trend:'100%',trendColor:'var(--muted)'}
+    ];
+
+    // stock
+    const sfilter=s.stockFilter;
+    const lotsF=this.lots.filter(l=> sfilter==='toate' || (sfilter==='blocat'? l.status==='blocat' : l.source===sfilter));
+    const lotsV=lotsF.map(l=>({...l,srcLabel:SOURCES[l.source].l,srcBg:SOURCES[l.source].bg,srcFg:SOURCES[l.source].fg,
+      stLabel:l.status==='blocat'?'Blocat':'Liber',stBg:l.status==='blocat'?'var(--dangerBg)':'var(--okBg)',stFg:l.status==='blocat'?'var(--danger)':'var(--ok)'}));
+    const stockFilters=[
+      {key:'toate',label:'Toate',count:this.lots.length},
+      {key:'reciclare',label:'Reciclare',count:this.lots.filter(l=>l.source==='reciclare').length},
+      {key:'productie',label:'Producție',count:this.lots.filter(l=>l.source==='productie').length},
+      {key:'blocat',label:'Blocate',count:this.lots.filter(l=>l.status==='blocat').length}
+    ].map(f=>({...f,style:this.filterStyle(sfilter===f.key),onClick:()=>this.set({stockFilter:f.key})}));
+    // aggregated by product
+    const agg={};
+    this.lots.forEach(l=>{const n=parseInt(l.qty.replace(/\./g,''))||0;if(!agg[l.item])agg[l.item]={item:l.item,um:l.um,total:0,lots:0,blocked:0,srcs:{}};const a=agg[l.item];a.total+=n;a.lots++;if(l.status==='blocat')a.blocked+=n;a.srcs[l.source]=1;});
+    const stockAggV=Object.values(agg).map(a=>({item:a.item,um:a.um,totalL:a.total.toLocaleString('ro-RO'),lots:a.lots,
+      blockedL:a.blocked?a.blocked.toLocaleString('ro-RO')+' '+a.um:null,
+      noBlockDash:a.blocked?'':'—',
+      sources:Object.keys(a.srcs).map(k=>SOURCES[k].l).join(' · ')}));
+    const stockView=s.stockView;
+    // lot form validation
+    const lotQtyNum=parseInt((s.lotQty||'').replace(/\D/g,''))||0;
+    const lotValid=lotQtyNum>0;
+    const lotQtyInputStyle=`width:100%;padding:11px 13px;border:1px solid ${s.lotTouched&&!lotValid?'var(--danger)':'var(--line)'};border-radius:9px;background:var(--surface);font-size:14px;outline:none;font-variant-numeric:tabular-nums;color:var(--ink);`;
+    const sourceOptions=[
+      {key:'achizitie',label:'Achiziție'},{key:'productie',label:'Producție'},{key:'reciclare',label:'Reciclare'},{key:'retur',label:'Retur'},{key:'ajustare',label:'Ajustare inventar'}
+    ].map(o=>({...o,onClick:()=>this.set({lotSource:o.key}),
+      style:`padding:10px 12px;border:1px solid ${s.lotSource===o.key?'var(--accent)':'var(--line)'};border-radius:9px;background:${s.lotSource===o.key?'var(--accentSoft)':'var(--surface)'};color:${s.lotSource===o.key?'var(--onAccent)':'var(--ink)'};font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .14s;`}));
+
+    // ----- PRODUCTION: fixed output -----
+    const fifo=(item,need)=>{const lots=this.rawStock[item]||[];let rem=need;const used=[];for(const l of lots){if(rem<=0.001)break;const take=Math.min(l.avail,rem);used.push({code:l.code,take,date:l.date});rem-=take;}return used;};
+    const availOf=(item)=>(this.rawStock[item]||[]).reduce((a,l)=>a+l.avail,0);
+    const fixRecipe=this.recipesFix.find(r=>r.id===s.prodRecipe)||this.recipesFix[0];
+    const fixInputs=fixRecipe.inputs.map(i=>{const total=Math.round(i.per*s.prodQty);const av=availOf(i.item);const used=fifo(i.item,total);return {item:i.item,um:i.um,total,used,av,ok:total<=av,shortage:Math.max(0,total-av)};});
+    let fixMass=0; fixInputs.forEach(i=>i.used.forEach(u=>fixMass+=u.take));
+    const fixValid=s.prodQty>0 && fixInputs.every(i=>i.ok);
+    const maxFixOutput=Math.floor(Math.min(...fixRecipe.inputs.map(i=>availOf(i.item)/i.per)));
+    const fixShortages=fixInputs.filter(i=>!i.ok);
+    const fixErrorMsg = s.prodQty<=0 ? 'Introdu o cantitate de output mai mare ca zero.'
+      : (fixShortages.length ? 'Stoc insuficient: '+fixShortages.map(i=>i.item+' (lipsă '+i.shortage.toLocaleString('ro-RO')+' '+i.um+')').join(', ') : null);
+    const fixInputsV=fixInputs.map(i=>({item:i.item,um:i.um,ok:i.ok,totalL:i.total.toLocaleString('ro-RO')+' '+i.um,
+      availL:'disponibil '+i.av.toLocaleString('ro-RO')+' '+i.um, shortageL:i.shortage?('lipsă '+i.shortage.toLocaleString('ro-RO')+' '+i.um):null,
+      valColor:i.ok?'var(--ink)':'var(--danger)',
+      lotsLabel:i.used.length?i.used.map(u=>u.code+' ('+u.take.toLocaleString('ro-RO')+')').join('  ·  '):'—'}));
+    // fix sankey
+    const fNodes=[],fLinks=[];
+    fixInputs.forEach(i=>i.used.forEach((u,k)=>{const id='f_'+u.code+'_'+i.item;fNodes.push({id,col:0,value:u.take,label:u.code,sub:i.item.split(' ')[0]+' '+u.take.toLocaleString('ro-RO'),color:'var(--brand2)',tip:[{k:'Material',v:i.item},{k:'Consum',v:u.take.toLocaleString('ro-RO')+' '+i.um}]});fLinks.push({source:id,target:'f_proc',value:u.take,color:'var(--brand2)',vlabel:u.take.toLocaleString('ro-RO')+' '+i.um,label:i.item});}));
+    fNodes.push({id:'f_proc',col:1,value:fixMass,label:'Proces P-0820',sub:'fabricație',color:'var(--accent)',tip:[{k:'Tip',v:'Output fix'},{k:'Rețetă',v:fixRecipe.name}]});
+    fNodes.push({id:'f_out',col:2,value:fixMass,label:fixRecipe.out,sub:s.prodQty.toLocaleString('ro-RO')+' '+fixRecipe.outUm,color:'var(--ok)',tip:[{k:'Output',v:s.prodQty.toLocaleString('ro-RO')+' '+fixRecipe.outUm},{k:'Lot nou',v:'LOT-3392'}]});
+    fLinks.push({source:'f_proc',target:'f_out',value:fixMass,color:'var(--accent)',vlabel:s.prodQty.toLocaleString('ro-RO')+' '+fixRecipe.outUm,label:fixRecipe.out});
+    const fixSankey=this.buildSankey({nodes:fNodes,links:fLinks},{w:680,h:230,pad:4,gap:11});
+
+    // ----- PRODUCTION: variable output -----
+    const vr=this.recipesVar.moloz;
+    const varOutputsV=s.varOutputs.map((o,idx)=>({item:o.item,pct:o.pct,ideal:Math.round(vr.outputs[idx].pct/100*s.varQty).toLocaleString('ro-RO'),real:o.real,um:o.um,
+      onChange:(e)=>{const v=parseInt((e.target.value||'0').replace(/\D/g,''))||0;this.setState(st=>{const arr=st.varOutputs.slice();arr[idx]={...arr[idx],real:v};return {varOutputs:arr};});}}));
+    const varInputAvail=42000; // LOT-3382 Moloz beton
+    const varTotalReal=s.varOutputs.reduce((a,o)=>a+(o.real||0),0);
+    const varBalance=varTotalReal-s.varQty;
+    const varInputOver=s.varQty>varInputAvail;
+    const varOutputOver=varTotalReal>s.varQty;
+    const varValid=s.varQty>0 && !varInputOver && !varOutputOver;
+    const varErrorMsg = s.varQty<=0 ? 'Introdu o cantitate de input mai mare ca zero.'
+      : varInputOver ? ('Inputul depășește stocul disponibil — LOT-3382 are doar '+varInputAvail.toLocaleString('ro-RO')+' kg.')
+      : varOutputOver ? ('Output total '+varTotalReal.toLocaleString('ro-RO')+' kg depășește inputul de '+s.varQty.toLocaleString('ro-RO')+' kg — masa nu poate crește.')
+      : null;
+    const vNodes=[{id:'v_in',col:0,value:s.varQty,label:vr.inputLot,sub:vr.input+' '+s.varQty.toLocaleString('ro-RO'),color:'var(--brand2)',tip:[{k:'Material',v:vr.input},{k:'Cantitate',v:s.varQty.toLocaleString('ro-RO')+' kg'}]},
+      {id:'v_proc',col:1,value:Math.max(s.varQty,varTotalReal),label:'Proces P-0821',sub:'reciclare',color:'var(--accent)',tip:[{k:'Tip',v:'Output variabil'}]}];
+    const vLinks=[{source:'v_in',target:'v_proc',value:s.varQty,color:'var(--brand2)',vlabel:s.varQty.toLocaleString('ro-RO')+' kg',label:vr.input}];
+    const vcolors=['var(--ok)','var(--ok)','var(--accent)','var(--info)','var(--danger)'];
+    s.varOutputs.forEach((o,idx)=>{vNodes.push({id:'v_o'+idx,col:2,value:Math.max(1,o.real),label:o.item.split(' ')[0]+' '+(o.item.split(' ')[1]||''),sub:o.real.toLocaleString('ro-RO')+' kg',color:vcolors[idx],tip:[{k:o.item,v:o.real.toLocaleString('ro-RO')+' kg'},{k:'Ideal',v:Math.round(vr.outputs[idx].pct/100*s.varQty).toLocaleString('ro-RO')+' kg'}]});vLinks.push({source:'v_proc',target:'v_o'+idx,value:Math.max(1,o.real),color:vcolors[idx],vlabel:o.real.toLocaleString('ro-RO')+' kg',label:o.item});});
+    const varSankey=this.buildSankey({nodes:vNodes,links:vLinks},{w:680,h:250,pad:4,gap:9});
+
+    // ----- CATALOG / CART -----
+    const cartV=s.cart.map((c,idx)=>({...c,qtyL:c.qty.toLocaleString('ro-RO'),
+      dec:()=>this.setState(st=>{const a=st.cart.slice();a[idx]={...a[idx],qty:Math.max(0,a[idx].qty-100)};return{cart:a};}),
+      inc:()=>this.setState(st=>{const a=st.cart.slice();a[idx]={...a[idx],qty:a[idx].qty+100};return{cart:a};}),
+      remove:()=>this.setState(st=>({cart:st.cart.filter((_,i)=>i!==idx)}))}));
+    const cartCount=s.cart.reduce((a,c)=>a+c.qty,0);
+    const productsV=this.products.map(p=>({...p,addToCart:()=>this.setState(st=>{const ex=st.cart.find(c=>c.name===p.name);if(ex)return{cart:st.cart.map(c=>c.name===p.name?{...c,qty:c.qty+100}:c)};return{cart:[...st.cart,{name:p.name,um:p.um,qty:100,price:p.price}]};})}));
+
+    // ----- CLIENT ORDERS -----
+    const clientOrdersV=this.clientOrders.map(o=>({...o,stLabel:STATUS[o.status].l,stBg:STATUS[o.status].bg,stFg:STATUS[o.status].fg,done:!!o.done,
+      viewCert:()=>this.set({screen:'certificate'})}));
+    const clientsV=this.clients.map(c=>({...c,stBg:c.status==='activ'?'var(--okBg)':'var(--surface2)',stFg:c.status==='activ'?'var(--ok)':'var(--muted)',stLabel:c.status==='activ'?'Activ':'Inactiv'}));
+    const recipesListV=this.recipesList.map(r=>({...r,typeBg:r.type==='fix'?'var(--infoBg)':'var(--accentSoft)',typeFg:r.type==='fix'?'var(--info)':'var(--onAccent)'}));
+
+    // ----- CERTIFICATE traceability graph -----
+    const cNodes=[
+      {id:'c_s1',col:0,value:8400,label:'Ceramheld SRL',sub:'furnizor',color:'var(--info)',tip:[{k:'Sursă',v:'Furnizor argilă'},{k:'Aport',v:'8.400 kg'}]},
+      {id:'c_s2',col:0,value:1600,label:'Carmeuse RO',sub:'furnizor',color:'var(--info)',tip:[{k:'Sursă',v:'Furnizor ciment'},{k:'Aport',v:'1.600 kg'}]},
+      {id:'c_s3',col:0,value:1200,label:'rețea internă',sub:'apă tehno.',color:'var(--brand2)',tip:[{k:'Sursă',v:'Apă tehnologică'}]},
+      {id:'c_l1',col:1,value:8400,label:'LOT-3388',sub:'argilă recicl.',color:'var(--ok)',tip:[{k:'Lot',v:'Argilă reciclată'},{k:'Proveniență',v:'Reciclare'}]},
+      {id:'c_l2',col:1,value:1600,label:'LOT-3385',sub:'ciment',color:'var(--brand2)',tip:[{k:'Lot',v:'Ciment Portland'},{k:'Proveniență',v:'Achiziție'}]},
+      {id:'c_l3',col:1,value:1200,label:'LOT-3360',sub:'apă',color:'var(--brand2)'},
+      {id:'c_p',col:2,value:11200,label:'Proces P-0820',sub:'fabricație',color:'var(--accent)',tip:[{k:'Proces',v:'Fabricație cărămidă'},{k:'Data',v:'24.06.2026'}]},
+      {id:'c_pl',col:3,value:11200,label:'LOT-3391',sub:'cărămidă eco',color:'var(--ok)',tip:[{k:'Lot produs',v:'Cărămidă eco standard'},{k:'Cantitate',v:'8.420 buc'}]},
+      {id:'c_d',col:4,value:11200,label:'Cărămidă eco',sub:'4.000 buc livrate',color:'var(--brand)',tip:[{k:'Livrat',v:'4.000 buc'},{k:'Comandă',v:'CMD-2043'}]}
+    ];
+    const cLinks=[
+      {source:'c_s1',target:'c_l1',value:8400,color:'var(--ok)'},{source:'c_s2',target:'c_l2',value:1600,color:'var(--brand2)'},{source:'c_s3',target:'c_l3',value:1200,color:'var(--brand2)'},
+      {source:'c_l1',target:'c_p',value:8400,color:'var(--ok)',label:'Argilă reciclată',vlabel:'8.400 kg'},{source:'c_l2',target:'c_p',value:1600,color:'var(--brand2)',label:'Ciment',vlabel:'1.600 kg'},{source:'c_l3',target:'c_p',value:1200,color:'var(--brand2)',label:'Apă',vlabel:'1.200 kg'},
+      {source:'c_p',target:'c_pl',value:11200,color:'var(--accent)'},{source:'c_pl',target:'c_d',value:11200,color:'var(--ok)',label:'Cărămidă eco',vlabel:'4.000 buc'}
+    ];
+    const certSankey=this.buildSankey({nodes:cNodes,links:cLinks},{w:760,h:300,pad:4,gap:14,nodeW:13});
+    const certMaterials=[
+      {mat:'Argilă reciclată',origin:'Reciclare — deșeuri ceramice',src:'Ceramheld SRL',pct:'75,0%'},
+      {mat:'Ciment Portland',origin:'Achiziție — material primar',src:'Carmeuse RO',pct:'14,3%'},
+      {mat:'Apă tehnologică',origin:'Rețea internă recirculată',src:'Lateris',pct:'10,7%'}
+    ];
+
+    // tooltip
+    const tip=s.tip;
+    const tipStyle=`position:fixed;left:${(tip.x||0)+14}px;top:${(tip.y||0)+14}px;z-index:90;background:var(--brand);color:var(--onBrand);padding:9px 12px;border-radius:9px;box-shadow:0 8px 24px oklch(0.2 0.02 150 / 0.3);pointer-events:none;min-width:130px;border:1px solid var(--brandLine);`;
+
+    const roleBtn={
+      staff:`flex:1;padding:8px;border:1px solid ${role==='staff'?'var(--accent)':'var(--brandLine)'};border-radius:7px;background:${role==='staff'?'var(--accent)':'transparent'};color:${role==='staff'?'var(--onAccent)':'var(--onBrandMuted)'};font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;`,
+      client:`flex:1;padding:8px;border:1px solid ${role==='client'?'var(--accent)':'var(--brandLine)'};border-radius:7px;background:${role==='client'?'var(--accent)':'transparent'};color:${role==='client'?'var(--onAccent)':'var(--onBrandMuted)'};font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;`
+    };
+
+    return {
+      rootRef:this.rootRef,
+      orgName:this.props.orgName||'Lateris',
+      showPattern:this.props.showPattern!==false,
+      isLogin:screen==='login', isApp:screen!=='login',
+      isStaff:role==='staff', isClient:role==='client', isAdmin:role==='staff',
+      roleLabel:role==='client'?'Portal client':'Administrator',
+      screenTitle:titles[screen]||'', screenCrumb:crumbs[screen]||'',
+      isOrders:screen==='orders', isStock:screen==='stock', isProduction:screen==='production',
+      isClients:screen==='clients', isRecipes:screen==='recipes', isAudit:screen==='audit', isSettings:screen==='settings',
+      isCatalog:screen==='catalog', isMyorders:screen==='myorders', isDocs:screen==='docs', isCertificate:screen==='certificate',
+      enterApp:()=>this.set({screen:'orders',role:'staff'}),
+      goLogin:()=>this.set({screen:'login'}),
+      setStaff:()=>this.set({role:'staff',screen:'orders'}),
+      setClient:()=>this.set({role:'client',screen:'catalog'}),
+      navTo, navStyle, navDot, roleBtn,
+      navBadgeStyle:'margin-left:auto;background:var(--accent);color:var(--onAccent);font-size:10.5px;font-weight:700;padding:1px 7px;border-radius:10px;font-family:IBM Plex Mono;',
+      ordersV, orderFilters, orderStats,
+      lotsV, stockFilters, sourceOptions, stockAggV,
+      stockView, isViewLots:stockView==='loturi', isViewProduct:stockView==='produs',
+      viewLotsBg:stockView==='loturi'?'var(--accent)':'transparent', viewLotsFg:stockView==='loturi'?'var(--onAccent)':'var(--onBrandMuted)',
+      viewProductBg:stockView==='produs'?'var(--accent)':'transparent', viewProductFg:stockView==='produs'?'var(--onAccent)':'var(--onBrandMuted)',
+      setViewLots:()=>this.set({stockView:'loturi'}), setViewProduct:()=>this.set({stockView:'produs'}),
+      lotFormOpen:s.lotFormOpen, openLotForm:()=>this.set({lotFormOpen:true,lotTouched:false}), closeLotForm:()=>this.set({lotFormOpen:false}),
+      lotQty:s.lotQty, lotQtyInputStyle, lotValid, lotQtyError:s.lotTouched&&!lotValid,
+      onLotQty:(e)=>this.set({lotQty:e.target.value}),
+      submitLot:()=>{ if(lotValid){ this.set({lotFormOpen:false}); } else { this.set({lotTouched:true}); } },
+      // production validation
+      fixValid, fixErrorMsg, maxFixOutputL:maxFixOutput.toLocaleString('ro-RO'),
+      prodQtyInputStyle:`flex:1;padding:12px 14px;border:none;outline:none;font-size:16px;font-weight:700;background:var(--surface);color:${fixValid?'var(--ink)':'var(--danger)'};font-variant-numeric:tabular-nums;`,
+      prodQtyBoxStyle:`display:flex;align-items:stretch;border:1px solid ${fixValid?'var(--line)':'var(--danger)'};border-radius:9px;overflow:hidden;`,
+      confirmFixStyle:`padding:12px 24px;border:none;border-radius:9px;font-size:14px;font-weight:700;cursor:${fixValid?'pointer':'not-allowed'};background:${fixValid?'var(--accent)':'var(--surface2)'};color:${fixValid?'var(--onAccent)':'var(--faint)'};`,
+      varValid, varErrorMsg,
+      varQtyInputStyle:`flex:1;width:100%;padding:11px;border:none;outline:none;font-size:15px;font-weight:700;background:var(--surface);color:${varInputOver?'var(--danger)':'var(--ink)'};font-variant-numeric:tabular-nums;`,
+      varQtyBoxStyle:`display:flex;align-items:stretch;border:1px solid ${varInputOver?'var(--danger)':'var(--line)'};border-radius:9px;overflow:hidden;width:150px;`,
+      confirmVarStyle:`padding:12px 24px;border:none;border-radius:9px;font-size:14px;font-weight:700;cursor:${varValid?'pointer':'not-allowed'};background:${varValid?'var(--accent)':'var(--surface2)'};color:${varValid?'var(--onAccent)':'var(--faint)'};`,
+      // production
+      prodTab:s.prodTab, isProdFix:s.prodTab==='fix', isProdVar:s.prodTab==='var',
+      prodTabFixStyle:this.tabStyle(s.prodTab==='fix'), prodTabVarStyle:this.tabStyle(s.prodTab==='var'),
+      setProdFix:()=>this.set({prodTab:'fix'}), setProdVar:()=>this.set({prodTab:'var'}),
+      prodQty:s.prodQty, prodQtyL:s.prodQty.toLocaleString('ro-RO'),
+      onProdQty:(e)=>{const v=parseInt((e.target.value||'0').replace(/\D/g,''))||0;this.set({prodQty:v});},
+      fixRecipeName:fixRecipe.name, fixOut:fixRecipe.out, fixOutUm:fixRecipe.outUm, fixInputsV, fixSankey,
+      fixMassL:fixMass.toLocaleString('ro-RO'),
+      varInput:vr.input, varInputLot:vr.inputLot, varQty:s.varQty, varQtyL:s.varQty.toLocaleString('ro-RO'),
+      onVarQty:(e)=>{const v=parseInt((e.target.value||'0').replace(/\D/g,''))||0;this.set({varQty:v});},
+      varOutputsV, varSankey, varTotalRealL:varTotalReal.toLocaleString('ro-RO'),
+      varBalanceL:(varBalance>=0?'+':'−')+Math.abs(varBalance).toLocaleString('ro-RO')+' kg', varBalanceColor:Math.abs(varBalance)<10?'var(--ok)':'var(--warn)',
+      // catalog/client
+      productsV, cartV, cartCount:cartCount.toLocaleString('ro-RO'), cartLines:s.cart.length, hasCart:s.cart.length>0,
+      goCatalog:()=>this.set({screen:'catalog'}),
+      clientOrdersV, clientsV, recipesListV, auditLog:this.auditLog, documents:this.documents,
+      // certificate
+      certSankey, certMaterials, viewCert:()=>this.set({screen:'certificate'}),
+      tip, tipStyle
+    };
+  }
+}
+</script>
+</body>
+</html>

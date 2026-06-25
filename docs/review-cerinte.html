@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Review cerinte - Aplicatie Economie Circulara</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #f5f5f0;
+      color: #1a1a1a;
+      line-height: 1.6;
+    }
+
+    .header {
+      background: #1a1a1a;
+      color: #fff;
+      padding: 2rem;
+      text-align: center;
+    }
+
+    .header h1 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+
+    .header p {
+      margin-top: 0.5rem;
+      color: #aaa;
+      font-size: 0.9rem;
+    }
+
+    .container {
+      max-width: 780px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem 4rem;
+    }
+
+    .intro {
+      background: #fff;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .intro h2 {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    .intro p {
+      font-size: 0.9rem;
+      color: #555;
+    }
+
+    .section {
+      background: #fff;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .section-title {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #888;
+      margin-bottom: 1rem;
+    }
+
+    .summary-block {
+      font-size: 0.88rem;
+      color: #444;
+    }
+
+    .summary-block ul {
+      padding-left: 1.25rem;
+      margin-top: 0.5rem;
+    }
+
+    .summary-block li {
+      margin-bottom: 0.25rem;
+    }
+
+    .summary-block h3 {
+      font-size: 0.88rem;
+      font-weight: 600;
+      margin-top: 1rem;
+      margin-bottom: 0.25rem;
+      color: #1a1a1a;
+    }
+
+    .confirm-block {
+      margin-top: 1rem;
+    }
+
+    .confirm-block label {
+      font-size: 0.9rem;
+      font-weight: 600;
+      display: block;
+      margin-bottom: 0.5rem;
+    }
+
+    .confirm-options {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .confirm-options label {
+      font-weight: 400;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      cursor: pointer;
+    }
+
+    textarea {
+      width: 100%;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      padding: 0.75rem;
+      font-size: 0.88rem;
+      font-family: inherit;
+      resize: vertical;
+      min-height: 80px;
+      color: #1a1a1a;
+      background: #fafafa;
+      transition: border-color 0.15s;
+    }
+
+    textarea:focus {
+      outline: none;
+      border-color: #1a1a1a;
+      background: #fff;
+    }
+
+    .question-block {
+      margin-bottom: 1.5rem;
+    }
+
+    .question-block:last-child {
+      margin-bottom: 0;
+    }
+
+    .question-label {
+      font-size: 0.9rem;
+      font-weight: 600;
+      margin-bottom: 0.3rem;
+      display: flex;
+      gap: 0.5rem;
+      align-items: baseline;
+    }
+
+    .question-tag {
+      display: inline-block;
+      background: #1a1a1a;
+      color: #fff;
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 0.1rem 0.45rem;
+      border-radius: 4px;
+      letter-spacing: 0.04em;
+    }
+
+    .question-context {
+      font-size: 0.82rem;
+      color: #777;
+      margin-bottom: 0.5rem;
+    }
+
+    .submit-area {
+      margin-top: 2rem;
+      text-align: center;
+    }
+
+    .submit-area p {
+      font-size: 0.82rem;
+      color: #777;
+      margin-bottom: 1rem;
+    }
+
+    .btn-submit {
+      background: #1a1a1a;
+      color: #fff;
+      border: none;
+      padding: 0.85rem 2.5rem;
+      font-size: 1rem;
+      font-weight: 600;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .btn-submit:hover {
+      background: #333;
+    }
+
+    @media (max-width: 600px) {
+      .header { padding: 1.5rem 1rem; }
+      .section { padding: 1.25rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Review cerinte &mdash; Aplicatie Economie Circulara</h1>
+  <p>Te rugam sa citesti rezumatul si sa raspunzi la intrebarile de mai jos.</p>
+</div>
+
+<div class="container">
+
+  <!-- INTRO -->
+  <div class="intro">
+    <h2>Despre ce e vorba</h2>
+    <p>Am documentat toate cerintele discutate pana acum si am identificat cateva puncte care necesita decizia ta. Citeste rezumatul, confirma daca e corect, apoi raspunde la intrebarile deschise. La final, apasa butonul &mdash; raspunsurile tale vor fi trimise automat pe email.</p>
+  </div>
+
+  <!-- REZUMAT -->
+  <div class="section">
+    <div class="section-title">Rezumat decizii luate</div>
+    <div class="summary-block">
+
+      <h3>Ce face aplicatia</h3>
+      <p>Platforma web pentru trasabilitatea materialelor in regim de economie circulara. Exemplu: firma de constructii concaseaza moloz, obtine nisip/pietris/fierbeton reciclat, produce caramizi/beton/balast si livreaza cu certificat de trasabilitate.</p>
+
+      <h3>Organizatii si model comercial</h3>
+      <ul>
+        <li>Vanduta firmelor producatoare/reciclatoare (nu clientilor lor finali)</li>
+        <li>O organizatie = o firma juridica, date complet izolate</li>
+        <li>Multi-tenant intr-o singura aplicatie, white labeling minim (logo, culori, domeniu)</li>
+      </ul>
+
+      <h3>Roluri</h3>
+      <ul>
+        <li><strong>Super-admin</strong> &mdash; administreaza organizatiile</li>
+        <li><strong>Admin</strong> &mdash; configureaza produse, retete, useri; acces total</li>
+        <li><strong>Operator</strong> &mdash; stoc, productie, comenzi</li>
+        <li><strong>Client</strong> &mdash; catalog, comenzi proprii, certificate</li>
+      </ul>
+
+      <h3>Clienti (firmele care cumpara)</h3>
+      <ul>
+        <li>Doar firme, lookup automat dupa CUI cu precompletare date</li>
+        <li>Pot fi si furnizori de deseuri in acelasi timp</li>
+        <li>Pot avea mai multe adrese de livrare</li>
+      </ul>
+
+      <h3>Comenzi</h3>
+      <ul>
+        <li>Catalog fara preturi, searchable; clientul adauga in cos si trimite comanda</li>
+        <li>Adminul accepta/anuleaza/editeaza; clientul poate modifica sau anula dupa trimitere</li>
+        <li>Notificari email la schimbarea statusului</li>
+        <li>Retur si garantie disponibile dupa finalizare comanda</li>
+      </ul>
+
+      <h3>Stoc si productie</h3>
+      <ul>
+        <li>Stoc pe loturi cu FIFO implicit (selectie manuala optionala)</li>
+        <li>Doua tipuri de procese: output fix (fabricatie) si output variabil cu confirmare manuala (reciclare)</li>
+        <li>Retete in procente, fara versionare, productie doar pentru stoc</li>
+      </ul>
+
+      <h3>Certificate si documente</h3>
+      <ul>
+        <li>Certificat PDF generat automat la inchiderea comenzii: numar unic, data, logo, semnatura</li>
+        <li>Documente atasabile la: client, comanda, item</li>
+        <li>Clientul vede toate documentele comenzilor proprii</li>
+      </ul>
+
+      <h3>Tehnologie si termen</h3>
+      <ul>
+        <li>Next.js + Vercel + Supabase (EU), lansare august 2025</li>
+        <li>Flux complet MVP: creare client &rarr; intrare stoc &rarr; reciclare &rarr; productie &rarr; comanda &rarr; certificat</li>
+        <li>Nimic manual &mdash; totul automatizat de la inceput</li>
+      </ul>
+
+    </div>
+  </div>
+
+  <!-- FORMULAR -->
+  <form id="review-form">
+
+    <!-- CONFIRMARE -->
+    <div class="section">
+      <div class="section-title">Confirmare generala</div>
+      <div class="question-block">
+        <div class="question-label">Rezumatul de mai sus este corect?</div>
+        <div class="question-context">Daca ai ceva de corectat sau de adaugat, scrie mai jos.</div>
+        <div class="confirm-block">
+          <div class="confirm-options">
+            <label><input type="radio" name="confirmare" value="da" required /> Da, totul e corect</label>
+            <label><input type="radio" name="confirmare" value="partial" /> Partial, am completari</label>
+            <label><input type="radio" name="confirmare" value="nu" /> Nu, am corectii</label>
+          </div>
+          <textarea name="confirmare_detalii" placeholder="Completari sau corectii (optional)..."></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- INTREBARI DESCHISE -->
+    <div class="section">
+      <div class="section-title">Intrebari deschise</div>
+
+      <div class="question-block">
+        <div class="question-label">
+          <span class="question-tag">A</span> Unitate de masura si ambalare
+        </div>
+        <div class="question-context">Cum se vand produsele &mdash; la bucata, la tona, la metru patrat, la palet? Daca acelasi produs se poate vinde in unitati diferite, e nevoie de produse separate sau un singur produs cu mai multe unitati?</div>
+        <textarea name="q_a" placeholder="Raspunsul tau..."></textarea>
+      </div>
+
+      <div class="question-block">
+        <div class="question-label">
+          <span class="question-tag">B</span> Conversii intre unitati de masura
+        </div>
+        <div class="question-context">Trebuie sa poti converti intre unitati (ex. kg &harr; tone, bucati &harr; paleti)? Exista un use case concret?</div>
+        <textarea name="q_b" placeholder="Raspunsul tau..."></textarea>
+      </div>
+
+      <div class="question-block">
+        <div class="question-label">
+          <span class="question-tag">C</span> Audit trail pentru stoc
+        </div>
+        <div class="question-context">Trebuie un log cu toate modificarile de stoc (cine, cand, ce a schimbat)? Exista cerinte legale sau operationale pentru asta?</div>
+        <textarea name="q_c" placeholder="Raspunsul tau..."></textarea>
+      </div>
+
+      <div class="question-block">
+        <div class="question-label">
+          <span class="question-tag">D</span> Nivelul de detaliu al certificatului de trasabilitate
+        </div>
+        <div class="question-context">Ce trebuie sa vada clientul in certificat? Doar originea materialelor la nivel de furnizor/lot, sau si procente exacte, documente sursa, locatii, toate procesele intermediare? Aceasta este functia centrala a produsului.</div>
+        <textarea name="q_d" placeholder="Raspunsul tau..."></textarea>
+      </div>
+
+      <div class="question-block">
+        <div class="question-label">
+          <span class="question-tag">E</span> Verificare publica a certificatului
+        </div>
+        <div class="question-context">Clientii tai vor vrea sa trimita certificatul unui tert (ex. auditor, beneficiar final) care sa il verifice fara cont in platforma? Un QR code ar rezolva asta.</div>
+        <textarea name="q_e" placeholder="Raspunsul tau..."></textarea>
+      </div>
+
+      <div class="question-block">
+        <div class="question-label">
+          <span class="question-tag">F</span> Limba aplicatiei
+        </div>
+        <div class="question-context">Aplicatia va fi in romana hardcodat sau construim cu suport i18n (texte in fisiere separate, usor de tradus ulterior)? Recomandam i18n de la inceput &mdash; costul e mic acum.</div>
+        <textarea name="q_f" placeholder="Raspunsul tau..."></textarea>
+      </div>
+
+      <div class="question-block">
+        <div class="question-label">
+          <span class="question-tag">G</span> Modelul de inchiriere (product-as-a-service)
+        </div>
+        <div class="question-context">Ex: clientul ia dale de beton pentru un festival, le returneaza dupa. Poate fi simulat prin doua comenzi separate (comanda + retur). Este suficient sau trebuie un flux dedicat cu perioada, scadenta si penalizari?</div>
+        <textarea name="q_g" placeholder="Raspunsul tau..."></textarea>
+      </div>
+
+      <div class="question-block">
+        <div class="question-label">
+          <span class="question-tag">H</span> Ajustare inventar
+        </div>
+        <div class="question-context">La intrarea manuala in stoc avem: achizitie, productie interna, reciclare, retur. Mai e nevoie si de "ajustare inventar" pentru corectii manuale dupa inventariere?</div>
+        <textarea name="q_h" placeholder="Raspunsul tau..."></textarea>
+      </div>
+
+      <div class="question-block">
+        <div class="question-label">
+          <span class="question-tag">I</span> Momentul scaderii stocului
+        </div>
+        <div class="question-context">Stocul se scade la acceptarea comenzii sau la livrare/inchidere? La acceptare &mdash; stocul reflecta imediat ce e rezervat. La livrare &mdash; mai precis, dar poti "vinde" acelasi lot de doua ori intre timp.</div>
+        <textarea name="q_i" placeholder="Raspunsul tau..."></textarea>
+      </div>
+
+      <div class="question-block">
+        <div class="question-label">
+          <span class="question-tag">J</span> Standarde pentru certificatul de trasabilitate
+        </div>
+        <div class="question-context">Exista standarde, norme sau cerinte legale (romanesti sau europene) dupa care trebuie structurat certificatul pentru materiale de constructii reciclate?</div>
+        <textarea name="q_j" placeholder="Raspunsul tau..."></textarea>
+      </div>
+
+    </div>
+
+    <div class="submit-area">
+      <p>La apasarea butonului se va deschide clientul tau de email cu raspunsurile precompletate.</p>
+      <button type="button" class="btn-submit" onclick="trimite()">Trimite raspunsurile</button>
+    </div>
+
+  </form>
+
+</div>
+
+<script>
+  function trimite() {
+    const form = document.getElementById('review-form');
+
+    const confirmare = form.querySelector('input[name="confirmare"]:checked');
+    if (!confirmare) {
+      alert('Te rugam sa selectezi daca rezumatul este corect.');
+      return;
+    }
+
+    const get = (name) => {
+      const el = form.querySelector(`[name="${name}"]`);
+      return el ? el.value.trim() : '';
+    };
+
+    const rad = (name) => {
+      const el = form.querySelector(`input[name="${name}"]:checked`);
+      return el ? el.value : '';
+    };
+
+    const linii = [
+      '=== REVIEW CERINTE - APLICATIE ECONOMIE CIRCULARA ===',
+      '',
+      '--- CONFIRMARE GENERALA ---',
+      'Rezumatul este corect: ' + rad('confirmare'),
+      'Completari/corectii: ' + (get('confirmare_detalii') || '(niciuna)'),
+      '',
+      '--- INTREBARI DESCHISE ---',
+      '',
+      'A. Unitate de masura si ambalare:',
+      get('q_a') || '(fara raspuns)',
+      '',
+      'B. Conversii intre unitati de masura:',
+      get('q_b') || '(fara raspuns)',
+      '',
+      'C. Audit trail pentru stoc:',
+      get('q_c') || '(fara raspuns)',
+      '',
+      'D. Nivelul de detaliu al certificatului:',
+      get('q_d') || '(fara raspuns)',
+      '',
+      'E. Verificare publica a certificatului:',
+      get('q_e') || '(fara raspuns)',
+      '',
+      'F. Limba aplicatiei:',
+      get('q_f') || '(fara raspuns)',
+      '',
+      'G. Modelul de inchiriere:',
+      get('q_g') || '(fara raspuns)',
+      '',
+      'H. Ajustare inventar:',
+      get('q_h') || '(fara raspuns)',
+      '',
+      'I. Momentul scaderii stocului:',
+      get('q_i') || '(fara raspuns)',
+      '',
+      'J. Standarde pentru certificat:',
+      get('q_j') || '(fara raspuns)',
+    ];
+
+    const subject = encodeURIComponent('Review cerinte - Aplicatie Economie Circulara');
+    const body = encodeURIComponent(linii.join('\n'));
+    const destinatar = 'bogdan.gradinariu@gmail.com';
+
+    window.location.href = `mailto:${destinatar}?subject=${subject}&body=${body}`;
+  }
+</script>
+
+</body>
+</html>

@@ -141,10 +141,10 @@ Intrebari:
    - Raspuns: nu stiu. ca sa fie simplu - nu. alte proprietati - alt produs
 
 4. Ce statusuri trebuie sa aiba o comanda? De exemplu draft, trimisa, acceptata, in productie, pregatita, livrata, inchisa, anulata.
-   - Raspuns: nu m-am gandit inca. probabil cele de. mai sus
+   - Raspuns: draft, trimisa, acceptata, livrata, inchisa, anulata. Fara "in productie" si "pregatita".
 
 5. Cand se scade stocul: la acceptarea comenzii, la pregatirea livrarii sau la inchiderea comenzii?
-   - Raspuns: nu sunt sigur cand e mai bine
+   - Raspuns: La acceptarea comenzii. La anulare, stocul se reface.
 
 6. Adminul poate modifica produsele si cantitatile dintr-o comanda deja trimisa de client?
    - Raspuns: da. proniim de la ipoteza ca clientul si adminul sunt deja in contact. se stiu, vorbesc la telefon. platforma e mia mult o formalitate ca sa aiba trasabilitate si documentatie
@@ -173,7 +173,7 @@ Intrebari:
    - Raspuns: nu stiu. sugereaza tu ceva ok
 
 2. Returul si garantia sunt suficiente pentru MVP sau trebuie si un flux separat de inchiriere / product-as-a-service?
-   - Raspuns: cred ca initial se voia inchiriere, dar m-am gandit ca se poate simula prin doua comenzi separate. e mai simplu, sau se complica de fapt?
+   - Raspuns: Comanda + retur, cu un camp optional "data estimata retur" pe comanda pentru vizibilitate minima. Fara flux dedicat de inchiriere.
 
 3. Cand un client aduce materiale inapoi, sistemul trebuie sa stie exact ce produs initial a fost returnat sau poate fi o cantitate estimata?
    - Raspuns: da, dar clienul poate modifica. poate aduce mai putine dale inapoi. poate cateva s-au stricat si intra in categoria moloz
@@ -203,31 +203,31 @@ Ce am inteles:
 Intrebari:
 
 1. Ce tipuri de itemi trebuie definite explicit? De exemplu deseu, materie prima, semifabricat, produs finit, ambalaj, serviciu.
-   - Raspuns:
+   - Raspuns: Nu exista tipuri fixe in sistem. Fiecare admin isi defineste propriul stoc liber. Tipul poate fi o eticheta/categorie libera, plus flag-ul "vandabil" deja mentionat.
 
 2. Un item poate avea mai multe unitati de masura sau doar una principala?
-   - Raspuns:
+   - Raspuns: Un singur UM per produs. Daca acelasi material se vinde in unitati diferite, sunt produse separate.
 
 3. Trebuie conversii intre unitati? De exemplu kg <-> tone, bucati <-> paleti, metri cubi <-> tone.
-   - Raspuns:
+   - Raspuns: Nu, fara conversii pentru MVP.
 
 4. Ce informatii minime trebuie sa aiba un lot? De exemplu data intrare, sursa, locatie, cantitate initiala, cantitate ramasa, documente, status calitate.
-   - Raspuns:
+   - Raspuns: Da, cele sugerate: data intrare, sursa, locatie, cantitate initiala, cantitate ramasa, documente, status calitate.
 
 5. Stocul este urmarit pe locatii / depozite diferite?
-   - Raspuns:
+   - Raspuns: Nu, un singur depozit per organizatie in MVP.
 
 6. Loturile pot expira, pot fi blocate sau pot fi marcate ca neconforme?
-   - Raspuns:
+   - Raspuns: Da, pot fi blocate cu un motiv. Odata blocate, ies din stocul disponibil.
 
 7. FIFO este regula obligatorie pentru toate consumurile sau doar default-ul care poate fi suprascris manual?
-   - Raspuns:
+   - Raspuns: FIFO ca default, cu optiunea de selectie manuala a loturilor la productie daca operatorul vrea sa suprascrie.
 
 8. La adaugare manuala in stoc, ce tipuri de provenienta exista? De exemplu achizitie, productie interna, retur client, reciclare, ajustare inventar.
-   - Raspuns:
+   - Raspuns: Achizitie, productie interna, reciclare, retur, ajustare inventar (pentru corectii dupa inventariere fizica).
 
 9. Trebuie audit trail pentru toate modificarile de stoc?
-   - Raspuns:
+   - Raspuns: Da, de la inceput. Tabela de events cu toate miscarile de stoc. Se expune in UI ca listing cu export CSV/Excel.
 
 ## 8. Retete si procese de productie / reciclare
 
@@ -243,31 +243,31 @@ Ce am inteles:
 Intrebari:
 
 1. Cum ar trebui modelate retetele: procente, cantitati fixe per unitate de output, intervale estimate sau o combinatie?
-   - Raspuns:
+   - Raspuns: Procente.
 
 2. O reteta poate avea alternative de materiale? De exemplu nisip reciclat sau nisip cumparat.
-   - Raspuns:
+   - Raspuns: Nu e nevoie. Nisipul reciclat si cel cumparat sunt acelasi item in stoc. Loturile sunt cele care tin minte provenienta, nu reteta.
 
 3. Retetele trebuie versionate? De exemplu daca reteta se schimba, produsele vechi raman legate de versiunea veche.
-   - Raspuns:
+   - Raspuns: Nu. Daca se schimba reteta, se schimba produsul (produs nou).
 
 4. La productia cu output fix, utilizatorul introduce cantitatea dorita de produs, iar sistemul calculeaza consumul?
-   - Raspuns:
+   - Raspuns: Da.
 
 5. La reciclarea cu output variabil, utilizatorul introduce intai inputul, apoi confirma manual cantitatile rezultate?
-   - Raspuns:
+   - Raspuns: Da. Sistemul afiseaza un formular cu outputul ideal conform retetei, dar userul ajusteaza daca e cazul si confirma.
 
 6. Sistemul trebuie sa valideze pierderile / randamentul fata de reteta sau doar sa le inregistreze?
-   - Raspuns:
+   - Raspuns: Doar sa le inregistreze.
 
 7. Procesele de productie au statusuri? De exemplu planificat, in lucru, asteapta confirmare, finalizat, anulat.
-   - Raspuns:
+   - Raspuns: Da, probabil cele de mai sus. De definit exact in design.
 
 8. Productia poate fi legata direct de o comanda client sau este doar productie pentru stoc?
-   - Raspuns:
+   - Raspuns: Doar pentru stoc.
 
 9. Trebuie suport pentru productie partiala sau batch-uri multiple pentru aceeasi comanda?
-   - Raspuns:
+   - Raspuns: Nu.
 
 ## 9. Trasabilitate si certificate
 
@@ -280,28 +280,28 @@ Ce am inteles:
 Intrebari:
 
 1. Ce trebuie sa contina certificatul de trasabilitate pentru o comanda?
-   - Raspuns:
+   - Raspuns: Nu stim inca. Necesita research pe standarde si exemple din industrie. Directia: PDF cu template predefinit.
 
 2. Certificatul este generat automat ca PDF la inchiderea comenzii sau la cerere?
-   - Raspuns:
+   - Raspuns: Automat la inchiderea comenzii.
 
 3. Certificatul trebuie sa aiba numar unic, data emitere, semnatura, logo organizatie sau QR code?
-   - Raspuns:
+   - Raspuns: Da pentru numar unic, data emitere, logo organizatie, semnatura. QR code - open question.
 
 4. Cat de detaliat trebuie prezentat lantul de trasabilitate clientului? Loturi exacte, procente, furnizori, documente, locatii?
-   - Raspuns:
+   - Raspuns: Template flexibil, populat dinamic. Minim: originea materialelor, sursa, documente. Restul se adauga pe parcurs.
 
 5. Exista date care sunt vizibile intern, dar ascunse clientului?
-   - Raspuns:
+   - Raspuns: Da. Stocul este intern - clientul nu vede stocul global al organizatiei, doar trasabilitatea produselor din comenzile proprii.
 
 6. Certificatul trebuie sa fie public verificabil prin link / QR code fara login?
-   - Raspuns:
+   - Raspuns: Nice to have, post-MVP.
 
 7. Trebuie generate rapoarte agregate, de exemplu procent material reciclat pe comanda sau economie de deseuri?
-   - Raspuns:
+   - Raspuns: Nice to have, nu in MVP.
 
 8. Exista standarde, norme sau cerinte legale dupa care trebuie structurat certificatul?
-   - Raspuns:
+   - Raspuns: OPEN QUESTION - de investigat inainte de finalizarea template-ului certificatului.
 
 ## 10. Documente si atasamente
 
@@ -313,22 +313,22 @@ Ce am inteles:
 Intrebari:
 
 1. Ce entitati pot avea documente atasate? Client, comanda, lot, item, proces de productie, certificat?
-   - Raspuns:
+   - Raspuns: Client, comanda, item. Altele se adauga ulterior daca e nevoie.
 
 2. Ce tipuri de fisiere trebuie acceptate? PDF, imagini, Excel, Word?
-   - Raspuns:
+   - Raspuns: Orice tip de fisier, cu o limita de dimensiune per fisier (de definit exact, ex. 10-20MB).
 
 3. Documentele sunt doar pentru arhiva sau unele trebuie generate automat de aplicatie?
-   - Raspuns:
+   - Raspuns: Certificatul de trasabilitate este generat automat de aplicatie. Restul documentelor sunt doar arhivate.
 
 4. Cine poate vedea fiecare tip de document: admin, operator, client?
-   - Raspuns:
+   - Raspuns: Adminul si operatorul pot vedea tot. Clientul poate vedea tot ce tine de comenzile sale si de descrierea produselor.
 
 5. Trebuie semnaturi digitale sau validare speciala pentru documente?
-   - Raspuns:
+   - Raspuns: Nu.
 
 6. Trebuie pastrate versiuni ale documentelor?
-   - Raspuns:
+   - Raspuns: Nu.
 
 ## 11. Dashboard admin
 
@@ -340,22 +340,22 @@ Ce am inteles:
 Intrebari:
 
 1. Care sunt cele mai importante 3 ecrane pentru admin in MVP?
-   - Raspuns:
+   - Raspuns: Comenzi, procese, clienti si stoc (top 4).
 
 2. Dashboardul admin trebuie sa arate indicatori / KPI-uri? De exemplu stoc critic, comenzi noi, procese in asteptare, materiale reciclate.
-   - Raspuns:
+   - Raspuns: Nice to have. Daca nu complica MVP-ul, da.
 
 3. Adminul trebuie sa poata cauta global dupa comanda, client, lot, produs sau certificat?
-   - Raspuns:
+   - Raspuns: Da. Certificatul va avea un numar unic, deci cautarea globala e fezabila.
 
 4. Ce actiuni trebuie sa poata face adminul rapid din lista de comenzi?
-   - Raspuns:
+   - Raspuns: Accepta / Anuleaza direct din lista. Restul actiunilor in pagina de detaliu a comenzii.
 
 5. Comanda facuta de admin in numele clientului trebuie sa trimita notificare clientului?
-   - Raspuns:
+   - Raspuns: Da, se comporta identic cu o comanda normala, dar cu un flag "creata de admin" vizibil.
 
 6. Operatorii interni au nevoie de interfete simplificate pentru stoc/productie, separate de admin?
-   - Raspuns:
+   - Raspuns: Nu. Interfata unica - operatorul are acces la stoc/productie/comenzi, adminul are in plus configurare produse/retete, white labeling si user management.
 
 ## 12. Dashboard client
 
@@ -368,22 +368,22 @@ Ce am inteles:
 Intrebari:
 
 1. Clientul trebuie sa vada doar comenzile proprii sau si comenzile tuturor utilizatorilor din firma sa?
-   - Raspuns:
+   - Raspuns: Doar comenzile proprii.
 
 2. Clientul poate repeta o comanda anterioara?
-   - Raspuns:
+   - Raspuns: Da, ca o actiune disponibila pe o comanda existenta.
 
 3. Clientul poate descarca toate documentele atasate unei comenzi sau doar certificatul de trasabilitate?
-   - Raspuns:
+   - Raspuns: Are acces la toate documentele comenzii si le poate descarca pe toate.
 
 4. Clientul poate vedea statusul productiei / livrarii in timp real?
-   - Raspuns:
+   - Raspuns: Statusul livrarii - da. Statusul productiei / stocului - nu.
 
 5. Clientul poate trimite mesaje / observatii pe comanda?
-   - Raspuns:
+   - Raspuns: Nu.
 
 6. Clientul poate avea un flux fara cont, prin link securizat, pentru descarcarea certificatelor?
-   - Raspuns:
+   - Raspuns: Nu.
 
 ## 13. Tehnologie, hosting si arhitectura
 
@@ -396,22 +396,22 @@ Ce am inteles:
 Intrebari:
 
 1. Pentru MVP preferi Vercel + Supabase sau self-hosted de la inceput?
-   - Raspuns:
+   - Raspuns: Vercel + Supabase managed pentru MVP. Migrare posibila ulterior.
 
 2. Ai o preferinta intre Next.js si Nuxt?
-   - Raspuns:
+   - Raspuns: Next.js - ecosistem mai mare, codul va fi generat in mare parte de AI.
 
 3. Aplicatia trebuie gandita de la inceput sa poata fi mutata usor de pe Supabase pe PostgreSQL self-hosted?
-   - Raspuns:
+   - Raspuns: Nu.
 
 4. Documentele atasate vor fi stocate in Supabase Storage / S3-like storage / filesystem local?
-   - Raspuns:
+   - Raspuns: Supabase Storage.
 
 5. Exista cerinte de backup, audit, GDPR sau locatie a datelor in UE?
-   - Raspuns:
+   - Raspuns: Da - GDPR si date in UE (Supabase EU West). Audit trail pentru stoc - da, se face de la inceput.
 
 6. Trebuie suport pentru limba romana doar, sau si alte limbi?
-   - Raspuns:
+   - Raspuns: UI in romana hardcodat. Codul sursa in engleza.
 
 ## 14. Interfata agentica - nice to have
 
@@ -423,19 +423,19 @@ Ce am inteles:
 Intrebari:
 
 1. Interfata agentica este exclusa din MVP sau vrei macar o baza tehnica pentru ea?
-   - Raspuns:
+   - Raspuns: Exclusa din MVP, dar pastrata ca v2. Daca arhitectura API e curata, adaugarea ulterioara e relativa simpla si ar fi un diferentiator clar.
 
 2. Agentul are voie sa execute actiuni direct sau doar sa propuna actiuni care sunt confirmate de user?
-   - Raspuns:
+   - Raspuns: Agentul propune, userul confirma. Rezolva si riscul de securitate.
 
 3. Ce actiuni ar fi cele mai valoroase pentru agent in prima versiune?
-   - Raspuns:
+   - Raspuns: 1. Interogare stoc ("cate caramizi am disponibile?"); 2. Creare comanda ("fa o comanda de 50 grinzi pentru clientul X"); 3. Adaugare client; 4. Status comenzi; 5. Pornire productie; 6. Analiza necesar ("ca sa produc X caramizi, ce imi mai lipseste?").
 
 4. Agentul trebuie sa functioneze doar pentru admin sau si pentru client?
-   - Raspuns:
+   - Raspuns: Doar pentru admin.
 
 5. Raspunsurile agentului trebuie sa fie auditate / logate ca actiuni oficiale?
-   - Raspuns:
+   - Raspuns: Nu este nevoie. Actiunile sunt confirmate de user, deci in audit apar ca actiuni ale utilizatorului.
 
 ## 15. MVP si prioritizare
 
@@ -446,25 +446,25 @@ Ce am inteles:
 Intrebari:
 
 1. Care este demonstratia minima care ar convinge un prim client?
-   - Raspuns:
+   - Raspuns: OPEN QUESTION - de clarificat cand apare clientul pilot concret.
 
 2. Ce flux trebuie sa functioneze cap-coada in MVP? Exemplu: creare client -> intrare stoc -> productie -> comanda -> certificat.
-   - Raspuns:
+   - Raspuns: Tot fluxul din sectiunea 17 trebuie sa functioneze.
 
 3. Ce poate fi manual in MVP, chiar daca ulterior va fi automatizat?
-   - Raspuns:
+   - Raspuns: Nimic - totul trebuie automatizat de la inceput.
 
 4. Ce module pot fi amanate clar dupa MVP?
-   - Raspuns:
+   - Raspuns: OPEN QUESTION. Candidati posibili: interfata agentica, rapoarte agregate, verificare publica certificate prin QR.
 
 5. Exista un termen tinta pentru demo sau lansare?
-   - Raspuns:
+   - Raspuns: Lansare in august 2025. ~2 luni pentru MVP complet.
 
 6. Exista deja un client pilot sau un domeniu concret de materiale pe care trebuie sa-l modelam prima data?
-   - Raspuns:
+   - Raspuns: Da. Materiale de constructii - concasare deseuri (moloz), productie caramizi, beton, balast, deseuri de umplutura.
 
 7. Ce riscuri sunt cele mai importante: corectitudinea trasabilitatii, usurinta de folosire, costul hostingului, conformitatea legala, viteza de livrare?
-   - Raspuns:
+   - Raspuns: In ordine: viteza de livrare > corectitudinea trasabilitatii > conformitate legala.
 
 ## 16. Observatii de produs
 
@@ -499,11 +499,11 @@ Un flux minim coerent ar putea fi:
 Intrebari:
 
 1. Acest flux MVP este corect ca directie?
-   - Raspuns:
+   - Raspuns: Da.
 
 2. Ce pas lipseste sau este gresit?
-   - Raspuns:
+   - Raspuns: OPEN QUESTION - de revizuit cu clientul pilot. De adaugat si un diagram vizual al fluxului (Mermaid sau Miro).
 
 3. Pentru primul demo, vrei sa folosim exemplul cu caramizi si moloz sau alt exemplu mai apropiat de clientul real?
-   - Raspuns:
+   - Raspuns: Catalog demo: caramizi, beton, balast, deseuri de umplutura ca produse vandabile, cu flux complet de reciclare moloz in spate.
 
