@@ -15,6 +15,17 @@ Format intrare:
 
 ## 2026-06-25 — Claude Opus 4.8
 
+- **Cerut:** continuarea cu urmatorul task din plan (T0.3 — integrare Supabase).
+- **Facut:** `supabase init` (`config.toml`), migrare de baza `0000_extensions.sql`,
+  clienti Supabase (`src/lib/supabase/{client,server,middleware}.ts`), helper `env.ts`,
+  `middleware.ts` la root (refresh sesiune), scripturi `db:start|stop|reset`, `gen:types`,
+  placeholder `database.types.ts`, teste unitare cu mocks pentru `env` si clientul browser.
+  Actualizat AGENTS.md §3.1/§3.2 si `.env.example`.
+  **Limitare mediu:** `pnpm db:start`/`gen:types` n-au putut rula aici — egress-ul catre
+  imaginile Docker `ghcr.io/supabase/*` e blocat de politica (403). Se ruleaza local/CI.
+
+## 2026-06-25 — Claude Opus 4.8
+
 - **Cerut:** continuarea cu urmatorul task din plan (T0.1 — scaffolding).
 - **Facut:** schela Next.js 16 (App Router, TS) + Tailwind v4, ESLint flat (`next` +
   `prettier`), Vitest (jsdom + RTL) cu 2 teste smoke, Playwright (config + 1 test e2e),

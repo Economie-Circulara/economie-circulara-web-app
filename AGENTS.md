@@ -95,29 +95,34 @@ Referinte:
 | `src/app/`                | Rute Next.js (App Router), layout-uri, `globals.css`.                                                                                                                                                                             |
 | `src/features/<domeniu>/` | Verticalele de business (vezi [`src/features/README.md`](src/features/README.md)). Domenii planificate: `clients`, `items`, `recipes`, `stock`, `production`, `orders`, `returns`, `certificates`, `client-portal`, `admin-orgs`. |
 | `src/components/ui/`      | Componente shadcn/ui retematizate (se populeaza in T0.2).                                                                                                                                                                         |
-| `src/lib/`                | Utilitare comune (`utils.ts` → `cn()`); clientii Supabase si `database.types.ts` se adauga in T0.3.                                                                                                                               |
+| `src/lib/`                | Utilitare comune (`utils.ts` → `cn()`, `env.ts`) si clientii Supabase in `src/lib/supabase/` (`client` browser, `server`, `middleware`). Tipuri DB in `src/lib/database.types.ts` (generat, nu edita manual).                     |
+| `middleware.ts`           | Middleware Next.js — reimprospateaza sesiunea Supabase (rutarea pe roluri se adauga in T1.2).                                                                                                                                     |
 | `tests/e2e/`              | Teste Playwright (suita completa in Task X4).                                                                                                                                                                                     |
-| `supabase/`               | Migrari + config Supabase (se adauga in T0.3).                                                                                                                                                                                    |
+| `supabase/`               | `config.toml` + `migrations/` (o migrare per task, prefix numerotat). Schema de business completa in T1.1.                                                                                                                        |
 | `docs/`                   | Cerinte, design si planuri (vezi `docs/plans/`).                                                                                                                                                                                  |
 
 Testele unitare sunt **colocate** langa cod (`*.test.ts` / `*.test.tsx`).
 
 ### 3.2 Comenzi uzuale
 
-| Comanda                             | Ce face                                                     |
-| ----------------------------------- | ----------------------------------------------------------- |
-| `pnpm install`                      | Instaleaza dependentele (Node 22, pnpm 10).                 |
-| `pnpm dev`                          | Porneste serverul de dezvoltare pe `http://localhost:3000`. |
-| `pnpm build`                        | Build de productie Next.js.                                 |
-| `pnpm typecheck`                    | `tsc --noEmit`.                                             |
-| `pnpm lint`                         | ESLint (flat config, `next` + `prettier`).                  |
-| `pnpm format` / `pnpm format:check` | Prettier (scrie / verifica).                                |
-| `pnpm test`                         | Teste unitare Vitest (o singura rulare).                    |
-| `pnpm test:watch`                   | Vitest in watch mode.                                       |
-| `pnpm test:e2e`                     | Teste E2E Playwright.                                       |
+| Comanda                             | Ce face                                                                                                 |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `pnpm install`                      | Instaleaza dependentele (Node 22, pnpm 10).                                                             |
+| `pnpm dev`                          | Porneste serverul de dezvoltare pe `http://localhost:3000`.                                             |
+| `pnpm build`                        | Build de productie Next.js.                                                                             |
+| `pnpm typecheck`                    | `tsc --noEmit`.                                                                                         |
+| `pnpm lint`                         | ESLint (flat config, `next` + `prettier`).                                                              |
+| `pnpm format` / `pnpm format:check` | Prettier (scrie / verifica).                                                                            |
+| `pnpm test`                         | Teste unitare Vitest (o singura rulare).                                                                |
+| `pnpm test:watch`                   | Vitest in watch mode.                                                                                   |
+| `pnpm test:e2e`                     | Teste E2E Playwright.                                                                                   |
+| `pnpm db:start` / `pnpm db:stop`    | Porneste / opreste stack-ul Supabase local (necesita Docker + acces la imaginile `ghcr.io/supabase/*`). |
+| `pnpm db:reset`                     | Reaplica toate migrarile pe DB-ul local.                                                                |
+| `pnpm gen:types`                    | Regenereaza `src/lib/database.types.ts` din DB-ul local.                                                |
 
-> Comenzile Supabase (`supabase db reset`, `gen-types`) se adauga la §3.2 in T0.3,
-> odata cu integrarea Supabase.
+> **Notă mediu:** comenzile `db:*` / `gen:types` au nevoie de imaginile Docker Supabase
+> (`ghcr.io`). In unele medii agentice egress-ul catre `ghcr.io` este blocat de politica —
+> ruleaza acesti pasi local sau in CI cu acces la registry.
 
 ---
 
