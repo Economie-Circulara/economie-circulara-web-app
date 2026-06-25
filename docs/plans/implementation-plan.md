@@ -331,5 +331,5 @@ coloane noi, adauga o migrare noua numerotata).
 Task: <ID + scop din planul de implementare, sectiunea X>.
 Limiteaza-te la folderul src/features/<feature>/ si la migrarea proprie.
 Livrabil: UI conform mockup + server actions + queries + teste.
-Done cand: Definition of Done global din docs/implementation-plan.md e indeplinit.
+Done cand: Definition of Done global din AGENTS.md + docs/plans/implementation-plan.md e indeplinit.
 ```

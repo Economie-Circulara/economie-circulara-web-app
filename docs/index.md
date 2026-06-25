@@ -12,7 +12,7 @@ Acest folder contine toate documentele de analiza, cerinte si design pentru plat
 | [cerinte-clarificari.md](cerinte-clarificari.md) | Document de lucru cu toate intrebarile de clarificare si raspunsurile lor, sectiune cu sectiune. |
 | [review-cerinte.md](review-cerinte.md) | Sumar al deciziilor si intrebarilor deschise (A-J), cu raspunsuri. |
 | [brain-dump.md](brain-dump.md) | Brain dump-ul initial al clientului - ideile brute de la care s-a pornit analiza. |
-| [implementation-plan.md](implementation-plan.md) | **Plan de implementare** impartit in task-uri individuale (waves) ce pot fi preluate de agenti AI in paralel, cu dependente si criterii de acceptare. |
+| [implementation-plan.md](plans/implementation-plan.md) | **Plan de implementare** impartit in task-uri individuale (waves) ce pot fi preluate de agenti AI in paralel, cu dependente si criterii de acceptare. (in `plans/`) |
 
 ## Design
 
