@@ -13,6 +13,12 @@ Format intrare:
 ---
 
 ## 2026-06-25 — Claude Opus 4.8
+- **Cerut:** task-ul de scaffolding (T0.1) sa aiba ca criteriu de acceptare completarea
+  sectiunii §3.1 din AGENTS.md (cai catre domenii + comenzi).
+- **Facut:** adaugat criteriul de acceptare „AGENTS.md §3.1 completat" la T0.1 in
+  `docs/plans/implementation-plan.md`.
+
+## 2026-06-25 — Claude Opus 4.8
 - **Cerut:** creare AGENTS.md cu reguli generale (planuri in `docs/plans/`, prompt log
   la commit, actualizare reguli la corectii, teste unitare obligatorii, descriere proiect
   + cai/comenzi), plus fisier de prompt log.

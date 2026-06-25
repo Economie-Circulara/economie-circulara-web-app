@@ -80,7 +80,12 @@ Reguli de dependenta cheie in Wave 2:
   Playwright, structura de foldere `src/app`, `src/features`, `src/components/ui`,
   `src/lib`, husky/lint-staged.
 - **Livrabil:** repo care porneste (`pnpm dev`), CI minimal (typecheck+lint+test).
-- **Acceptare:** build verde, un test smoke trece, CI ruleaza pe PR.
+- **Acceptare:**
+  - build verde, un test smoke trece, CI ruleaza pe PR;
+  - **`AGENTS.md` §3.1 completat** cu caile reale catre domeniile principale
+    (`src/features/<domeniu>/`, schema/migrari Supabase, tipuri generate) si cu comenzile
+    uzuale efective (`dev`, `build`, `test`, `typecheck`, `lint`, `db reset`, `gen-types`).
+    Placeholder-ul „de completat" din §3.1 nu mai exista dupa acest task.
 
 ### T0.2 — Design system & tema (din mockup)
 - **Scop:** instalare shadcn/ui; extragerea tokenilor din `Lateris_Trace.dc.html`
