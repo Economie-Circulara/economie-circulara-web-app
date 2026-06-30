@@ -7,6 +7,6 @@ import type { Database } from "@/lib/database.types";
  * `"use client"`.
  */
 export function createClient() {
-  const { url, anonKey } = getSupabaseEnv();
-  return createBrowserClient<Database>(url, anonKey);
+  const { url, publishableKey } = getSupabaseEnv();
+  return createBrowserClient<Database>(url, publishableKey);
 }

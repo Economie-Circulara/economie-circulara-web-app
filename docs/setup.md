@@ -32,13 +32,14 @@ Comenzi utile: vezi [`AGENTS.md`](../AGENTS.md) §3.2.
 ## 2. Supabase
 
 ### 2.1 Ia cheile din proiectul cloud
-In dashboard-ul Supabase → **Project Settings → API**:
+In dashboard-ul Supabase → **Project Settings → API Keys** → tab **"Publishable and
+secret API keys"** (chei API noi; le inlocuiesc pe cele legacy `anon` / `service_role`):
 
 | Variabila (`.env.local`) | De unde |
 | ------------------------ | ------- |
-| `NEXT_PUBLIC_SUPABASE_URL` | Project URL |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | `anon` `public` key |
-| `SUPABASE_SERVICE_ROLE_KEY` | `service_role` key — **doar pe server, niciodata in client/commit** |
+| `NEXT_PUBLIC_SUPABASE_URL` | Project URL (Settings → API) |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | publishable key (`sb_publishable_…`) |
+| `SUPABASE_SECRET_KEY` | secret key (`sb_secret_…`) — **doar pe server, niciodata in client/commit** |
 
 > Regiune: alege **EU** (GDPR) la crearea proiectului — vezi `docs/handoff.md`.
 
@@ -68,8 +69,8 @@ pnpm supabase db push     # aplica migrarile locale pe proiectul cloud legat
 2. Framework: Next.js (auto-detectat). Build: `pnpm build`.
 3. **Environment Variables** (Project Settings → Environment Variables) — aceleasi ca in
    `.env.local`:
-   - `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` (Production + Preview)
-   - `SUPABASE_SERVICE_ROLE_KEY` (doar unde e nevoie pe server; marcheaza ca secret)
+   - `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (Production + Preview)
+   - `SUPABASE_SECRET_KEY` (doar unde e nevoie pe server; marcheaza ca secret)
 4. Deploy. Pentru deploy din CLI: `pnpm dlx vercel link` apoi `vercel --prod`.
 
 > White labeling pe domeniu (logo/culori per organizatie) se configureaza ulterior; vezi
@@ -90,8 +91,8 @@ La crearea environment-ului pentru acest repo:
    descarca imaginile Supabase. (Fara asta, stack-ul local nu porneste — vezi nota din
    `AGENTS.md` §3.2.)
 3. **Secrete / env vars** in config-ul environment-ului (NU in repo):
-   `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`,
-   `SUPABASE_SERVICE_ROLE_KEY`, si token Vercel cand ajungem la deploy automat.
+   `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`,
+   `SUPABASE_SECRET_KEY`, si token Vercel cand ajungem la deploy automat.
 4. **Setup script:** repo-ul are deja un SessionStart hook
    ([`.claude/hooks/session-start.sh`](../.claude/hooks/session-start.sh)) care instaleaza
    dependentele si pregateste `.env.local` la pornirea sesiunii.

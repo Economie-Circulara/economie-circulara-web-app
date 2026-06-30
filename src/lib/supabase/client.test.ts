@@ -17,18 +17,21 @@ describe("createClient (browser)", () => {
   beforeEach(() => {
     createBrowserClient.mockClear();
     process.env.NEXT_PUBLIC_SUPABASE_URL = "http://localhost:54321";
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = "anon-key";
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY = "sb_publishable_test";
   });
 
   afterEach(() => {
     process.env = { ...original };
   });
 
-  it("creeaza clientul cu url + anon key din env", () => {
+  it("creeaza clientul cu url + publishable key din env", () => {
     const client = createClient();
 
     expect(createBrowserClient).toHaveBeenCalledTimes(1);
-    expect(createBrowserClient).toHaveBeenCalledWith("http://localhost:54321", "anon-key");
+    expect(createBrowserClient).toHaveBeenCalledWith(
+      "http://localhost:54321",
+      "sb_publishable_test",
+    );
     expect(client).toEqual({ sentinel: "browser-client" });
   });
 
