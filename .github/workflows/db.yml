@@ -1,0 +1,43 @@
+name: DB
+
+# Valideaza schema Supabase pe runnerele GitHub (unde ghcr.io este accesibil):
+# porneste stack-ul local, aplica migrarile si regenereaza tipurile.
+# Testele RLS si verificarea stricta de drift al tipurilor se adauga in T1.1.
+
+on:
+  pull_request:
+    paths:
+      - "supabase/**"
+      - ".github/workflows/db.yml"
+  workflow_dispatch:
+
+jobs:
+  migrations:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Porneste Supabase local (aplica migrarile)
+        run: supabase start
+
+      - name: Reaplica migrarile de la zero (idempotenta)
+        run: supabase db reset
+
+      - name: Regenereaza tipurile din schema
+        run: supabase gen types typescript --local > src/lib/database.types.generated.ts
+
+      - name: Verifica drift fata de tipurile commit-uite
+        run: |
+          # Pana la T1.1 (schema reala) acest pas este informativ, nu blocant.
+          if ! diff -q src/lib/database.types.ts src/lib/database.types.generated.ts >/dev/null 2>&1; then
+            echo "::warning::database.types.ts difera de schema generata. Ruleaza 'pnpm gen:types' si commit-uieste. (Va deveni blocant in T1.1.)"
+            diff src/lib/database.types.ts src/lib/database.types.generated.ts || true
+          fi
+
+      - name: Stop Supabase
+        if: always()
+        run: supabase stop --no-backup || true

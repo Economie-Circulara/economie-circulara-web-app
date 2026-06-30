@@ -87,6 +87,11 @@ Referinte:
 - Design / mockup: [`docs/design-prompt.md`](docs/design-prompt.md),
   [`docs/design/Lateris_Trace.dc.html`](docs/design/)
 - Plan de implementare: [`docs/plans/implementation-plan.md`](docs/plans/implementation-plan.md)
+- Setup (Supabase, Vercel, environment Claude Code): [`docs/setup.md`](docs/setup.md)
+
+Mediul Claude Code on the web ruleaza la pornire hook-ul
+[`.claude/hooks/session-start.sh`](.claude/hooks/session-start.sh) (instaleaza dependentele,
+pregateste `.env.local`).
 
 ### 3.1 Structura repo-ului
 

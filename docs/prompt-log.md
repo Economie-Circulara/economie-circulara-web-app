@@ -13,6 +13,18 @@ Format intrare:
 
 ---
 
+## 2026-06-30 — Claude Opus 4.8
+
+- **Cerut:** pregatirea pentru mutarea repo-ului in noua organizatie `Economie-Circulara` —
+  setup script / session-start hook, `docs/setup.md` (Supabase + Vercel + environment) si
+  workflow GitHub Actions pentru validarea DB.
+- **Facut:** `.claude/hooks/session-start.sh` + `.claude/settings.json` (instaleaza deps,
+  pregateste `.env.local`, expune Chromium pt. Playwright), validat end-to-end (hook + lint +
+  test). `docs/setup.md` cu pasii de conectare la Supabase/Vercel si configurarea
+  environment-ului Claude Code (acces GitHub App, network policy ghcr.io, secrete).
+  `.github/workflows/db.yml` care porneste Supabase pe runner si aplica migrarile. Referinte
+  adaugate in AGENTS.md.
+
 ## 2026-06-25 — Claude Opus 4.8
 
 - **Cerut:** continuarea cu urmatorul task din plan (T0.2 — design system & tema).
