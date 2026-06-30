@@ -1000,7 +1000,18 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
-      [_ in never]: never;
+      org_branding: {
+        Args: { p_domain?: string; p_slug?: string };
+        Returns: {
+          custom_domain: string;
+          id: string;
+          logo_url: string;
+          name: string;
+          primary_color: string;
+          secondary_color: string;
+          slug: string;
+        }[];
+      };
     };
     Enums: {
       document_owner_type: "client" | "order" | "item";
