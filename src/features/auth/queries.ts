@@ -11,6 +11,52 @@ export interface OrgBranding {
   secondaryColor: string | null;
 }
 
+export interface CurrentOrg extends OrgBranding {
+  emailFromName: string | null;
+  emailFromAddress: string | null;
+}
+
+/**
+ * Organizatia utilizatorului curent (pentru shell + ecranul de setari). RLS permite
+ * oricarui membru sa-si citeasca propria organizatie. `null` pentru super-admin fara
+ * organizatie sau cand nu exista sesiune.
+ */
+export async function getCurrentOrg(): Promise<CurrentOrg | null> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return null;
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("organization_id")
+    .eq("id", user.id)
+    .single();
+  if (!profile?.organization_id) return null;
+
+  const { data: org } = await supabase
+    .from("organizations")
+    .select(
+      "id, name, slug, custom_domain, logo_url, primary_color, secondary_color, email_from_name, email_from_address",
+    )
+    .eq("id", profile.organization_id)
+    .single();
+  if (!org) return null;
+
+  return {
+    id: org.id,
+    name: org.name,
+    slug: org.slug,
+    customDomain: org.custom_domain,
+    logoUrl: org.logo_url,
+    primaryColor: org.primary_color,
+    secondaryColor: org.secondary_color,
+    emailFromName: org.email_from_name,
+    emailFromAddress: org.email_from_address,
+  };
+}
+
 /**
  * Brandingul organizatiei pentru ecranul de login (callabil si neautentificat, prin
  * functia SECURITY DEFINER `public.org_branding`). Returneaza `null` daca tenantul nu
