@@ -1,0 +1,10 @@
+node_modules
+.next
+out
+build
+coverage
+playwright-report
+pnpm-lock.yaml
+
+# Documentele de cerinte/design sunt proza (RO) - nu le reformatam.
+docs/
