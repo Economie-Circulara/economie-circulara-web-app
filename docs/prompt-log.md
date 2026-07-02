@@ -13,6 +13,20 @@ Format intrare:
 
 ---
 
+## 2026-07-02 — Claude Sonnet 5
+
+- **Cerut:** PR 2 din planul de remediere (`docs/plans/code-review-remediation.md`, constatari
+  3 si 4) — CI care sa ruleze efectiv testele de izolare RLS si sa faca blocanta verificarea
+  de drift a tipurilor generate.
+- **Facut:** `.github/workflows/db.yml` — dupa `supabase db reset`, ruleaza
+  `supabase/tests/rls_isolation.sql` prin `psql -v ON_ERROR_STOP=1` (port `54322` din
+  `supabase/config.toml`); verificarea de drift `database.types.ts` a devenit blocanta
+  (`::error` + `exit 1`, comentariul „informativ, nu blocant" eliminat); trigger-ul `paths`
+  extins cu `src/lib/database.types.ts`. Script nou `pnpm db:test` in `package.json` + rand nou
+  in tabelul de comenzi din AGENTS.md §3.2. **Limitare mediu:** nu s-a putut porni Supabase
+  local aici (egress `ghcr.io` blocat) — validat prin citire atenta a workflow-ului si a
+  scripturilor; verificat `pnpm typecheck && pnpm lint && pnpm test` (verzi).
+
 ## 2026-07-02 — Claude Opus 4.8
 
 - **Cerut:** fix RLS escaladare privilegii + politici client pe status (PR 1 din planul
