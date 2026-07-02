@@ -11,6 +11,11 @@
  * fac in stratul de date (vezi session.ts / middleware).
  */
 
+/** Header prin care tenantul rezolvat e propagat downstream (server components, route handlers). */
+export const TENANT_SLUG_HEADER = "x-tenant-slug";
+/** Header prin care custom domain-ul rezolvat e propagat downstream. */
+export const TENANT_DOMAIN_HEADER = "x-tenant-domain";
+
 export type TenantSource = "custom_domain" | "subdomain" | "path" | "none";
 
 export interface TenantHint {
@@ -22,7 +27,7 @@ export interface TenantHint {
   source: TenantSource;
 }
 
-/** Cai care nu apartin niciunui tenant (auth, asset-uri, API platforma). */
+/** Cai care nu apartin niciunui tenant (auth, asset-uri, API platforma, rute aplicatie). */
 const RESERVED_PATH_SEGMENTS = new Set([
   "api",
   "auth",
@@ -31,6 +36,12 @@ const RESERVED_PATH_SEGMENTS = new Set([
   "favicon.ico",
   "static",
   "assets",
+  "dashboard",
+  "portal",
+  "platform",
+  "showcase",
+  "set-password",
+  "forgot-password",
 ]);
 
 /** Sub-domenii care nu reprezinta un tenant. */

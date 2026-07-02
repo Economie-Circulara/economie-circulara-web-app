@@ -13,6 +13,38 @@ Format intrare:
 
 ---
 
+## 2026-07-02 — Claude Sonnet 5
+
+- **Cerut:** PR 3 dintr-un plan de remediere — 3 fix-uri: (1) headerele de tenant
+  (`x-tenant-slug`/`x-tenant-domain`) erau setate pe response headers in
+  `src/lib/supabase/middleware.ts`, care nu ajung niciodata la server components/route
+  handlers; (2) `RESERVED_PATH_SEGMENTS` din `tenant.ts` nu includea rutele reale ale
+  aplicatiei (`dashboard`, `portal`, `platform`, `showcase`, `set-password`,
+  `forgot-password`), deci rezolvarea pe path le-ar fi tratat ca slug de tenant; (3)
+  `signInWithGoogleAction` (OAuth) poate crea un user in `auth.users` fara rand in
+  `public.profiles` (spre deosebire de magic link, care are `shouldCreateUser: false`),
+  ocolind provizionarea prin invitatie. Plus un fix minor: `/showcase` trebuie sa fie
+  inaccesibil in productie.
+- **Facut:** `middleware.ts` rezolva tenantul INAINTE de a crea raspunsul si il propaga pe
+  REQUEST headers (`NextResponse.next({ request: { headers } })`), pastrand exact
+  pattern-ul de cookie-uri `@supabase/ssr` (recreare `supabaseResponse` in `setAll`, fara
+  logica intre `createServerClient` si `getUser()`); numele headerelor sunt acum constante
+  exportate (`TENANT_SLUG_HEADER`/`TENANT_DOMAIN_HEADER`) din `features/auth/tenant.ts`.
+  Extins `RESERVED_PATH_SEGMENTS` + teste. In `src/app/auth/callback/route.ts`, dupa
+  `exchangeCodeForSession` reusit se verifica daca userul are profil; daca nu,
+  `signOut()` + redirect `/login?error=unprovisioned` (fluxul de resetare parola nu are
+  nevoie de exceptie — userul respectiv are deja profil). `login-form.tsx` +
+  `(auth)/login/page.tsx` afiseaza acum mesaje clare in romana pentru
+  `error=unprovisioned`/`auth`/`oauth` (nu erau afisate deloc inainte, desi erau setate).
+  `docs/setup.md` — pas obligatoriu: dezactivarea sign-up-ului public din dashboard-ul
+  Supabase. `showcase/page.tsx` apeleaza `notFound()` cand `NODE_ENV === "production"`
+  (verificat manual cu build de productie: `/showcase` -> 404). Teste noi:
+  `middleware.test.ts`, `auth/callback/route.test.ts`, `login-form.test.tsx`; extinse
+  `tenant.test.ts`. Plan in `docs/plans/tenant-oauth-fixes.md`. Toate check-urile verzi
+  (typecheck/lint/format/test/build).
+
+---
+
 ## 2026-06-30 — Claude Opus 4.8
 
 - **Cerut:** pregatirea pentru mutarea repo-ului in noua organizatie `Economie-Circulara` —

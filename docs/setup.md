@@ -61,6 +61,20 @@ pnpm gen:types    # regenereaza src/lib/database.types.ts din schema
 pnpm supabase db push     # aplica migrarile locale pe proiectul cloud legat
 ```
 
+### 2.5 Dezactiveaza sign-up-ul public (OBLIGATORIU)
+
+Provizionarea conturilor e **doar prin invitatie de admin** (un rand `profiles` creat de
+admin, nu de utilizator). Ca sa nu poata oricine sa-si creeze cont singur (inclusiv prin
+"Continua cu Google"), dezactiveaza sign-up-ul public din dashboard-ul Supabase:
+
+**Authentication → Sign In / Up → Auth Providers/Settings → dezactiveaza "Allow new
+users to sign up"** (uneori afisat ca "Enable sign ups").
+
+Fara acest pas, OAuth (Google) poate crea un rand nou in `auth.users` fara profil
+corespunzator in `public.profiles`; callback-ul de autentificare (`/auth/callback`)
+detecteaza acest caz si respinge accesul (`error=unprovisioned`), dar pasul de mai sus
+elimina complet posibilitatea ca un cont neinvitat sa apara in `auth.users`.
+
 ---
 
 ## 3. Vercel
