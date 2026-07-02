@@ -4,7 +4,8 @@ Acest document transforma cerintele din [`handoff.md`](handoff.md) si designul d
 [`design/Lateris_Trace.dc.html`](design/) intr-un plan de implementare impartit in
 **task-uri individuale, autonome, ce pot fi preluate de agenti AI in paralel**.
 
-Scopul: livrarea MVP-ului (termen tinta: august 2025) cu un set de task-uri clar
+Scopul: livrarea MVP-ului (termen tinta: august 2026; nota: termenul din handoff era august 2025,
+marcat acum ca istoric/stale) cu un set de task-uri clar
 delimitate, cu dependente explicite, contracte (interfete) intre ele si criterii de
 acceptare verificabile.
 
@@ -316,6 +317,9 @@ stub tipat (mock) cu aceeasi semnatura.
 ---
 
 ## 9. Ordinea recomandata de executie
+
+**Nota (2026-07):** spikele S1–S3 nu au inceput inca si sunt acum pe calea critica — gateaza
+Task-urile A, D, G. Trebuie pornite prioritar.
 
 1. **Wave 0** (T0.1 → T0.2 / T0.3 in paralel) — un agent.
 2. **T1.1 schema** — review + inghetare. **Critic.**

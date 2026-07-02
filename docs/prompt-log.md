@@ -13,6 +13,29 @@ Format intrare:
 
 ---
 
+## 2026-07-02 — Claude Haiku 4.5
+
+- **Cerut:** remediare proces documente — backfill prompt-log pentru T1.1/T1.2, actualizar termen
+  MVP, documente trade-off-uri acceptate.
+- **Facut:** adaugat doua intrari backfill in docs/prompt-log.md (T1.1/T1.2, 2026-07-01, marcat
+  "(backfill)"), actualizat termen MVP in docs/plans/implementation-plan.md la "august 2026" cu nota
+  istorica, adaugat sectiune AGENTS.md §4.1 "Limitari cunoscute / trade-off-uri acceptate"
+  (stock_events audit, org_branding anonim, profiles.email duplication), formatted si lintat.
+
+## 2026-07-01 — Claude Opus 4.8 (backfill)
+
+- **Cerut:** auth + role routing + tenant context (T1.2).
+- **Facut:** login/magic link/Google + password reset (src/features/auth/), getCurrentUser/requireRole
+  (session.ts), tenant resolution (tenant.ts), org_branding RPC (migration 0002), route guards pentru
+  (admin)/(client)/(auth) pages, middleware session refresh + guard. Commit: 92e170c.
+
+## 2026-07-01 — Claude Opus 4.8 (backfill)
+
+- **Cerut:** consolidated MVP schema + multi-tenant RLS (T1.1).
+- **Facut:** migrare supabase/migrations/0001_core_schema.sql (17 tables, enums, app.* tenant helper
+  functions, RLS policies, grants), RLS smoke test supabase/tests/rls_isolation.sql, regenerat
+  src/lib/database.types.ts. Commit: 00cb830.
+
 ## 2026-06-30 — Claude Opus 4.8
 
 - **Cerut:** pregatirea pentru mutarea repo-ului in noua organizatie `Economie-Circulara` —
