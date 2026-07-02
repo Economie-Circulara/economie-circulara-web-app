@@ -150,3 +150,12 @@ Testele unitare sunt **colocate** langa cod (`*.test.ts` / `*.test.tsx`).
   certificatele proprii.
 - Pierderile/randamentul la productie se **inregistreaza**, nu se **valideaza**.
 - Fara livrari partiale; fara productie partiala.
+
+### 4.1 Limitari cunoscute / trade-off-uri acceptate
+
+- **`stock_events` audit trail**: pentru acum, nicio reconciliere automata cu `lots.remaining_qty`;
+  enforcement/reconciliere soseste cu Task C (stock service).
+- **`org_branding` RPC anonim**: intentionat callable fara autentificare (branding pe login screen);
+  enumerarea slugurilor/domeniilor organizatiilor este un trade-off acceptat.
+- **`profiles.email` duplicat**: se poate desincroniza de la `auth.users.email`; sursa de adevar
+  pentru autentificare este `auth.users`, `profiles.email` e copie de afisare.
