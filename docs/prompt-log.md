@@ -13,6 +13,17 @@ Format intrare:
 
 ---
 
+## 2026-07-02 — Claude Fable 5
+
+- **Cerut:** analiza plan + cod (suntem pe drum? zone gri / probleme), apoi plan de
+  remediere a constatarilor si distribuirea lui pe subagenti, cu cate un PR per grup.
+- **Facut:** review complet Wave 0–1 (schema/RLS, auth/tenant, CI, proces). Constatari
+  majore: escaladare de privilegii prin `profiles_update`, politici client `FOR ALL` pe
+  `orders`, teste RLS nerulate in CI, drift check ne-blocant, headere tenant setate pe
+  raspuns in loc de request, useri OAuth fara profil, prompt-log lipsa la T1.1/T1.2,
+  termen stale. Plan de remediere in 4 PR-uri:
+  [`docs/plans/code-review-remediation.md`](plans/code-review-remediation.md).
+
 ## 2026-06-30 — Claude Opus 4.8
 
 - **Cerut:** pregatirea pentru mutarea repo-ului in noua organizatie `Economie-Circulara` —
