@@ -125,6 +125,7 @@ Testele unitare sunt **colocate** langa cod (`*.test.ts` / `*.test.tsx`).
 | `pnpm test:e2e`                     | Teste E2E Playwright.                                                                                   |
 | `pnpm db:start` / `pnpm db:stop`    | Porneste / opreste stack-ul Supabase local (necesita Docker + acces la imaginile `ghcr.io/supabase/*`). |
 | `pnpm db:reset`                     | Reaplica toate migrarile pe DB-ul local.                                                                |
+| `pnpm db:test`                      | Ruleaza testele de izolare RLS (`supabase/tests/rls_isolation.sql`) pe DB-ul local (port `54322`).      |
 | `pnpm gen:types`                    | Regenereaza `src/lib/database.types.ts` din DB-ul local.                                                |
 
 > **Notă mediu:** comenzile `db:*` / `gen:types` au nevoie de imaginile Docker Supabase
@@ -149,3 +150,12 @@ Testele unitare sunt **colocate** langa cod (`*.test.ts` / `*.test.tsx`).
   certificatele proprii.
 - Pierderile/randamentul la productie se **inregistreaza**, nu se **valideaza**.
 - Fara livrari partiale; fara productie partiala.
+
+### 4.1 Limitari cunoscute / trade-off-uri acceptate
+
+- **`stock_events` audit trail**: pentru acum, nicio reconciliere automata cu `lots.remaining_qty`;
+  enforcement/reconciliere soseste cu Task C (stock service).
+- **`org_branding` RPC anonim**: intentionat callable fara autentificare (branding pe login screen);
+  enumerarea slugurilor/domeniilor organizatiilor este un trade-off acceptat.
+- **`profiles.email` duplicat**: se poate desincroniza de la `auth.users.email`; sursa de adevar
+  pentru autentificare este `auth.users`, `profiles.email` e copie de afisare.

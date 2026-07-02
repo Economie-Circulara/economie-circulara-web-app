@@ -43,7 +43,72 @@ Format intrare:
   `tenant.test.ts`. Plan in `docs/plans/tenant-oauth-fixes.md`. Toate check-urile verzi
   (typecheck/lint/format/test/build).
 
----
+## 2026-07-02 — Claude Haiku 4.5
+
+- **Cerut:** remediare proces documente — backfill prompt-log pentru T1.1/T1.2, actualizar termen
+  MVP, documente trade-off-uri acceptate.
+- **Facut:** adaugat doua intrari backfill in docs/prompt-log.md (T1.1/T1.2, 2026-07-01, marcat
+  "(backfill)"), actualizat termen MVP in docs/plans/implementation-plan.md la "august 2026" cu nota
+  istorica, adaugat sectiune AGENTS.md §4.1 "Limitari cunoscute / trade-off-uri acceptate"
+  (stock_events audit, org_branding anonim, profiles.email duplication), formatted si lintat.
+
+## 2026-07-01 — Claude Opus 4.8 (backfill)
+
+- **Cerut:** auth + role routing + tenant context (T1.2).
+- **Facut:** login/magic link/Google + password reset (src/features/auth/), getCurrentUser/requireRole
+  (session.ts), tenant resolution (tenant.ts), org_branding RPC (migration 0002), route guards pentru
+  (admin)/(client)/(auth) pages, middleware session refresh + guard. Commit: 92e170c.
+
+## 2026-07-01 — Claude Opus 4.8 (backfill)
+
+- **Cerut:** consolidated MVP schema + multi-tenant RLS (T1.1).
+- **Facut:** migrare supabase/migrations/0001_core_schema.sql (17 tables, enums, app.* tenant helper
+  functions, RLS policies, grants), RLS smoke test supabase/tests/rls_isolation.sql, regenerat
+  src/lib/database.types.ts. Commit: 00cb830.
+
+## 2026-07-02 — Claude Sonnet 5
+
+- **Cerut:** PR 2 din planul de remediere (`docs/plans/code-review-remediation.md`, constatari
+  3 si 4) — CI care sa ruleze efectiv testele de izolare RLS si sa faca blocanta verificarea
+  de drift a tipurilor generate.
+- **Facut:** `.github/workflows/db.yml` — dupa `supabase db reset`, ruleaza
+  `supabase/tests/rls_isolation.sql` prin `psql -v ON_ERROR_STOP=1` (port `54322` din
+  `supabase/config.toml`); verificarea de drift `database.types.ts` a devenit blocanta
+  (`::error` + `exit 1`, comentariul „informativ, nu blocant" eliminat); trigger-ul `paths`
+  extins cu `src/lib/database.types.ts`. Script nou `pnpm db:test` in `package.json` + rand nou
+  in tabelul de comenzi din AGENTS.md §3.2. **Limitare mediu:** nu s-a putut porni Supabase
+  local aici (egress `ghcr.io` blocat) — validat prin citire atenta a workflow-ului si a
+  scripturilor; verificat `pnpm typecheck && pnpm lint && pnpm test` (verzi).
+
+## 2026-07-02 — Claude Opus 4.8
+
+- **Cerut:** fix RLS escaladare privilegii + politici client pe status (PR 1 din planul
+  de remediere de securitate).
+- **Facut:** migrare aditiva `supabase/migrations/0003_rls_hardening.sql`. (1) Trigger
+  `app.enforce_profile_security` (SECURITY DEFINER, `search_path=''`) BEFORE INSERT OR
+  UPDATE pe `public.profiles`: blocheaza pentru apelantii autentificati non-super_admin
+  schimbarea `role`/`organization_id`/`client_id` (UPDATE) si crearea de profile
+  `super_admin` (INSERT); contextele de serviciu (`auth.uid()` null) si super_admin trec
+  neatinse. (2) Inlocuit politicile FOR ALL `orders_client_all` / `order_items_client_all`
+  cu politici constiente de status: client SELECT orice status; INSERT/UPDATE/DELETE
+  permise doar cat timp comanda e draft/sent (delete doar draft), cu tranzitie la
+  'cancelled' permisa inainte de acceptare; toate WITH CHECK-urile de client pun si
+  `organization_id = app.org_id()` (fix review: clientul nu poate re-punta randuri
+  proprii catre alt tenant — gaura mostenita si de politicile FOR ALL din 0001).
+  Politicile de staff neatinse. Extins `supabase/tests/rls_isolation.sql` (T5-T10).
+  Validat prin citire — CI `db.yml` aplica migrarea pe PR.
+
+## 2026-07-02 — Claude Fable 5
+
+- **Cerut:** analiza plan + cod (suntem pe drum? zone gri / probleme), apoi plan de
+  remediere a constatarilor si distribuirea lui pe subagenti, cu cate un PR per grup.
+- **Facut:** review complet Wave 0–1 (schema/RLS, auth/tenant, CI, proces). Constatari
+  majore: escaladare de privilegii prin `profiles_update`, politici client `FOR ALL` pe
+  `orders`, teste RLS nerulate in CI, drift check ne-blocant, headere tenant setate pe
+  raspuns in loc de request, useri OAuth fara profil, prompt-log lipsa la T1.1/T1.2,
+  termen stale. Plan de remediere in 4 PR-uri:
+  [`docs/plans/code-review-remediation.md`](plans/code-review-remediation.md).
+  Adaugat `.claude/worktrees/` in `.gitignore` (worktree-uri temporare ale subagentilor).
 
 ## 2026-06-30 — Claude Opus 4.8
 
