@@ -52,6 +52,14 @@ describe("resolveTenant - path (dev / fara root domain)", () => {
     expect(resolveTenant("localhost", "/auth/login", ROOT).source).toBe("none");
     expect(resolveTenant("localhost", "/api/x", ROOT).source).toBe("none");
   });
+  it("segmente rezervate de rute aplicatie (dashboard/portal/platform/showcase/set-password/forgot-password) nu sunt tenant", () => {
+    expect(resolveTenant("localhost", "/dashboard", ROOT).source).toBe("none");
+    expect(resolveTenant("localhost", "/portal/comenzi", ROOT).source).toBe("none");
+    expect(resolveTenant("localhost", "/platform", ROOT).source).toBe("none");
+    expect(resolveTenant("localhost", "/showcase", ROOT).source).toBe("none");
+    expect(resolveTenant("localhost", "/set-password", ROOT).source).toBe("none");
+    expect(resolveTenant("localhost", "/forgot-password", ROOT).source).toBe("none");
+  });
   it("slug invalid (majuscule/underscore) => none", () => {
     expect(resolveTenant("localhost", "/Acme_Org", ROOT).source).toBe("none");
   });

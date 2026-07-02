@@ -7,7 +7,11 @@ import { resolveTenant } from "@/features/auth/tenant";
 
 export const metadata = { title: "Autentificare — Lateris Trace" };
 
-export default async function LoginPage() {
+interface LoginPageProps {
+  searchParams: Promise<{ error?: string }>;
+}
+
+export default async function LoginPage({ searchParams }: LoginPageProps) {
   // Daca e deja autentificat, mergi direct la dashboard-ul rolului.
   const user = await getCurrentUser();
   if (user) redirect(homePathForRole(user.role));
@@ -17,10 +21,13 @@ export default async function LoginPage() {
   const hint = resolveTenant(h.get("host"), "/", process.env.NEXT_PUBLIC_ROOT_DOMAIN);
   const branding = await getOrgBranding(hint);
 
+  const { error } = await searchParams;
+
   return (
     <LoginForm
       orgName={branding?.name ?? "Lateris Trace"}
       logoUrl={branding?.logoUrl ?? undefined}
+      errorCode={error}
     />
   );
 }

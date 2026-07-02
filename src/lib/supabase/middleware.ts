@@ -2,7 +2,12 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { getSupabaseEnv } from "@/lib/env";
 import type { Database } from "@/lib/database.types";
-import { resolveTenant } from "@/features/auth/tenant";
+import {
+  resolveTenant,
+  TENANT_DOMAIN_HEADER,
+  TENANT_SLUG_HEADER,
+  type TenantHint,
+} from "@/features/auth/tenant";
 
 /** Prefixe de cale publice (nu necesita autentificare). */
 const PUBLIC_PREFIXES = ["/login", "/forgot-password", "/set-password", "/auth", "/showcase"];
@@ -13,12 +18,39 @@ function isPublicPath(pathname: string): boolean {
 }
 
 /**
+ * Cloneaza headerele cererii curente si adauga headerele de tenant. Trebuie apelata de
+ * fiecare data cand se recreeaza `supabaseResponse` (inclusiv in `setAll`), ca sa preia
+ * si cookie-urile scrise intre timp de `request.cookies.set()` (acestea ajung tot in
+ * `request.headers`).
+ */
+function requestHeadersWithTenant(request: NextRequest, tenant: TenantHint): Headers {
+  const headers = new Headers(request.headers);
+  if (tenant.slug) headers.set(TENANT_SLUG_HEADER, tenant.slug);
+  if (tenant.customDomain) headers.set(TENANT_DOMAIN_HEADER, tenant.customDomain);
+  return headers;
+}
+
+/**
  * Reimprospateaza sesiunea Supabase (refresh token) la fiecare cerere, rezolva tenantul
  * (organizatia) din host/path si pazeste rutele protejate: utilizatorii neautentificati
  * sunt redirectati la /login. Guard-ul fin pe rol se face in layout-urile (admin)/(client).
  */
 export async function updateSession(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({ request });
+  const { pathname } = request.nextUrl;
+
+  // Tenant (organizatie) dedus din host/path, rezolvat INAINTE de a crea raspunsul, ca sa
+  // fie disponibil pe REQUEST headers de la inceput. Headerele de raspuns (pe response)
+  // ajung doar la browser, nu la server components / route handlers - de-aia propagarea
+  // se face pe cererea (request) trimisa mai departe, nu pe `supabaseResponse.headers`.
+  const tenant = resolveTenant(
+    request.headers.get("host"),
+    pathname,
+    process.env.NEXT_PUBLIC_ROOT_DOMAIN,
+  );
+
+  let supabaseResponse = NextResponse.next({
+    request: { headers: requestHeadersWithTenant(request, tenant) },
+  });
 
   const { url, publishableKey } = getSupabaseEnv();
 
@@ -29,7 +61,9 @@ export async function updateSession(request: NextRequest) {
       },
       setAll(cookiesToSet) {
         cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
-        supabaseResponse = NextResponse.next({ request });
+        supabaseResponse = NextResponse.next({
+          request: { headers: requestHeadersWithTenant(request, tenant) },
+        });
         cookiesToSet.forEach(({ name, value, options }) =>
           supabaseResponse.cookies.set(name, value, options),
         );
@@ -43,8 +77,6 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const { pathname } = request.nextUrl;
-
   // Guard: ruta protejata fara sesiune -> redirect la /login (pastreaza destinatia).
   if (!user && !isPublicPath(pathname)) {
     const loginUrl = request.nextUrl.clone();
@@ -53,15 +85,6 @@ export async function updateSession(request: NextRequest) {
     if (pathname !== "/") loginUrl.searchParams.set("next", pathname);
     return NextResponse.redirect(loginUrl);
   }
-
-  // Tenant (organizatie) dedus din host/path, propagat downstream prin header.
-  const tenant = resolveTenant(
-    request.headers.get("host"),
-    pathname,
-    process.env.NEXT_PUBLIC_ROOT_DOMAIN,
-  );
-  if (tenant.slug) supabaseResponse.headers.set("x-tenant-slug", tenant.slug);
-  if (tenant.customDomain) supabaseResponse.headers.set("x-tenant-domain", tenant.customDomain);
 
   return supabaseResponse;
 }
