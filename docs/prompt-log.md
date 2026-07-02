@@ -25,9 +25,13 @@ Format intrare:
   neatinse. (2) Inlocuit politicile FOR ALL `orders_client_all` / `order_items_client_all`
   cu politici constiente de status: client SELECT orice status; INSERT/UPDATE/DELETE
   permise doar cat timp comanda e draft/sent (delete doar draft), cu tranzitie la
-  'cancelled' permisa inainte de acceptare. Politicile de staff neatinse. Extins
-  `supabase/tests/rls_isolation.sql` (T5-T9). Validat prin citire — CI `db.yml` aplica
-  migrarea pe PR.
+  'cancelled' permisa inainte de acceptare; toate WITH CHECK-urile de client pun si
+  `organization_id = app.org_id()` (fix review: clientul nu poate re-punta randuri
+  proprii catre alt tenant — gaura mostenita si de politicile FOR ALL din 0001).
+  Politicile de staff neatinse. Extins `supabase/tests/rls_isolation.sql` (T5-T10).
+  Validat prin citire — CI `db.yml` aplica migrarea pe PR.
+
+## 2026-06-30 — Claude Opus 4.8
 
 - **Cerut:** pregatirea pentru mutarea repo-ului in noua organizatie `Economie-Circulara` —
   setup script / session-start hook, `docs/setup.md` (Supabase + Vercel + environment) si

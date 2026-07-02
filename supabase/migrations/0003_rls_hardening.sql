@@ -84,6 +84,11 @@ create trigger profiles_enforce_security
 --             (anulare inainte de acceptare), dar nu la alte statusuri;
 --   DELETE  — doar cat timp comanda e in draft.
 -- Dupa acceptare (stoc scazut) clientul nu mai poate modifica/sterge comanda.
+--
+-- In plus, toate WITH CHECK-urile de client pun conditia `organization_id =
+-- app.org_id()` — politicile FOR ALL din 0001 verificau doar client_id, deci un
+-- client putea re-punta un rand propriu catre alt tenant (organization_id strain),
+-- plantand un rand corupt in listele altei organizatii.
 
 drop policy orders_client_all on public.orders;
 
@@ -109,6 +114,7 @@ create policy orders_client_update on public.orders
   with check (
     app.role() = 'client'
     and client_id = app.client_id()
+    and organization_id = app.org_id()
     and status in ('draft', 'sent', 'cancelled')
   );
 
@@ -134,6 +140,7 @@ create policy order_items_client_select on public.order_items
 create policy order_items_client_insert on public.order_items
   for insert with check (
     app.role() = 'client'
+    and organization_id = app.org_id()
     and exists (
       select 1 from public.orders o
       where o.id = order_items.order_id
@@ -154,6 +161,7 @@ create policy order_items_client_update on public.order_items
   )
   with check (
     app.role() = 'client'
+    and organization_id = app.org_id()
     and exists (
       select 1 from public.orders o
       where o.id = order_items.order_id

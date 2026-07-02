@@ -168,4 +168,27 @@ begin;
     from public.organizations;
 rollback;
 
+-- ===== TEST 10: Clientul A NU poate muta comanda proprie 'sent' in alt tenant (0003) =====
+-- WITH CHECK-ul politicii orders_client_update cere organization_id = app.org_id();
+-- mutarea in Org B pica cu violare RLS (check_violation). Verificam si ca randul
+-- ramane in Org A.
+begin;
+  set local role authenticated;
+  set local request.jwt.claims = '{"sub":"22222222-2222-2222-2222-222222222222"}';
+  do $$
+  begin
+    begin
+      update public.orders set organization_id = 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb'
+        where id = '0d0d0d0d-0000-0000-0000-00000000000a';
+      raise exception 'FAIL: T10 client A a putut muta comanda in alt tenant';
+    exception when insufficient_privilege or check_violation then
+      raise notice 'PASS: T10 mutarea comenzii in alt tenant blocata (with check)';
+    end;
+  end $$;
+  select pg_temp.assert('T10 comanda ramane in Org A', count(*), 1)
+    from public.orders
+    where id = '0d0d0d0d-0000-0000-0000-00000000000a'
+      and organization_id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
+rollback;
+
 select '*** TOATE TESTELE RLS AU TRECUT ***' as result;
