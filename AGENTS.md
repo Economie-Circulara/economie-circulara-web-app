@@ -125,6 +125,7 @@ Testele unitare sunt **colocate** langa cod (`*.test.ts` / `*.test.tsx`).
 | `pnpm test:e2e`                     | Teste E2E Playwright.                                                                                   |
 | `pnpm db:start` / `pnpm db:stop`    | Porneste / opreste stack-ul Supabase local (necesita Docker + acces la imaginile `ghcr.io/supabase/*`). |
 | `pnpm db:reset`                     | Reaplica toate migrarile pe DB-ul local.                                                                |
+| `pnpm db:test`                      | Ruleaza testele de izolare RLS (`supabase/tests/rls_isolation.sql`) pe DB-ul local (port `54322`).      |
 | `pnpm gen:types`                    | Regenereaza `src/lib/database.types.ts` din DB-ul local.                                                |
 
 > **Notă mediu:** comenzile `db:*` / `gen:types` au nevoie de imaginile Docker Supabase
