@@ -13,7 +13,21 @@ Format intrare:
 
 ---
 
-## 2026-06-30 — Claude Opus 4.8
+## 2026-07-02 — Claude Opus 4.8
+
+- **Cerut:** fix RLS escaladare privilegii + politici client pe status (PR 1 din planul
+  de remediere de securitate).
+- **Facut:** migrare aditiva `supabase/migrations/0003_rls_hardening.sql`. (1) Trigger
+  `app.enforce_profile_security` (SECURITY DEFINER, `search_path=''`) BEFORE INSERT OR
+  UPDATE pe `public.profiles`: blocheaza pentru apelantii autentificati non-super_admin
+  schimbarea `role`/`organization_id`/`client_id` (UPDATE) si crearea de profile
+  `super_admin` (INSERT); contextele de serviciu (`auth.uid()` null) si super_admin trec
+  neatinse. (2) Inlocuit politicile FOR ALL `orders_client_all` / `order_items_client_all`
+  cu politici constiente de status: client SELECT orice status; INSERT/UPDATE/DELETE
+  permise doar cat timp comanda e draft/sent (delete doar draft), cu tranzitie la
+  'cancelled' permisa inainte de acceptare. Politicile de staff neatinse. Extins
+  `supabase/tests/rls_isolation.sql` (T5-T9). Validat prin citire — CI `db.yml` aplica
+  migrarea pe PR.
 
 - **Cerut:** pregatirea pentru mutarea repo-ului in noua organizatie `Economie-Circulara` —
   setup script / session-start hook, `docs/setup.md` (Supabase + Vercel + environment) si
