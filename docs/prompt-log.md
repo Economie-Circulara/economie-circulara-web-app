@@ -23,6 +23,7 @@ Format intrare:
   raspuns in loc de request, useri OAuth fara profil, prompt-log lipsa la T1.1/T1.2,
   termen stale. Plan de remediere in 4 PR-uri:
   [`docs/plans/code-review-remediation.md`](plans/code-review-remediation.md).
+  Adaugat `.claude/worktrees/` in `.gitignore` (worktree-uri temporare ale subagentilor).
 
 ## 2026-06-30 — Claude Opus 4.8
 
