@@ -13,6 +13,23 @@ Format intrare:
 
 ---
 
+## 2026-07-17 — Claude (orchestrator, implementare subagent Sonnet)
+
+- **Cerut:** Batch 2, Task A — clienti (lookup CUI, adrese, documente) + modul generic
+  de documente; spike S1.
+- **Facut:** **S1 rezolvat** — adapter ANAF v9 (webservicesp.anaf.ro) in spatele
+  `CuiLookupProvider` (sursa inlocuibila), cu normalizare + checksum CUI inainte de
+  apel, timeout scurt (AbortController) si degradare gratioasa (precompletare, nu
+  obligatoriu). Verticala clienti (`/clienti`, `/clienti/nou`, `/clienti/[id]`): CRUD,
+  lookup CUI cu confirmare manuala, adrese de livrare (o singura implicita/client),
+  istoric comenzi ca placeholder (Task E). **Modul generic de documente**
+  (`src/features/documents/`): migrarea `0006_documents_storage.sql` (bucket privat
+  fara politici pe storage.objects — acces DOAR prin server actions), upload/list/
+  download(URL semnat 60s)/delete cu verificare RLS pe ownerul entitatii + client admin
+  pentru storage; eticheta „contract" (decizia de arhivare). Fix Next.js 16: constantele
+  de state mutate din fisiere `"use server"` in `action-state.ts`. 77 teste noi (ANAF
+  mock-uit); typecheck/lint/test/build verzi.
+
 ## 2026-07-17 — Claude (orchestrator claude-fable-5, implementare subagent Sonnet)
 
 - **Cerut:** Batch 2, Task B — itemi, catalog (definitie) & retete, inclusiv `items.kind`.
