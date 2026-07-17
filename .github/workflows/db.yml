@@ -27,6 +27,11 @@ jobs:
       - name: Reaplica migrarile de la zero (idempotenta)
         run: supabase db reset
 
+      - name: Teste RLS (izolare tenant + hardening scrieri client)
+        run: |
+          PGPASSWORD=postgres psql -h 127.0.0.1 -p 54322 -U postgres -d postgres \
+            -v ON_ERROR_STOP=1 -f supabase/tests/rls_isolation.sql
+
       - name: Regenereaza tipurile din schema
         run: supabase gen types typescript --local > src/lib/database.types.generated.ts
 

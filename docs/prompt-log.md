@@ -13,6 +13,21 @@ Format intrare:
 
 ---
 
+## 2026-07-17 — Claude (orchestrator claude-fable-5, implementare subagent Sonnet)
+
+- **Cerut:** implementarea proiectului cu subagenti orchestrati — Batch 1, task T2.0
+  (hardening RLS scrieri client, precede Task E/H).
+- **Facut:** migrarea `0003_client_write_hardening.sql`: politicile `orders_client_all`
+  si `order_items_client_all` (FOR ALL) inlocuite cu politici granulare
+  select/insert/update/delete — clientul creeaza comenzi doar in draft/sent, editeaza
+  doar draft/sent, sterge doar draft; `order_items` editabile doar cat comanda parinte
+  e draft/sent; trigger BEFORE UPDATE `orders_client_status_transition` care permite
+  clientului doar draft→sent, draft→cancelled, sent→cancelled. Staff neafectat.
+  `rls_isolation.sql` extins cu testele T5–T9 (accepted/closed interzise clientului,
+  items read-only dupa acceptare, delete doar pe draft, staff accepta in continuare).
+  Testul RLS conectat in CI (`db.yml` ruleaza `psql -f rls_isolation.sql` dupa
+  `db reset`). Validarea migrarilor pe DB real se face in CI (Docker blocat local).
+
 ## 2026-07-17 — Claude (claude-fable-5)
 
 - **Cerut:** review serios al aplicatiei (plan + docs) fata de ultimele modificari din
