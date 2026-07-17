@@ -209,6 +209,22 @@ stub tipat (mock) cu aceeasi semnatura.
   NU poate seta `accepted`/`closed` si NU poate modifica itemii unei comenzi acceptate;
   fluxurile legitime (draft, trimitere) raman functionale.
 
+### Task T2.1 — Guard organizatie suspendata (hardening, dupa Task I)
+
+- **Problema (semnalata la livrarea Task I):** suspendarea unei organizatii seteaza
+  `organizations.status = 'suspended'`, dar middleware-ul si `getCurrentUser`/
+  `requireRole` nu verifica statusul — userii tenantului suspendat isi pastreaza
+  accesul complet.
+- **Scop:** blocarea accesului pentru organizatii suspendate: verificare
+  `status = 'active'` in `getCurrentUser`/middleware (redirect la o pagina
+  „organizatie suspendata") si, ca a doua linie de aparare, in RLS (politicile de
+  scriere pe tabelele de business sau helper-ul `app.is_staff_of`/`app.org_id` —
+  migrare noua). Super-adminul ramane neafectat.
+- **Dependente:** Task I
+- **Acceptare:** user admin/operator/client dintr-o organizatie suspendata nu mai
+  poate accesa nicio ruta protejata si nicio scriere prin Data API; la reactivare
+  accesul revine; teste pe guard + extindere `rls_isolation.sql`.
+
 ### Task A — Clienti
 
 - **Ecrane:** lista clienti, detaliu/creare client, adrese de livrare, documente client.
