@@ -1,22 +1,35 @@
+import Link from "next/link";
+import { PageHeader } from "@/components/page-header";
+import { Button } from "@/components/ui/button";
 import { requireRole } from "@/features/auth/session";
-import { SignOutButton } from "@/features/auth/sign-out-button";
+import { listOrganizations } from "@/features/platform/queries";
+import { OrganizationsTable } from "@/features/platform/organizations-table";
 
-export const metadata = { title: "Platforma — Lateris Trace" };
+export const metadata = { title: "Organizatii — Platforma Lateris Trace" };
 
-/** Consola super-admin (management organizatii). Continutul vine in Wave 2 (Task I). */
+/** Lista organizatiilor platformei (management super-admin). */
 export default async function PlatformPage() {
-  const user = await requireRole(["super_admin"]);
+  await requireRole(["super_admin"]);
+  const organizations = await listOrganizations();
 
   return (
-    <main className="bg-pattern flex min-h-svh flex-col items-center justify-center gap-4 p-8">
-      <h1 className="text-3xl font-semibold tracking-tight">Administrare platforma</h1>
-      <p className="text-muted-foreground">
-        Conectat ca <strong>{user.email}</strong> (super-admin).
+    <div className="space-y-6">
+      <PageHeader
+        title="Organizatii"
+        description="Toate organizatiile platformei — nume, slug, domeniu custom, status si numarul de utilizatori."
+        actions={
+          <Button asChild>
+            <Link href="/platform/nou">+ Organizatie noua</Link>
+          </Button>
+        }
+      />
+      <p className="rounded-md border border-dashed bg-card/50 px-3 py-2 text-xs text-muted-foreground">
+        O organizatie <strong>suspendata</strong> nu ar trebui sa mai permita acces userilor ei
+        (admin/operator/client) — statusul e salvat pe organizatie (
+        <code>organizations.status</code>) si trebuie verificat de fiecare cerere/sesiune a
+        tenantului respectiv.
       </p>
-      <p className="text-sm text-muted-foreground">
-        Managementul organizatiilor se adauga in Wave 2.
-      </p>
-      <SignOutButton />
-    </main>
+      <OrganizationsTable organizations={organizations} />
+    </div>
   );
 }

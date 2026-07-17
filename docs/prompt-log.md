@@ -15,6 +15,18 @@ Format intrare:
 
 ## 2026-07-17 — Claude (orchestrator claude-fable-5, implementare subagent Sonnet)
 
+- **Cerut:** Batch 2, Task I — super-admin: management organizatii.
+- **Facut:** verticala `src/features/platform/` + `src/app/platform/`: lista organizatii
+  (nr. useri, URL de acces per tenant, status badge), creare organizatie + invitare
+  admin initial (service-role; esec partial vizibil in UI cu re-incercare invitatie fara
+  recreare org), suspendare/reactivare (client de sesiune — RLS permite super-adminului).
+  Layout minim super-admin (fara shell-ul de staff). Validare slug identica cu
+  constraint-ul DB. 43 teste noi. **Gap semnalat:** middleware/guard-urile nu verifica
+  `organizations.status` — userii unei organizatii suspendate isi pastreaza accesul;
+  de rezolvat intr-un task de hardening (adaugat in plan la integrarea batch-ului).
+
+## 2026-07-17 — Claude (orchestrator claude-fable-5, implementare subagent Sonnet)
+
 - **Cerut:** Batch 1, Task C — Stoc & Loturi + Audit + stock service (contractul pentru
   Task D si E).
 - **Facut:** migrarea `0004_stock_service.sql` cu 3 RPC-uri SECURITY INVOKER (RLS activ,
