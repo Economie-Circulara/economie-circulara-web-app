@@ -291,10 +291,27 @@ stub tipat (mock) cu aceeasi semnatura.
 - Search peste comanda, client, lot, produs, certificat (mockup are bara de cautare).
 - **Acceptare:** cautarea returneaza rezultate cross-entitate, respectand RLS.
 
-### Task X3 — Dashboard & KPI (nice-to-have)
+### Task X3 — Dashboard, KPI & Rapoarte (obligatoriu — conformitate Anexa 1)
 
 - Carduri KPI din mockup (comenzi active, de acceptat, livrate luna asta, certificate emise).
-- **Acceptare:** valorile reflecta datele reale ale tenantului.
+- **Pagina dedicata „Rapoarte"** (decizie 2026-07): rapoarte operationale si comerciale pe
+  perioada (comenzi, livrari, retururi, materiale reciclate reintegrate) cu **export PDF**
+  (+ CSV unde are sens), antet white-label per organizatie.
+- **Acceptare:** valorile reflecta datele reale ale tenantului; fiecare raport se exporta
+  ca PDF descarcabil.
+
+### Task X5 — Livrari, avize & integrare e-Transport (cerinta noua, v1.x)
+
+- **Scop:** entitate `deliveries` pe comanda (data programata, transportator, nr.
+  inmatriculare, sofer, ruta plecare/sosire); generare **aviz de insotire a marfii**;
+  declarare in **RO e-Transport** prin **Socrate.io** (validat in S4); stocare **cod UIT**
+  pe livrare; aviz PDF printabil cu UIT.
+- **Nota de design:** modelul `deliveries` se proiecteaza de la inceput cu v2 in minte
+  (monitorizare GPS a livrarilor — vehicul identificabil, legatura livrare ↔ transport).
+- **Dependente:** Task E (comenzi), spike S4
+- **Acceptare:** pe o comanda acceptata se planifica o livrare, se genereaza avizul,
+  declaratia e-Transport pleaca prin API-ul tert (mock/sandbox in teste), UIT-ul apare
+  pe livrare si pe PDF; erorile de declarare sunt vizibile si re-incercabile.
 
 ### Task X4 — Seed data & E2E
 
@@ -312,6 +329,7 @@ stub tipat (mock) cu aceeasi semnatura.
 | S1  | API public lookup CUI Romania (cel mai simplu de integrat)                        | Task A      | alegere sursa + adapter    |
 | S2  | Standarde legale RO/EU pt. certificat trasabilitate materiale reciclate           | Task G      | continut minim obligatoriu |
 | S3  | Librarie Sankey React (Recharts vs Nivo) si abordare PDF (React-PDF vs Puppeteer) | Task D, G   | decizie + POC mic          |
+| S4  | Validare **Socrate.io** ca furnizor RO e-Transport (decis 2026-07, platit): acces API/sandbox, costuri, contract | Task X5 | POC adapter Socrate.io |
 
 ---
 
@@ -347,7 +365,14 @@ stub tipat (mock) cu aceeasi semnatura.
 | X1 Notificari           | 3    | E, T1.3      | da                 |
 | X2 Cautare              | 3    | A,B,C,E,G    | da                 |
 | X3 Dashboard/KPI        | 3    | E, C, G      | da                 |
+| X5 Livrari/e-Transport  | 3    | E, S4        | da                 |
 | X4 Seed + E2E           | 3    | toate        | la final           |
+
+> **Conformitate finantare:** proiectul trebuie sa respecte
+> [Anexa 1](../anexa-1-specificatii-tehnice.md). Gap-urile identificate (contracte,
+> servicii/abonamente, oferte, rapoarte, audit log) sunt in
+> [analiza-conformitate-anexa.md](../analiza-conformitate-anexa.md) — de transformat
+> in task-uri dupa decizia de scope.
 
 ---
 

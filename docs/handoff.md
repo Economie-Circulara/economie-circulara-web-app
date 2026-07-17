@@ -213,12 +213,58 @@ Ecrane principale: **comenzi, procese, clienti, stoc**
 
 ---
 
+## Integrari (adaugat 2026-07)
+
+### e-Transport / avize (necesar, v1.x)
+
+Livrarile trebuie sa suporte fluxul de **aviz de insotire a marfii + declarare in
+RO e-Transport (ANAF)** pentru transporturile care depasesc pragurile legale:
+
+- integrare prin **Socrate.io** (furnizor tert platit, API peste SPV/ANAF), nu direct cu SPV — validare in spike S4
+- flux: comanda acceptata → planificare livrare (data, transportator, nr. inmatriculare)
+  → generare aviz → declarare e-Transport → cod UIT stocat pe livrare → aviz PDF cu UIT
+- necesita entitate `deliveries` (transportator, vehicul, sofer, ruta, cod UIT, status declaratie)
+- inchide cerintele din Anexa 1: „planificarea si urmarirea livrarilor" + „interoperabilitate"
+
+### Monitorizare GPS (v2, follow-up)
+
+- integrare cu serviciu de monitorizare GPS pentru urmarirea in timp real a livrarilor
+  (pozitie vehicul, ETA, istoric ruta)
+- se construieste peste entitatea `deliveries` — modelul de livrare se proiecteaza de la
+  inceput cu asta in minte
+
+---
+
+## Constrangere: conformitate cu Anexa 1 (finantare europeana)
+
+Proiectul este finantat din fonduri europene; platforma trebuie sa respecte
+[anexa-1-specificatii-tehnice.md](anexa-1-specificatii-tehnice.md). Gap-urile fata de
+planul actual (in special **contracte, servicii/abonamente/tarifare, oferte comerciale,
+rapoarte, audit log de platforma**) sunt documentate in
+[analiza-conformitate-anexa.md](analiza-conformitate-anexa.md) si trebuie inchise
+inainte de receptie.
+
+Decizii de interpretare/scope (2026-07):
+
+- **Contractele si serviciile** din anexa = relatia **organizatie ↔ clientii ei**
+  (Beneficiarul finantat isi gestioneaza contractele cu firmele care cumpara/aduc la
+  reciclare). NU se refera la relatia platforma ↔ organizatii (multi-tenancy-ul e
+  modelul nostru de business, in afara scope-ului anexei).
+- **Oferte comerciale** = catalogul organizatiei (produse vandabile + materiale acceptate
+  la reciclare), **fara preturi**; intarit cu flag „acceptat la reciclare" pe item si
+  optional export „oferta PDF" din catalog.
+- **Rapoarte** = pagina dedicata cu export PDF (Task X3, promovat la obligatoriu).
+- **e-Transport** = integrare prin Socrate.io (platit).
+
+---
+
 ## Post-MVP (de amanat)
 
 - Interfata agentica (agent care propune actiuni confirmate de user; doar pentru admin)
-- Rapoarte agregate si KPI-uri
+- ~~Rapoarte agregate si KPI-uri~~ → mutat in scope (pagina Rapoarte cu export PDF, Task X3 — cerinta Anexa 1)
 - Verificare publica certificate prin QR / link
 - Conversii intre unitati de masura
+- Monitorizare GPS a livrarilor (v2 — vezi Integrari)
 
 ---
 
