@@ -411,7 +411,7 @@ stub tipat (mock) cu aceeasi semnatura.
 
 | ID  | Subiect                                                                           | Deblocheaza | Output asteptat            |
 | --- | --------------------------------------------------------------------------------- | ----------- | -------------------------- |
-| S1  | API public lookup CUI Romania (cel mai simplu de integrat)                        | Task A      | alegere sursa + adapter    |
+| S1 ✅ | API public lookup CUI Romania — **rezolvat: ANAF v9** (webservicesp.anaf.ro), adapter in `src/features/clients/cui-lookup.ts` | Task A | alegere sursa + adapter |
 | S2  | Standarde legale RO/EU pt. certificat trasabilitate materiale reciclate           | Task G      | continut minim obligatoriu |
 | S3  | Librarie Sankey React (Recharts vs Nivo) si abordare PDF (React-PDF vs Puppeteer) | Task D, G   | decizie + POC mic          |
 | S4  | Validare **Socrate.io** ca furnizor RO e-Transport (decis 2026-07, platit): acces API/sandbox, costuri, contract | Task X5 | POC adapter Socrate.io |
@@ -455,16 +455,17 @@ C (stoc) → B (itemi/retete) → A (clienti) → E (comenzi) → D (productie) 
 | T1.1 Schema+RLS         | 1    | T0.3         | ✅ livrat (inghetata)  |
 | T1.2 Auth/tenant        | 1    | T1.1, T0.2   | ✅ livrat              |
 | T1.3 Setari/white-label | 1    | T1.1, T1.2   | ✅ livrat              |
-| T2.0 Hardening RLS      | 2    | T1.1         | da (precede E, H)      |
-| A Clienti               | 2    | T1.x, S1     | da                     |
-| B Itemi/Retete          | 2    | T1.x         | da                     |
-| C Stoc/Loturi           | 2    | T1.x         | da (pornit primul)     |
-| D Productie             | 2    | C, B, S3     | da                     |
-| E Comenzi               | 2    | T2.0, C, A, B | da                    |
+| T2.0 Hardening RLS      | 2    | T1.1         | ✅ livrat (mig. 0003)  |
+| T2.1 Guard org suspendata | 2  | I            | de facut               |
+| A Clienti               | 2    | T1.x, S1     | ✅ livrat (mig. 0006)  |
+| B Itemi/Retete          | 2    | T1.x         | ✅ livrat (mig. 0005)  |
+| C Stoc/Loturi           | 2    | T1.x         | ✅ livrat (mig. 0004)  |
+| D Productie             | 2    | C, B, S3     | in lucru (mig. 0008)   |
+| E Comenzi               | 2    | T2.0, C, A, B | in lucru (mig. 0007)  |
 | F Retur/Garantie        | 2    | E, C         | da                     |
 | G Certificate           | 2    | E, D, S2, S3 | da                     |
 | H Portal client         | 2    | T2.0, B, E, G | da                    |
-| I Super-admin           | 2    | T1.x         | da                     |
+| I Super-admin           | 2    | T1.x         | ✅ livrat              |
 | X1 Notificari           | 3    | E, T1.3      | da                     |
 | X2 Cautare              | 3    | A,B,C,E,G    | da                     |
 | X3 Dashboard/KPI        | 3    | E, C, G      | da                     |
