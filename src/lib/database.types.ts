@@ -249,6 +249,7 @@ export type Database = {
           description: string | null;
           id: string;
           image_url: string | null;
+          kind: Database["public"]["Enums"]["item_kind"];
           organization_id: string;
           sellable: boolean;
           title: string;
@@ -260,6 +261,7 @@ export type Database = {
           description?: string | null;
           id?: string;
           image_url?: string | null;
+          kind?: Database["public"]["Enums"]["item_kind"];
           organization_id: string;
           sellable?: boolean;
           title: string;
@@ -271,6 +273,7 @@ export type Database = {
           description?: string | null;
           id?: string;
           image_url?: string | null;
+          kind?: Database["public"]["Enums"]["item_kind"];
           organization_id?: string;
           sellable?: boolean;
           title?: string;
@@ -1048,6 +1051,8 @@ export type Database = {
     };
     Enums: {
       document_owner_type: "client" | "order" | "item";
+      // --- Task B (Itemi/Retete) — supabase/migrations/0005_item_kind.sql ---
+      item_kind: "physical" | "service";
       lot_provenance:
         | "purchase"
         | "internal_production"
@@ -1197,6 +1202,7 @@ export const Constants = {
   public: {
     Enums: {
       document_owner_type: ["client", "order", "item"],
+      item_kind: ["physical", "service"],
       lot_provenance: [
         "purchase",
         "internal_production",

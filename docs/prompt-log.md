@@ -15,6 +15,20 @@ Format intrare:
 
 ## 2026-07-17 — Claude (orchestrator claude-fable-5, implementare subagent Sonnet)
 
+- **Cerut:** Batch 2, Task B — itemi, catalog (definitie) & retete, inclusiv `items.kind`.
+- **Facut:** migrarea `0005_item_kind.sql` (enum `item_kind` physical|service +
+  `items.kind` + index; motivatia PaaS/Anexa 1 in comentariu; tipuri actualizate manual
+  in database.types.ts). Verticala itemi (`/itemi`, `/itemi/nou`, `/itemi/[id]`): lista
+  cu filtre tip/vandabil + search, formular comun creare/editare (fara upload fisiere —
+  modulul de documente e in Task A). Verticala retete (`/retete`, `/retete/nou`,
+  `/retete/[itemId]`): editor componente cu upsert, self-reference blocat, suma
+  procentelor avertizata informativ la !=100% (nu blocheaza — regula handoff), retete
+  respinse server-side pentru itemi `service` (verificat din DB, nu din input). Nav:
+  intrare „Itemi". Plan de task in docs/plans/task-b-itemi-retete.md. 54 teste noi;
+  typecheck/lint/test verzi.
+
+## 2026-07-17 — Claude (orchestrator claude-fable-5, implementare subagent Sonnet)
+
 - **Cerut:** Batch 2, Task I — super-admin: management organizatii.
 - **Facut:** verticala `src/features/platform/` + `src/app/platform/`: lista organizatii
   (nr. useri, URL de acces per tenant, status badge), creare organizatie + invitare
