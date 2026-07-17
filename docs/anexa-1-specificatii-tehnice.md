@@ -1,11 +1,12 @@
 # ANEXA NR. 1 — Specificații tehnice (DRAFT — nedepusă, în revizuire)
 
-> **Statut (17 iulie 2026):** anexa NU a fost încă depusă — textul de mai jos este
-> draftul actual și poate fi editat înainte de depunere. După depunere devine document
-> de referință contractual pe care platforma trebuie să-l respecte.
+> **Statut (17 iulie 2026):** anexa NU a fost încă depusă. Textul de mai jos este
+> **draftul revizuit** — modificările față de versiunea inițială (cu motivația fiecăreia)
+> sunt în [anexa-1-modificari-propuse.md](anexa-1-modificari-propuse.md), de validat cu
+> echipa de proiect înainte de depunere. După depunere devine document de referință
+> contractual pe care platforma trebuie să-l respecte.
 > Vezi [analiza-conformitate-anexa.md](analiza-conformitate-anexa.md) pentru maparea pe
-> planul de implementare; propunerile de revizuire sunt în discuție (abonamente/tarifare,
-> contracte, adăugiri trasabilitate + e-Transport).
+> planul de implementare.
 
 ---
 
@@ -22,13 +23,15 @@ funcție de evoluția activității și a nevoilor de afaceri.
 Platforma va include funcționalități precum:
 
 - gestionarea clienților și a relațiilor contractuale;
-- administrarea ofertelor comerciale, comenzilor și contractelor specifice modelului Product-as-a-Service;
-- configurarea și gestionarea diferitelor tipuri de servicii, abonamente sau modele de tarifare;
+- administrarea comenzilor și a documentelor contractuale aferente relației cu clienții;
+- configurarea tipurilor de produse și servicii furnizate;
 - planificarea și urmărirea livrărilor și a activităților operaționale;
+- generarea documentelor de însoțire a livrărilor și posibilitatea interoperabilității cu sisteme informatice naționale (ex. RO e-Transport), inclusiv prin servicii terțe;
 - evidența produselor și serviciilor furnizate;
 - gestionarea utilizării temporare și a returului elementelor prefabricate destinate reutilizării;
 - evidența activităților de recuperare, recondiționare și reintegrare a produselor în circuitul economic;
-- monitorizarea indicatorilor operaționali și comerciali relevanți;
+- generarea de certificate și documente de trasabilitate a materialelor și produselor livrate;
+- monitorizarea indicatorilor operaționali relevanți;
 - generarea de rapoarte și situații necesare activității curente, proceselor de audit, raportării interne sau externe;
 - transmiterea de notificări și informări către utilizatori;
 - administrarea utilizatorilor și a drepturilor de acces;
@@ -66,14 +69,13 @@ Platforma poate include, fără a se limita la, următoarele funcționalități:
 
 - evidența clienților și a datelor de contact;
 - istoricul colaborărilor;
-- administrarea solicitărilor și a comenzilor.
+- administrarea solicitărilor și a comenzilor, inclusiv înregistrarea acestora de către personalul Beneficiarului în numele clienților.
 
 **b) Gestionarea contractelor și a serviciilor**
 
-- evidența contractelor încheiate;
-- gestionarea tipurilor de servicii și abonamente;
-- urmărirea perioadelor contractuale;
-- evidența obligațiilor asumate de părți.
+- evidența și arhivarea documentelor contractuale;
+- gestionarea tipurilor de produse și servicii furnizate;
+- urmărirea perioadelor de utilizare a produselor.
 
 **c) Gestionarea produselor și a livrărilor**
 
@@ -97,12 +99,12 @@ Platforma poate include, fără a se limita la, următoarele funcționalități:
 
 - definirea rolurilor și drepturilor de acces;
 - gestionarea conturilor de utilizator;
-- evidența activităților realizate în platformă.
+- evidența principalelor operațiuni realizate asupra datelor din platformă.
 
 **g) Gestionarea documentelor**
 
 - încărcarea și arhivarea documentelor relevante;
-- asocierea documentelor cu clienți, contracte sau activități;
+- asocierea documentelor cu clienți, comenzi sau activități;
 - consultarea și descărcarea documentelor disponibile.
 
 ### 4. Interoperabilitate și dezvoltare ulterioară

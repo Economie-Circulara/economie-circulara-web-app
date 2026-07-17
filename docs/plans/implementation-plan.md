@@ -194,6 +194,10 @@ stub tipat (mock) cu aceeasi semnatura.
 - **Ecrane:** lista itemi, creare/editare item (titlu, descriere, poza, UM, flag `vandabil`,
   atasamente), **Retete** (componente in procente).
 - **Scop:** CRUD itemi; editor reteta (suma procente validata informativ); fara versionare.
+- **Nota (2026-07):** tipurile de abonament/serviciu PaaS (ex. Basic/Premium/Pay-per-Use/
+  Flexi-Beton din cererea unui viitor client) se modeleaza ca **tip de produs/serviciu**
+  in catalog (item ne-fizic sau categorie „serviciu"), nu ca modul separat de abonamente.
+  Fara preturi/facturare.
 - **Dependente:** T1.x
 - **Acceptare:** definesti „Caramida eco" cu reteta din 3 componente; itemul cu `vandabil`
   apare in catalogul clientului (Task G).
@@ -294,9 +298,15 @@ stub tipat (mock) cu aceeasi semnatura.
 ### Task X3 — Dashboard, KPI & Rapoarte (obligatoriu — conformitate Anexa 1)
 
 - Carduri KPI din mockup (comenzi active, de acceptat, livrate luna asta, certificate emise).
-- **Pagina dedicata „Rapoarte"** (decizie 2026-07): rapoarte operationale si comerciale pe
-  perioada (comenzi, livrari, retururi, materiale reciclate reintegrate) cu **export PDF**
+- **Pagina dedicata „Rapoarte"** (decizie 2026-07): rapoarte operationale pe perioada
+  (comenzi, livrari, retururi, materiale reciclate reintegrate) cu **export PDF**
   (+ CSV unde are sens), antet white-label per organizatie.
+- Rapoarte cerute de piata PaaS (vezi `docs/analiza-cerere-finantare-client-paas.md`):
+  **„utilizat = livrat − returnat"** per client/perioada (baza pay-per-use; datele exista
+  in comenzi/retururi/`stock_events`) si **% materii prime secundare** per produs/perioada
+  (derivat din trasabilitate).
+- **v2 (NU in acest task):** raport CO2 economisit — cere factori de emisie configurabili
+  per organizatie; metodologia = raspunderea clientului.
 - **Acceptare:** valorile reflecta datele reale ale tenantului; fiecare raport se exporta
   ca PDF descarcabil.
 

@@ -1,14 +1,18 @@
 # Analiza de conformitate — Anexa 1 vs. planul de implementare
 
 Acest document mapează cerințele din [anexa-1-specificatii-tehnice.md](anexa-1-specificatii-tehnice.md)
-(documentația tehnică depusă pentru finanțarea europeană) pe planul actual:
-[handoff.md](handoff.md) + [implementation-plan.md](plans/implementation-plan.md).
+(anexa tehnică pentru finanțarea europeană — **draft revizuit, nedepus**) pe planul
+actual: [handoff.md](handoff.md) + [implementation-plan.md](plans/implementation-plan.md).
 
 **De ce contează:** proiectul este finanțat din fonduri europene, deci la recepție/audit
 platforma trebuie să demonstreze funcționalitățile din anexă. Secțiunea 6 din anexă oferă
 flexibilitate („caracter general și orientativ”), dar lista de funcționalități din corpul
-anexei este ceea ce se va verifica. Zonele ❌ de mai jos trebuie acoperite măcar la nivel
-minimal înainte de recepție.
+anexei este ceea ce se va verifica.
+
+> **Update 17 iulie 2026:** anexa a fost revizuită înainte de depunere exact pentru a
+> închide zonele ❌ de mai jos (vezi
+> [anexa-1-modificari-propuse.md](anexa-1-modificari-propuse.md)). Tabelele din secțiunea
+> 1.b păstrează **ambele stări**: textul inițial (istoric) și statusul pe textul revizuit.
 
 Legendă: ✅ acoperit · 🟡 parțial acoperit · ❌ neacoperit
 
@@ -24,22 +28,27 @@ Legendă: ✅ acoperit · 🟡 parțial acoperit · ❌ neacoperit
 | Istoricul colaborărilor | ✅ | Istoric comenzi per client (Task A + Task E); detaliul client listează comenzile |
 | Administrarea solicitărilor și a comenzilor | ✅ | Task E (comenzi admin) + Task H (portal client); „solicitare” = comanda trimisă de client |
 
-### b) Gestionarea contractelor și a serviciilor — **zona cea mai slabă**
+### b) Gestionarea contractelor și a serviciilor — **rezolvată prin revizuirea anexei**
 
-| Cerință anexă | Status | Acoperire în plan |
+Textul inițial al anexei crea gap-urile de mai jos; **textul revizuit** (17 iulie 2026)
+le închide prin reformulare:
+
+| Text inițial (❌ pe plan) | Text revizuit | Status pe textul revizuit |
 | --- | --- | --- |
-| Evidența contractelor încheiate | ❌ | Nu există entitate `contracts` în schemă sau plan |
-| Gestionarea tipurilor de servicii și abonamente | ❌ | Planul nu are servicii/abonamente; catalogul are doar produse fizice |
-| Urmărirea perioadelor contractuale | ❌ | Nu există perioade contractuale; doar `expected_return_date` pe comandă |
-| Evidența obligațiilor asumate de părți | ❌ | Nu există |
-| Administrarea ofertelor comerciale (din lista generală) | ❌ | Planul exclude explicit prețurile („fara preturi”); nu există entitate ofertă |
-| Modele de tarifare (din lista generală) | ❌ | Idem — fără prețuri/tarifare în MVP |
+| Evidența contractelor încheiate | „evidența și arhivarea documentelor contractuale” | ✅ infrastructura de documente pe client (Task A) |
+| Gestionarea tipurilor de servicii și abonamente | „gestionarea tipurilor de produse și servicii furnizate” | ✅ catalog + tip de produs/serviciu (Task B; abonamentele PaaS = tipuri de produs, fără prețuri) |
+| Urmărirea perioadelor contractuale | „urmărirea perioadelor de utilizare a produselor” | ✅ închiriere + `expected_return_date` (Task F) |
+| Evidența obligațiilor asumate de părți | *(eliminat din anexă)* | — obligațiile sunt în contractele arhivate |
+| Administrarea ofertelor comerciale (lista generală) | *(eliminat; „administrarea comenzilor și a documentelor contractuale”)* | ✅ comenzi (Task E/H) + documente |
+| Modele de tarifare (lista generală) | *(eliminat)* | — fără prețuri/bani în platformă (decizie de scope) |
 
-**Notă PaaS:** anexa definește platforma ca instrument pentru modelul *Product-as-a-Service*.
-În planul actual, PaaS este simulat doar prin comandă + retur cu `expected_return_date`
-(handoff, secțiunea „Retur si garantie”). Fără contracte/abonamente/tarifare, componenta
-PaaS este subreprezentată față de cum e descrisă în anexă. **Aceasta este prioritatea #1
-de închis** — vezi recomandările din secțiunea 2.
+**Notă PaaS:** obiectivul PaaS al anexei rămâne neatins (legat de finanțare); în platformă
+modelul e acoperit prin utilizare temporară + retur + recuperare/recondiționare/reutilizare
+(Task F + procese) și prin tipurile de produs/serviciu din catalog. Modulul light de
+contracte (tip + perioadă + documente) rămâne o opțiune de produs — în așteptarea
+răspunsului echipei non-tehnice (întrebarea din
+[anexa-1-modificari-propuse.md](anexa-1-modificari-propuse.md)) și cerut și de piața PaaS
+(vezi [analiza-cerere-finantare-client-paas.md](analiza-cerere-finantare-client-paas.md)).
 
 **Clarificare scope contracte (2026-07):** anexa spune explicit că platforma gestionează
 „relațiile comerciale și operaționale dintre **Beneficiar și clienții săi**”. Beneficiarul
@@ -80,14 +89,14 @@ anexei, și nu necesită modul în aplicație.
 | --- | --- | --- |
 | Definirea rolurilor și drepturilor de acces | ✅ | 4 roluri + RLS (T1.1, T1.2) |
 | Gestionarea conturilor de utilizator | ✅ | T1.3 — invitații, creare operatori/clienți |
-| Evidența activităților realizate în platformă | 🟡 | `stock_events` acoperă doar stocul. Pentru „evidența activităților” e nevoie de un **audit log la nivel de platformă** (login, modificări clienți/comenzi/setări) — măcar minimal |
+| Evidența activităților realizate în platformă → *revizuit:* „evidența principalelor operațiuni realizate asupra datelor” | ✅ | Textul revizuit e acoperit de `stock_events` + istoricul comenzilor/proceselor (cine/când). Un `activity_log` general rămâne îmbunătățire opțională (recomandarea 7) |
 
 ### g) Gestionarea documentelor
 
 | Cerință anexă | Status | Acoperire în plan |
 | --- | --- | --- |
 | Încărcarea și arhivarea documentelor | ✅ | Documente pe client/comandă/item, Supabase Storage |
-| Asocierea documentelor cu clienți, contracte sau activități | 🟡 | Asociere cu clienți/comenzi/itemi există; asocierea cu **contracte** depinde de introducerea entității contract (vezi b) |
+| Asocierea documentelor cu clienți, comenzi sau activități *(text revizuit)* | ✅ | Asociere cu clienți/comenzi/itemi există în plan; documentele contractuale se atașează clientului |
 | Consultarea și descărcarea documentelor | ✅ | Task H + ecranele admin |
 
 ### Cerințe transversale (lista generală din anexă)
@@ -115,26 +124,14 @@ anexei, și nu necesită modul în aplicație.
 
 ### ❌ Neacoperit — trebuie adăugat pentru conformitate
 
-1. **Modul Contracte** (cerința b) — **la nivel de organizație** (vezi clarificarea de
-   scope din secțiunea 1.b): entitate `contracts` per client — număr, tip
-   (vânzare / PaaS-închiriere / abonament), dată început/sfârșit, obligațiile părților
-   (câmp text/listă), documente atașate (folosește infrastructura existentă de documente),
-   alerte la apropierea expirării. Comenzile pot referenția opțional un contract.
-   *Efort estimat: mic-mediu — un vertical nou de tip Task A.*
-2. **Servicii, abonamente și modele de tarifare** (cerința b): la nivel minim — tipuri de
-   serviciu/abonament definibile per organizație (denumire, periodicitate, tarif) atașabile
-   contractului. Nu implică facturare automată în MVP; doar evidență. Reconsiderat decizia
-   „fără prețuri” măcar la nivel de contract/ofertă (poate rămâne ascuns în portalul client).
-3. **Oferte comerciale** (lista generală) — **interpretare aleasă (2026-07):** oferta
-   comercială = portofoliul organizației, adică **catalogul** de produse vandabile plus
-   materialele acceptate la reciclare, **fără prețuri**. Interpretarea e acoperită de
-   caracterul „general și orientativ” al anexei (secțiunea 6). Pentru a o susține la audit:
-   (1) flag nou pe item, „acceptat la reciclare”, ca oferta să acopere ambele direcții
-   (vânzare + preluare la reciclare); (2) opțional și ieftin — buton „Generează ofertă PDF”
-   din catalog (listă de itemi selectați, antet white-label), care produce un document
-   de ofertă tangibil, demonstrabil la recepție.
+> Punctele 1–3 din versiunea inițială a acestei analize (modul contracte, abonamente/
+> tarifare, oferte comerciale) au fost **rezolvate prin revizuirea anexei** (vezi
+> secțiunea 1.b și [anexa-1-modificari-propuse.md](anexa-1-modificari-propuse.md)) —
+> nu mai sunt obligații de conformitate. Modulul light de contracte rămâne pe masă ca
+> **decizie de produs** (cerut de piața PaaS), nu ca cerință a anexei.
+
 4. **Livrabile de proiect:** documentație de utilizare/administrare + instruire utilizatori —
-   de adăugat ca task-uri de finalizare în plan.
+   de adăugat ca task-uri de finalizare în plan. **Singurul ❌ rămas.**
 
 ### 🟡 Parțial — de întărit în planul existent
 
