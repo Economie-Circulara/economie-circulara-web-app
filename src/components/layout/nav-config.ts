@@ -27,7 +27,7 @@ export const STAFF_NAV: NavItem[] = [
   { label: "Producție", href: "/productie", icon: Factory, roles: ["admin", "operator"] },
   { label: "Clienți", href: "/clienti", icon: Users, roles: ["admin", "operator"] },
   { label: "Rețete", href: "/retete", icon: ScrollText, roles: ["admin", "operator"] },
-  { label: "Audit stoc", href: "/audit", icon: History, roles: ["admin", "operator"] },
+  { label: "Audit stoc", href: "/stoc/audit", icon: History, roles: ["admin", "operator"] },
   { label: "Setări", href: "/setari", icon: Settings, roles: ["admin"] },
 ];
 

@@ -15,6 +15,21 @@ Format intrare:
 
 ## 2026-07-17 — Claude (orchestrator claude-fable-5, implementare subagent Sonnet)
 
+- **Cerut:** Batch 1, Task C — Stoc & Loturi + Audit + stock service (contractul pentru
+  Task D si E).
+- **Facut:** migrarea `0004_stock_service.sql` cu 3 RPC-uri SECURITY INVOKER (RLS activ,
+  atomice prin tranzactia implicita): `create_lot` (lot + eveniment intake),
+  `consume_fifo` (FIFO pe `lots_fifo_idx` cu FOR UPDATE, selectie manuala prin
+  `array_position`, eroare LT001 la stoc insuficient → rollback complet),
+  `set_lot_block` (blocare/deblocare cu motiv). Coduri de eroare tipizate LT001–LT005
+  traduse in erori TS. Verticala `src/features/stock/` (service, queries, actions, CSV,
+  componente) + ecranele `/stoc`, `/stoc/nou`, `/stoc/audit` cu export CSV (BOM UTF-8,
+  RFC 4180). Helper pur `planFifoConsumption()` pentru preview FIFO client-side (Task D).
+  Tipurile RPC adaugate manual in `database.types.ts` (de regenerat local).
+  39 teste noi; typecheck/lint/test verzi (76/76).
+
+## 2026-07-17 — Claude (orchestrator claude-fable-5, implementare subagent Sonnet)
+
 - **Cerut:** implementarea proiectului cu subagenti orchestrati — Batch 1, task T2.0
   (hardening RLS scrieri client, precede Task E/H).
 - **Facut:** migrarea `0003_client_write_hardening.sql`: politicile `orders_client_all`

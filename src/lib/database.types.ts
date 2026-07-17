@@ -1012,6 +1012,39 @@ export type Database = {
           slug: string;
         }[];
       };
+      // --- Task C (Stoc & Loturi) — supabase/migrations/0004_stock_service.sql ---
+      // Adaugate manual (fara acces la `pnpm gen:types` in acest mediu). La urmatoarea
+      // rulare locala a `pnpm gen:types` aceste intrari trebuie sa ramana identice cu
+      // ce genereaza CLI-ul din DB — daca difera, migrarea are prioritate.
+      create_lot: {
+        Args: {
+          p_entry_date?: string | null;
+          p_item_id: string;
+          p_location?: string | null;
+          p_provenance: Database["public"]["Enums"]["lot_provenance"];
+          p_quality_status?: Database["public"]["Enums"]["quality_status"] | null;
+          p_quantity: number;
+          p_reason?: string | null;
+          p_source?: string | null;
+        };
+        Returns: Database["public"]["Tables"]["lots"]["Row"];
+      };
+      consume_fifo: {
+        Args: {
+          p_event_type?: Database["public"]["Enums"]["stock_event_type"] | null;
+          p_item_id: string;
+          p_manual_lot_ids?: string[] | null;
+          p_order_id?: string | null;
+          p_process_id?: string | null;
+          p_qty: number;
+          p_reason?: string | null;
+        };
+        Returns: { lot_id: string; qty: number }[];
+      };
+      set_lot_block: {
+        Args: { p_blocked: boolean; p_lot_id: string; p_reason?: string | null };
+        Returns: Database["public"]["Tables"]["lots"]["Row"];
+      };
     };
     Enums: {
       document_owner_type: "client" | "order" | "item";
