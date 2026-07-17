@@ -356,6 +356,38 @@ export type Database = {
           },
         ];
       };
+      // --- Task E (Comenzi) — supabase/migrations/0007_orders_ops.sql ---
+      // Adaugat manual (fara acces la `pnpm gen:types` in acest mediu) — vezi nota
+      // similara la Functions.create_lot (Task C) mai jos.
+      order_counters: {
+        Row: {
+          organization_id: string;
+          seq: number;
+          updated_at: string;
+          year: number;
+        };
+        Insert: {
+          organization_id: string;
+          seq?: number;
+          updated_at?: string;
+          year: number;
+        };
+        Update: {
+          organization_id?: string;
+          seq?: number;
+          updated_at?: string;
+          year?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "order_counters_organization_id_fkey";
+            columns: ["organization_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       order_items: {
         Row: {
           created_at: string;
@@ -1048,6 +1080,42 @@ export type Database = {
         Args: { p_blocked: boolean; p_lot_id: string; p_reason?: string | null };
         Returns: Database["public"]["Tables"]["lots"]["Row"];
       };
+      // --- Task E (Comenzi) — supabase/migrations/0007_orders_ops.sql ---
+      // Adaugate manual (fara acces la `pnpm gen:types` in acest mediu). La urmatoarea
+      // rulare locala a `pnpm gen:types` aceste intrari trebuie sa ramana identice cu
+      // ce genereaza CLI-ul din DB — daca difera, migrarea are prioritate.
+      generate_order_number: {
+        Args: { p_org: string };
+        Returns: string;
+      };
+      accept_order: {
+        Args: { p_order_id: string };
+        Returns: Database["public"]["Tables"]["orders"]["Row"];
+      };
+      cancel_order: {
+        Args: { p_order_id: string };
+        Returns: Database["public"]["Tables"]["orders"]["Row"];
+      };
+      // --- Task D (Productie & Reciclare) — supabase/migrations/0008_reconditioning.sql ---
+      // RPC de finalizare proces: creeaza randul `processes` + consuma FIFO/manual
+      // inputurile (consume_fifo) + creeaza loturile de output (create_lot) +
+      // inregistreaza process_inputs/process_outputs, atomic (o singura tranzactie).
+      // p_inputs/p_outputs sunt array-uri JSON (vezi src/features/production/service.ts).
+      confirm_process: {
+        Args: {
+          p_inputs: Json;
+          p_notes?: string | null;
+          p_outputs: Json;
+          p_output_item_id: string;
+          p_recipe_id?: string | null;
+          p_type: Database["public"]["Enums"]["process_type"];
+        };
+        Returns: Database["public"]["Tables"]["processes"]["Row"];
+      };
+      cancel_process: {
+        Args: { p_process_id: string };
+        Returns: Database["public"]["Tables"]["processes"]["Row"];
+      };
     };
     Enums: {
       document_owner_type: "client" | "order" | "item";
@@ -1058,7 +1126,9 @@ export type Database = {
         | "internal_production"
         | "recycling"
         | "return"
-        | "inventory_adjustment";
+        | "inventory_adjustment"
+        // --- Task D — supabase/migrations/0008_reconditioning.sql (ALTER TYPE ADD VALUE) ---
+        | "reconditioning";
       order_link_type: "return" | "warranty" | "replacement";
       order_status: "draft" | "sent" | "accepted" | "delivered" | "closed" | "cancelled";
       org_status: "active" | "suspended";
@@ -1209,6 +1279,7 @@ export const Constants = {
         "recycling",
         "return",
         "inventory_adjustment",
+        "reconditioning",
       ],
       order_link_type: ["return", "warranty", "replacement"],
       order_status: ["draft", "sent", "accepted", "delivered", "closed", "cancelled"],

@@ -413,7 +413,7 @@ stub tipat (mock) cu aceeasi semnatura.
 | --- | --------------------------------------------------------------------------------- | ----------- | -------------------------- |
 | S1 ✅ | API public lookup CUI Romania — **rezolvat: ANAF v9** (webservicesp.anaf.ro), adapter in `src/features/clients/cui-lookup.ts` | Task A | alegere sursa + adapter |
 | S2  | Standarde legale RO/EU pt. certificat trasabilitate materiale reciclate           | Task G      | continut minim obligatoriu |
-| S3  | Librarie Sankey React (Recharts vs Nivo) si abordare PDF (React-PDF vs Puppeteer) | Task D, G   | decizie + POC mic          |
+| S3 (Sankey) ✅ | Sankey — **decizie: SVG custom** (fara librarie; risc peer-deps React 19/Next 16, portat din mockup) in `src/features/production/sankey-*`. Abordarea PDF ramane de decis la Task G. | Task D, G | decizie + POC mic |
 | S4  | Validare **Socrate.io** ca furnizor RO e-Transport (decis 2026-07, platit): acces API/sandbox, costuri, contract | Task X5 | POC adapter Socrate.io |
 
 ---
@@ -460,8 +460,8 @@ C (stoc) → B (itemi/retete) → A (clienti) → E (comenzi) → D (productie) 
 | A Clienti               | 2    | T1.x, S1     | ✅ livrat (mig. 0006)  |
 | B Itemi/Retete          | 2    | T1.x         | ✅ livrat (mig. 0005)  |
 | C Stoc/Loturi           | 2    | T1.x         | ✅ livrat (mig. 0004)  |
-| D Productie             | 2    | C, B, S3     | in lucru (mig. 0008)   |
-| E Comenzi               | 2    | T2.0, C, A, B | in lucru (mig. 0007)  |
+| D Productie             | 2    | C, B, S3     | ✅ livrat (mig. 0008)  |
+| E Comenzi               | 2    | T2.0, C, A, B | ✅ livrat (mig. 0007) |
 | F Retur/Garantie        | 2    | E, C         | da                     |
 | G Certificate           | 2    | E, D, S2, S3 | da                     |
 | H Portal client         | 2    | T2.0, B, E, G | da                    |

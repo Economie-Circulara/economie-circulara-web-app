@@ -21,6 +21,9 @@ export const STATUS_REGISTRY = {
     achizitie: { label: "Achiziție", variant: "info" },
     productie: { label: "Producție", variant: "accent" },
     reciclare: { label: "Reciclare", variant: "ok" },
+    // Distincta de reciclare (Task D, cerinta Anexa 1 d): recondiționarea trebuie
+    // sa apara separat in trasabilitate/rapoarte, nu confundata cu reciclarea.
+    reconditionare: { label: "Recondiționare", variant: "secondary" },
     retur: { label: "Retur", variant: "warn" },
     ajustare: { label: "Ajustare", variant: "neutral" },
   },

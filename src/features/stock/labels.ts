@@ -5,6 +5,8 @@ export const PROVENANCE_LABELS: Record<LotProvenance, string> = {
   purchase: "Achiziție",
   internal_production: "Producție internă",
   recycling: "Reciclare",
+  // Task D: recondiționare — distincta de reciclare (Anexa 1 d).
+  reconditioning: "Recondiționare",
   return: "Retur",
   inventory_adjustment: "Ajustare inventar",
 };
@@ -13,6 +15,7 @@ export const PROVENANCE_OPTIONS: LotProvenance[] = [
   "purchase",
   "internal_production",
   "recycling",
+  "reconditioning",
   "return",
   "inventory_adjustment",
 ];
@@ -26,6 +29,7 @@ export const PROVENANCE_BADGE_STATUS: Record<LotProvenance, string> = {
   purchase: "achizitie",
   internal_production: "productie",
   recycling: "reciclare",
+  reconditioning: "reconditionare",
   return: "retur",
   inventory_adjustment: "ajustare",
 };

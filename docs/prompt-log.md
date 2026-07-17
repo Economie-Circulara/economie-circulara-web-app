@@ -13,6 +13,30 @@ Format intrare:
 
 ---
 
+## 2026-07-17 — Claude (orchestrator, implementare subagenti Sonnet in worktree izolat)
+
+- **Cerut:** Batch 3, Task E (Comenzi) + Task D (Productie) — rulate in paralel cu
+  **izolare pe worktree** (ambele editeaza database.types.ts).
+- **Facut Task E:** migrarea `0007_orders_ops.sql` (`order_counters` + `generate_order_number`
+  sigur la concurenta; RPC-uri atomice `accept_order` — scadere stoc la acceptare prin
+  `consume_fifo` — si `cancel_order` — refacere stoc + evenimente `reversal`). Verticala
+  `src/features/orders/` cu masina de stari (draft→sent→accepted→delivered→closed,
+  →cancelled), ecranele `/comenzi`, `/comenzi/nou`, `/comenzi/[id]`, hook `onOrderStatusChanged`
+  pt. notificari (X1). 68 teste noi.
+- **Facut Task D:** migrarea `0008_reconditioning.sql` (`lot_provenance += reconditioning`
+  ca ALTER TYPE ADD VALUE intr-o migrare proprie; RPC-uri atomice `confirm_process`/
+  `cancel_process`). Verticala `src/features/productie/` cu cele doua sub-fluxuri (4a output
+  fix / 4b input fix), diagrama **Sankey custom SVG** (decizie S3: fara librarie noua —
+  risc peer-deps React 19/Next 16 + bundle nejustificat; portat 1:1 din mockup, logica pura
+  testabila separata de randare), recondiționarea ca provenient/badge distinct. Agentul a
+  validat SQL-ul pe un Postgres 16 local (0000→0008 + smoke FIFO/reconditioning/rollback).
+  39 teste noi.
+- **Integrare (orchestrator):** worktree-urile au pornit din `origin/main` (divergenta —
+  vezi mai jos), deci am extras DOAR livrabilele proprii ale fiecarui task pe branch-ul
+  `claude/app-plan-review-w3cr7a` (nu am absorbit lineage-ul independent din main).
+  database.types.ts: adaugirile E + D aplicate manual, non-conflictual. Verificat pe arborele
+  unificat: typecheck, lint, **352 teste** verzi. Worktree-urile sterse.
+
 ## 2026-07-17 — Claude (orchestrator, implementare subagent Sonnet)
 
 - **Cerut:** Batch 2, Task A — clienti (lookup CUI, adrese, documente) + modul generic
