@@ -1,9 +1,11 @@
-# ANEXA NR. 1 — Specificații tehnice (documentația depusă pentru finanțare)
+# ANEXA NR. 1 — Specificații tehnice (DRAFT — nedepusă, în revizuire)
 
-> **Sursă:** documentația tehnică depusă pentru finanțarea din fonduri europene.
-> **Statut:** document de referință contractual — platforma livrată TREBUIE să respecte
-> aceste specificații. Vezi [analiza-conformitate-anexa.md](analiza-conformitate-anexa.md)
-> pentru maparea pe planul de implementare.
+> **Statut (17 iulie 2026):** anexa NU a fost încă depusă — textul de mai jos este
+> draftul actual și poate fi editat înainte de depunere. După depunere devine document
+> de referință contractual pe care platforma trebuie să-l respecte.
+> Vezi [analiza-conformitate-anexa.md](analiza-conformitate-anexa.md) pentru maparea pe
+> planul de implementare; propunerile de revizuire sunt în discuție (abonamente/tarifare,
+> contracte, adăugiri trasabilitate + e-Transport).
 
 ---
 
