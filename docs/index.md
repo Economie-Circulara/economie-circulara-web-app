@@ -52,4 +52,4 @@ Folderul [`design/`](design/) contine exportul din Claude Design:
 8. Acceptare comanda → scadere stoc
 9. Livrare → inchidere → generare certificat PDF automat
 
-**Termen MVP:** august 2025
+**Termen MVP:** august 2026

@@ -194,7 +194,7 @@ Ecrane principale: **comenzi, procese, clienti, stoc**
 
 ## MVP - termen si flux
 
-**Termen:** august 2025 (~2 luni)
+**Termen:** august 2026
 
 **Flux complet MVP** (nimic nu e manual, totul automatizat):
 1. Creare organizatie + useri

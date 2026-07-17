@@ -53,7 +53,15 @@ recondiționare și reutilizare.
 
 ---
 
-## 4. Întrebare pentru echipa de proiect — CONTRACTE (necesită răspuns)
+## 4. Întrebare pentru echipa de proiect — CONTRACTE — ✅ REZOLVATĂ
+
+> **Răspuns (2026-07-17): ARHIVARE** — varianta a doua, confirmată de echipa de proiect.
+> Aplicația **arhivează** contractele semnate (PDF atașat clientului, consultabil și
+> descărcabil oricând); nu gestionează structurat perioade, obligații sau tarife.
+> Reformulările de la punctele 1, 3, 5, 6 și 9 rămân așa cum sunt în draftul revizuit.
+> În plan: arhivarea contractelor e parte din Task A (documente client).
+
+Întrebarea originală, păstrată pentru istoric:
 
 > În anexa tehnică apărea „gestionarea contractelor și a serviciilor" (evidența
 > contractelor, perioade contractuale, abonamente, obligațiile părților). La începutul
@@ -69,9 +77,8 @@ recondiționare și reutilizare.
 > (încărcate ca PDF, atașate fiecărui client, consultabile și descărcabile oricând —
 > acoperit de funcționalitățile deja planificate)?
 >
-> **Recomandarea noastră:** varianta a doua (arhivare) — reformulările de la punctele
-> 1, 3, 5, 6 și 9 de mai sus reflectă deja această variantă în draftul revizuit. Dacă
-> răspunsul este „gestionare", revenim asupra textului înainte de depunere.
+> **Recomandarea noastră (acceptată):** varianta a doua (arhivare) — reformulările de la
+> punctele 1, 3, 5, 6 și 9 de mai sus reflectă deja această variantă în draftul revizuit.
 
 ---
 

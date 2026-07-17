@@ -13,6 +13,24 @@ Format intrare:
 
 ---
 
+## 2026-07-17 — Claude (claude-fable-5)
+
+- **Cerut:** review serios al aplicatiei (plan + docs) fata de ultimele modificari din
+  branch; apoi aplicarea revizuirilor decise: termen MVP = august 2026 (nu 2025) si
+  decizia „arhivare" la intrebarea despre contracte.
+- **Facut:** revizuit planul de implementare pe baza review-ului: termen corectat in
+  plan/index/handoff; Wave 0–1 marcate ✅ livrate (+ descriere T1.2 aliniata la realitate:
+  forms custom, Google OAuth, magic link, tenant pe 3 niveluri); task nou **T2.0**
+  (hardening RLS scrieri client pe orders/order_items — gaura de securitate gasita la
+  review, precede E/H); task nou **X6** (documentatie utilizare + instruire — singurul ❌
+  de conformitate ramas fara task); recondiționarea alocata Task D (migrare enum);
+  Task B noteaza migrarea `items.kind` (tipuri produs/serviciu); X5 noteaza extinderea
+  `document_owner_type`; sectiune de prioritizare pentru termenul august 2026 (lant
+  critic demo MVP). Decizia **contracte = arhivare** consemnata in
+  anexa-1-modificari-propuse (§4 rezolvata), analiza-conformitate (nota PaaS, livrabile
+  X6, recomandarea 8) si AGENTS.md §4 (3 reguli noi: contracte-arhivare, recondiționare
+  vizibila, scrieri client prin server actions + RLS).
+
 ## 2026-06-30 — Claude Opus 4.8
 
 - **Cerut:** pregatirea pentru mutarea repo-ului in noua organizatie `Economie-Circulara` —

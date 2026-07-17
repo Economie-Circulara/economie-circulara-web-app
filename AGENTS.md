@@ -149,3 +149,13 @@ Testele unitare sunt **colocate** langa cod (`*.test.ts` / `*.test.tsx`).
   certificatele proprii.
 - Pierderile/randamentul la productie se **inregistreaza**, nu se **valideaza**.
 - Fara livrari partiale; fara productie partiala.
+- **Contracte = arhivare, nu gestiune** (decizie 2026-07-17): contractele semnate se
+  incarca ca documente PDF atasate clientului; platforma NU gestioneaza structurat
+  perioade, obligatii sau tarife contractuale (fara preturi/bani/facturare).
+- **Recondiționarea trebuie sa fie vizibila distinct** in trasabilitate si rapoarte
+  (cerinta Anexa 1, sectiunea d) — valoare proprie de provenienta/categorie de proces,
+  nu inghesuita in „reciclare" (migrare in Task D).
+- **Scrierile rolului client trec prin server actions**, iar RLS trebuie sa impuna
+  acelasi lucru la nivel de DB: clientul nu poate schimba statusul comenzilor si nu
+  poate edita itemii comenzilor acceptate direct prin Data API (Task T2.0 — hardening
+  inainte de Task E/H).

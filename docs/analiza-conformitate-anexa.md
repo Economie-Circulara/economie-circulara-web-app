@@ -44,11 +44,14 @@ le închide prin reformulare:
 
 **Notă PaaS:** obiectivul PaaS al anexei rămâne neatins (legat de finanțare); în platformă
 modelul e acoperit prin utilizare temporară + retur + recuperare/recondiționare/reutilizare
-(Task F + procese) și prin tipurile de produs/serviciu din catalog. Modulul light de
-contracte (tip + perioadă + documente) rămâne o opțiune de produs — în așteptarea
-răspunsului echipei non-tehnice (întrebarea din
-[anexa-1-modificari-propuse.md](anexa-1-modificari-propuse.md)) și cerut și de piața PaaS
-(vezi [analiza-cerere-finantare-client-paas.md](analiza-cerere-finantare-client-paas.md)).
+(Task F + procese) și prin tipurile de produs/serviciu din catalog.
+**Decizie contracte (2026-07-17): ARHIVARE** — echipa de proiect a confirmat varianta
+recomandată (întrebarea din [anexa-1-modificari-propuse.md](anexa-1-modificari-propuse.md)):
+contractele semnate se arhivează ca documente atașate clientului (Task A); nu se
+construiește gestiune structurată de perioade/obligații/tarife. Un modul light de
+contracte rămâne cel mult o opțiune de produs viitoare, cerută eventual de piața PaaS
+(vezi [analiza-cerere-finantare-client-paas.md](analiza-cerere-finantare-client-paas.md)),
+nu o obligație de conformitate.
 
 **Clarificare scope contracte (2026-07):** anexa spune explicit că platforma gestionează
 „relațiile comerciale și operaționale dintre **Beneficiar și clienții săi**”. Beneficiarul
@@ -113,8 +116,8 @@ anexei, și nu necesită modul în aplicație.
 | Livrabil | Status | Observații |
 | --- | --- | --- |
 | Platformă funcțională + instalare/configurare | ✅ | Acoperit de plan (deploy Vercel + Supabase) |
-| Instruirea utilizatorilor desemnați | ❌ | Neplanificat — de programat sesiuni de training la livrare |
-| Documentația de utilizare și administrare | ❌ | Neplanificat — de adăugat ca task de finalizare (manual utilizator RO + ghid administrare) |
+| Instruirea utilizatorilor desemnați | ✅ | Planificat ca **Task X6** (sesiuni de training la livrare) |
+| Documentația de utilizare și administrare | ✅ | Planificat ca **Task X6** (manual utilizator RO + ghid administrare) |
 | Predarea codului-sursă | ✅ | Repo-ul este livrabilul; de clarificat modalitatea contractuală |
 | Suport în perioada de garanție | — | Clauză contractuală, nu ține de plan |
 
@@ -131,7 +134,7 @@ anexei, și nu necesită modul în aplicație.
 > **decizie de produs** (cerut de piața PaaS), nu ca cerință a anexei.
 
 4. **Livrabile de proiect:** documentație de utilizare/administrare + instruire utilizatori —
-   de adăugat ca task-uri de finalizare în plan. **Singurul ❌ rămas.**
+   ✅ **adăugat în plan ca Task X6** (2026-07-17). Nu mai există ❌ fără task.
 
 ### 🟡 Parțial — de întărit în planul existent
 
@@ -145,7 +148,8 @@ anexei, și nu necesită modul în aplicație.
 7. **Audit log platformă:** extinderea conceptului `stock_events` la un `activity_log`
    general (cine, când, ce acțiune, pe ce entitate). Ieftin de făcut din server actions.
 8. **Recondiționare vizibilă:** tip de proces / proveniență „recondiționare” ca să apară
-   distinct în trasabilitate și rapoarte (cerința d).
+   distinct în trasabilitate și rapoarte (cerința d). ✅ **Alocat Task-ului D** (2026-07-17):
+   migrare nouă care extinde enum-urile din T1.1 (`lot_provenance` / categorie de proces).
 
 ### ✅ Acoperite solid de planul actual
 
