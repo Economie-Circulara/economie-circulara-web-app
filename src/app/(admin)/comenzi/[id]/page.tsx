@@ -9,6 +9,10 @@ import { getCertificateByOrderId } from "@/features/certificates/service";
 import { ORDER_STATUS_BADGE_STATUS, ORDER_STATUS_LABELS } from "@/features/orders/labels";
 import { OrderStatusActions } from "@/features/orders/order-status-actions";
 import { getOrderDetail } from "@/features/orders/queries";
+import { AcceptReturnButton } from "@/features/returns/accept-return-button";
+import { ORDER_LINK_TYPE_LABELS } from "@/features/returns/labels";
+import { getReturnableItems, getReturnLinkForOrder } from "@/features/returns/queries";
+import { ReturnActions } from "@/features/returns/return-actions";
 
 export const metadata = { title: "Detalii comandă — Lateris Trace" };
 
@@ -50,6 +54,22 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
   // Task G) — verificam daca exista deja ca sa afisam link-ul de vizualizare/descarcare.
   const certificate = order.status === "closed" ? await getCertificateByOrderId(id) : null;
 
+  // Task F (Retur & Garanție & Închiriere): daca aceasta comanda e ea insași o
+  // comanda-retur/garanție (are o legatura `order_links` catre o comanda
+  // originala), ascundem tranzițiile generice (`OrderStatusActions` e gandit pt.
+  // comenzi de vanzare — "Acceptă" acolo CONSUMA stoc, gresit pt. un retur) si
+  // aratam in loc butonul dedicat `AcceptReturnButton`. Altfel, daca e o comanda
+  // finalizata (delivered/closed), oferim butoanele Retur/Garanție.
+  const returnLink = await getReturnLinkForOrder(id);
+  // "replacement" (comanda de inlocuire la garanție) e o comanda de vanzare
+  // obișnuită — parcurge fluxul normal (send/accept/deliver/close); doar
+  // "return"/"warranty" au acceptare dedicata (creeaza stoc, nu-l consuma).
+  const isReturnOrder = returnLink?.linkType === "return" || returnLink?.linkType === "warranty";
+  const returnableItems =
+    !returnLink && (order.status === "delivered" || order.status === "closed")
+      ? await getReturnableItems(id)
+      : [];
+
   const isCancelled = order.status === "cancelled";
   const currentStepIndex = ORDER_JOURNEY.indexOf(order.status as (typeof ORDER_JOURNEY)[number]);
 
@@ -69,10 +89,31 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
                 <Link href={`/comenzi/${order.id}/certificat`}>Vezi certificat</Link>
               </Button>
             ) : null}
-            <OrderStatusActions orderId={order.id} status={order.status} />
+            {isReturnOrder ? (
+              order.status === "draft" ? (
+                <AcceptReturnButton returnOrderId={order.id} />
+              ) : null
+            ) : (
+              <>
+                <OrderStatusActions orderId={order.id} status={order.status} />
+                {returnableItems.length > 0 ? (
+                  <ReturnActions originalOrderId={order.id} returnableItems={returnableItems} />
+                ) : null}
+              </>
+            )}
           </>
         }
       />
+
+      {returnLink ? (
+        <p className="text-sm text-muted-foreground">
+          {ORDER_LINK_TYPE_LABELS[returnLink.linkType]} pentru{" "}
+          <Link href={`/comenzi/${returnLink.originalOrderId}`} className="underline">
+            comanda originală
+          </Link>
+          .
+        </p>
+      ) : null}
 
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>

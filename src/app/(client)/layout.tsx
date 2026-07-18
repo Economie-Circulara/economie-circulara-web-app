@@ -5,6 +5,7 @@ import { Topbar } from "@/components/layout/topbar";
 import { getCurrentOrg } from "@/features/auth/queries";
 import { ROLE_LABELS } from "@/features/auth/roles";
 import { requireRole } from "@/features/auth/session";
+import { CartProvider } from "@/features/client-portal/cart-context";
 
 /** Shell portal client: tema white-label a organizatiei + navigatie de client. */
 export default async function ClientLayout({ children }: { children: React.ReactNode }) {
@@ -19,7 +20,10 @@ export default async function ClientLayout({ children }: { children: React.React
       items={navForRole(user.role)}
     >
       <Topbar email={user.email} roleLabel={ROLE_LABELS[user.role]} />
-      {children}
+      {/* Cosul (catalog -> comanda) traieste in tot portalul, nu doar pe /catalog —
+          necesar pentru „Repetă comanda" din /comenzile-mele/[id], care populeaza
+          cosul si navigheaza la /catalog. */}
+      <CartProvider>{children}</CartProvider>
     </AppShell>
   );
 }

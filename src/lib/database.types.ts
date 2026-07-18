@@ -1156,6 +1156,14 @@ export type Database = {
         Args: { p_org: string };
         Returns: string;
       };
+      // --- Task F (Retur & Garanție & Închiriere) — supabase/migrations/0010_returns.sql ---
+      // Adaugata manual (fara acces la `pnpm gen:types` in acest mediu). La urmatoarea
+      // rulare locala a `pnpm gen:types` aceasta intrare trebuie sa ramana identica cu
+      // ce genereaza CLI-ul din DB — daca difera, migrarea are prioritate.
+      accept_return_order: {
+        Args: { p_return_order_id: string };
+        Returns: Database["public"]["Tables"]["orders"]["Row"];
+      };
     };
     Enums: {
       document_owner_type: "client" | "order" | "item";

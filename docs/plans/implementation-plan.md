@@ -8,10 +8,11 @@ Scopul: livrarea MVP-ului (termen tinta: **august 2026**) cu un set de task-uri 
 delimitate, cu dependente explicite, contracte (interfete) intre ele si criterii de
 acceptare verificabile.
 
-> **Status (2026-07-17):** Wave 0 + Wave 1 **livrate**. Wave 2 aproape completa:
-> ✅ C, B, A, I, E, D, **G (certificate)**; ramase **F (retur)** + **H (portal client)**
-> (Milestone 1). Spikes S1 (ANAF) + S3 (Sankey/PDF) rezolvate; S2 (standarde certificat)
-> si S4 (Socrate.io e-Transport) inca deschise. Wave 3 (X1/X2/X3/X5/X6 + T2.1) = Milestone 2-3.
+> **Status (2026-07-17):** Wave 0 + Wave 1 + **Wave 2 COMPLETA** (A, B, C, D, E, F, G, H, I) ✅.
+> **Milestone 1 (trasabilitate MVP: certificate + portal client + retur) livrat.** Spikes S1
+> (ANAF) + S3 (Sankey/PDF) rezolvate; S2 (standarde certificat) si S4 (Socrate.io e-Transport)
+> inca deschise. Ramas: **Wave 3** — Milestone 2 (X1 notificari, X3 rapoarte, X2 cautare,
+> T2.1 guard org suspendata, X4 seed+E2E) + Milestone 3 (X5 e-Transport, X6 documentatie).
 
 ---
 
@@ -463,9 +464,9 @@ C (stoc) → B (itemi/retete) → A (clienti) → E (comenzi) → D (productie) 
 | C Stoc/Loturi           | 2    | T1.x         | ✅ livrat (mig. 0004)  |
 | D Productie             | 2    | C, B, S3     | ✅ livrat (mig. 0008)  |
 | E Comenzi               | 2    | T2.0, C, A, B | ✅ livrat (mig. 0007) |
-| F Retur/Garantie        | 2    | E, C         | da                     |
+| F Retur/Garantie        | 2    | E, C         | ✅ livrat (mig. 0010)  |
 | G Certificate           | 2    | E, D, S2, S3 | ✅ livrat (mig. 0009)  |
-| H Portal client         | 2    | T2.0, B, E, G | da                    |
+| H Portal client         | 2    | T2.0, B, E, G | ✅ livrat              |
 | I Super-admin           | 2    | T1.x         | ✅ livrat              |
 | X1 Notificari           | 3    | E, T1.3      | da                     |
 | X2 Cautare              | 3    | A,B,C,E,G    | da                     |

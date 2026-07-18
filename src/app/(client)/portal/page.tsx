@@ -1,15 +1,8 @@
-import { PageHeader } from "@/components/page-header";
+import { redirect } from "next/navigation";
 
 export const metadata = { title: "Portal — Lateris Trace" };
 
-/** Portalul clientului (catalog, comenzi proprii). Continutul vine in Wave 2 (Task H). */
+/** `/portal` e doar ruta „acasa” a rolului client (vezi `homePathForRole`) — redirect la catalog. */
 export default function PortalPage() {
-  return (
-    <div className="space-y-4">
-      <PageHeader title="Portal client" description="Catalogul si comenzile tale." />
-      <p className="text-sm text-muted-foreground">
-        Catalogul, comenzile si documentele tale apar aici in Wave 2.
-      </p>
-    </div>
-  );
+  redirect("/catalog");
 }

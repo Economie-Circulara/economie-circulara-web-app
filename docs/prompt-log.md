@@ -13,6 +13,27 @@ Format intrare:
 
 ---
 
+## 2026-07-17 — Claude (orchestrator, subagenti Sonnet paraleli) — Milestone 1 complet
+
+- **Cerut:** Batch 5, Task F (retur/garantie/inchiriere) + Task H (portal client), in paralel.
+- **Facut Task F:** `src/features/returns/` — `createReturnAction`/`acceptReturnAction`/
+  `getReturnableItems`; retur = comanda legata (order_links), garantie = retur + inlocuire,
+  inchiriere via `expected_return_date`; la acceptare materialele intra in stoc
+  (`create_lot` provenance `return`). Migrarea `0010_returns.sql`: **fix RLS** (politica
+  `order_links_client_insert` lipsea — clientul nu putea crea retururi) + RPC atomic
+  `accept_return_order` (creeaza N loturi + status intr-o tranzactie; nu reutilizeaza
+  `accept_order` care CONSUMA stoc). Butoane pe detaliul comenzii admin. 29 teste.
+- **Facut Task H:** `src/features/client-portal/` + `src/app/(client)/`: **/catalog** (grid
+  itemi sellable, search/filtre, **cos** cu localStorage), formular comanda (adresa, data,
+  observatii → draft+trimitere), **/comenzile-mele** (lista + detaliu, „repeta comanda"),
+  **/documente** (documente + certificate proprii, download URL semnat). Reutilizeaza
+  serviciile existente (orders, certificates, documents) fara sa le modifice. 34 teste.
+- **Integrare (orchestrator):** conectat butonul de retur din portal la `ReturnActions`
+  real al lui F (adaugat prop `redirectBasePath` → `/comenzile-mele`; stub-ul sters);
+  retur pe detaliul comenzii client cu `getReturnableItems`. Verificat pe arborele
+  unificat: typecheck, lint, **438 teste**, build — verzi. **Milestone 1 (trasabilitate
+  MVP: certificate + portal + retur) complet.**
+
 ## 2026-07-17 — Claude (orchestrator, implementare subagent Sonnet) — Milestone 1
 
 - **Cerut:** Batch 4, Task G — Certificate de trasabilitate (PDF + graf), piesa centrala.
