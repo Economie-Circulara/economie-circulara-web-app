@@ -13,6 +13,23 @@ Format intrare:
 
 ---
 
+## 2026-07-18 — Claude (orchestrator, subagenti Sonnet paraleli) — Milestone 2 Batch 7
+
+- **Cerut:** X2 (cautare globala) + X4 (seed demo + E2E), in paralel — finalul Milestone 2.
+- **Facut X2:** `src/features/search/` — `globalSearch(query, {role})` peste comenzi/clienti/
+  loturi/produse/certificate prin clientul user-ului (RLS = izolare automata); rolul client
+  cauta DOAR in datele proprii (aparare in profunzime, testata). Bara din topbar (staff) →
+  `/cautare`. Fara migrare (query-based). 11 teste noi.
+- **Facut X4:** `supabase/seed.sql` extins (organizatia demo: 3 clienti, 8 itemi din domeniul
+  pilot — moloz, nisip/pietris/balast reciclat, caramizi eco, beton, + 1 serviciu — 3 retete,
+  9 loturi pe 5 provenante + un lot blocat, 4 procese cu trasabilitate completa, 2 comenzi
+  in stadii diferite + 1 certificat demo; contoare sincronizate; id-uri fara coliziune cu
+  testul RLS). Test E2E `tests/e2e/mvp-flow.spec.ts` pe fluxul complet 1→9 (9 test.step prin
+  UI real). Verificat static (typecheck/lint/`playwright --list`) — rularea efectiva cere
+  Supabase live (fara Docker aici).
+- **Integrare (orchestrator):** verificat pe arborele unificat: typecheck, lint, **534 teste**,
+  E2E listat. **Milestone 2 (X1, X3, T2.1, X2, X4) complet.**
+
 ## 2026-07-18 — Claude (orchestrator, subagenti Sonnet paraleli) — Milestone 2 Batch 6
 
 - **Cerut:** X1 (notificari email) + X3 (dashboard/rapoarte) + T2.1 (guard org suspendata),

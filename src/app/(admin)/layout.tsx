@@ -21,7 +21,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       theme={{ brand: org?.primaryColor ?? undefined, accent: org?.secondaryColor ?? undefined }}
       items={navForRole(user.role)}
     >
-      <Topbar email={user.email} roleLabel={ROLE_LABELS[user.role]} />
+      <Topbar email={user.email} roleLabel={ROLE_LABELS[user.role]} role={user.role} />
       {children}
     </AppShell>
   );

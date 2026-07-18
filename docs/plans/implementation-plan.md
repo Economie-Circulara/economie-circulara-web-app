@@ -11,9 +11,9 @@ acceptare verificabile.
 > **Status (2026-07-18):** Wave 0 + Wave 1 + **Wave 2 COMPLETA** (A, B, C, D, E, F, G, H, I) ✅.
 > **Milestone 1 (trasabilitate MVP: certificate + portal client + retur) livrat.** Spikes S1
 > (ANAF) + S3 (Sankey/PDF) rezolvate; S2 (standarde certificat) si S4 (Socrate.io e-Transport)
-> inca deschise. **T2.1 (guard organizatie suspendata) livrat** (mig. `0012`). Ramas:
-> **Wave 3** — Milestone 2 (X1 notificari, X3 rapoarte, X2 cautare, X4 seed+E2E) +
-> Milestone 3 (X5 e-Transport, X6 documentatie).
+> inca deschise. **Milestone 2 COMPLET** (X1 notificari, X3 rapoarte, X2 cautare,
+> T2.1 guard suspendare, X4 seed+E2E) ✅. Ramas: **Milestone 3** — X5 (avize/e-Transport,
+> dep. S4 Socrate.io) + X6 (documentatie/instruire).
 
 ---
 
@@ -410,12 +410,23 @@ stub tipat (mock) cu aceeasi semnatura.
   declaratia e-Transport pleaca prin API-ul tert (mock/sandbox in teste), UIT-ul apare
   pe livrare si pe PDF; erorile de declarare sunt vizibile si re-incercabile.
 
-### Task X4 — Seed data & E2E
+### Task X4 — Seed data & E2E ✅ livrat
 
 - Date demo pt. clientul pilot (moloz, nisip reciclat, pietris, caramizi, beton, balast);
   teste Playwright pe **fluxul complet MVP** (1→9 din handoff).
 - **Acceptare:** un singur test E2E parcurge: creare org → client → itemi/retete → lot →
   reciclare → productie → comanda → acceptare → livrare/inchidere → certificat.
+- **Livrat:** `supabase/seed.sql` extins (nu rescris) cu date bogate pentru "Lateris Demo"
+  (3 clienti, 8 itemi, 3 retete, 9 loturi cu 5 proveniente diferite inclusiv un lot blocat,
+  4 procese, 2 comenzi in stadii diferite + certificat) — insertii directe (nu prin RPC,
+  care sunt SECURITY INVOKER si necesita `auth.uid()` inexistent la `db reset` ca `postgres`).
+  Test E2E (`tests/e2e/mvp-flow.spec.ts`) parcurge pasii 2-9 prin UI cu date noi (pasul 1,
+  creare organizatie+useri, ramane acoperit de seed — ar necesita altfel invitatie email
+  reala, in afara scope-ului E2E). Detalii + plan: `docs/plans/task-x4-seed-e2e.md`.
+- **Nota mediu:** testul NU a putut fi rulat efectiv in mediul agentic (fara Docker/Supabase
+  local) — verificat doar static (`pnpm typecheck`, `pnpm lint`, `pnpm exec playwright test
+  --list`). Ruleaza-l complet cu `pnpm test:e2e` intr-un mediu cu Supabase local pornit sau
+  in CI dedicat.
 
 ### Task X6 — Documentatie utilizare & instruire (livrabile Anexa 1, obligatoriu)
 
@@ -492,11 +503,11 @@ C (stoc) → B (itemi/retete) → A (clienti) → E (comenzi) → D (productie) 
 | H Portal client         | 2    | T2.0, B, E, G | ✅ livrat              |
 | I Super-admin           | 2    | T1.x         | ✅ livrat              |
 | X1 Notificari           | 3    | E, T1.3      | ✅ livrat (mig. 0011)  |
-| X2 Cautare              | 3    | A,B,C,E,G    | da                     |
+| X2 Cautare              | 3    | A,B,C,E,G    | ✅ livrat              |
 | X3 Dashboard/KPI        | 3    | E, C, G      | ✅ livrat              |
 | X5 Livrari/e-Transport  | 3    | E, S4        | da                     |
 | X6 Documentatie/instruire | 3  | Wave 2       | inainte de receptie    |
-| X4 Seed + E2E           | 3    | toate        | la final               |
+| X4 Seed + E2E           | 3    | toate        | ✅ livrat (verificat static, fara Supabase local) |
 
 > **Conformitate finantare:** proiectul trebuie sa respecte
 > [Anexa 1](../anexa-1-specificatii-tehnice.md). Gap-urile din

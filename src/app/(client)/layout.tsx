@@ -19,7 +19,7 @@ export default async function ClientLayout({ children }: { children: React.React
       theme={{ brand: org?.primaryColor ?? undefined, accent: org?.secondaryColor ?? undefined }}
       items={navForRole(user.role)}
     >
-      <Topbar email={user.email} roleLabel={ROLE_LABELS[user.role]} />
+      <Topbar email={user.email} roleLabel={ROLE_LABELS[user.role]} role={user.role} />
       {/* Cosul (catalog -> comanda) traieste in tot portalul, nu doar pe /catalog —
           necesar pentru „Repetă comanda" din /comenzile-mele/[id], care populeaza
           cosul si navigheaza la /catalog. */}
