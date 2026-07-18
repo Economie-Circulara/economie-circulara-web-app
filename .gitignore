@@ -40,3 +40,6 @@ next-env.d.ts
 
 # CI: tipuri Supabase generate temporar pentru verificarea de drift
 src/lib/database.types.generated.ts
+
+# Worktree-uri temporare ale subagentilor (izolare paralela)
+.claude/worktrees/

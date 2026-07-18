@@ -194,7 +194,7 @@ Ecrane principale: **comenzi, procese, clienti, stoc**
 
 ## MVP - termen si flux
 
-**Termen:** august 2025 (~2 luni)
+**Termen:** august 2026
 
 **Flux complet MVP** (nimic nu e manual, totul automatizat):
 1. Creare organizatie + useri
@@ -213,12 +213,82 @@ Ecrane principale: **comenzi, procese, clienti, stoc**
 
 ---
 
+## Integrari (adaugat 2026-07)
+
+### e-Transport / avize (necesar, v1.x)
+
+Livrarile trebuie sa suporte fluxul de **aviz de insotire a marfii + declarare in
+RO e-Transport (ANAF)** pentru transporturile care depasesc pragurile legale:
+
+- integrare prin **Socrate.io** (furnizor tert platit, API peste SPV/ANAF), nu direct cu SPV — validare in spike S4
+- flux: comanda acceptata → planificare livrare (data, transportator, nr. inmatriculare)
+  → generare aviz → declarare e-Transport → cod UIT stocat pe livrare → aviz PDF cu UIT
+- necesita entitate `deliveries` (transportator, vehicul, sofer, ruta, cod UIT, status declaratie)
+- inchide cerintele din Anexa 1: „planificarea si urmarirea livrarilor" + „interoperabilitate"
+
+### Monitorizare GPS (v2, follow-up)
+
+- integrare cu serviciu de monitorizare GPS pentru urmarirea in timp real a livrarilor
+  (pozitie vehicul, ETA, istoric ruta)
+- se construieste peste entitatea `deliveries` — modelul de livrare se proiecteaza de la
+  inceput cu asta in minte
+
+---
+
+## Constrangere: conformitate cu Anexa 1 (finantare europeana)
+
+Proiectul este finantat din fonduri europene; platforma trebuie sa respecte
+[anexa-1-specificatii-tehnice.md](anexa-1-specificatii-tehnice.md). **Anexa NU e inca
+depusa** — draftul a fost revizuit (17 iulie 2026) ca sa descrie fidel platforma
+construita; modificarile si motivatia lor sunt in
+[anexa-1-modificari-propuse.md](anexa-1-modificari-propuse.md) (de validat cu echipa de
+proiect). Maparea anexa ↔ plan e in
+[analiza-conformitate-anexa.md](analiza-conformitate-anexa.md).
+
+Decizii de interpretare/scope (2026-07):
+
+- **Contractele si serviciile** din anexa = relatia **organizatie ↔ clientii ei**
+  (Beneficiarul finantat isi gestioneaza contractele cu firmele care cumpara/aduc la
+  reciclare). NU se refera la relatia platforma ↔ organizatii (multi-tenancy-ul e
+  modelul nostru de business, in afara scope-ului anexei).
+- **Contracte** = documente arhivate pe client (fara modul de gestiune structurata);
+  in asteptarea confirmarii echipei non-tehnice (intrebarea din anexa-1-modificari-propuse.md).
+- **Oferte comerciale** — eliminate din anexa revizuita; catalogul (fara preturi) ramane
+  „oferta" de facto; flag „acceptat la reciclare" pe item = nice-to-have de produs.
+- **Rapoarte** = pagina dedicata cu export PDF (Task X3, promovat la obligatoriu).
+- **e-Transport** = integrare prin Socrate.io (platit).
+
+---
+
+## Context real de utilizare & model comercial (clarificat 2026-07)
+
+- Aplicatia **NU e marketplace**: organizatiile si clientii lor isi pastreaza procesul
+  actual (telefon/WhatsApp); platforma e **suportul documentar si legal** (comenzi
+  inregistrate, avize e-Transport, trasabilitate + certificate).
+- Fluxul dominant: **personalul organizatiei inregistreaza comenzile in numele
+  clientului** (`created_by_admin`); portalul client ramane — unii clienti se logheaza singuri.
+- **Model comercial:** SaaS multi-tenant cu **entry point per client** (subdomeniu sau
+  domeniu propriu, cu tot cu login) — aliniat cu white-label + rezolvarea organizatiei
+  din domeniu (T1.2/T1.3).
+- **Piata mixta:** si IMM-uri cu finantari nerambursabile proprii (care isi demonstreaza
+  modelul PaaS prin platforma — vezi
+  [analiza-cerere-finantare-client-paas.md](analiza-cerere-finantare-client-paas.md)),
+  si clienti fara finantare → produsul ramane generic, feature-urile de
+  conformitate/raportare sunt diferentiator.
+- **Regula de scope pentru cerintele clientilor:** ce se muleaza pe ce avem → acum
+  (ex. abonamente ca tip de produs, raport „utilizat = livrat − returnat", % materii
+  secundare); ce e complet nou → v2 (ex. CO2 economisit, GPS). Nimic specific unui
+  client nesemnat nu se construieste inainte de semnare/aprobarea finantarii lui.
+
+---
+
 ## Post-MVP (de amanat)
 
 - Interfata agentica (agent care propune actiuni confirmate de user; doar pentru admin)
-- Rapoarte agregate si KPI-uri
+- ~~Rapoarte agregate si KPI-uri~~ → mutat in scope (pagina Rapoarte cu export PDF, Task X3 — cerinta Anexa 1)
 - Verificare publica certificate prin QR / link
 - Conversii intre unitati de masura
+- Monitorizare GPS a livrarilor (v2 — vezi Integrari)
 
 ---
 

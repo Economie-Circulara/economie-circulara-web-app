@@ -8,3 +8,8 @@ pnpm-lock.yaml
 
 # Documentele de cerinte/design sunt proza (RO) - nu le reformatam.
 docs/
+
+# Fisier generat de `supabase gen types` (pnpm gen:types) - se pastreaza EXACT ca
+# output-ul CLI-ului, nu se reformateaza la commit (altfel driftul fata de schema
+# devine imposibil de reconciliat). Vezi .github/workflows/db.yml.
+src/lib/database.types.ts
