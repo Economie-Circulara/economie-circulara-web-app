@@ -161,6 +161,14 @@ Testele unitare sunt **colocate** langa cod (`*.test.ts` / `*.test.tsx`).
   poate edita itemii comenzilor acceptate direct prin Data API (hardening in
   migrarea `0003_rls_hardening.sql` — politici client constiente de status +
   trigger anti-escaladare pe `profiles`).
+- **O organizatie suspendata (`organizations.status = 'suspended'`) blocheaza
+  accesul userilor ei** (admin/operator/client), pe DOUA linii: aplicatie
+  (`middleware.ts` + `getCurrentUser`/`requireUser` din `session.ts` redirectioneaza
+  la `/organizatie-suspendata`) si DB (migrarea `0012_suspended_org_guard.sql` —
+  `app.is_staff_of`/`app.is_admin_of` cer suplimentar organizatie activa; politicile
+  de scriere ale clientului pe `orders`/`order_items`/`documents` idem, via helper-ul
+  nou `app.org_is_active`). Super-adminul (fara organizatie) trece peste, neafectat —
+  el e singurul care poate reactiva o organizatie suspendata.
 
 ### 4.1 Limitari cunoscute / trade-off-uri acceptate
 

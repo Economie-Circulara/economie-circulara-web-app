@@ -199,4 +199,83 @@ begin;
       and organization_id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
 rollback;
 
+-- =============================================================================
+-- Guard organizatie suspendata (Task T2.1, migrarea 0012) — a treia organizatie,
+-- SUSPENDATA de la inceput. Adaugata DUPA testele existente (id-uri noi, `cccc...`/
+-- `6666...`) ca sa nu deranjeze numerotarea/assert-urile de mai sus — in special T9,
+-- care numara organizatiile de test explicit prin id (`aaaa...`/`bbbb...`), deci
+-- ramane neschimbat.
+-- =============================================================================
+insert into public.organizations (id, name, slug, status) values
+  ('cccccccc-cccc-cccc-cccc-cccccccccccc','Org C (suspendata)','org-c','suspended');
+
+insert into auth.users (id, instance_id, aud, role, email) values
+  ('66666666-6666-6666-6666-666666666666','00000000-0000-0000-0000-000000000000','authenticated','authenticated','admin-c@test.ro');
+
+insert into public.profiles (id, organization_id, role, client_id) values
+  ('66666666-6666-6666-6666-666666666666','cccccccc-cccc-cccc-cccc-cccccccccccc','admin',null);
+
+-- item preexistent in Org C (inserat ca postgres, bypass RLS) — tinta pentru T12.
+insert into public.items (id, organization_id, title, unit, sellable) values
+  ('66666666-0000-0000-0000-000000000001','cccccccc-cccc-cccc-cccc-cccccccccccc','Item Org C','buc',true);
+
+-- ===== TEST 11: Admin Org C (SUSPENDATA) NU poate insera un item nou (0012) =====
+begin;
+  set local role authenticated;
+  set local request.jwt.claims = '{"sub":"66666666-6666-6666-6666-666666666666"}';
+  do $$
+  begin
+    begin
+      insert into public.items (organization_id, title, unit, sellable)
+      values ('cccccccc-cccc-cccc-cccc-cccccccccccc','Item nou (blocat)','buc',true);
+      raise exception 'FAIL: T11 admin Org C (suspendata) a putut insera un item';
+    exception when insufficient_privilege or check_violation then
+      raise notice 'PASS: T11 insert blocat pentru staff dintr-o organizatie suspendata (0012)';
+    end;
+  end $$;
+rollback;
+
+-- ===== TEST 12: Admin Org C (SUSPENDATA) NU poate actualiza un item existent (0012) =====
+-- USING-ul din app.is_staff_of (0012) cere organizatie activa => 0 randuri afectate,
+-- fara exceptie (acelasi tipar ca T7 pentru comanda acceptata).
+begin;
+  set local role authenticated;
+  set local request.jwt.claims = '{"sub":"66666666-6666-6666-6666-666666666666"}';
+  update public.items set title = 'hacked' where id = '66666666-0000-0000-0000-000000000001';
+  select pg_temp.assert('T12 update blocat pt staff org suspendata -> titlu neschimbat', count(*), 0)
+    from public.items where id = '66666666-0000-0000-0000-000000000001' and title = 'hacked';
+rollback;
+
+-- ===== TEST 13: Super-admin RAMANE neafectat de suspendare (vede Org C si itemii ei) =====
+begin;
+  set local role authenticated;
+  set local request.jwt.claims = '{"sub":"55555555-5555-5555-5555-555555555555"}';
+  select pg_temp.assert('T13 super_admin vede organizatia suspendata', count(*), 1)
+    from public.organizations where id = 'cccccccc-cccc-cccc-cccc-cccccccccccc';
+  select pg_temp.assert('T13 super_admin vede itemii din Org C (suspendata)', count(*), 1)
+    from public.items where organization_id = 'cccccccc-cccc-cccc-cccc-cccccccccccc';
+rollback;
+
+-- ===== Reactivare Org C (ca postgres, bypass RLS) — pregateste TEST 14 ==============
+update public.organizations set status = 'active'
+  where id = 'cccccccc-cccc-cccc-cccc-cccccccccccc';
+
+-- ===== TEST 14: Dupa reactivare, admin Org C poate insera/actualiza din nou (0012) =====
+begin;
+  set local role authenticated;
+  set local request.jwt.claims = '{"sub":"66666666-6666-6666-6666-666666666666"}';
+  insert into public.items (organization_id, title, unit, sellable)
+    values ('cccccccc-cccc-cccc-cccc-cccccccccccc','Item nou (dupa reactivare)','buc',true);
+  select pg_temp.assert('T14 insert reusit dupa reactivare', count(*), 1)
+    from public.items
+    where organization_id = 'cccccccc-cccc-cccc-cccc-cccccccccccc'
+      and title = 'Item nou (dupa reactivare)';
+
+  update public.items set title = 'actualizat dupa reactivare'
+    where id = '66666666-0000-0000-0000-000000000001';
+  select pg_temp.assert('T14 update reusit dupa reactivare', count(*), 1)
+    from public.items
+    where id = '66666666-0000-0000-0000-000000000001' and title = 'actualizat dupa reactivare';
+rollback;
+
 select '*** TOATE TESTELE RLS AU TRECUT ***' as result;

@@ -1,8 +1,10 @@
 import {
+  BarChart3,
   Boxes,
   Factory,
   FileText,
   History,
+  LayoutDashboard,
   LayoutGrid,
   Package,
   ScrollText,
@@ -23,6 +25,7 @@ export interface NavItem {
 
 /** Navigatie admin / operator (sidebar fix). Setari doar pentru admin. */
 export const STAFF_NAV: NavItem[] = [
+  { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard, roles: ["admin", "operator"] },
   { label: "Comenzi", href: "/comenzi", icon: ShoppingCart, roles: ["admin", "operator"] },
   { label: "Stoc", href: "/stoc", icon: Boxes, roles: ["admin", "operator"] },
   { label: "Producție", href: "/productie", icon: Factory, roles: ["admin", "operator"] },
@@ -30,6 +33,7 @@ export const STAFF_NAV: NavItem[] = [
   { label: "Itemi", href: "/itemi", icon: Package, roles: ["admin", "operator"] },
   { label: "Rețete", href: "/retete", icon: ScrollText, roles: ["admin", "operator"] },
   { label: "Audit stoc", href: "/stoc/audit", icon: History, roles: ["admin", "operator"] },
+  { label: "Rapoarte", href: "/rapoarte", icon: BarChart3, roles: ["admin", "operator"] },
   { label: "Setări", href: "/setari", icon: Settings, roles: ["admin"] },
 ];
 

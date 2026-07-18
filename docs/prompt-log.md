@@ -13,6 +13,28 @@ Format intrare:
 
 ---
 
+## 2026-07-18 — Claude (orchestrator, subagenti Sonnet paraleli) — Milestone 2 Batch 6
+
+- **Cerut:** X1 (notificari email) + X3 (dashboard/rapoarte) + T2.1 (guard org suspendata),
+  in paralel.
+- **Facut X1:** `src/features/notifications/` — provider abstract (mock console in dev,
+  stub HTTP configurabil; fara SMTP real), template-uri RO per tranzitie status,
+  migrarea `0011_notifications.sql` (tabel + enum-uri, scriere doar prin service_role);
+  cablat in `onOrderStatusChanged` (PASTRAND generarea certificatului de la G). 22 teste.
+- **Facut X3:** `src/features/reports/` + `/dashboard` (4 carduri KPI) + `/rapoarte`
+  (6 rapoarte pe perioada cu export PDF white-label + CSV): comenzi, livrari, retururi,
+  materiale reciclate/recondiționate reintegrate, **PaaS „utilizat=livrat−returnat"** per
+  client, **% materii prime secundare** per produs. Nav: Dashboard + Rapoarte. Limitare
+  documentata: fara timestamp per-tranzitie (livrat aproximat). CO2 = v2.
+- **Facut T2.1:** guard org suspendata pe 2 linii — middleware + `requireUser`/`requireRole`
+  (redirect `/organizatie-suspendata`) + migrarea `0012_suspended_org_guard.sql` (helper
+  `app.org_is_active`; `app.is_staff_of`/`is_admin_of` + politici client cer org activa;
+  super_admin neafectat). `rls_isolation.sql` TEST 11-14. AGENTS.md §4 + plan actualizate.
+- **Integrare (orchestrator):** reparat un test flaky in reports (localeCompare, trecea
+  izolat). Verificat pe arborele unificat: typecheck, lint, **523 teste**, build — verzi.
+  Sincronizat pe `origin/main` regenerat (`e38e409`); `database.types.ts` = versiunea
+  canonica a schemei + tabelul `notifications` (X1).
+
 ## 2026-07-18 — Claude (orchestrator, fix CI)
 
 - **Cerut:** merge Milestone 1 in main; CI-ul DB a esuat pe PR #10.

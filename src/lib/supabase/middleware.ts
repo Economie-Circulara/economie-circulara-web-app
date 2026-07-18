@@ -12,6 +12,13 @@ import {
 /** Prefixe de cale publice (nu necesita autentificare). */
 const PUBLIC_PREFIXES = ["/login", "/forgot-password", "/set-password", "/auth", "/showcase"];
 
+/**
+ * Pagina dedicata organizatiilor suspendate (T2.1) — trebuie exclusa din verificarea
+ * de status ca sa nu se auto-redirecteze la infinit; ramane accesibila oricarui
+ * utilizator autentificat (inclusiv ca sa se poata delogheze de acolo).
+ */
+const SUSPENDED_ORG_PATH = "/organizatie-suspendata";
+
 function isPublicPath(pathname: string): boolean {
   if (pathname === "/") return true;
   return PUBLIC_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`));
@@ -33,7 +40,10 @@ function requestHeadersWithTenant(request: NextRequest, tenant: TenantHint): Hea
 /**
  * Reimprospateaza sesiunea Supabase (refresh token) la fiecare cerere, rezolva tenantul
  * (organizatia) din host/path si pazeste rutele protejate: utilizatorii neautentificati
- * sunt redirectati la /login. Guard-ul fin pe rol se face in layout-urile (admin)/(client).
+ * sunt redirectati la /login, iar userii unei organizatii suspendate sunt redirectati
+ * la `/organizatie-suspendata` (T2.1). Guard-ul fin pe rol se face in layout-urile
+ * (admin)/(client); `getCurrentUser`/`requireUser` (session.ts) fac a doua verificare
+ * de status, pentru cod care nu trece prin acest middleware.
  */
 export async function updateSession(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -84,6 +94,25 @@ export async function updateSession(request: NextRequest) {
     loginUrl.search = "";
     if (pathname !== "/") loginUrl.searchParams.set("next", pathname);
     return NextResponse.redirect(loginUrl);
+  }
+
+  // Guard organizatie suspendata (T2.1): userii unui tenant suspendat (admin/operator/
+  // client) nu mai ajung in shell-ul lor. Super_admin nu are `organization_id` => scapa
+  // neatins. Excludem explicit pagina dedicata (evita bucla) si rutele publice (deja
+  // accesibile fara sesiune, deci nu au nevoie de verificare de tenant).
+  if (user && pathname !== SUSPENDED_ORG_PATH && !isPublicPath(pathname)) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("organization_id, organizations(status)")
+      .eq("id", user.id)
+      .single();
+
+    if (profile?.organization_id && profile.organizations?.status === "suspended") {
+      const suspendedUrl = request.nextUrl.clone();
+      suspendedUrl.pathname = SUSPENDED_ORG_PATH;
+      suspendedUrl.search = "";
+      return NextResponse.redirect(suspendedUrl);
+    }
   }
 
   return supabaseResponse;

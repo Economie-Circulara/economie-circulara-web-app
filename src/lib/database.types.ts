@@ -388,6 +388,66 @@ export type Database = {
           },
         ];
       };
+      // --- Task X1 (Notificari email) — supabase/migrations/0011_notifications.sql ---
+      // Adaugat manual (fara acces la `pnpm gen:types` in acest mediu) — vezi nota
+      // similara la Functions.create_lot (Task C) mai jos.
+      notifications: {
+        Row: {
+          body: string;
+          created_at: string;
+          error: string | null;
+          id: string;
+          organization_id: string;
+          recipient_email: string;
+          related_order_id: string | null;
+          sent_at: string | null;
+          status: Database["public"]["Enums"]["notification_status"];
+          subject: string;
+          type: Database["public"]["Enums"]["notification_type"];
+        };
+        Insert: {
+          body: string;
+          created_at?: string;
+          error?: string | null;
+          id?: string;
+          organization_id: string;
+          recipient_email: string;
+          related_order_id?: string | null;
+          sent_at?: string | null;
+          status?: Database["public"]["Enums"]["notification_status"];
+          subject: string;
+          type: Database["public"]["Enums"]["notification_type"];
+        };
+        Update: {
+          body?: string;
+          created_at?: string;
+          error?: string | null;
+          id?: string;
+          organization_id?: string;
+          recipient_email?: string;
+          related_order_id?: string | null;
+          sent_at?: string | null;
+          status?: Database["public"]["Enums"]["notification_status"];
+          subject?: string;
+          type?: Database["public"]["Enums"]["notification_type"];
+        };
+        Relationships: [
+          {
+            foreignKeyName: "notifications_organization_id_fkey";
+            columns: ["organization_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "notifications_related_order_id_fkey";
+            columns: ["related_order_id"];
+            isOneToOne: false;
+            referencedRelation: "orders";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       // --- Task E (Comenzi) — supabase/migrations/0007_orders_ops.sql ---
       // Adaugat manual (fara acces la `pnpm gen:types` in acest mediu) — vezi nota
       // similara la Functions.create_lot (Task C) mai jos.
@@ -1177,6 +1237,15 @@ export type Database = {
         | "inventory_adjustment"
         // --- Task D — supabase/migrations/0008_reconditioning.sql (ALTER TYPE ADD VALUE) ---
         | "reconditioning";
+      // --- Task X1 (Notificari email) — supabase/migrations/0011_notifications.sql ---
+      notification_status: "queued" | "sent" | "failed";
+      notification_type:
+        | "order_sent"
+        | "order_accepted"
+        | "order_delivered"
+        | "order_closed"
+        | "order_cancelled"
+        | "staff_invite";
       order_link_type: "return" | "warranty" | "replacement";
       order_status: "draft" | "sent" | "accepted" | "delivered" | "closed" | "cancelled";
       org_status: "active" | "suspended";
