@@ -13,6 +13,16 @@ Format intrare:
 
 ---
 
+## 2026-07-18 — Claude (orchestrator, fix CI)
+
+- **Cerut:** merge Milestone 1 in main; CI-ul DB a esuat pe PR #10.
+- **Facut:** migrarile 0000-0010 s-au aplicat CURAT pe Postgres real (validare CI, prima
+  pe DB adevarat). Esecul era la testul RLS: `T9 super_admin vede ambele organizatii`
+  folosea un count GLOBAL (=2), fragil pentru ca `supabase db reset` ruleaza si
+  `seed.sql` (o organizatie demo) -> super_admin vedea 3. Fix: T9 verifica cele DOUA
+  organizatii de test prin id (nu total global) — test mai corect, robust la seed.
+  Restul aserttiilor sunt tenant-scoped, neafectate.
+
 ## 2026-07-17 — Claude (orchestrator, subagenti Sonnet paraleli) — Milestone 1 complet
 
 - **Cerut:** Batch 5, Task F (retur/garantie/inchiriere) + Task H (portal client), in paralel.

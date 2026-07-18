@@ -161,11 +161,19 @@ begin;
 rollback;
 
 -- ===== TEST 9: Super-admin vede organizatiile ambelor tenant (peste tenant) =====
+-- Verificam pe cele DOUA organizatii de test (prin id), nu pe un count global: la
+-- `supabase db reset` ruleaza si `seed.sql` (o organizatie demo), deci numarul total
+-- de organizatii nu e deterministic. Ce conteaza e ca super_admin trece peste tenant
+-- si le vede pe amandoua.
 begin;
   set local role authenticated;
   set local request.jwt.claims = '{"sub":"55555555-5555-5555-5555-555555555555"}';
-  select pg_temp.assert('T9 super_admin vede ambele organizatii', count(*), 2)
-    from public.organizations;
+  select pg_temp.assert('T9 super_admin vede ambele organizatii de test', count(*), 2)
+    from public.organizations
+    where id in (
+      'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+      'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb'
+    );
 rollback;
 
 -- ===== TEST 10: Clientul A NU poate muta comanda proprie 'sent' in alt tenant (0003) =====
