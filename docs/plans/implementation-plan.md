@@ -8,9 +8,10 @@ Scopul: livrarea MVP-ului (termen tinta: **august 2026**) cu un set de task-uri 
 delimitate, cu dependente explicite, contracte (interfete) intre ele si criterii de
 acceptare verificabile.
 
-> **Status (2026-07-17):** Wave 0 si Wave 1 sunt **livrate** (T0.1–T0.3, T1.1–T1.3 ✅).
-> Wave 2 nu a inceput; spikes S1–S4 nepornite. Vezi §9 pentru prioritizarea ramasa
-> pana la termenul din august 2026.
+> **Status (2026-07-17):** Wave 0 + Wave 1 **livrate**. Wave 2 aproape completa:
+> ✅ C, B, A, I, E, D, **G (certificate)**; ramase **F (retur)** + **H (portal client)**
+> (Milestone 1). Spikes S1 (ANAF) + S3 (Sankey/PDF) rezolvate; S2 (standarde certificat)
+> si S4 (Socrate.io e-Transport) inca deschise. Wave 3 (X1/X2/X3/X5/X6 + T2.1) = Milestone 2-3.
 
 ---
 
@@ -463,7 +464,7 @@ C (stoc) → B (itemi/retete) → A (clienti) → E (comenzi) → D (productie) 
 | D Productie             | 2    | C, B, S3     | ✅ livrat (mig. 0008)  |
 | E Comenzi               | 2    | T2.0, C, A, B | ✅ livrat (mig. 0007) |
 | F Retur/Garantie        | 2    | E, C         | da                     |
-| G Certificate           | 2    | E, D, S2, S3 | da                     |
+| G Certificate           | 2    | E, D, S2, S3 | ✅ livrat (mig. 0009)  |
 | H Portal client         | 2    | T2.0, B, E, G | da                    |
 | I Super-admin           | 2    | T1.x         | ✅ livrat              |
 | X1 Notificari           | 3    | E, T1.3      | da                     |

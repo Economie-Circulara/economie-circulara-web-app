@@ -1,8 +1,11 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageHeader } from "@/components/page-header";
 import { StatusBadge } from "@/components/status-badge";
 import { requireRole } from "@/features/auth/session";
+import { getCertificateByOrderId } from "@/features/certificates/service";
 import { ORDER_STATUS_BADGE_STATUS, ORDER_STATUS_LABELS } from "@/features/orders/labels";
 import { OrderStatusActions } from "@/features/orders/order-status-actions";
 import { getOrderDetail } from "@/features/orders/queries";
@@ -43,6 +46,10 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
   const order = await getOrderDetail(id);
   if (!order) notFound();
 
+  // Certificatul se genereaza automat la inchidere (hook in orders/notifications.ts,
+  // Task G) — verificam daca exista deja ca sa afisam link-ul de vizualizare/descarcare.
+  const certificate = order.status === "closed" ? await getCertificateByOrderId(id) : null;
+
   const isCancelled = order.status === "cancelled";
   const currentStepIndex = ORDER_JOURNEY.indexOf(order.status as (typeof ORDER_JOURNEY)[number]);
 
@@ -55,7 +62,16 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
           { label: "Comenzi", href: "/comenzi" },
           { label: order.orderNumber ?? "Draft" },
         ]}
-        actions={<OrderStatusActions orderId={order.id} status={order.status} />}
+        actions={
+          <>
+            {certificate ? (
+              <Button asChild variant="outline">
+                <Link href={`/comenzi/${order.id}/certificat`}>Vezi certificat</Link>
+              </Button>
+            ) : null}
+            <OrderStatusActions orderId={order.id} status={order.status} />
+          </>
+        }
       />
 
       <div className="grid gap-6 lg:grid-cols-2">

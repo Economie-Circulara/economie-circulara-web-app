@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
-import type { SankeyData, SankeyNode } from "./sankey-data";
+import { layoutSankey, type SankeyData } from "./sankey-data";
 
 export interface SankeyDiagramProps {
   data: SankeyData;
@@ -11,17 +11,7 @@ export interface SankeyDiagramProps {
   height?: number;
 }
 
-interface PositionedNode extends SankeyNode {
-  x: number;
-  y: number;
-  h: number;
-  outOffset: number;
-  inOffset: number;
-}
-
 const NODE_WIDTH = 14;
-const PAD = 6;
-const GAP = 10;
 const WIDTH = 680;
 
 /**
@@ -43,7 +33,15 @@ export function SankeyDiagram({ data, className, height = 260 }: SankeyDiagramPr
     value: string;
   } | null>(null);
 
-  const { positioned, ribbons } = useMemo(() => layout(data, WIDTH, height), [data, height]);
+  const { positioned, ribbons } = useMemo(
+    () => layoutSankey(data, { width: WIDTH, height, nodeWidth: NODE_WIDTH }),
+    [data, height],
+  );
+  // Coloana maxima a graf-ului curent — folosita ca sa generalizam alinierea
+  // pentru un numar variabil de coloane (certificatul de trasabilitate, Task G,
+  // poate avea mai mult de 3 coloane in functie de adancimea lantului), fara sa
+  // schimbam vizual layout-ul fix pe 3 coloane al proceselor de productie.
+  const maxColumn = positioned.length > 0 ? Math.max(...positioned.map((n) => n.column)) : 0;
 
   if (data.nodes.length === 0) {
     return (
@@ -79,13 +77,20 @@ export function SankeyDiagram({ data, className, height = 260 }: SankeyDiagramPr
         </g>
         <g>
           {positioned.map((node) => {
-            const rightAligned = node.column === 2;
-            const centered = node.column === 1;
+            const rightAligned = node.column === maxColumn;
+            // Centrarea deasupra nodului se pastreaza DOAR pentru layout-ul clasic
+            // pe 3 coloane (procesul, la mijloc) — un graf cu mai multe coloane
+            // (certificat) foloseste aliniere start/end simpla, fara centrare.
+            const centered = maxColumn === 2 && node.column === 1;
             const textX = centered
               ? node.x + NODE_WIDTH / 2
               : rightAligned
                 ? node.x - 7
                 : node.x + NODE_WIDTH + 7;
+            // `kind` (opțional, Task G) prevaleaza asupra pozitiei pe coloana:
+            // un nod de tip "process" e mereu colorat cu brand-ul, indiferent pe
+            // ce coloana ajunge intr-un lant de adancime variabila.
+            const isBrandColored = node.kind ? node.kind === "process" : node.column === 1;
             return (
               <g key={node.id}>
                 <rect
@@ -94,7 +99,7 @@ export function SankeyDiagram({ data, className, height = 260 }: SankeyDiagramPr
                   width={NODE_WIDTH}
                   height={node.h}
                   rx={3}
-                  fill={node.column === 1 ? "var(--brand, #2b3a2f)" : "var(--accent, #4d6b53)"}
+                  fill={isBrandColored ? "var(--brand, #2b3a2f)" : "var(--accent, #4d6b53)"}
                   onMouseEnter={(e) =>
                     setTooltip({
                       x: e.clientX,
@@ -149,76 +154,4 @@ export function SankeyDiagram({ data, className, height = 260 }: SankeyDiagramPr
       ) : null}
     </div>
   );
-}
-
-interface Ribbon {
-  id: string;
-  d: string;
-  label: string;
-  value: string;
-}
-
-function layout(
-  data: SankeyData,
-  width: number,
-  height: number,
-): { positioned: PositionedNode[]; ribbons: Ribbon[] } {
-  const columns = new Map<number, SankeyNode[]>();
-  data.nodes.forEach((node) => {
-    const arr = columns.get(node.column) ?? [];
-    arr.push(node);
-    columns.set(node.column, arr);
-  });
-
-  const columnKeys = [...columns.keys()].sort((a, b) => a - b);
-  const maxSum = Math.max(1, ...columnKeys.map((c) => sumValues(columns.get(c) ?? [])));
-  const maxCount = Math.max(1, ...columnKeys.map((c) => (columns.get(c) ?? []).length));
-  const scaleH = (height - GAP * (maxCount - 1)) / maxSum;
-  const colCount = Math.max(1, columnKeys.length - 1);
-
-  const positions = new Map<string, PositionedNode>();
-  columnKeys.forEach((col, colIndex) => {
-    const nodesInCol = columns.get(col) ?? [];
-    const sum = sumValues(nodesInCol);
-    const totalHeight = sum * scaleH + GAP * (nodesInCol.length - 1);
-    let y = (height - totalHeight) / 2;
-    const x = PAD + colIndex * ((width - 2 * PAD - NODE_WIDTH) / colCount);
-    nodesInCol.forEach((node) => {
-      const h = Math.max(3, node.value * scaleH);
-      positions.set(node.id, { ...node, x, y, h, outOffset: 0, inOffset: 0 });
-      y += h + GAP;
-    });
-  });
-
-  const ribbons: Ribbon[] = data.links.map((link) => {
-    const source = positions.get(link.source);
-    const target = positions.get(link.target);
-    if (!source || !target) return { id: link.id, d: "", label: "", value: "" };
-
-    const linkHeight = Math.max(1.5, link.value * scaleH);
-    const sy0 = source.y + source.outOffset;
-    const sy1 = sy0 + linkHeight;
-    source.outOffset += linkHeight;
-    const ty0 = target.y + target.inOffset;
-    const ty1 = ty0 + linkHeight;
-    target.inOffset += linkHeight;
-
-    const x0 = source.x + NODE_WIDTH;
-    const x1 = target.x;
-    const xm = (x0 + x1) / 2;
-    const d = `M${x0},${sy0} C${xm},${sy0} ${xm},${ty0} ${x1},${ty0} L${x1},${ty1} C${xm},${ty1} ${xm},${sy1} ${x0},${sy1} Z`;
-
-    return {
-      id: link.id,
-      d,
-      label: `${source.label} → ${target.label}`,
-      value: link.value.toLocaleString("ro-RO"),
-    };
-  });
-
-  return { positioned: [...positions.values()], ribbons };
-}
-
-function sumValues(nodes: SankeyNode[]): number {
-  return nodes.reduce((sum, node) => sum + node.value, 0);
 }

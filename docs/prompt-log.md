@@ -13,6 +13,24 @@ Format intrare:
 
 ---
 
+## 2026-07-17 — Claude (orchestrator, implementare subagent Sonnet) — Milestone 1
+
+- **Cerut:** Batch 4, Task G — Certificate de trasabilitate (PDF + graf), piesa centrala.
+- **Facut:** verticala `src/features/certificates/`: traversare pura a grafului de
+  trasabilitate (`process_outputs`→`processes`→`process_inputs`→loturi→surse, cu
+  mass-balance proportional, recondiționarea distincta), snapshot inghetat in
+  `certificates.traceability_snapshot`. **PDF server-side (decizie S3): `@react-pdf/renderer`**
+  (pur JS, fara Chromium — merge pe Vercel serverless; verificat peer-deps React 19 OK).
+  Graful randat cu aceeasi functie pura de layout (`layoutSankey`, extrasa din
+  `production/sankey-data.ts`) atat in browser cat si in PDF. Migrarea
+  `0009_certificates_storage.sql`: `certificate_counters` + `generate_certificate_number`
+  (CRT-an-seq, sigur la concurenta) + bucket privat `certificates` (acces doar prin server
+  actions). **Wiring:** `onOrderStatusChanged` genereaza certificatul automat la `closed`
+  (idempotent pe `order_id` UNIQUE; erori logate, nu propagate). Ecran certificat
+  `/comenzi/[id]/certificat` (mockup: header, date, graf SVG, tabel materiale+origine,
+  documente, semnatura) + buton descarcare (URL semnat). 21 teste noi; typecheck, lint,
+  387 teste, build — verzi.
+
 ## 2026-07-17 — Claude (orchestrator, merge cu origin/main)
 
 - **Cerut:** merge `origin/main` in branch-ul de feature si rezolvarea conflictelor.

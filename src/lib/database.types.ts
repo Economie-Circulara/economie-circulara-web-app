@@ -79,6 +79,38 @@ export type Database = {
           },
         ];
       };
+      // --- Task G (Certificate) — supabase/migrations/0009_certificates_storage.sql ---
+      // Adaugat manual (fara acces la `pnpm gen:types` in acest mediu) — vezi nota
+      // similara la Functions.generate_order_number (Task E) mai jos.
+      certificate_counters: {
+        Row: {
+          organization_id: string;
+          seq: number;
+          updated_at: string;
+          year: number;
+        };
+        Insert: {
+          organization_id: string;
+          seq?: number;
+          updated_at?: string;
+          year: number;
+        };
+        Update: {
+          organization_id?: string;
+          seq?: number;
+          updated_at?: string;
+          year?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "certificate_counters_organization_id_fkey";
+            columns: ["organization_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       client_addresses: {
         Row: {
           address: string;
@@ -1115,6 +1147,14 @@ export type Database = {
       cancel_process: {
         Args: { p_process_id: string };
         Returns: Database["public"]["Tables"]["processes"]["Row"];
+      };
+      // --- Task G (Certificate) — supabase/migrations/0009_certificates_storage.sql ---
+      // Adaugata manual (fara acces la `pnpm gen:types` in acest mediu). La urmatoarea
+      // rulare locala a `pnpm gen:types` aceasta intrare trebuie sa ramana identica cu
+      // ce genereaza CLI-ul din DB — daca difera, migrarea are prioritate.
+      generate_certificate_number: {
+        Args: { p_org: string };
+        Returns: string;
       };
     };
     Enums: {
