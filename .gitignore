@@ -21,6 +21,9 @@
 .DS_Store
 *.pem
 
+# worktree-uri temporare ale subagentilor Claude Code
+.claude/worktrees/
+
 # debug
 npm-debug.log*
 yarn-debug.log*

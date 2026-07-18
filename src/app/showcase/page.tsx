@@ -2,6 +2,7 @@
 
 import { type ColumnDef } from "@tanstack/react-table";
 import { Boxes, Plus } from "lucide-react";
+import { notFound } from "next/navigation";
 import { AppShell } from "@/components/layout/app-shell";
 import { navForRole } from "@/components/layout/nav-config";
 import { PageHeader } from "@/components/page-header";
@@ -74,6 +75,9 @@ const columns: ColumnDef<OrderRow>[] = [
 ];
 
 export default function ShowcasePage() {
+  // Showcase-ul e doar pentru dezvoltare (design system); nu trebuie sa fie public in productie.
+  if (process.env.NODE_ENV === "production") notFound();
+
   return (
     <AppShell orgName="Lateris Demo" items={navForRole("admin")}>
       <PageHeader

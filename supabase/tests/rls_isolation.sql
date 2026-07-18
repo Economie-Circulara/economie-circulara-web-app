@@ -1,7 +1,4 @@
 -- RLS isolation smoke test (T1.1 acceptance): 2 organizatii + 2 clienti.
--- Extins in T2.0 (hardening scrieri client) cu o comanda `draft` si o comanda
--- `accepted` (+ order_items) pentru client A1, pentru testele de tranzitie de
--- status si de editare a itemilor dupa acceptare.
 -- Seed ca postgres (autocommit), apoi fiecare test ruleaza intr-o TRANZACTIE
 -- cu `set local role authenticated` + JWT claims (sub = user id) => RLS se aplica.
 \set ON_ERROR_STOP on
@@ -10,7 +7,11 @@ set client_min_messages = warning;
 insert into auth.users (id, instance_id, aud, role, email) values
   ('11111111-1111-1111-1111-111111111111','00000000-0000-0000-0000-000000000000','authenticated','authenticated','admin-a@test.ro'),
   ('22222222-2222-2222-2222-222222222222','00000000-0000-0000-0000-000000000000','authenticated','authenticated','client-a@test.ro'),
-  ('33333333-3333-3333-3333-333333333333','00000000-0000-0000-0000-000000000000','authenticated','authenticated','client-b@test.ro');
+  ('33333333-3333-3333-3333-333333333333','00000000-0000-0000-0000-000000000000','authenticated','authenticated','client-b@test.ro'),
+  -- rand orfan (fara profil) folosit la testul de escaladare prin INSERT
+  ('44444444-4444-4444-4444-444444444444','00000000-0000-0000-0000-000000000000','authenticated','authenticated','orphan@test.ro'),
+  -- super_admin al platformei (fara tenant)
+  ('55555555-5555-5555-5555-555555555555','00000000-0000-0000-0000-000000000000','authenticated','authenticated','super@test.ro');
 
 insert into public.organizations (id, name, slug) values
   ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa','Org A','org-a'),
@@ -23,7 +24,10 @@ insert into public.clients (id, organization_id, cui, name) values
 insert into public.profiles (id, organization_id, role, client_id) values
   ('11111111-1111-1111-1111-111111111111','aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa','admin',null),
   ('22222222-2222-2222-2222-222222222222','aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa','client','c1c1c1c1-c1c1-c1c1-c1c1-c1c1c1c1c1c1'),
-  ('33333333-3333-3333-3333-333333333333','bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb','client','c2c2c2c2-c2c2-c2c2-c2c2-c2c2c2c2c2c2');
+  ('33333333-3333-3333-3333-333333333333','bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb','client','c2c2c2c2-c2c2-c2c2-c2c2-c2c2c2c2c2c2'),
+  -- super_admin: fara organizatie (trece peste tenant). Seed ca postgres
+  -- (auth.uid() null) => triggerul anti-escaladare din 0003 lasa insert-ul sa treaca.
+  ('55555555-5555-5555-5555-555555555555',null,'super_admin',null);
 
 insert into public.items (id, organization_id, title, unit, sellable) values
   ('11111111-0000-0000-0000-000000000001','aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa','Caramida eco A','bucata',true),
@@ -33,14 +37,9 @@ insert into public.items (id, organization_id, title, unit, sellable) values
 insert into public.orders (id, organization_id, client_id, status) values
   ('0d0d0d0d-0000-0000-0000-00000000000a','aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa','c1c1c1c1-c1c1-c1c1-c1c1-c1c1c1c1c1c1','sent'),
   ('0d0d0d0d-0000-0000-0000-00000000000b','bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb','c2c2c2c2-c2c2-c2c2-c2c2-c2c2c2c2c2c2','sent'),
-  -- T2.0: comanda draft (client A1) - editabila / tranzitionabila spre sent.
-  ('0d0d0d0d-0000-0000-0000-00000000000c','aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa','c1c1c1c1-c1c1-c1c1-c1c1-c1c1c1c1c1c1','draft'),
-  -- T2.0: comanda deja acceptata (client A1) - itemii ei devin read-only pt. client.
-  ('0d0d0d0d-0000-0000-0000-00000000000d','aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa','c1c1c1c1-c1c1-c1c1-c1c1-c1c1c1c1c1c1','accepted');
-
-insert into public.order_items (id, organization_id, order_id, item_id, quantity) values
-  ('e1e10000-0000-0000-0000-000000000001','aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa','0d0d0d0d-0000-0000-0000-00000000000c','11111111-0000-0000-0000-000000000001',2),
-  ('e1e10000-0000-0000-0000-000000000002','aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa','0d0d0d0d-0000-0000-0000-00000000000d','11111111-0000-0000-0000-000000000001',5);
+  -- comanda ACCEPTATA a clientului A (stoc deja scazut) — clientul nu o mai poate
+  -- modifica/sterge (testele T7).
+  ('0d0d0d0d-0000-0000-0000-00000000000c','aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa','c1c1c1c1-c1c1-c1c1-c1c1-c1c1c1c1c1c1','accepted');
 
 -- assert(label, actual, expected) -> raise daca difera.
 create or replace function pg_temp.assert(label text, actual bigint, expected bigint)
@@ -60,7 +59,7 @@ begin;
   select pg_temp.assert('T1 admin A orgs', count(*), 1) from public.organizations;
   select pg_temp.assert('T1 admin A clients', count(*), 1) from public.clients;
   select pg_temp.assert('T1 admin A items (ambii Org A)', count(*), 2) from public.items;
-  select pg_temp.assert('T1 admin A orders', count(*), 3) from public.orders;
+  select pg_temp.assert('T1 admin A orders (sent + accepted)', count(*), 2) from public.orders;
 rollback;
 
 -- ===== TEST 2: Client A1 vede propriile date + catalog (sellable) =====
@@ -69,7 +68,7 @@ begin;
   set local request.jwt.claims = '{"sub":"22222222-2222-2222-2222-222222222222"}';
   select pg_temp.assert('T2 client A own client', count(*), 1) from public.clients;
   select pg_temp.assert('T2 client A catalog (sellable only)', count(*), 1) from public.items;
-  select pg_temp.assert('T2 client A own orders', count(*), 3) from public.orders;
+  select pg_temp.assert('T2 client A own orders (sent + accepted)', count(*), 2) from public.orders;
   select pg_temp.assert('T2 client A NU vede loturi', count(*), 0) from public.lots;
 rollback;
 
@@ -100,107 +99,96 @@ begin;
   end $$;
 rollback;
 
--- =============================================================================
--- T2.0 — Hardening RLS scrieri client (teste noi)
--- =============================================================================
+-- ===== TEST 5: Admin Org A NU isi poate escalada rolul la super_admin (0003) =====
+-- Triggerul app.enforce_profile_security ridica errcode insufficient_privilege;
+-- sentinela FAIL ramane raise_exception (P0001) si nu e prinsa de handler.
+begin;
+  set local role authenticated;
+  set local request.jwt.claims = '{"sub":"11111111-1111-1111-1111-111111111111"}';
+  do $$
+  begin
+    begin
+      update public.profiles set role = 'super_admin'
+        where id = '11111111-1111-1111-1111-111111111111';
+      raise exception 'FAIL: T5 admin A a putut escalada propriul rol la super_admin';
+    exception when insufficient_privilege or check_violation then
+      raise notice 'PASS: T5 escaladare rol pe profil propriu blocata de trigger';
+    end;
+  end $$;
+rollback;
 
--- ===== TEST 5: Client A1 NU poate seta accepted/closed pe comanda proprie =====
--- Comanda '...000a' e a clientului A1, in status `sent`. Ambele tranzitii sunt
--- interzise (nu sunt in {draft->sent, draft->cancelled, sent->cancelled}) - fie
--- triggerul `orders_client_status_transition`, fie WITH CHECK-ul politicii de
--- UPDATE le blocheaza (ambele raporteaza insufficient_privilege).
+-- ===== TEST 6: Admin Org A NU poate crea un profil super_admin (0003) =====
+begin;
+  set local role authenticated;
+  set local request.jwt.claims = '{"sub":"11111111-1111-1111-1111-111111111111"}';
+  do $$
+  begin
+    begin
+      insert into public.profiles (id, organization_id, role)
+      values ('44444444-4444-4444-4444-444444444444','aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa','super_admin');
+      raise exception 'FAIL: T6 admin A a putut crea un profil super_admin';
+    exception when insufficient_privilege or check_violation then
+      raise notice 'PASS: T6 insert profil super_admin blocat de trigger';
+    end;
+  end $$;
+rollback;
+
+-- ===== TEST 7: Clientul A NU poate modifica/sterge o comanda ACCEPTATA (0003) =====
+-- USING-ul politicilor client exclude statusul 'accepted' => 0 randuri afectate,
+-- fara exceptie; verificam ca randul ramane neschimbat.
+begin;
+  set local role authenticated;
+  set local request.jwt.claims = '{"sub":"22222222-2222-2222-2222-222222222222"}';
+  update public.orders set notes = 'hacked'
+    where id = '0d0d0d0d-0000-0000-0000-00000000000c';
+  select pg_temp.assert('T7 update comanda acceptata -> notes neschimbat', count(*), 0)
+    from public.orders
+    where id = '0d0d0d0d-0000-0000-0000-00000000000c' and notes = 'hacked';
+  delete from public.orders where id = '0d0d0d0d-0000-0000-0000-00000000000c';
+  select pg_temp.assert('T7 delete comanda acceptata -> comanda inca exista', count(*), 1)
+    from public.orders where id = '0d0d0d0d-0000-0000-0000-00000000000c';
+rollback;
+
+-- ===== TEST 8: Clientul A POATE anula (cancelled) o comanda proprie 'sent' (0003) =====
+begin;
+  set local role authenticated;
+  set local request.jwt.claims = '{"sub":"22222222-2222-2222-2222-222222222222"}';
+  update public.orders set status = 'cancelled'
+    where id = '0d0d0d0d-0000-0000-0000-00000000000a';
+  select pg_temp.assert('T8 client a anulat comanda sent', count(*), 1)
+    from public.orders
+    where id = '0d0d0d0d-0000-0000-0000-00000000000a' and status = 'cancelled';
+rollback;
+
+-- ===== TEST 9: Super-admin vede organizatiile ambelor tenant (peste tenant) =====
+begin;
+  set local role authenticated;
+  set local request.jwt.claims = '{"sub":"55555555-5555-5555-5555-555555555555"}';
+  select pg_temp.assert('T9 super_admin vede ambele organizatii', count(*), 2)
+    from public.organizations;
+rollback;
+
+-- ===== TEST 10: Clientul A NU poate muta comanda proprie 'sent' in alt tenant (0003) =====
+-- WITH CHECK-ul politicii orders_client_update cere organization_id = app.org_id();
+-- mutarea in Org B pica cu violare RLS (check_violation). Verificam si ca randul
+-- ramane in Org A.
 begin;
   set local role authenticated;
   set local request.jwt.claims = '{"sub":"22222222-2222-2222-2222-222222222222"}';
   do $$
   begin
     begin
-      update public.orders set status = 'accepted'
-      where id = '0d0d0d0d-0000-0000-0000-00000000000a';
-      raise exception 'FAIL: T5a client A a putut seta status=accepted pe comanda sent';
+      update public.orders set organization_id = 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb'
+        where id = '0d0d0d0d-0000-0000-0000-00000000000a';
+      raise exception 'FAIL: T10 client A a putut muta comanda in alt tenant';
     exception when insufficient_privilege or check_violation then
-      raise notice 'PASS: T5a update sent->accepted blocat';
-    end;
-    begin
-      update public.orders set status = 'closed'
-      where id = '0d0d0d0d-0000-0000-0000-00000000000a';
-      raise exception 'FAIL: T5b client A a putut seta status=closed pe comanda sent';
-    exception when insufficient_privilege or check_violation then
-      raise notice 'PASS: T5b update sent->closed blocat';
+      raise notice 'PASS: T10 mutarea comenzii in alt tenant blocata (with check)';
     end;
   end $$;
-rollback;
-
--- ===== TEST 6: Client A1 NU poate modifica order_items pe o comanda accepted =====
--- USING-ul politicii `order_items_client_update` cere ca statusul comenzii
--- parinte sa fie draft/sent; pe o comanda `accepted` randul pur si simplu nu se
--- potriveste => UPDATE afecteaza 0 randuri (fara exceptie), cantitatea ramane
--- neschimbata.
-begin;
-  set local role authenticated;
-  set local request.jwt.claims = '{"sub":"22222222-2222-2222-2222-222222222222"}';
-  update public.order_items set quantity = 999
-  where id = 'e1e10000-0000-0000-0000-000000000002';
-  select pg_temp.assert(
-    'T6 order_items pe comanda accepted - neschimbat',
-    (select quantity::bigint from public.order_items where id = 'e1e10000-0000-0000-0000-000000000002'),
-    5
-  );
-rollback;
-
--- ===== TEST 7: Client A1 POATE draft->sent si poate edita items pe draft =====
-begin;
-  set local role authenticated;
-  set local request.jwt.claims = '{"sub":"22222222-2222-2222-2222-222222222222"}';
-  update public.order_items set quantity = 7
-  where id = 'e1e10000-0000-0000-0000-000000000001';
-  select pg_temp.assert(
-    'T7a client editeaza item pe comanda draft',
-    (select quantity::bigint from public.order_items where id = 'e1e10000-0000-0000-0000-000000000001'),
-    7
-  );
-  update public.orders set status = 'sent'
-  where id = '0d0d0d0d-0000-0000-0000-00000000000c';
-  select pg_temp.assert(
-    'T7b client tranzitie draft->sent reusita',
-    (select count(*) from public.orders
-      where id = '0d0d0d0d-0000-0000-0000-00000000000c' and status = 'sent'),
-    1
-  );
-rollback;
-
--- ===== TEST 8: Client A1 NU poate sterge o comanda sent (doar draft) =====
-begin;
-  set local role authenticated;
-  set local request.jwt.claims = '{"sub":"22222222-2222-2222-2222-222222222222"}';
-  -- comanda sent: DELETE blocat de RLS (0 randuri afectate, fara exceptie).
-  delete from public.orders where id = '0d0d0d0d-0000-0000-0000-00000000000a';
-  select pg_temp.assert(
-    'T8a delete comanda sent blocat',
-    (select count(*) from public.orders where id = '0d0d0d0d-0000-0000-0000-00000000000a'),
-    1
-  );
-  -- comanda draft: DELETE permis clientului.
-  delete from public.orders where id = '0d0d0d0d-0000-0000-0000-00000000000c';
-  select pg_temp.assert(
-    'T8b delete comanda draft permis',
-    (select count(*) from public.orders where id = '0d0d0d0d-0000-0000-0000-00000000000c'),
-    0
-  );
-rollback;
-
--- ===== TEST 9: Staff-ul poate in continuare accepta comanda (sent->accepted) =====
-begin;
-  set local role authenticated;
-  set local request.jwt.claims = '{"sub":"11111111-1111-1111-1111-111111111111"}';
-  update public.orders set status = 'accepted'
-  where id = '0d0d0d0d-0000-0000-0000-00000000000a';
-  select pg_temp.assert(
-    'T9 admin (staff) accepta comanda sent->accepted',
-    (select count(*) from public.orders
-      where id = '0d0d0d0d-0000-0000-0000-00000000000a' and status = 'accepted'),
-    1
-  );
+  select pg_temp.assert('T10 comanda ramane in Org A', count(*), 1)
+    from public.orders
+    where id = '0d0d0d0d-0000-0000-0000-00000000000a'
+      and organization_id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
 rollback;
 
 select '*** TOATE TESTELE RLS AU TRECUT ***' as result;

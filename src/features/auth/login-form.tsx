@@ -12,17 +12,35 @@ import {
 } from "./actions";
 import { initialAuthState } from "./form-state";
 
+/** Coduri de eroare primite prin `?error=` (redirect din middleware / callback / actions). */
+export type LoginErrorCode = "auth" | "oauth" | "unprovisioned";
+
+const LOGIN_ERROR_MESSAGES: Record<LoginErrorCode, string> = {
+  auth: "Link expirat sau invalid. Incearca sa te autentifici din nou.",
+  oauth: "Nu am putut porni autentificarea cu Google. Incearca din nou.",
+  unprovisioned:
+    "Contul tau nu este inca provizionat. Cere o invitatie administratorului organizatiei tale.",
+};
+
+function loginErrorMessage(code: string | null | undefined): string | null {
+  if (!code) return null;
+  return LOGIN_ERROR_MESSAGES[code as LoginErrorCode] ?? null;
+}
+
 export interface LoginFormProps {
   orgName: string;
   logoUrl?: string;
+  /** Cod de eroare din query string (`?error=...`), ex. sesiune expirata sau OAuth esuat. */
+  errorCode?: string | null;
 }
 
-export function LoginForm({ orgName, logoUrl }: LoginFormProps) {
+export function LoginForm({ orgName, logoUrl, errorCode }: LoginFormProps) {
   const [pwState, pwAction, pwPending] = useActionState(signInWithPasswordAction, initialAuthState);
   const [linkState, linkAction, linkPending] = useActionState(
     signInWithMagicLinkAction,
     initialAuthState,
   );
+  const topError = loginErrorMessage(errorCode);
 
   return (
     <div className="w-full max-w-sm space-y-6">
@@ -32,6 +50,8 @@ export function LoginForm({ orgName, logoUrl }: LoginFormProps) {
         <h1 className="text-2xl font-semibold tracking-tight">{orgName}</h1>
         <p className="text-sm text-muted-foreground">Autentifica-te pentru a continua.</p>
       </div>
+
+      {topError ? <p className="text-center text-sm text-destructive">{topError}</p> : null}
 
       {/* Email + parola */}
       <form action={pwAction} className="space-y-4">

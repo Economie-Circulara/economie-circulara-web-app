@@ -1,13 +1,14 @@
 name: DB
 
 # Valideaza schema Supabase pe runnerele GitHub (unde ghcr.io este accesibil):
-# porneste stack-ul local, aplica migrarile si regenereaza tipurile.
-# Testele RLS si verificarea stricta de drift al tipurilor se adauga in T1.1.
+# porneste stack-ul local, aplica migrarile, ruleaza testele de izolare RLS si
+# verifica in mod blocant ca tipurile commit-uite corespund schemei.
 
 on:
   pull_request:
     paths:
       - "supabase/**"
+      - "src/lib/database.types.ts"
       - ".github/workflows/db.yml"
   workflow_dispatch:
 
@@ -27,20 +28,21 @@ jobs:
       - name: Reaplica migrarile de la zero (idempotenta)
         run: supabase db reset
 
-      - name: Teste RLS (izolare tenant + hardening scrieri client)
+      - name: Ruleaza testele de izolare RLS (acceptance)
         run: |
-          PGPASSWORD=postgres psql -h 127.0.0.1 -p 54322 -U postgres -d postgres \
-            -v ON_ERROR_STOP=1 -f supabase/tests/rls_isolation.sql
+          psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" \
+            -v ON_ERROR_STOP=1 \
+            -f supabase/tests/rls_isolation.sql
 
       - name: Regenereaza tipurile din schema
         run: supabase gen types typescript --local > src/lib/database.types.generated.ts
 
-      - name: Verifica drift fata de tipurile commit-uite
+      - name: Verifica drift fata de tipurile commit-uite (blocant)
         run: |
-          # Pana la T1.1 (schema reala) acest pas este informativ, nu blocant.
           if ! diff -q src/lib/database.types.ts src/lib/database.types.generated.ts >/dev/null 2>&1; then
-            echo "::warning::database.types.ts difera de schema generata. Ruleaza 'pnpm gen:types' si commit-uieste. (Va deveni blocant in T1.1.)"
+            echo "::error::database.types.ts difera de schema generata. Ruleaza 'pnpm gen:types' si commit-uieste."
             diff src/lib/database.types.ts src/lib/database.types.generated.ts || true
+            exit 1
           fi
 
       - name: Stop Supabase
