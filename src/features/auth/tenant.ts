@@ -42,6 +42,7 @@ const RESERVED_PATH_SEGMENTS = new Set([
   "showcase",
   "set-password",
   "forgot-password",
+  "organizatie-suspendata",
 ]);
 
 /** Sub-domenii care nu reprezinta un tenant. */

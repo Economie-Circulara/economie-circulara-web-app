@@ -8,11 +8,12 @@ Scopul: livrarea MVP-ului (termen tinta: **august 2026**) cu un set de task-uri 
 delimitate, cu dependente explicite, contracte (interfete) intre ele si criterii de
 acceptare verificabile.
 
-> **Status (2026-07-17):** Wave 0 + Wave 1 + **Wave 2 COMPLETA** (A, B, C, D, E, F, G, H, I) ✅.
+> **Status (2026-07-18):** Wave 0 + Wave 1 + **Wave 2 COMPLETA** (A, B, C, D, E, F, G, H, I) ✅.
 > **Milestone 1 (trasabilitate MVP: certificate + portal client + retur) livrat.** Spikes S1
 > (ANAF) + S3 (Sankey/PDF) rezolvate; S2 (standarde certificat) si S4 (Socrate.io e-Transport)
-> inca deschise. Ramas: **Wave 3** — Milestone 2 (X1 notificari, X3 rapoarte, X2 cautare,
-> T2.1 guard org suspendata, X4 seed+E2E) + Milestone 3 (X5 e-Transport, X6 documentatie).
+> inca deschise. **Milestone 2 COMPLET** (X1 notificari, X3 rapoarte, X2 cautare,
+> T2.1 guard suspendare, X4 seed+E2E) ✅. Ramas: **Milestone 3** — X5 (avize/e-Transport,
+> dep. S4 Socrate.io) + X6 (documentatie/instruire).
 
 ---
 
@@ -211,7 +212,7 @@ stub tipat (mock) cu aceeasi semnatura.
   NU poate seta `accepted`/`closed` si NU poate modifica itemii unei comenzi acceptate;
   fluxurile legitime (draft, trimitere) raman functionale.
 
-### Task T2.1 — Guard organizatie suspendata (hardening, dupa Task I)
+### Task T2.1 — Guard organizatie suspendata (hardening, dupa Task I) — ✅ livrat
 
 - **Problema (semnalata la livrarea Task I):** suspendarea unei organizatii seteaza
   `organizations.status = 'suspended'`, dar middleware-ul si `getCurrentUser`/
@@ -226,6 +227,28 @@ stub tipat (mock) cu aceeasi semnatura.
 - **Acceptare:** user admin/operator/client dintr-o organizatie suspendata nu mai
   poate accesa nicio ruta protejata si nicio scriere prin Data API; la reactivare
   accesul revine; teste pe guard + extindere `rls_isolation.sql`.
+- **Livrat (2026-07-18, mig. `0012_suspended_org_guard.sql`):**
+  - Aplicatie: `src/lib/supabase/middleware.ts` (`updateSession`) redirectioneaza la
+    `/organizatie-suspendata` orice request autentificat al carui profil are
+    `organization_id` + `organizations.status = 'suspended'`; pagina noua
+    `src/app/organizatie-suspendata/page.tsx` (mesaj RO + delogare). A doua bariera
+    in `src/features/auth/session.ts`: `SessionUser.organizationStatus` +
+    `isOrgSuspended()`, verificate in `requireUser()` (deci si in `requireRole`).
+  - RLS: `app.is_staff_of`/`app.is_admin_of` (CREATE OR REPLACE, semnatura pastrata)
+    cer suplimentar `app.org_is_active(org)` pe ramura de tenant — blocheaza
+    select/insert/update/delete pentru staff pe (aproape) toate tabelele de business,
+    fara sa atinga fiecare politica individual. Super_admin (prima ramura a OR-ului)
+    neafectat. Politicile de SCRIERE ale clientului pe `orders`/`order_items`/
+    `documents` (introduse per-operatie in `0003`) redefinite (drop+create) cu
+    aceeasi conditie; SELECT-urile clientului si `client_addresses` raman neatinse
+    (documentat in comentariul migrarii — suprafata de risc reala e scrierea, iar
+    citirea nu are efecte si e deja blocata de guard-ul de aplicatie).
+  - Teste: `src/features/auth/session.test.ts` (guard `requireUser`/`isOrgSuspended`),
+    `src/lib/supabase/middleware.test.ts` (redirect middleware, super_admin neafectat,
+    fara bucla pe pagina insasi), `supabase/tests/rls_isolation.sql` (T11-T14: a treia
+    organizatie de test, suspendata; staff blocat la insert/update, reactivare, super
+    admin neafectat — T9 ramane neschimbat, filtreaza explicit dupa id).
+  - Plan detaliat: [`docs/plans/task-t2.1-guard-suspendare.md`](task-t2.1-guard-suspendare.md).
 
 ### Task A — Clienti
 
@@ -387,12 +410,23 @@ stub tipat (mock) cu aceeasi semnatura.
   declaratia e-Transport pleaca prin API-ul tert (mock/sandbox in teste), UIT-ul apare
   pe livrare si pe PDF; erorile de declarare sunt vizibile si re-incercabile.
 
-### Task X4 — Seed data & E2E
+### Task X4 — Seed data & E2E ✅ livrat
 
 - Date demo pt. clientul pilot (moloz, nisip reciclat, pietris, caramizi, beton, balast);
   teste Playwright pe **fluxul complet MVP** (1→9 din handoff).
 - **Acceptare:** un singur test E2E parcurge: creare org → client → itemi/retete → lot →
   reciclare → productie → comanda → acceptare → livrare/inchidere → certificat.
+- **Livrat:** `supabase/seed.sql` extins (nu rescris) cu date bogate pentru "Lateris Demo"
+  (3 clienti, 8 itemi, 3 retete, 9 loturi cu 5 proveniente diferite inclusiv un lot blocat,
+  4 procese, 2 comenzi in stadii diferite + certificat) — insertii directe (nu prin RPC,
+  care sunt SECURITY INVOKER si necesita `auth.uid()` inexistent la `db reset` ca `postgres`).
+  Test E2E (`tests/e2e/mvp-flow.spec.ts`) parcurge pasii 2-9 prin UI cu date noi (pasul 1,
+  creare organizatie+useri, ramane acoperit de seed — ar necesita altfel invitatie email
+  reala, in afara scope-ului E2E). Detalii + plan: `docs/plans/task-x4-seed-e2e.md`.
+- **Nota mediu:** testul NU a putut fi rulat efectiv in mediul agentic (fara Docker/Supabase
+  local) — verificat doar static (`pnpm typecheck`, `pnpm lint`, `pnpm exec playwright test
+  --list`). Ruleaza-l complet cu `pnpm test:e2e` intr-un mediu cu Supabase local pornit sau
+  in CI dedicat.
 
 ### Task X6 — Documentatie utilizare & instruire (livrabile Anexa 1, obligatoriu)
 
@@ -458,7 +492,7 @@ C (stoc) → B (itemi/retete) → A (clienti) → E (comenzi) → D (productie) 
 | T1.2 Auth/tenant        | 1    | T1.1, T0.2   | ✅ livrat              |
 | T1.3 Setari/white-label | 1    | T1.1, T1.2   | ✅ livrat              |
 | T2.0 Hardening RLS      | 2    | T1.1         | ✅ livrat (mig. 0003)  |
-| T2.1 Guard org suspendata | 2  | I            | de facut               |
+| T2.1 Guard org suspendata | 2  | I            | ✅ livrat (mig. 0012)   |
 | A Clienti               | 2    | T1.x, S1     | ✅ livrat (mig. 0006)  |
 | B Itemi/Retete          | 2    | T1.x         | ✅ livrat (mig. 0005)  |
 | C Stoc/Loturi           | 2    | T1.x         | ✅ livrat (mig. 0004)  |
@@ -468,12 +502,12 @@ C (stoc) → B (itemi/retete) → A (clienti) → E (comenzi) → D (productie) 
 | G Certificate           | 2    | E, D, S2, S3 | ✅ livrat (mig. 0009)  |
 | H Portal client         | 2    | T2.0, B, E, G | ✅ livrat              |
 | I Super-admin           | 2    | T1.x         | ✅ livrat              |
-| X1 Notificari           | 3    | E, T1.3      | da                     |
-| X2 Cautare              | 3    | A,B,C,E,G    | da                     |
-| X3 Dashboard/KPI        | 3    | E, C, G      | da                     |
+| X1 Notificari           | 3    | E, T1.3      | ✅ livrat (mig. 0011)  |
+| X2 Cautare              | 3    | A,B,C,E,G    | ✅ livrat              |
+| X3 Dashboard/KPI        | 3    | E, C, G      | ✅ livrat              |
 | X5 Livrari/e-Transport  | 3    | E, S4        | da                     |
 | X6 Documentatie/instruire | 3  | Wave 2       | inainte de receptie    |
-| X4 Seed + E2E           | 3    | toate        | la final               |
+| X4 Seed + E2E           | 3    | toate        | ✅ livrat (verificat static, fara Supabase local) |
 
 > **Conformitate finantare:** proiectul trebuie sa respecte
 > [Anexa 1](../anexa-1-specificatii-tehnice.md). Gap-urile din

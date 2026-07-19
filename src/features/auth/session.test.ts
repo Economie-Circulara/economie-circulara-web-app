@@ -11,7 +11,14 @@ const { redirect } = vi.hoisted(() => ({
 }));
 vi.mock("next/navigation", () => ({ redirect }));
 
-import { getCurrentUser, homePathForRole, requireRole, type UserRole } from "./session";
+import {
+  getCurrentUser,
+  homePathForRole,
+  isOrgSuspended,
+  requireRole,
+  requireUser,
+  type UserRole,
+} from "./session";
 
 /** Construieste un client Supabase fals cu user + profil date. */
 function mockSupabase(user: { id: string; email?: string } | null, profile: unknown) {
@@ -65,6 +72,7 @@ describe("getCurrentUser", () => {
         client_id: null,
         full_name: "Ana",
         email: "profile@test.ro",
+        organizations: { status: "active" },
       },
     );
     expect(await getCurrentUser()).toEqual({
@@ -74,7 +82,83 @@ describe("getCurrentUser", () => {
       organizationId: "org1",
       clientId: null,
       fullName: "Ana",
+      organizationStatus: "active",
     });
+  });
+
+  it("organizationStatus e null pentru super_admin (fara organizatie)", async () => {
+    mockSupabase(
+      { id: "u-super", email: "super@test.ro" },
+      {
+        role: "super_admin",
+        organization_id: null,
+        client_id: null,
+        full_name: null,
+        email: "super@test.ro",
+        organizations: null,
+      },
+    );
+    const user = await getCurrentUser();
+    expect(user?.organizationId).toBeNull();
+    expect(user?.organizationStatus).toBeNull();
+  });
+});
+
+describe("isOrgSuspended", () => {
+  it("adevarat doar cand exista organizatie SI statusul e suspended", () => {
+    expect(isOrgSuspended({ organizationId: "o1", organizationStatus: "suspended" })).toBe(true);
+    expect(isOrgSuspended({ organizationId: "o1", organizationStatus: "active" })).toBe(false);
+    // super_admin: fara organizatie -> niciodata "suspendat" pe aceasta cale.
+    expect(isOrgSuspended({ organizationId: null, organizationStatus: "suspended" })).toBe(false);
+  });
+});
+
+describe("requireUser - guard organizatie suspendata (T2.1)", () => {
+  it("redirecteaza la /organizatie-suspendata cand organizatia userului e suspendata", async () => {
+    mockSupabase(
+      { id: "u1" },
+      {
+        role: "admin",
+        organization_id: "org1",
+        client_id: null,
+        full_name: null,
+        email: "admin@test.ro",
+        organizations: { status: "suspended" },
+      },
+    );
+    await expect(requireUser()).rejects.toThrow("REDIRECT:/organizatie-suspendata");
+  });
+
+  it("permite accesul cand organizatia e activa", async () => {
+    mockSupabase(
+      { id: "u1" },
+      {
+        role: "operator",
+        organization_id: "org1",
+        client_id: null,
+        full_name: null,
+        email: "op@test.ro",
+        organizations: { status: "active" },
+      },
+    );
+    const user = await requireUser();
+    expect(user.role).toBe("operator");
+  });
+
+  it("super_admin (fara organizatie) nu e afectat de guard-ul de suspendare", async () => {
+    mockSupabase(
+      { id: "u-super" },
+      {
+        role: "super_admin",
+        organization_id: null,
+        client_id: null,
+        full_name: null,
+        email: "super@test.ro",
+        organizations: null,
+      },
+    );
+    const user = await requireUser();
+    expect(user.role).toBe("super_admin");
   });
 });
 

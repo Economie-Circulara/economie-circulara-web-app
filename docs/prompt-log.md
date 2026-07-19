@@ -13,6 +13,52 @@ Format intrare:
 
 ---
 
+## 2026-07-18 — Claude (orchestrator, fix CI Milestone 2)
+
+- **Cerut:** CI DB a esuat pe PR #11.
+- **Facut:** migrarile 0000-0012 + seed-ul demo s-au aplicat CURAT pe Postgres real.
+  Esecul era un typo in `rls_isolation.sql` (TEST 11-14, T2.1): unit `'buc'` in loc de
+  `'bucata'` (valoarea enum `unit_of_measure`). Corectat (3 aparitii).
+
+## 2026-07-18 — Claude (orchestrator, subagenti Sonnet paraleli) — Milestone 2 Batch 7
+
+- **Cerut:** X2 (cautare globala) + X4 (seed demo + E2E), in paralel — finalul Milestone 2.
+- **Facut X2:** `src/features/search/` — `globalSearch(query, {role})` peste comenzi/clienti/
+  loturi/produse/certificate prin clientul user-ului (RLS = izolare automata); rolul client
+  cauta DOAR in datele proprii (aparare in profunzime, testata). Bara din topbar (staff) →
+  `/cautare`. Fara migrare (query-based). 11 teste noi.
+- **Facut X4:** `supabase/seed.sql` extins (organizatia demo: 3 clienti, 8 itemi din domeniul
+  pilot — moloz, nisip/pietris/balast reciclat, caramizi eco, beton, + 1 serviciu — 3 retete,
+  9 loturi pe 5 provenante + un lot blocat, 4 procese cu trasabilitate completa, 2 comenzi
+  in stadii diferite + 1 certificat demo; contoare sincronizate; id-uri fara coliziune cu
+  testul RLS). Test E2E `tests/e2e/mvp-flow.spec.ts` pe fluxul complet 1→9 (9 test.step prin
+  UI real). Verificat static (typecheck/lint/`playwright --list`) — rularea efectiva cere
+  Supabase live (fara Docker aici).
+- **Integrare (orchestrator):** verificat pe arborele unificat: typecheck, lint, **534 teste**,
+  E2E listat. **Milestone 2 (X1, X3, T2.1, X2, X4) complet.**
+
+## 2026-07-18 — Claude (orchestrator, subagenti Sonnet paraleli) — Milestone 2 Batch 6
+
+- **Cerut:** X1 (notificari email) + X3 (dashboard/rapoarte) + T2.1 (guard org suspendata),
+  in paralel.
+- **Facut X1:** `src/features/notifications/` — provider abstract (mock console in dev,
+  stub HTTP configurabil; fara SMTP real), template-uri RO per tranzitie status,
+  migrarea `0011_notifications.sql` (tabel + enum-uri, scriere doar prin service_role);
+  cablat in `onOrderStatusChanged` (PASTRAND generarea certificatului de la G). 22 teste.
+- **Facut X3:** `src/features/reports/` + `/dashboard` (4 carduri KPI) + `/rapoarte`
+  (6 rapoarte pe perioada cu export PDF white-label + CSV): comenzi, livrari, retururi,
+  materiale reciclate/recondiționate reintegrate, **PaaS „utilizat=livrat−returnat"** per
+  client, **% materii prime secundare** per produs. Nav: Dashboard + Rapoarte. Limitare
+  documentata: fara timestamp per-tranzitie (livrat aproximat). CO2 = v2.
+- **Facut T2.1:** guard org suspendata pe 2 linii — middleware + `requireUser`/`requireRole`
+  (redirect `/organizatie-suspendata`) + migrarea `0012_suspended_org_guard.sql` (helper
+  `app.org_is_active`; `app.is_staff_of`/`is_admin_of` + politici client cer org activa;
+  super_admin neafectat). `rls_isolation.sql` TEST 11-14. AGENTS.md §4 + plan actualizate.
+- **Integrare (orchestrator):** reparat un test flaky in reports (localeCompare, trecea
+  izolat). Verificat pe arborele unificat: typecheck, lint, **523 teste**, build — verzi.
+  Sincronizat pe `origin/main` regenerat (`e38e409`); `database.types.ts` = versiunea
+  canonica a schemei + tabelul `notifications` (X1).
+
 ## 2026-07-18 — Claude (orchestrator, fix CI)
 
 - **Cerut:** merge Milestone 1 in main; CI-ul DB a esuat pe PR #10.
