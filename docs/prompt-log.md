@@ -15,6 +15,18 @@ Format intrare:
 
 ## 2026-07-19 — Claude (sesiune de continuare)
 
+- **Cerut:** follow-up-ul `cancel_order` din handoff §8 — refacerea stocului cand
+  lotul consumat a fost sters intre acceptare si anulare.
+- **Facut:** migrarea `0017_cancel_order_deleted_lot.sql` — `cancel_order` recreat
+  (byte-identic + bucla noua): pentru evenimentele 'consumption' orfane
+  (`lot_id` null dupa `on delete set null`), creeaza un lot de ajustare per articol
+  (`provenance='inventory_adjustment'`, cantitatea agregata) + `reversal` de audit
+  pe lotul nou (fara 'intake' — ar dubla cantitatea). Semnatura neschimbata (nimic
+  in database.types.ts). `rls_isolation.sql` TEST 20 (accepted -> lot sters ->
+  cancel -> lot ajustare + reversal). Validare in CI (`migrations`).
+
+## 2026-07-19 — Claude (sesiune de continuare)
+
 - **Cerut:** continuarea proiectului conform `docs/handoff-continuare.md` §8 —
   follow-up-ul KPI „Livrate luna curentă".
 - **Facut:** `getDashboardKpis` filtreaza livrarile lunii curente pe momentul REAL
