@@ -20,7 +20,7 @@ jobs:
 
       - uses: supabase/setup-cli@v1
         with:
-          version: latest
+          version: 2.108.0
 
       - name: Porneste Supabase local (aplica migrarile)
         run: supabase start
