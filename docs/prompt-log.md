@@ -13,6 +13,13 @@ Format intrare:
 
 ---
 
+## 2026-07-18 — Claude (orchestrator, fix CI Milestone 2)
+
+- **Cerut:** CI DB a esuat pe PR #11.
+- **Facut:** migrarile 0000-0012 + seed-ul demo s-au aplicat CURAT pe Postgres real.
+  Esecul era un typo in `rls_isolation.sql` (TEST 11-14, T2.1): unit `'buc'` in loc de
+  `'bucata'` (valoarea enum `unit_of_measure`). Corectat (3 aparitii).
+
 ## 2026-07-18 — Claude (orchestrator, subagenti Sonnet paraleli) — Milestone 2 Batch 7
 
 - **Cerut:** X2 (cautare globala) + X4 (seed demo + E2E), in paralel — finalul Milestone 2.

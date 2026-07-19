@@ -217,7 +217,7 @@ insert into public.profiles (id, organization_id, role, client_id) values
 
 -- item preexistent in Org C (inserat ca postgres, bypass RLS) — tinta pentru T12.
 insert into public.items (id, organization_id, title, unit, sellable) values
-  ('66666666-0000-0000-0000-000000000001','cccccccc-cccc-cccc-cccc-cccccccccccc','Item Org C','buc',true);
+  ('66666666-0000-0000-0000-000000000001','cccccccc-cccc-cccc-cccc-cccccccccccc','Item Org C','bucata',true);
 
 -- ===== TEST 11: Admin Org C (SUSPENDATA) NU poate insera un item nou (0012) =====
 begin;
@@ -227,7 +227,7 @@ begin;
   begin
     begin
       insert into public.items (organization_id, title, unit, sellable)
-      values ('cccccccc-cccc-cccc-cccc-cccccccccccc','Item nou (blocat)','buc',true);
+      values ('cccccccc-cccc-cccc-cccc-cccccccccccc','Item nou (blocat)','bucata',true);
       raise exception 'FAIL: T11 admin Org C (suspendata) a putut insera un item';
     exception when insufficient_privilege or check_violation then
       raise notice 'PASS: T11 insert blocat pentru staff dintr-o organizatie suspendata (0012)';
@@ -265,7 +265,7 @@ begin;
   set local role authenticated;
   set local request.jwt.claims = '{"sub":"66666666-6666-6666-6666-666666666666"}';
   insert into public.items (organization_id, title, unit, sellable)
-    values ('cccccccc-cccc-cccc-cccc-cccccccccccc','Item nou (dupa reactivare)','buc',true);
+    values ('cccccccc-cccc-cccc-cccc-cccccccccccc','Item nou (dupa reactivare)','bucata',true);
   select pg_temp.assert('T14 insert reusit dupa reactivare', count(*), 1)
     from public.items
     where organization_id = 'cccccccc-cccc-cccc-cccc-cccccccccccc'
