@@ -1,0 +1,119 @@
+name: E2E
+
+# F4: ruleaza suita Playwright (tests/e2e/mvp-flow.spec.ts) pe un Supabase LOCAL
+# real (migrari + seed), nu doar static (typecheck/lint), pe runnerele GitHub unde
+# ghcr.io e accesibil (vezi AGENTS.md §3.2 - nota de mediu Docker).
+#
+# Job separat de db.yml (nu-l atinge) ca sa nu se bata cele doua workflow-uri pe
+# acelasi trigger/paths si ca fiecare sa poata evolua independent (db.yml =
+# validare schema/drift tipuri; e2e.yml = flux UI complet).
+
+on:
+  pull_request:
+    paths:
+      - "src/**"
+      - "supabase/**"
+      - "tests/e2e/**"
+      - "playwright.config.*"
+      - ".github/workflows/e2e.yml"
+  workflow_dispatch:
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Porneste Supabase local (aplica migrarile)
+        run: supabase start
+
+      - name: Reaplica migrarile + seed de la zero (idempotenta, seed.sql inclus)
+        run: supabase db reset
+
+      # PRESUPUNERE de validat pe CI (documentata si in docs/plans/fix-f2-f4-ci.md):
+      # `supabase status -o env` e formatul "machine readable" oficial al CLI-ului
+      # (variabile shell: API_URL, ANON_KEY, SERVICE_ROLE_KEY, ...). Proiectul foloseste
+      # in cod noile denumiri de chei Supabase (publishable/secret - vezi src/lib/env.ts,
+      # src/lib/supabase/admin.ts, .env.example), dar stack-ul LOCAL poate expune fie
+      # denumirile noi (PUBLISHABLE_KEY/SECRET_KEY), fie doar cele legacy
+      # (ANON_KEY/SERVICE_ROLE_KEY), in functie de versiunea CLI ("latest"). Functional e
+      # echivalent: valoarea e acelasi JWT/API key trimis catre Data API, doar eticheta
+      # variabilei difera - deci preluam orice varianta e disponibila, cu legacy ca
+      # fallback. Daca acest pas esueaza pe CI (variabile lipsa), ajusteaza parsarea dupa
+      # output-ul real (`supabase status` fara `-o env` afiseaza acelasi lucru in format
+      # text, pt. debug).
+      - name: Extrage cheile Supabase locale (supabase status)
+        run: |
+          supabase status -o env > /tmp/supabase-status.env
+          echo "--- supabase status -o env (chei locale demo, nu secrete reale) ---"
+          cat /tmp/supabase-status.env
+          # shellcheck disable=SC1091
+          source /tmp/supabase-status.env
+
+          PUBLISHABLE_VALUE="${PUBLISHABLE_KEY:-${ANON_KEY:-}}"
+          SECRET_VALUE="${SECRET_KEY:-${SERVICE_ROLE_KEY:-}}"
+          API_URL_VALUE="${API_URL:-http://127.0.0.1:54321}"
+
+          if [ -z "$PUBLISHABLE_VALUE" ] || [ -z "$SECRET_VALUE" ]; then
+            echo "::error::Nu am putut extrage cheile Supabase locale din 'supabase status -o env' (variabile asteptate: PUBLISHABLE_KEY/ANON_KEY, SECRET_KEY/SERVICE_ROLE_KEY). Ajusteaza parsarea in .github/workflows/e2e.yml dupa output-ul real."
+            exit 1
+          fi
+
+          {
+            echo "NEXT_PUBLIC_SUPABASE_URL=${API_URL_VALUE}"
+            echo "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=${PUBLISHABLE_VALUE}"
+            echo "SUPABASE_SECRET_KEY=${SECRET_VALUE}"
+          } >> "$GITHUB_ENV"
+
+          # Scris si in .env.local: `pnpm dev` (pornit de Playwright `webServer`, vezi
+          # playwright.config.ts) il incarca automat la pornire (Next.js) - dubla
+          # siguranta fata de $GITHUB_ENV, in caz ca procesul copil al webServer-ului
+          # nu mosteneste mediul jobului asa cum ne asteptam.
+          {
+            echo "NEXT_PUBLIC_SUPABASE_URL=${API_URL_VALUE}"
+            echo "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=${PUBLISHABLE_VALUE}"
+            echo "SUPABASE_SECRET_KEY=${SECRET_VALUE}"
+          } > .env.local
+
+      - name: Instaleaza browserele Playwright (chromium)
+        run: pnpm exec playwright install --with-deps chromium
+
+      # NOTA: `pnpm test:e2e` = `playwright test`. `playwright.config.ts` are deja
+      # `webServer: { command: "pnpm dev", url: "http://localhost:3000", reuseExistingServer:
+      # !process.env.CI, timeout: 120_000 }` - pe CI (`process.env.CI` setat de GitHub
+      # Actions) `reuseExistingServer` e `false`, deci Playwright porneste el insusi
+      # serverul Next.js (`pnpm dev`) inainte de teste si il opreste la final; NU trebuie
+      # pornit/oprit appul manual in acest job. Procesul copil mosteneste env-ul jobului
+      # (inclusiv variabilele Supabase setate mai sus), plus citeste `.env.local` direct.
+      - name: Ruleaza testele E2E (Playwright)
+        run: pnpm test:e2e
+        env:
+          CI: true
+
+      - name: Upload playwright-report (pe esec)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
+
+      - name: Stop Supabase
+        if: always()
+        run: supabase stop --no-backup || true

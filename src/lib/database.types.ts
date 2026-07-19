@@ -662,10 +662,13 @@ export type Database = {
       };
       orders: {
         Row: {
+          accepted_at: string | null;
           client_id: string;
+          closed_at: string | null;
           created_at: string;
           created_by: string | null;
           created_by_admin: boolean;
+          delivered_at: string | null;
           delivery_address_id: string | null;
           delivery_date: string | null;
           expected_return_date: string | null;
@@ -677,10 +680,13 @@ export type Database = {
           updated_at: string;
         };
         Insert: {
+          accepted_at?: string | null;
           client_id: string;
+          closed_at?: string | null;
           created_at?: string;
           created_by?: string | null;
           created_by_admin?: boolean;
+          delivered_at?: string | null;
           delivery_address_id?: string | null;
           delivery_date?: string | null;
           expected_return_date?: string | null;
@@ -692,10 +698,13 @@ export type Database = {
           updated_at?: string;
         };
         Update: {
+          accepted_at?: string | null;
           client_id?: string;
+          closed_at?: string | null;
           created_at?: string;
           created_by?: string | null;
           created_by_admin?: boolean;
+          delivered_at?: string | null;
           delivery_address_id?: string | null;
           delivery_date?: string | null;
           expected_return_date?: string | null;

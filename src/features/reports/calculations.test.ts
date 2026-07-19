@@ -36,18 +36,33 @@ describe("aggregateOrdersByStatus", () => {
 });
 
 describe("resolveDeliveryReferenceDate", () => {
-  it("foloseste delivery_date cand exista", () => {
+  it("foloseste delivered_at (momentul real al tranzitiei) cand exista", () => {
     expect(
       resolveDeliveryReferenceDate({
+        deliveredAt: "2026-07-12T00:00:00Z",
+        deliveryDate: "2026-07-10",
+        updatedAt: "2026-07-15T00:00:00Z",
+      }),
+    ).toBe("2026-07-12T00:00:00Z");
+  });
+
+  it("cade pe delivery_date cand delivered_at lipseste (istoric fara timestamp)", () => {
+    expect(
+      resolveDeliveryReferenceDate({
+        deliveredAt: null,
         deliveryDate: "2026-07-10",
         updatedAt: "2026-07-15T00:00:00Z",
       }),
     ).toBe("2026-07-10");
   });
 
-  it("cade pe updated_at cand delivery_date lipseste", () => {
+  it("cade pe updated_at cand delivered_at si delivery_date lipsesc", () => {
     expect(
-      resolveDeliveryReferenceDate({ deliveryDate: null, updatedAt: "2026-07-15T00:00:00Z" }),
+      resolveDeliveryReferenceDate({
+        deliveredAt: null,
+        deliveryDate: null,
+        updatedAt: "2026-07-15T00:00:00Z",
+      }),
     ).toBe("2026-07-15T00:00:00Z");
   });
 });
@@ -59,6 +74,7 @@ function mockDeliveredOrder(overrides: Partial<DeliveredOrderInput> = {}): Deliv
     status: "delivered",
     clientId: "client-1",
     clientName: "Construcții Apex SRL",
+    deliveredAt: null,
     deliveryDate: null,
     updatedAt: "2026-07-10T00:00:00.000Z",
     items: [{ itemId: "item-1", itemTitle: "Cărămidă eco", unit: "buc", quantity: 4000 }],
@@ -75,7 +91,18 @@ describe("filterDeliveredOrdersInRange", () => {
     expect(filterDeliveredOrdersInRange([inRange, outOfRange], range)).toEqual([inRange]);
   });
 
-  it("prioritizeaza delivery_date fata de updated_at", () => {
+  it("prioritizeaza delivered_at fata de delivery_date si updated_at", () => {
+    // delivery_date si updated_at sunt in afara perioadei, dar delivered_at (momentul
+    // real al tranzitiei) e in perioada.
+    const order = mockDeliveredOrder({
+      deliveredAt: "2026-07-16T00:00:00.000Z",
+      deliveryDate: "2026-06-01",
+      updatedAt: "2026-08-01T00:00:00.000Z",
+    });
+    expect(filterDeliveredOrdersInRange([order], range)).toEqual([order]);
+  });
+
+  it("prioritizeaza delivery_date fata de updated_at cand delivered_at lipseste (istoric)", () => {
     // updated_at e in afara perioadei, dar delivery_date (planificata) e in perioada.
     const order = mockDeliveredOrder({
       deliveryDate: "2026-07-15",
