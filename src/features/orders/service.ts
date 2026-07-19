@@ -105,12 +105,23 @@ export async function sendOrder(orderId: string, organizationId: string): Promis
   return mapOrder(data);
 }
 
-/** Seteaza direct statusul (fara efecte de stoc) — folosit pentru accepted->delivered->closed. */
+/**
+ * Seteaza direct statusul (fara efecte de stoc) — folosit pentru accepted->delivered->closed.
+ * Fara RPC dedicat (spre deosebire de accept/cancel_order), asa ca timestamp-ul de
+ * tranzitie (Fix F3, 0015_order_status_timestamps.sql) se seteaza chiar aici, in acelasi
+ * UPDATE: `delivered_at` la tranzitia -> delivered, `closed_at` la tranzitia -> closed.
+ * Masina de stari/validarea tranzitiei raman neschimbate (validate in `actions.ts` inainte
+ * de a apela aceasta functie).
+ */
 export async function setOrderStatus(orderId: string, status: OrderStatus): Promise<Order> {
   const supabase = await createClient();
+  const patch: Database["public"]["Tables"]["orders"]["Update"] = { status };
+  if (status === "delivered") patch.delivered_at = new Date().toISOString();
+  if (status === "closed") patch.closed_at = new Date().toISOString();
+
   const { data, error } = await supabase
     .from("orders")
-    .update({ status })
+    .update(patch)
     .eq("id", orderId)
     .select()
     .single();

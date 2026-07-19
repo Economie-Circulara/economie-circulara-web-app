@@ -278,4 +278,106 @@ begin;
     where id = '66666666-0000-0000-0000-000000000001' and title = 'actualizat dupa reactivare';
 rollback;
 
+-- =============================================================================
+-- Guard organizatie suspendata — completare (migrarea 0014): client_addresses
+-- (F1a) si SELECT-urile clientului (F1b). Refolosim Org C (deja ACTIVA la acest
+-- punct, dupa reactivarea din TEST 14). Adaugam un client nou in Org C (id-uri
+-- noi, `7777.../d1d1...`) ca sa nu deranjam testele 1-14 de mai sus, apoi
+-- resuspendam/reactivam Org C punctual, DOAR pentru aceasta sectiune.
+-- =============================================================================
+insert into public.clients (id, organization_id, cui, name) values
+  ('d1d1d1d1-d1d1-d1d1-d1d1-d1d1d1d1d1d1','cccccccc-cccc-cccc-cccc-cccccccccccc','RO333','Client C1');
+
+insert into auth.users (id, instance_id, aud, role, email) values
+  ('77777777-7777-7777-7777-777777777777','00000000-0000-0000-0000-000000000000','authenticated','authenticated','client-c@test.ro');
+
+insert into public.profiles (id, organization_id, role, client_id) values
+  ('77777777-7777-7777-7777-777777777777','cccccccc-cccc-cccc-cccc-cccccccccccc','client','d1d1d1d1-d1d1-d1d1-d1d1-d1d1d1d1d1d1');
+
+-- Comanda + adresa preexistente ale Client C1 (inserate ca postgres, bypass RLS) —
+-- tinta pentru testele de SELECT (F1b) si UPDATE (F1a) de mai jos.
+insert into public.orders (id, organization_id, client_id, status) values
+  ('0d0d0d0d-0000-0000-0000-00000000000d','cccccccc-cccc-cccc-cccc-cccccccccccc','d1d1d1d1-d1d1-d1d1-d1d1-d1d1d1d1d1d1','sent');
+
+insert into public.client_addresses (id, organization_id, client_id, address) values
+  ('a1a1a1a1-a1a1-a1a1-a1a1-a1a1a1a1a1a1','cccccccc-cccc-cccc-cccc-cccccccccccc','d1d1d1d1-d1d1-d1d1-d1d1-d1d1d1d1d1d1','Depozit C');
+
+-- ===== TEST 15: Client C1 (Org C ACTIVA) poate insera/vedea normal (control) =====
+begin;
+  set local role authenticated;
+  set local request.jwt.claims = '{"sub":"77777777-7777-7777-7777-777777777777"}';
+  select pg_temp.assert('T15 client C vede propria comanda (org activa)', count(*), 1)
+    from public.orders where id = '0d0d0d0d-0000-0000-0000-00000000000d';
+  insert into public.client_addresses (organization_id, client_id, address)
+    values ('cccccccc-cccc-cccc-cccc-cccccccccccc','d1d1d1d1-d1d1-d1d1-d1d1-d1d1d1d1d1d1','Depozit C2 (control)');
+  select pg_temp.assert('T15 client C a putut insera adresa (org activa)', count(*), 1)
+    from public.client_addresses where address = 'Depozit C2 (control)';
+rollback;
+
+-- ===== Suspendare Org C (ca postgres) — pregateste TESTELE 16-18 (0014) ===========
+update public.organizations set status = 'suspended'
+  where id = 'cccccccc-cccc-cccc-cccc-cccccccccccc';
+
+-- ===== TEST 16: Client C1 (Org C SUSPENDATA) NU poate insera client_addresses (F1a, 0014) =====
+begin;
+  set local role authenticated;
+  set local request.jwt.claims = '{"sub":"77777777-7777-7777-7777-777777777777"}';
+  do $$
+  begin
+    begin
+      insert into public.client_addresses (organization_id, client_id, address)
+        values ('cccccccc-cccc-cccc-cccc-cccccccccccc','d1d1d1d1-d1d1-d1d1-d1d1-d1d1d1d1d1d1','Depozit interzis');
+      raise exception 'FAIL: T16 client C a putut insera adresa cat Org C e suspendata';
+    exception when insufficient_privilege or check_violation then
+      raise notice 'PASS: T16 insert client_addresses blocat pentru org suspendata (0014)';
+    end;
+  end $$;
+rollback;
+
+-- ===== TEST 17: Client C1 (Org C SUSPENDATA) NU poate actualiza o adresa existenta (F1a, 0014) =====
+-- USING-ul politicii client_addresses_client_update (0014) cere organizatie activa
+-- => 0 randuri afectate, fara exceptie (acelasi tipar ca T7/T12).
+begin;
+  set local role authenticated;
+  set local request.jwt.claims = '{"sub":"77777777-7777-7777-7777-777777777777"}';
+  update public.client_addresses set address = 'hacked'
+    where id = 'a1a1a1a1-a1a1-a1a1-a1a1-a1a1a1a1a1a1';
+  select pg_temp.assert('T17 update adresa blocat pt org suspendata -> adresa neschimbata', count(*), 0)
+    from public.client_addresses
+    where id = 'a1a1a1a1-a1a1-a1a1-a1a1-a1a1a1a1a1a1' and address = 'hacked';
+rollback;
+
+-- ===== TEST 18: Client C1 (Org C SUSPENDATA) NU isi mai vede comanda prin SELECT (F1b, 0014) =====
+begin;
+  set local role authenticated;
+  set local request.jwt.claims = '{"sub":"77777777-7777-7777-7777-777777777777"}';
+  select pg_temp.assert('T18 client C NU vede comanda proprie (org suspendata)', count(*), 0)
+    from public.orders where id = '0d0d0d0d-0000-0000-0000-00000000000d';
+  select pg_temp.assert('T18 client C NU vede propria adresa (org suspendata)', count(*), 0)
+    from public.client_addresses where id = 'a1a1a1a1-a1a1-a1a1-a1a1-a1a1a1a1a1a1';
+rollback;
+
+-- ===== Reactivare Org C (ca postgres) — pregateste TEST 19 =========================
+update public.organizations set status = 'active'
+  where id = 'cccccccc-cccc-cccc-cccc-cccccccccccc';
+
+-- ===== TEST 19: Dupa reactivare, Client C1 poate din nou insera adrese si vedea comenzi =====
+begin;
+  set local role authenticated;
+  set local request.jwt.claims = '{"sub":"77777777-7777-7777-7777-777777777777"}';
+  insert into public.client_addresses (organization_id, client_id, address)
+    values ('cccccccc-cccc-cccc-cccc-cccccccccccc','d1d1d1d1-d1d1-d1d1-d1d1-d1d1d1d1d1d1','Depozit C3 (dupa reactivare)');
+  select pg_temp.assert('T19 insert adresa reusit dupa reactivare', count(*), 1)
+    from public.client_addresses where address = 'Depozit C3 (dupa reactivare)';
+
+  update public.client_addresses set address = 'actualizat dupa reactivare'
+    where id = 'a1a1a1a1-a1a1-a1a1-a1a1-a1a1a1a1a1a1';
+  select pg_temp.assert('T19 update adresa reusit dupa reactivare', count(*), 1)
+    from public.client_addresses
+    where id = 'a1a1a1a1-a1a1-a1a1-a1a1-a1a1a1a1a1a1' and address = 'actualizat dupa reactivare';
+
+  select pg_temp.assert('T19 client C vede din nou comanda proprie (org reactivata)', count(*), 1)
+    from public.orders where id = '0d0d0d0d-0000-0000-0000-00000000000d';
+rollback;
+
 select '*** TOATE TESTELE RLS AU TRECUT ***' as result;

@@ -94,7 +94,7 @@ describe("sendOrder", () => {
 });
 
 describe("setOrderStatus", () => {
-  it("actualizeaza direct statusul (delivered/closed)", async () => {
+  it("actualizeaza direct statusul si seteaza delivered_at la tranzitia -> delivered", async () => {
     const single = vi
       .fn()
       .mockResolvedValue({ data: orderRow({ status: "delivered" }), error: null });
@@ -106,8 +106,41 @@ describe("setOrderStatus", () => {
 
     const order = await setOrderStatus("order-1", "delivered");
 
-    expect(update).toHaveBeenCalledWith({ status: "delivered" });
+    expect(update).toHaveBeenCalledWith({
+      status: "delivered",
+      delivered_at: expect.any(String),
+    });
     expect(order.status).toBe("delivered");
+  });
+
+  it("seteaza closed_at la tranzitia -> closed", async () => {
+    const single = vi.fn().mockResolvedValue({ data: orderRow({ status: "closed" }), error: null });
+    const select = vi.fn().mockReturnValue({ single });
+    const eq = vi.fn().mockReturnValue({ select });
+    const update = vi.fn().mockReturnValue({ eq });
+    const from = vi.fn().mockReturnValue({ update });
+    createClient.mockResolvedValue({ from });
+
+    const order = await setOrderStatus("order-1", "closed");
+
+    expect(update).toHaveBeenCalledWith({
+      status: "closed",
+      closed_at: expect.any(String),
+    });
+    expect(order.status).toBe("closed");
+  });
+
+  it("nu adauga delivered_at/closed_at pentru alte statusuri (ex. sent)", async () => {
+    const single = vi.fn().mockResolvedValue({ data: orderRow({ status: "sent" }), error: null });
+    const select = vi.fn().mockReturnValue({ single });
+    const eq = vi.fn().mockReturnValue({ select });
+    const update = vi.fn().mockReturnValue({ eq });
+    const from = vi.fn().mockReturnValue({ update });
+    createClient.mockResolvedValue({ from });
+
+    await setOrderStatus("order-1", "sent");
+
+    expect(update).toHaveBeenCalledWith({ status: "sent" });
   });
 });
 

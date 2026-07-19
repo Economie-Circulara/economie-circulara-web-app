@@ -13,6 +13,31 @@ Format intrare:
 
 ---
 
+## 2026-07-19 — Claude (orchestrator, 5 subagenti Sonnet paraleli) — Review fixes
+
+- **Cerut:** rezolvarea prin subagenti a findings-urilor din review-ul tehnic (ce se poate
+  fara acces manual/extern).
+- **Facut F1+F6:** migrarea `0014_suspended_guard_completion.sql` — guard org suspendata
+  completat pe scrierile clientului (`client_addresses` spart in politici per-operatie) +
+  toate SELECT-urile client (defense-in-depth) + index `organizations(id,status)`.
+  `rls_isolation.sql` TEST 15-19.
+- **Facut F3:** migrarea `0015_order_status_timestamps.sql` — `accepted_at`/`delivered_at`/
+  `closed_at` pe orders; `accept_order` recreat byte-identic + `accepted_at=now()`;
+  tranzitiile delivered/closed seteaza timestamp in server action; rapoartele folosesc
+  `deliveredAt ?? deliveryDate ?? updatedAt` (mai exact).
+- **Facut F7a:** invitare **client** in `/setari/utilizatori` (`inviteClientAction`;
+  „un client = un user" impus in aplicatie + coloana Firma in lista).
+- **Facut F7b:** cautare pentru portalul clientului — ruta `/cauta` (distinct de `/cautare`
+  staff), bara topbar cablata pe rol, href-uri corecte per rol.
+- **Facut F2+F4:** drift-check tipuri normalizat prin prettier (prinde doar drift real de
+  schema) + workflow nou `e2e.yml` (ruleaza testul E2E pe Supabase live in CI).
+- **Facut (orchestrator, hardening):** migrarea `0016_review_hardening.sql` — inchide doua
+  gap-uri semnalate de agenti: `order_links_client_insert` primeste `app.org_is_active`
+  (guard suspendare complet) + index unic partial `profiles_client_id_unique`
+  („un client = un user" acum si la nivel de DB). AGENTS.md §4.1 actualizat.
+- **Integrare:** verificat pe arborele unificat: typecheck, lint, **584 teste** — verzi.
+  F5 (SMTP/Socrate.io real) + regenerarea canonica a tipurilor = partea manuala a userului.
+
 ## 2026-07-19 — Claude (orchestrator, subagenti Sonnet paraleli) — Milestone 3
 
 - **Cerut:** X5 (livrari + avize/e-Transport) + X6 (documentatie/instruire), in paralel — ultimul milestone.

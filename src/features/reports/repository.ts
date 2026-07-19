@@ -63,16 +63,19 @@ async function fetchOrderItemLinesByOrder(
 }
 
 /**
- * Toate comenzile `delivered`/`closed` (fara filtru de perioada — data de referinta e
- * ambigua, `delivery_date ?? updated_at`, vezi `calculations.ts#resolveDeliveryReferenceDate`;
- * filtrarea pe perioada se face in JS, pur, dupa fetch) + liniile lor. Sursa comuna pt.
- * Raportul 2 (Livrari) si latura "livrat" a Raportului 5 (PaaS).
+ * Toate comenzile `delivered`/`closed` (fara filtru de perioada — data de referinta
+ * prioritizeaza `delivered_at` (Fix F3), cu fallback `delivery_date ?? updated_at` pentru
+ * istoricul fara timestamp, vezi `calculations.ts#resolveDeliveryReferenceDate`; filtrarea
+ * pe perioada se face in JS, pur, dupa fetch) + liniile lor. Sursa comuna pt. Raportul 2
+ * (Livrari) si latura "livrat" a Raportului 5 (PaaS).
  */
 export async function fetchDeliveredOrdersWithItems(): Promise<DeliveredOrderInput[]> {
   const supabase = await createClient();
   const { data: orderRows, error } = await supabase
     .from("orders")
-    .select("id, order_number, status, client_id, delivery_date, updated_at, clients(name)")
+    .select(
+      "id, order_number, status, client_id, delivered_at, delivery_date, updated_at, clients(name)",
+    )
     .in("status", STATUSES_DELIVERED_OR_CLOSED);
   if (error) throw new Error("Nu am putut încărca comenzile livrate pentru raport.");
 
@@ -85,6 +88,7 @@ export async function fetchDeliveredOrdersWithItems(): Promise<DeliveredOrderInp
     status: row.status,
     clientId: row.client_id,
     clientName: row.clients?.name ?? "—",
+    deliveredAt: row.delivered_at,
     deliveryDate: row.delivery_date,
     updatedAt: row.updated_at,
     items: itemsByOrder.get(row.id) ?? [],
