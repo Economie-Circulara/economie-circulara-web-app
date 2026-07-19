@@ -12,8 +12,9 @@ acceptare verificabile.
 > **Milestone 1 (trasabilitate MVP: certificate + portal client + retur) livrat.** Spikes S1
 > (ANAF) + S3 (Sankey/PDF) rezolvate; S2 (standarde certificat) si S4 (Socrate.io e-Transport)
 > inca deschise. **Milestone 2 COMPLET** (X1 notificari, X3 rapoarte, X2 cautare,
-> T2.1 guard suspendare, X4 seed+E2E) ✅. Ramas: **Milestone 3** — X5 (avize/e-Transport,
-> dep. S4 Socrate.io) + X6 (documentatie/instruire).
+> T2.1 guard suspendare, X4 seed+E2E) ✅. **Milestone 3 COMPLET** (X5 livrari/avize/
+> e-Transport — adapter mock, real depinde de S4 Socrate.io; X6 documentatie/instruire) ✅.
+> **TOT PLANUL LIVRAT IN COD.** Ramas non-cod: cablare reala Socrate.io (S4), screenshot-uri manual.
 
 ---
 
@@ -428,7 +429,7 @@ stub tipat (mock) cu aceeasi semnatura.
   --list`). Ruleaza-l complet cu `pnpm test:e2e` intr-un mediu cu Supabase local pornit sau
   in CI dedicat.
 
-### Task X6 — Documentatie utilizare & instruire (livrabile Anexa 1, obligatoriu)
+### Task X6 — Documentatie utilizare & instruire (livrabile Anexa 1, obligatoriu) ✅ livrat
 
 - **Scop:** livrabilele de proiect din sectiunea 5 a Anexei 1, singurul ❌ ramas in
   [analiza-conformitate-anexa.md](../analiza-conformitate-anexa.md): **manual de
@@ -440,6 +441,17 @@ stub tipat (mock) cu aceeasi semnatura.
 - **Acceptare:** manualele acopera fluxul complet MVP (1→9 din handoff) cu capturi din
   aplicatia reala; ghidul de administrare permite unui admin nou sa configureze o
   organizatie de la zero; plan de instruire agreat cu Beneficiarul.
+- **Livrat:** `docs/manual/` — `README.md` (cuprins), `utilizare-admin-operator.md`,
+  `utilizare-client.md`, `ghid-administrare.md`, `instruire.md`; plan in
+  `docs/plans/task-x6-documentatie.md`; `docs/index.md` actualizat cu sectiunea Manual.
+  Textul e verificat pe ecranele reale din `src/app/` (titluri, butoane, campuri) — nu
+  pe mockup. **Capturile de ecran raman de adaugat** ulterior, din aplicatia rulanta
+  (marcate explicit in text, format „📷 [Captura de adaugat: ...]"). Doua onestitati
+  semnalate in text: (1) Task X5 (livrari/aviz/e-Transport) nu e inca livrat — sectiunea
+  corespunzatoare descrie fluxul planificat, marcat clar „in curs de implementare”;
+  (2) nu exista inca un formular de invitare a unui utilizator cu rol `client` in
+  `/setari/utilizatori` (doar operator/admin) — semnalat ca gap cunoscut in
+  `ghid-administrare.md`, cu procedura tehnica temporara.
 
 ---
 
@@ -505,8 +517,8 @@ C (stoc) → B (itemi/retete) → A (clienti) → E (comenzi) → D (productie) 
 | X1 Notificari           | 3    | E, T1.3      | ✅ livrat (mig. 0011)  |
 | X2 Cautare              | 3    | A,B,C,E,G    | ✅ livrat              |
 | X3 Dashboard/KPI        | 3    | E, C, G      | ✅ livrat              |
-| X5 Livrari/e-Transport  | 3    | E, S4        | da                     |
-| X6 Documentatie/instruire | 3  | Wave 2       | inainte de receptie    |
+| X5 Livrari/e-Transport  | 3    | E, S4        | ✅ livrat (mock; real=S4) |
+| X6 Documentatie/instruire | 3  | Wave 2       | ✅ livrat (docs/manual)  |
 | X4 Seed + E2E           | 3    | toate        | ✅ livrat (verificat static, fara Supabase local) |
 
 > **Conformitate finantare:** proiectul trebuie sa respecte

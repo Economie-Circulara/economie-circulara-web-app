@@ -13,6 +13,25 @@ Format intrare:
 
 ---
 
+## 2026-07-19 — Claude (orchestrator, subagenti Sonnet paraleli) — Milestone 3
+
+- **Cerut:** X5 (livrari + avize/e-Transport) + X6 (documentatie/instruire), in paralel — ultimul milestone.
+- **Facut X5:** `src/features/deliveries/` + `/livrari` — migrarea `0013_deliveries.sql`
+  (tabel `deliveries` legat de comanda, unique order_id; enum `delivery_declaration_status`;
+  RLS staff). Planificare livrare pe comanda acceptata, **aviz PDF** cu cod UIT (render
+  on-demand, nu persistat). **Adapter e-Transport**: interfata `ETransportProvider`, impl
+  **mock** (UIT determinist, fara retea — activa acum) + schelet **Socrate.io** (env
+  `SOCRATE_*`, arunca „neconfigurat" pana la credentiale S4); declarare idempotenta cu
+  eroare vizibila + re-incercabila. Nav „Livrări". 30 teste.
+- **Facut X6:** `docs/manual/` — manual utilizare RO pe roluri (admin/operator + client,
+  acopera fluxul 1→9), ghid administrare (setari org, useri, white-label, operare
+  Supabase/Vercel), plan de instruire (5 sesiuni). Scris din codul real, nu din mockup;
+  gap-uri semnalate onest (invitare client, screenshot-uri de adaugat). `docs/index.md`
+  actualizat.
+- **Integrare (orchestrator):** verificat pe arborele unificat: typecheck, lint,
+  **564 teste**, build — verzi. **Milestone 3 complet. Tot planul de implementare livrat
+  in cod** (ramane: cablare reala Socrate.io = S4/decizie client; screenshot-uri manual).
+
 ## 2026-07-18 — Claude (orchestrator, fix CI Milestone 2)
 
 - **Cerut:** CI DB a esuat pe PR #11.

@@ -19,6 +19,20 @@ Acest folder contine toate documentele de analiza, cerinte si design pentru plat
 | [brain-dump.md](brain-dump.md)                         | Brain dump-ul initial al clientului - ideile brute de la care s-a pornit analiza.                                                                                   |
 | [implementation-plan.md](plans/implementation-plan.md) | **Plan de implementare** impartit in task-uri individuale (waves) ce pot fi preluate de agenti AI in paralel, cu dependente si criterii de acceptare. (in `plans/`) |
 
+## Manual
+
+Folderul [`manual/`](manual/) contine documentatia de utilizare si administrare a
+platformei (Task X6 — livrabil obligatoriu Anexa 1: manual de utilizare, ghid de
+administrare, plan de instruire). Punct de start: [`manual/README.md`](manual/README.md).
+
+| Fisier                                                     | Descriere                                                                                          |
+| ----------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| [manual/README.md](manual/README.md)                       | Cuprins — pentru cine e fiecare document, nota despre capturi de ecran (de adaugat ulterior).      |
+| [manual/utilizare-admin-operator.md](manual/utilizare-admin-operator.md) | Manual pas-cu-pas pentru rolurile Administrator/Operator — tot fluxul de business (ecrane reale). |
+| [manual/utilizare-client.md](manual/utilizare-client.md)   | Manual pas-cu-pas pentru rolul Client — portalul de catalog/comenzi/documente.                     |
+| [manual/ghid-administrare.md](manual/ghid-administrare.md) | Setari organizatie, useri, super-admin, operare tehnica (Supabase/Vercel/migrari/backup).           |
+| [manual/instruire.md](manual/instruire.md)                 | Plan de sesiuni de instruire a utilizatorilor desemnati, pe rol.                                    |
+
 ## Design
 
 | Fisier                                                           | Descriere                                                                                  |

@@ -6,6 +6,7 @@ import { PageHeader } from "@/components/page-header";
 import { StatusBadge } from "@/components/status-badge";
 import { requireRole } from "@/features/auth/session";
 import { getCertificateByOrderId } from "@/features/certificates/service";
+import { getDeliveryByOrderId } from "@/features/deliveries/queries";
 import { ORDER_STATUS_BADGE_STATUS, ORDER_STATUS_LABELS } from "@/features/orders/labels";
 import { OrderStatusActions } from "@/features/orders/order-status-actions";
 import { getOrderDetail } from "@/features/orders/queries";
@@ -60,6 +61,10 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
   // comenzi de vanzare — "Acceptă" acolo CONSUMA stoc, gresit pt. un retur) si
   // aratam in loc butonul dedicat `AcceptReturnButton`. Altfel, daca e o comanda
   // finalizata (delivered/closed), oferim butoanele Retur/Garanție.
+  // Task X5 (Livrari & e-Transport): planificarea livrarii se face pe o comanda
+  // acceptata, in ecranul dedicat /livrari/nou (nu inline aici — vezi acel ecran).
+  const delivery = await getDeliveryByOrderId(id);
+
   const returnLink = await getReturnLinkForOrder(id);
   // "replacement" (comanda de inlocuire la garanție) e o comanda de vanzare
   // obișnuită — parcurge fluxul normal (send/accept/deliver/close); doar
@@ -87,6 +92,15 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
             {certificate ? (
               <Button asChild variant="outline">
                 <Link href={`/comenzi/${order.id}/certificat`}>Vezi certificat</Link>
+              </Button>
+            ) : null}
+            {delivery ? (
+              <Button asChild variant="outline">
+                <Link href={`/livrari/${delivery.id}`}>Vezi livrare</Link>
+              </Button>
+            ) : order.status === "accepted" ? (
+              <Button asChild variant="outline">
+                <Link href={`/livrari/nou?orderId=${order.id}`}>Planifică livrare</Link>
               </Button>
             ) : null}
             {isReturnOrder ? (
