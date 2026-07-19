@@ -10,6 +10,7 @@ import {
   ScrollText,
   Settings,
   ShoppingCart,
+  Truck,
   Users,
   type LucideIcon,
 } from "lucide-react";
@@ -27,6 +28,7 @@ export interface NavItem {
 export const STAFF_NAV: NavItem[] = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard, roles: ["admin", "operator"] },
   { label: "Comenzi", href: "/comenzi", icon: ShoppingCart, roles: ["admin", "operator"] },
+  { label: "Livrări", href: "/livrari", icon: Truck, roles: ["admin", "operator"] },
   { label: "Stoc", href: "/stoc", icon: Boxes, roles: ["admin", "operator"] },
   { label: "Producție", href: "/productie", icon: Factory, roles: ["admin", "operator"] },
   { label: "Clienți", href: "/clienti", icon: Users, roles: ["admin", "operator"] },

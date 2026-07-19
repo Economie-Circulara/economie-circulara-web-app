@@ -218,6 +218,85 @@ export type Database = {
           },
         ];
       };
+      // --- Task X5 (Livrari & e-Transport) — supabase/migrations/0013_deliveries.sql ---
+      // Adaugat manual (fara acces la `pnpm gen:types` in acest mediu) — vezi nota
+      // similara la certificate_counters (Task G) mai sus.
+      deliveries: {
+        Row: {
+          carrier_name: string;
+          created_at: string;
+          created_by: string | null;
+          declaration_error: string | null;
+          declaration_status: Database["public"]["Enums"]["delivery_declaration_status"];
+          driver_name: string;
+          id: string;
+          order_id: string;
+          organization_id: string;
+          route_destination: string;
+          route_origin: string;
+          scheduled_date: string;
+          uit_code: string | null;
+          updated_at: string;
+          vehicle_plate: string;
+        };
+        Insert: {
+          carrier_name: string;
+          created_at?: string;
+          created_by?: string | null;
+          declaration_error?: string | null;
+          declaration_status?: Database["public"]["Enums"]["delivery_declaration_status"];
+          driver_name: string;
+          id?: string;
+          order_id: string;
+          organization_id: string;
+          route_destination: string;
+          route_origin: string;
+          scheduled_date: string;
+          uit_code?: string | null;
+          updated_at?: string;
+          vehicle_plate: string;
+        };
+        Update: {
+          carrier_name?: string;
+          created_at?: string;
+          created_by?: string | null;
+          declaration_error?: string | null;
+          declaration_status?: Database["public"]["Enums"]["delivery_declaration_status"];
+          driver_name?: string;
+          id?: string;
+          order_id?: string;
+          organization_id?: string;
+          route_destination?: string;
+          route_origin?: string;
+          scheduled_date?: string;
+          uit_code?: string | null;
+          updated_at?: string;
+          vehicle_plate?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "deliveries_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "deliveries_order_id_fkey";
+            columns: ["order_id"];
+            isOneToOne: true;
+            referencedRelation: "orders";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "deliveries_organization_id_fkey";
+            columns: ["organization_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       documents: {
         Row: {
           created_at: string;
@@ -1226,6 +1305,8 @@ export type Database = {
       };
     };
     Enums: {
+      // --- Task X5 (Livrari & e-Transport) — supabase/migrations/0013_deliveries.sql ---
+      delivery_declaration_status: "not_declared" | "declared" | "failed";
       document_owner_type: "client" | "order" | "item";
       // --- Task B (Itemi/Retete) — supabase/migrations/0005_item_kind.sql ---
       item_kind: "physical" | "service";
@@ -1388,6 +1469,7 @@ export const Constants = {
   },
   public: {
     Enums: {
+      delivery_declaration_status: ["not_declared", "declared", "failed"],
       document_owner_type: ["client", "order", "item"],
       item_kind: ["physical", "service"],
       lot_provenance: [
