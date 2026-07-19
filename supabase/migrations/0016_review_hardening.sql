@@ -38,6 +38,22 @@ create policy order_links_client_insert on public.order_links
   );
 
 -- -----------------------------------------------------------------------------
+-- 1b. client_addresses SELECT: guardat pe organizatie activa (consistenta F1b).
+-- -----------------------------------------------------------------------------
+-- 0014 a guardat INSERT/UPDATE/DELETE pe `client_addresses` si toate celelalte
+-- SELECT-uri de client (orders, certificates, etc.) cu `app.org_is_active`, dar a
+-- lasat `client_addresses_client_select` neguardat. Il aliniem la restul (clientul
+-- unei org suspendate nu-si mai vede adresele nici prin Data API) — inchide
+-- inconsistenta dintre implementare si testul RLS T18.
+drop policy client_addresses_client_select on public.client_addresses;
+create policy client_addresses_client_select on public.client_addresses
+  for select using (
+    app.role() = 'client'
+    and client_id = app.client_id()
+    and app.org_is_active(organization_id)
+  );
+
+-- -----------------------------------------------------------------------------
 -- 2. Un client = un singur utilizator, impus la nivel de DB.
 -- -----------------------------------------------------------------------------
 -- Index unic PARTIAL: doar randurile cu `client_id` non-null (rolurile
