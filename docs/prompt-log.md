@@ -13,6 +13,16 @@ Format intrare:
 
 ---
 
+## 2026-07-19 — Claude (sesiune de continuare)
+
+- **Cerut:** continuarea proiectului conform `docs/handoff-continuare.md` §8 —
+  follow-up-ul KPI „Livrate luna curentă".
+- **Facut:** `getDashboardKpis` filtreaza livrarile lunii curente pe momentul REAL
+  al livrarii (`delivered_at`, migrarea 0015), cu acelasi lant de fallback ca
+  `deliveredAtIso` din calculations.ts (F3): `delivered_at ?? delivery_date ??
+  updated_at` — un singur `.or(...)` PostgREST. Teste actualizate. Plan:
+  `docs/plans/followups-review-ramase.md`.
+
 ## 2026-07-19 — Claude (orchestrator)
 
 - **Cerut:** handoff pentru o sesiune noua (context aproape plin).

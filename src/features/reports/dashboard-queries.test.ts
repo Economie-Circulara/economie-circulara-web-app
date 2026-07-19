@@ -10,7 +10,7 @@ function makeCountBuilder(count: number, error: unknown = null) {
   const builder: Record<string, unknown> & { then: (resolve: (v: unknown) => void) => void } = {
     then: (resolve) => resolve({ count, error }),
   };
-  for (const m of ["select", "in", "eq", "gte"]) {
+  for (const m of ["select", "in", "eq", "gte", "or"]) {
     builder[m] = vi.fn(() => builder);
   }
   return builder;
@@ -44,7 +44,12 @@ describe("getDashboardKpis", () => {
     expect(builders[0].in).toHaveBeenCalledWith("status", ["sent", "accepted", "delivered"]);
     expect(builders[1].eq).toHaveBeenCalledWith("status", "sent");
     expect(builders[2].eq).toHaveBeenCalledWith("status", "delivered");
-    expect(builders[2].gte).toHaveBeenCalled();
+    // Momentul livrarii = delivered_at, cu fallback delivery_date ?? updated_at
+    // (acelasi lant ca deliveredAtIso din calculations.ts — Fix F3).
+    const orFilter = (builders[2].or as ReturnType<typeof vi.fn>).mock.calls[0][0] as string;
+    expect(orFilter).toMatch(/^delivered_at\.gte\./);
+    expect(orFilter).toContain("and(delivered_at.is.null,delivery_date.gte.");
+    expect(orFilter).toContain("and(delivered_at.is.null,delivery_date.is.null,updated_at.gte.");
   });
 
   it("intoarce 0 daca vreo numarare e null (fara randuri)", async () => {
