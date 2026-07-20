@@ -2,8 +2,45 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import type { NavItem } from "./nav-config";
+import {
+  BarChart3,
+  Boxes,
+  Factory,
+  FileText,
+  History,
+  LayoutDashboard,
+  LayoutGrid,
+  Package,
+  ScrollText,
+  Settings,
+  ShoppingCart,
+  Truck,
+  Users,
+  type LucideIcon,
+} from "lucide-react";
+import type { NavIconKey, NavItem } from "./nav-config";
 import { cn } from "@/lib/utils";
+
+/**
+ * Maparea cheie -> componenta lucide. Traieste aici (Client Component) fiindca
+ * componentele-icon nu pot fi trecute peste granita server->client; config-ul de
+ * navigatie transporta doar cheia serializabila (vezi `nav-config.ts`).
+ */
+const NAV_ICONS: Record<NavIconKey, LucideIcon> = {
+  dashboard: LayoutDashboard,
+  orders: ShoppingCart,
+  deliveries: Truck,
+  stock: Boxes,
+  production: Factory,
+  clients: Users,
+  items: Package,
+  recipes: ScrollText,
+  audit: History,
+  reports: BarChart3,
+  settings: Settings,
+  catalog: LayoutGrid,
+  documents: FileText,
+};
 
 export interface SidebarProps {
   /** Numele organizatiei (white label). */
@@ -33,7 +70,7 @@ export function Sidebar({ orgName, logoUrl, items }: SidebarProps) {
       <nav className="flex-1 space-y-0.5 overflow-y-auto p-2">
         {items.map((item) => {
           const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
-          const Icon = item.icon;
+          const Icon = NAV_ICONS[item.icon];
           return (
             <Link
               key={item.href}

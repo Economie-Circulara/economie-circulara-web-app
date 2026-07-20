@@ -2,7 +2,8 @@
 
 import { useActionState } from "react";
 import { Button } from "@/components/ui/button";
-import { createRecipeAction, initialRecipeFormState } from "./actions";
+import { createRecipeAction } from "./actions";
+import { initialRecipeFormState } from "./form-state";
 
 /** Buton "Creează rețeta" pentru un item fizic care nu are inca una. */
 export function CreateRecipeButton({ itemId }: { itemId: string }) {

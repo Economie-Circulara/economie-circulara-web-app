@@ -19,7 +19,8 @@ vi.mock("next/navigation", () => ({ redirect }));
 const { revalidatePath } = vi.hoisted(() => ({ revalidatePath: vi.fn() }));
 vi.mock("next/cache", () => ({ revalidatePath }));
 
-import { createItemAction, initialItemFormState, updateItemAction } from "./actions";
+import { createItemAction, updateItemAction } from "./actions";
+import { initialItemFormState } from "./form-state";
 
 afterEach(() => {
   vi.clearAllMocks();

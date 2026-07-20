@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { FormField } from "@/components/form-field";
-import { initialSettingsState, updateOrganizationAction } from "./actions";
+import { updateOrganizationAction } from "./actions";
+import { initialSettingsState } from "./form-state";
 import type { CurrentOrg } from "@/features/auth/queries";
 
 export function SettingsForm({ org }: { org: CurrentOrg }) {

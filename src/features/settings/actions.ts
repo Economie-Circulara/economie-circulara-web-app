@@ -3,13 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/features/auth/session";
-
-export interface SettingsState {
-  error: string | null;
-  message: string | null;
-}
-
-export const initialSettingsState: SettingsState = { error: null, message: null };
+import type { SettingsState } from "./form-state";
 
 function clean(value: FormDataEntryValue | null): string | null {
   const s = String(value ?? "").trim();

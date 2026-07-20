@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { FormField } from "@/components/form-field";
-import { addComponentAction, initialRecipeFormState, removeComponentAction } from "./actions";
+import { addComponentAction, removeComponentAction } from "./actions";
+import { initialRecipeFormState } from "./form-state";
 import { isPercentageSumComplete } from "./validation";
 import type { RecipeDetail, RecipeItemOption } from "./types";
 

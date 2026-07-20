@@ -6,19 +6,7 @@ import { requireRole } from "@/features/auth/session";
 import { PROVENANCE_OPTIONS } from "./labels";
 import { blockLot, createLot, unblockLot } from "./service";
 import type { LotProvenance, QualityStatus } from "./types";
-
-export interface LotFormState {
-  error: string | null;
-  message: string | null;
-}
-
-export const initialLotFormState: LotFormState = { error: null, message: null };
-
-export interface BlockFormState {
-  error: string | null;
-}
-
-export const initialBlockFormState: BlockFormState = { error: null };
+import type { LotFormState, BlockFormState } from "./form-state";
 
 function clean(value: FormDataEntryValue | null): string | null {
   const s = String(value ?? "").trim();

@@ -4,12 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireRole } from "@/features/auth/session";
 import { addOrUpdateComponent, createRecipe, removeComponent } from "./service";
-
-export interface RecipeFormState {
-  error: string | null;
-}
-
-export const initialRecipeFormState: RecipeFormState = { error: null };
+import type { RecipeFormState } from "./form-state";
 
 function clean(value: FormDataEntryValue | null): string | null {
   const s = String(value ?? "").trim();

@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { FormField } from "@/components/form-field";
-import { createLotAction, initialLotFormState } from "./actions";
+import { createLotAction } from "./actions";
+import { initialLotFormState } from "./form-state";
 import { PROVENANCE_LABELS, PROVENANCE_OPTIONS } from "./labels";
 import type { ItemOption } from "./types";
 

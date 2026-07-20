@@ -2,11 +2,8 @@
 
 import { useActionState, useState } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  initialOrgStatusState,
-  reactivateOrganizationAction,
-  suspendOrganizationAction,
-} from "./actions";
+import { reactivateOrganizationAction, suspendOrganizationAction } from "./actions";
+import { initialOrgStatusState } from "./form-state";
 import type { OrgStatus } from "./types";
 
 /**
