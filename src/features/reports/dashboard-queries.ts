@@ -9,7 +9,18 @@ import type { DashboardKpis } from "./types";
  */
 export async function getDashboardKpis(): Promise<DashboardKpis> {
   const supabase = await createClient();
-  const monthStart = startOfDayIso(currentMonthRange().from);
+  const monthStartDate = currentMonthRange().from;
+  const monthStart = startOfDayIso(monthStartDate);
+
+  // "Livrate luna curenta": momentul REAL al livrarii, cu acelasi lant de fallback
+  // ca `deliveredAtIso` din calculations.ts (Fix F3) — `delivered_at` lipseste la
+  // comenzile livrate inainte de migrarea 0015. `delivery_date` e coloana `date`,
+  // deci se compara cu `YYYY-MM-DD`.
+  const deliveredThisMonthFilter = [
+    `delivered_at.gte.${monthStart}`,
+    `and(delivered_at.is.null,delivery_date.gte.${monthStartDate})`,
+    `and(delivered_at.is.null,delivery_date.is.null,updated_at.gte.${monthStart})`,
+  ].join(",");
 
   const [activeRes, toAcceptRes, deliveredRes, certificatesRes] = await Promise.all([
     supabase
@@ -21,7 +32,7 @@ export async function getDashboardKpis(): Promise<DashboardKpis> {
       .from("orders")
       .select("id", { count: "exact", head: true })
       .eq("status", "delivered")
-      .gte("updated_at", monthStart),
+      .or(deliveredThisMonthFilter),
     supabase.from("certificates").select("id", { count: "exact", head: true }),
   ]);
 

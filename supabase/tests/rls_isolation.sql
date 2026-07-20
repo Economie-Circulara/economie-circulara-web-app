@@ -380,4 +380,43 @@ begin;
     from public.orders where id = '0d0d0d0d-0000-0000-0000-00000000000d';
 rollback;
 
+-- ===== Seed TEST 20 (ca postgres): comanda acceptata al carei lot consumat e STERS =====
+-- Scenariul migrarii 0017: `stock_events.lot_id` e `on delete set null`, deci
+-- stergerea lotului intre acceptare si anulare orfaneaza evenimentul 'consumption'.
+insert into public.orders (id, organization_id, client_id, status, order_number) values
+  ('0d0d0d0d-0000-0000-0000-00000000000e','aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+   'c1c1c1c1-c1c1-c1c1-c1c1-c1c1c1c1c1c1','accepted','CMD-TEST-0020');
+insert into public.lots (id, organization_id, item_id, provenance, initial_qty, remaining_qty) values
+  ('f0f0f0f0-0000-0000-0000-000000000020','aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+   '11111111-0000-0000-0000-000000000002','purchase',10.000,2.500);
+insert into public.stock_events (organization_id, item_id, lot_id, event_type, quantity, reason, order_id, created_by) values
+  ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa','11111111-0000-0000-0000-000000000002',
+   'f0f0f0f0-0000-0000-0000-000000000020','consumption',-7.500,'Acceptare CMD-TEST-0020',
+   '0d0d0d0d-0000-0000-0000-00000000000e','11111111-1111-1111-1111-111111111111');
+delete from public.lots where id = 'f0f0f0f0-0000-0000-0000-000000000020';
+
+-- ===== TEST 20: cancel_order pe lot sters -> lot de ajustare + reversal (0017) =====
+begin;
+  set local role authenticated;
+  set local request.jwt.claims = '{"sub":"11111111-1111-1111-1111-111111111111"}';
+  select public.cancel_order('0d0d0d0d-0000-0000-0000-00000000000e');
+
+  select pg_temp.assert('T20 comanda e anulata', count(*), 1)
+    from public.orders
+    where id = '0d0d0d0d-0000-0000-0000-00000000000e' and status = 'cancelled';
+  select pg_temp.assert('T20 lot de ajustare creat cu cantitatea consumata', count(*), 1)
+    from public.lots
+    where organization_id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'
+      and item_id = '11111111-0000-0000-0000-000000000002'
+      and provenance = 'inventory_adjustment'
+      and initial_qty = 7.500 and remaining_qty = 7.500;
+  select pg_temp.assert('T20 reversal de audit pe lotul de ajustare', count(*), 1)
+    from public.stock_events se
+    join public.lots l on l.id = se.lot_id
+    where se.order_id = '0d0d0d0d-0000-0000-0000-00000000000e'
+      and se.event_type = 'reversal'
+      and se.quantity = 7.500
+      and l.provenance = 'inventory_adjustment';
+rollback;
+
 select '*** TOATE TESTELE RLS AU TRECUT ***' as result;
