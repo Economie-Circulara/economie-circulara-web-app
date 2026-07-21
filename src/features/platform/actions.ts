@@ -13,25 +13,7 @@ import {
   inviteOrganizationAdmin,
   setOrganizationStatus,
 } from "./service";
-
-export interface CreateOrganizationState {
-  error: string | null;
-  message: string | null;
-  /** Setat dupa ce randul organizatiei exista in DB — ramane intre reincercari. */
-  organizationId: string | null;
-  orgName: string;
-  orgSlug: string;
-  adminEmail: string;
-}
-
-export const initialCreateOrganizationState: CreateOrganizationState = {
-  error: null,
-  message: null,
-  organizationId: null,
-  orgName: "",
-  orgSlug: "",
-  adminEmail: "",
-};
+import type { CreateOrganizationState, OrgStatusState } from "./form-state";
 
 function clean(value: FormDataEntryValue | null): string {
   return String(value ?? "").trim();
@@ -142,12 +124,6 @@ export async function createOrganizationAction(
   revalidatePath("/platform");
   redirect("/platform");
 }
-
-export interface OrgStatusState {
-  error: string | null;
-}
-
-export const initialOrgStatusState: OrgStatusState = { error: null };
 
 /** Suspenda o organizatie (super-admin). */
 export async function suspendOrganizationAction(

@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { FormField } from "@/components/form-field";
-import { createItemAction, initialItemFormState, updateItemAction } from "./actions";
+import { createItemAction, updateItemAction } from "./actions";
+import { initialItemFormState } from "./form-state";
 import { KIND_LABELS, KIND_OPTIONS, UNIT_LABELS, UNIT_OPTIONS } from "./labels";
 import type { Item } from "./types";
 

@@ -4,7 +4,8 @@ import { useActionState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { FormField } from "@/components/form-field";
-import { createRecipeAction, initialRecipeFormState } from "./actions";
+import { createRecipeAction } from "./actions";
+import { initialRecipeFormState } from "./form-state";
 import type { RecipeItemOption } from "./types";
 
 const selectClassName =

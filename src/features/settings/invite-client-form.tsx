@@ -4,7 +4,8 @@ import { useActionState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { FormField } from "@/components/form-field";
-import { inviteClientAction, initialUserMgmtState } from "./user-actions";
+import { inviteClientAction } from "./user-actions";
+import { initialUserMgmtState } from "./form-state";
 import type { AvailableClient } from "./queries";
 
 export interface InviteClientFormProps {

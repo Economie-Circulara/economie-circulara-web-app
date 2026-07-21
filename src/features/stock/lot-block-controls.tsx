@@ -3,7 +3,8 @@
 import { useActionState, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { blockLotAction, initialBlockFormState, unblockLotAction } from "./actions";
+import { blockLotAction, unblockLotAction } from "./actions";
+import { initialBlockFormState } from "./form-state";
 import type { LotWithItem } from "./types";
 
 /**

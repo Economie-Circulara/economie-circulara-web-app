@@ -16,7 +16,8 @@ vi.mock("@/features/auth/session", () => ({ getCurrentUser }));
 const { getClient } = vi.hoisted(() => ({ getClient: vi.fn() }));
 vi.mock("@/features/clients/queries", () => ({ getClient }));
 
-import { initialUserMgmtState, inviteClientAction, inviteStaffAction } from "./user-actions";
+import { inviteClientAction, inviteStaffAction } from "./user-actions";
+import { initialUserMgmtState } from "./form-state";
 
 function formData(fields: Record<string, string>): FormData {
   const fd = new FormData();

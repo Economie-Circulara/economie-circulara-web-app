@@ -20,12 +20,8 @@ vi.mock("next/navigation", () => ({ redirect }));
 const { revalidatePath } = vi.hoisted(() => ({ revalidatePath: vi.fn() }));
 vi.mock("next/cache", () => ({ revalidatePath }));
 
-import {
-  addComponentAction,
-  createRecipeAction,
-  initialRecipeFormState,
-  removeComponentAction,
-} from "./actions";
+import { addComponentAction, createRecipeAction, removeComponentAction } from "./actions";
+import { initialRecipeFormState } from "./form-state";
 
 afterEach(() => {
   vi.clearAllMocks();

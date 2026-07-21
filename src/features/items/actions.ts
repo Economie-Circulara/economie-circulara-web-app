@@ -6,12 +6,7 @@ import { requireRole } from "@/features/auth/session";
 import { KIND_OPTIONS, UNIT_OPTIONS } from "./labels";
 import { createItem, updateItem } from "./service";
 import type { ItemKind, UnitOfMeasure } from "./types";
-
-export interface ItemFormState {
-  error: string | null;
-}
-
-export const initialItemFormState: ItemFormState = { error: null };
+import type { ItemFormState } from "./form-state";
 
 function clean(value: FormDataEntryValue | null): string | null {
   const s = String(value ?? "").trim();

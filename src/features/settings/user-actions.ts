@@ -5,16 +5,10 @@ import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getCurrentUser } from "@/features/auth/session";
 import { getClient } from "@/features/clients/queries";
+import type { UserMgmtState } from "./form-state";
 
 /** Validare minimala de format email (server-side; input-ul HTML e `type="email"`). */
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-export interface UserMgmtState {
-  error: string | null;
-  message: string | null;
-}
-
-export const initialUserMgmtState: UserMgmtState = { error: null, message: null };
 
 async function siteOrigin(): Promise<string> {
   const h = await headers();
