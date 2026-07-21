@@ -19,6 +19,7 @@ Acest folder contine toate documentele de analiza, cerinte si design pentru plat
 | [review-cerinte.md](review-cerinte.md)                 | Sumar al deciziilor si intrebarilor deschise (A-J), cu raspunsuri.                                                                                                  |
 | [brain-dump.md](brain-dump.md)                         | Brain dump-ul initial al clientului - ideile brute de la care s-a pornit analiza.                                                                                   |
 | [implementation-plan.md](plans/implementation-plan.md) | **Plan de implementare** impartit in task-uri individuale (waves) ce pot fi preluate de agenti AI in paralel, cu dependente si criterii de acceptare. (in `plans/`) |
+| [tenancy-model-url.md](plans/tenancy-model-url.md)     | **Decizie de arhitectura:** modelul de tenancy in URL (subdomeniu vs. slug vs. fara), implicatii de cost Vercel/Supabase si de ce MVP ramane fara tenant in URL. (in `plans/`) |
 
 ## Manual
 
