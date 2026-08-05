@@ -165,17 +165,15 @@ Modelul care a funcționat (recomandat pentru continuare):
      `EmailProvider` există; acum e mock care loghează).
 5. **Screenshot-uri în manual** (`docs/manual/`) — din aplicația rulantă.
 
-### Follow-ups de cod (mici, opționale — findings din review neacoperite)
-- **E2E în CI:** infrastructura există (`e2e.yml`, `tests/e2e/mvp-flow.spec.ts`); jobul
-  e manual-only fiindcă rularea browser pică și nu a putut fi iterată fără Docker.
-  **De stabilizat:** rulează `Actions → E2E → Run workflow`, descarcă `playwright-report`
-  de pe run-ul eșuat, iterează pe cauza reală (probabil auth headless / timing / date de
-  seed), apoi re-activează triggerul `pull_request` + scoate `continue-on-error` din e2e.yml.
-- **`reports/dashboard-queries.ts` `getDashboardKpis`** („Livrate luna curentă") încă
-  filtrează pe `updated_at`; acum că există `delivered_at` (0015), poate folosi coloana
-  reală (aceeași clasă de fix ca F3).
-- **`cancel_order`** nu poate reface stocul într-un lot **șters** (`lot_id is not null` îl
-  sare) — edge case rar; eventual creează un lot de ajustare la anulare dacă lotul lipsește.
+### Follow-ups de cod — TOATE REZOLVATE (2026-08-05)
+- ✅ **E2E în CI:** cauza era un selector ambiguu pe `/login` (reparat în `6cf48dd`,
+  după ultimul run picat); run `workflow_dispatch` pe main = verde → triggerul
+  `pull_request` reactivat + `continue-on-error` scos din e2e.yml (check blocant).
+- ✅ **`getDashboardKpis`** („Livrate luna curentă") filtrează acum pe `delivered_at`
+  cu fallback `delivery_date ?? updated_at` (PR #16).
+- ✅ **`cancel_order`** cu lot șters: migrarea `0017_cancel_order_deleted_lot.sql` —
+  lot de ajustare (`inventory_adjustment`) + `reversal` per articol (PR #16;
+  `rls_isolation.sql` TEST 20).
 
 ### Decizii de proiect (netehnice, ale echipei)
 - Confirmarea finală a Anexei 1 înainte de depunere (vezi `docs/anexa-1-modificari-propuse.md`).
