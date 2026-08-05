@@ -13,6 +13,17 @@ Format intrare:
 
 ---
 
+## 2026-08-05 — Claude (sesiune de continuare)
+
+- **Cerut:** stabilizarea E2E in CI (ultimul follow-up de cod din handoff §8).
+- **Facut:** diagnosticat esecul istoric din log-urile run-ului 29695418536:
+  selector ambiguu pe /login (`getByLabel("Email")` prindea si campul de magic
+  link) — deja reparat in `6cf48dd` DUPA ultimul run, deci suita nu mai fusese
+  rulata pe codul reparat. Run `workflow_dispatch` proaspat pe main
+  (30979712062): VERDE (Supabase + migrari 0000-0017 + seed + Playwright).
+  `e2e.yml`: reactivat triggerul `pull_request` + scos `continue-on-error`
+  (E2E devine check blocant); handoff-continuare.md §8 actualizat.
+
 ## 2026-07-19 — Claude (sesiune de continuare)
 
 - **Cerut:** follow-up-ul `cancel_order` din handoff §8 — refacerea stocului cand
