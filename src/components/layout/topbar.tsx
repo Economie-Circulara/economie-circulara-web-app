@@ -1,5 +1,6 @@
 import { Search } from "lucide-react";
 import { SignOutButton } from "@/features/auth/sign-out-button";
+import { ThemeToggle } from "@/components/theme-toggle";
 import type { UserRole } from "@/features/auth/session";
 import type { NavItem } from "./nav-config";
 import { MobileSidebar } from "./sidebar";
@@ -62,6 +63,7 @@ export function Topbar({ email, roleLabel, role, orgName, logoUrl, items }: Topb
           </form>
         ) : null}
         <span className="min-w-0 flex-1 truncate text-sm font-medium sm:flex-none">{email}</span>
+        <ThemeToggle />
         <SignOutButton />
       </div>
     </header>

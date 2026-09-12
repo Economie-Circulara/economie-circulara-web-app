@@ -58,6 +58,50 @@
   --radius: 0.5rem;
 }
 
+/*
+ * Tema dark (toggle in topbar, vezi src/components/theme-toggle.tsx). next-themes
+ * adauga/scoate clasa `dark` pe <html> (attribute="class"). Spre deosebire de
+ * whitelabelul din BrandProvider (care suprascrie pe un DIV descendent si de
+ * aceea trebuie sa redeclare explicit si tokenii derivati, nu doar primitivele -
+ * vezi comentariul din brand-provider.tsx), `.dark` tinteste ACELASI element ca
+ * `:root` (html-ul e simultan :root si .dark), deci tokenii derivati din `:root`
+ * (--background: var(--paper), --primary: var(--brand) etc.) se recalculeaza
+ * corect folosind valorile de mai jos, fara sa fie nevoie sa-i redeclaram pe toti -
+ * ii redeclaram doar pe cei cu valori care NU pot fi simple alias-uri (culorile de
+ * contrast --primary-foreground/--destructive-foreground, care NU mai pot ramane
+ * legate de --surface caci acesta devine intunecat in tema dark).
+ */
+.dark {
+  --brand: oklch(0.64 0.1 155);
+  --accent: oklch(0.78 0.12 66);
+  --accent-soft: oklch(0.3 0.045 75);
+  --on-accent: oklch(0.2 0.045 60);
+
+  --ink: oklch(0.93 0.008 110);
+  --muted-ink: oklch(0.72 0.014 120);
+  --faint: oklch(0.55 0.012 120);
+  --line: oklch(0.34 0.015 130);
+  --paper: oklch(0.19 0.012 150);
+  --surface: oklch(0.24 0.014 150);
+  --surface-2: oklch(0.29 0.014 150);
+  --grid-dot: oklch(0.3 0.015 130);
+
+  --ok: oklch(0.64 0.1 150);
+  --ok-bg: oklch(0.28 0.05 150);
+  --warn: oklch(0.7 0.12 65);
+  --warn-bg: oklch(0.3 0.06 70);
+  --danger: oklch(0.66 0.16 25);
+  --danger-bg: oklch(0.3 0.07 25);
+  --info: oklch(0.64 0.08 230);
+  --info-bg: oklch(0.28 0.05 230);
+
+  /* --primary-foreground/--destructive-foreground sunt aliasate la --surface in
+     :root (deschisa acolo) - in dark, --surface devine intunecata, deci textul de
+     pe butoane primary/destructive ar deveni ilizibil daca ramanea legat de ea. */
+  --primary-foreground: oklch(0.98 0.004 95);
+  --destructive-foreground: oklch(0.98 0.004 95);
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
