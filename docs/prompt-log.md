@@ -13,6 +13,40 @@ Format intrare:
 
 ---
 
+## 2026-09-12 — Claude Opus 5 — Homepage real + diagnostic email
+
+- **Cerut:** „ce ar mai fi de facut next?" + doua observatii: homepage-ul e varza, si
+  email-related stuff nu merge (invite, magic link).
+- **Homepage:** `src/app/page.tsx` era inca **schela Wave 0** livrata in productie —
+  textul „Schela initiala (Wave 0). Vezi docs/plans/implementation-plan.md pentru pasii
+  urmatori" plus un buton „Vezi design system-ul" catre `/showcase`, care e `notFound()`
+  in productie (guard corect, dar linkul era rupt exact in mediul unde il vedea un
+  vizitator). Inlocuit cu o pagina publica reala: header cu CTA de autentificare, hero,
+  si 6 capabilitati descrise in termenii platformei (certificat de trasabilitate, stoc pe
+  loturi cu FIFO si istoric, productie/reciclare, livrari + avize + e-Transport, portal
+  client, rapoarte). Responsive (grid 1/2/3 coloane), pe tokenii temei, fara asset-uri
+  externe. Deliberat STATICA: CTA-ul duce la `/login`, care redirecteaza singur un user
+  deja autentificat — deci pagina publica rămâne prerandata. Teste extinse: titlu, faptul
+  ca toate linkurile duc la `/login` (regresie pentru linkul rupt), si capabilitatile.
+- **Email — diagnosticat, TREI cauze distincte, niciuna reparabila doar din cod:**
+  1. `invite` esueaza INAINTE de email: `inviteUserByEmail` merge prin `createAdminClient()`,
+     iar `SUPABASE_SECRET_KEY` nu e setata pe Vercel (nu a putut fi obtinuta automat —
+     citirea cheilor secrete e blocata).
+  2. Toate emailurile de Auth (invite, magic link, reset parola) pleaca prin senderul
+     Supabase, nu prin aplicatie. Proiectul hosted nu are SMTP propriu → senderul
+     implicit trimite doar catre membrii proiectului si e limitat la cateva emailuri/ora.
+     Separat, `Site URL`/`Redirect URLs` trebuie sa includa domeniul de productie.
+     (`siteOrigin()` deduce corect originea din `host`, deci `redirectTo` e bun — dar
+     Supabase il valideaza contra allowlist-ului.)
+  3. Notificarile de schimbare de status comanda (X1) folosesc alt drum:
+     `EMAIL_API_URL`/`EMAIL_API_KEY`, nesetate → `ConsoleEmailProvider`, care doar
+     jurnalizeaza.
+- **Provizionare:** discovery pe marketplace a dat **Resend** (`resend/resend-email`) —
+  potrivirea e exacta, `HttpApiEmailProvider` e deja scris pentru formatul Resend/Postmark,
+  iar SMTP-ul Resend acopera si emailurile Supabase Auth, deci un singur provider rezolva
+  ambele drumuri. `vercel integration add` a fost **blocat de politica de permisiuni**
+  (creeaza resursa de cont cu potential de costuri) — predat userului cu pasii exacti.
+
 ## 2026-09-12 - Claude Opus 5 - Commit integral + deploy in productie
 
 - **Cerut:** "aplica tot, comite tot (inclusiv modificarile de responsive), apoi aplica ce
