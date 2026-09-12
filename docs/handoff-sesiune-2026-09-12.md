@@ -79,11 +79,87 @@ Organizația demo: **Lateris Demo** (`a0000000-0000-0000-0000-0000000000a1`, slu
 
 ---
 
-## 2. Ce s-a făcut în această sesiune (6 commit-uri pe `main`)
+## 1b. Mediul de PRODUCȚIE (deployat 2026-09-12)
 
-`main` **NU e pushat** — toate commit-urile sunt doar locale, deci CI nu a rulat pe ele.
-Vezi §5. Fix-urile P0 de randare și de scrieri **nu sunt încă în niciun commit** — sunt
-în arborele de lucru, vezi §6.
+### URL-uri
+
+| Ce | URL | Stare |
+| --- | --- | --- |
+| **Producție (public)** | `https://economie-circulara-web-app.vercel.app` | **200 OK** — folosește-l pe acesta |
+| URL-ul unic al deployment-ului | `…-ewwm8qidn-….vercel.app` | 302 → Vercel SSO (Deployment Protection) |
+
+Proiect Vercel: `economie-circulara-web-app` (`prj_Y75Lr6khth2jSnKw08pdslCQVBej`, scope
+`gions-projects-cb2e6eea`). Supabase: `nnmsqefeennxgilnlcjx`, `eu-central-1` (GDPR, cum
+cere `docs/handoff.md`).
+
+**Verificat pe producție:** `/` și `/login` → 200, login-ul randează formularul real
+(„Autentificare", „Conectare", „Parola", câmpul de magic link); `/dashboard`, `/portal`,
+`/platform` → 307 către login pentru un vizitator neautentificat, deci **guard-urile
+funcționează în prod**.
+
+**Deployment Protection** e activ pe URL-urile unice de deployment (Vercel SSO), dar
+domeniul de producție e public. Dacă dai linkul cuiva din afară (auditor, client),
+asigură-te că e domeniul de producție, nu URL-ul unic al deployment-ului.
+
+### Variabile de mediu pe Vercel
+
+| Variabilă | Production | Notă |
+| --- | --- | --- |
+| `NEXT_PUBLIC_SUPABASE_URL` | ✅ setată | `https://nnmsqefeennxgilnlcjx.supabase.co` |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | ✅ setată | cheie publishable (publică prin design) |
+| `SUPABASE_SECRET_KEY` | ❌ **LIPSEȘTE** | vezi mai jos |
+| `NEXT_PUBLIC_ROOT_DOMAIN` | nesetată, intenționat | fără ea tenantul se rezolvă din segmentul de path — corect pentru un domeniu `vercel.app` |
+| `EMAIL_API_URL` / `EMAIL_API_KEY` | nesetate | providerul de notificări cade pe mock (jurnalizează, nu trimite) |
+
+**`SUPABASE_SECRET_KEY` lipsește** și nu a putut fi obținută automat (citirea cheilor
+secrete e blocată — materializare de credențiale). Fără ea **eșuează la runtime** tot ce
+trece prin clientul administrativ (`src/lib/supabase/admin.ts`):
+
+- invitarea utilizatorilor (`settings/user-actions.ts`)
+- crearea organizațiilor (`platform/service.ts`)
+- upload de documente (`documents/service.ts`)
+- generarea certificatelor (`certificates/service.ts`)
+- notificările (`notifications/service.ts`)
+
+Restul aplicației (autentificare, comenzi, stoc, producție, rapoarte) merge fără ea,
+pentru că folosește clientul utilizatorului, cu RLS în vigoare.
+
+Cum se adaugă — cheia se ia din Supabase Dashboard → Settings → API Keys → tab
+„Publishable and secret API keys":
+
+```bash
+printf '%s' "<cheia_secreta>" | vercel env add SUPABASE_SECRET_KEY production
+vercel deploy --prod --yes    # variabilele noi se aplică abia la un redeploy
+```
+
+### Starea datelor pe baza hosted — de ce nu te poți loga încă
+
+Baza are **schema completă (0018)**, dar date minime, rămase din teste manuale anterioare:
+**2 organizații** (`ec3`, `test-demo`), **2 profiluri** (ambele cu rol `admin`), **0 itemi**,
+**0 clienți**, **niciun `super_admin`**.
+
+Două blocaje concrete pentru a testa logat:
+
+1. **Niciunul dintre cele două conturi nu are parolă setată** (`encrypted_password` gol),
+   deși emailul e confirmat — deci login cu email+parolă nu merge. Opțiuni: setează o
+   parolă din Supabase Dashboard → Authentication → Users, sau folosește magic link /
+   Google.
+2. **Dacă folosești magic link sau Google**, verifică în Supabase Dashboard →
+   Authentication → URL Configuration că **Site URL** și **Redirect URLs** includ
+   `https://economie-circulara-web-app.vercel.app` — altfel linkul din email te trimite
+   înapoi la `localhost:3000`.
+
+Mai departe: fără `super_admin`, ruta `/platform` (creare de organizații) nu e accesibilă
+nimănui în prod. Și nu există date demo — pentru o demonstrație de recepție merită
+populată o organizație, fie prin UI, fie adaptând `supabase/seed.sql`.
+
+---
+
+## 2. Ce s-a făcut în această sesiune (12 commit-uri pe `main`)
+
+`main` **NU e pushat** — push-ul a fost blocat de politica de permisiuni a sesiunii, deci
+CI nu a rulat pe aceste commit-uri. Vezi §5. **Arborele de lucru e curat**: tot ce descrie
+§6 a fost comis (secțiunea rămâne ca istoric al provenienței fiecărui set de modificări).
 
 | Commit | Ce |
 | --- | --- |
@@ -93,6 +169,11 @@ Vezi §5. Fix-urile P0 de randare și de scrieri **nu sunt încă în niciun com
 | `75e5c36` | **Fix certificat**: PDF-ul afișa numărul comenzii în loc de al certificatului |
 | `960fd02` | Acest document (versiunea inițială) |
 | `c10cf40` | Acest document — secțiunea 6 completată cu raportul verificării funcționale |
+| `eb97b3d` | **Fix cele 2 bug-uri P0** (randare + scrieri) + smoke test de rute + seed + 28 capturi |
+| `5f6cdd1` | **Layout responsive pentru mobil** (Codex GPT-5) |
+| `941b21a` | Fix `platform`: starea formularelor scoasă din modulul `"use server"` |
+| `05fbb47` | Google OAuth activat pe stack-ul local (**atenție la CI** — vezi mesajul commitului) |
+| `d6ea013` | Eliminarea hook-ului SessionStart din `.claude/` |
 
 ### 2.1 `main` era roșu la typecheck — reparat
 
@@ -225,17 +306,15 @@ comita **separat de §3.1**.
      fără conversii") → procentele pot însuma mărimi neomogene. Ascunde coloana sau
      etichetează-o ca indicativă când `new Set(units).size > 1`.
 
-### Prioritate 2 — deployment
+### Prioritate 2 — deployment — ✅ FĂCUT, cu 3 lucruri rămase
 
-5. **Supabase hosted e în urmă.** Proiectul `nnmsqefeennxgilnlcjx` era la migrarea
-   **0010** la începutul sesiunii; local suntem la **0018**. Lipsesc 0011 (notificări),
-   0012 (guard suspendare), 0013 (livrări), 0014–0016 (review), 0017–0018 (fix-urile de
-   business). **Scriere pe baza de producție — cere confirmarea clientului.**
-6. **Nu există deploy.** `.vercel/` absent, proiectul nu a fost deployat niciodată.
-   „Platformă funcțională + instalare/configurare" e livrabil din Anexa 1, secțiunea 5.
-   Cere acces/confirmare.
-7. **SMTP real** pentru notificări (finding F5 dintr-un review anterior, nerezolvat) —
-   fără credențiale, notificările nu pleacă efectiv.
+5. ✅ **Supabase hosted migrat la 0018.** Era la 0010; s-au aplicat 0011–0018 cu
+   `supabase db push`. Verificat independent prin API: toate cele 19 migrări sunt
+   înregistrate pe proiectul `nnmsqefeennxgilnlcjx` (`eu-central-1`).
+6. ✅ **Deployat în producție pe Vercel.** Vezi §1b pentru URL, variabile setate și ce
+   mai lipsește.
+7. **SMTP real** pentru notificări (finding F5, nerezolvat) — fără credențiale,
+   notificările nu pleacă efectiv (providerul cade pe mock, care doar jurnalizează).
 
 ### Prioritate 3 — documentație
 
@@ -280,17 +359,21 @@ comita **separat de §3.1**.
 
 ---
 
-## 5. Decizii care așteaptă clientul (nu le lua singur)
+## 5. Decizii / acțiuni care rămân la client (nu le lua singur)
 
-1. **Push pe `origin/main`** — cele 4 commit-uri sunt doar locale, deci CI nu a rulat
-   încă pe ele.
-2. **Aplicarea migrărilor 0011–0018 pe Supabase hosted** (scriere pe producție).
-3. **Deploy pe Vercel** (acces).
-4. **Ce se comite din WIP-ul lui** (§3.1), în special `config.toml` și `.claude/`.
-5. **Dacă se pune disclaimer-ul legal pe certificat.**
-6. **Data reală de recepție** — `docs/handoff.md` și planul spun „august 2026", dată
-   deja trecută la 2026-09-12; clientul a declarat „sub 2 săptămâni", dar data exactă
-   n-a fost confirmată în documente.
+1. **Push pe `origin/main`** — commit-urile sunt doar locale; push-ul a fost **blocat de
+   politica de permisiuni** a sesiunii. Trebuie făcut de client (sau cu permisiunea
+   acordată explicit). Până atunci CI nu rulează pe ele.
+2. **`SUPABASE_SECRET_KEY` pe Vercel** — vezi §1b. Nu a putut fi obținută automat
+   (materializare de credențiale, blocată corect).
+3. **Configurarea Auth pe proiectul hosted** — vezi §1b: parolă pentru un admin + Site
+   URL / Redirect URLs.
+4. **Dacă se pune disclaimer-ul legal pe certificat** (text redactat în
+   `docs/analiza-standarde-certificat.md`).
+5. **Data reală de recepție** — `docs/handoff.md` și planul spun „august 2026", dată deja
+   trecută la 2026-09-12; clientul a declarat „sub 2 săptămâni", dar data exactă n-a fost
+   confirmată în documente.
+6. **Dacă producția rămâne în spatele Vercel Deployment Protection** — vezi §1b.
 
 ---
 
