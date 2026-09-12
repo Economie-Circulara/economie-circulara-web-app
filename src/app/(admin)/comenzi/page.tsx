@@ -8,7 +8,7 @@ import { OrderTable } from "@/features/orders/order-table";
 import { listOrders } from "@/features/orders/queries";
 import type { OrderStatus } from "@/features/orders/types";
 
-export const metadata = { title: "Comenzi - Lateris Trace" };
+export const metadata = { title: "Comenzi - Provenio" };
 
 const selectClassName =
   "flex h-9 w-full rounded-md border border-input bg-card px-3 py-1 text-sm shadow-xs outline-none sm:w-48";

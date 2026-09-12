@@ -1,4 +1,4 @@
-# Setup - Lateris Trace (repo web app)
+# Setup - Provenio (repo web app)
 
 Ghid de configurare pentru noul repo `Economie-Circulara/economie-circulara-web-app`:
 dezvoltare locala, conectare la **Supabase** si **Vercel**, si configurarea unui

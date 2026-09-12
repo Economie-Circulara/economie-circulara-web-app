@@ -1,3 +1,4 @@
+import { PLATFORM_NAME } from "@/lib/brand";
 import { createElement } from "react";
 import { renderToBuffer } from "@react-pdf/renderer";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -225,7 +226,7 @@ export async function generateCertificateForOrder(
   const pdfBuffer = await renderCertificatePdf(
     snapshot,
     number,
-    org?.name ?? "Lateris Trace",
+    org?.name ?? PLATFORM_NAME,
     org?.primary_color,
     org?.secondary_color,
   );

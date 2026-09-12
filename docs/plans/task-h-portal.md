@@ -32,7 +32,7 @@ stoc/productie vizibile.
   `setQuantity`, `totalItems`, `linesFromOrder` pt. "repeta comanda").
 - `cart-context.tsx`: `CartProvider` (client component) cu `useReducer(cartReducer)`
   peste `cart-logic.ts` + sincronizare `localStorage` (cheie
-  `lateris-trace:cart:v1`) - persista intre `/catalog` si `/comenzile-mele`, necesar
+  `provenio:cart:v1`) - persista intre `/catalog` si `/comenzile-mele`, necesar
   pentru "repeta comanda" (populeaza cosul dintr-o comanda veche, apoi navigheaza
   la /catalog). Providerul e montat o singura data in `(client)/layout.tsx`.
 

@@ -6,7 +6,7 @@ import { requireRole } from "@/features/auth/session";
 import { DeliveryActionsPanel } from "@/features/deliveries/delivery-actions-panel";
 import { getDeliveryDetail } from "@/features/deliveries/queries";
 
-export const metadata = { title: "Detalii livrare - Lateris Trace" };
+export const metadata = { title: "Detalii livrare - Provenio" };
 
 interface DeliveryDetailPageProps {
   params: Promise<{ id: string }>;

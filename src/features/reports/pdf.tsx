@@ -176,7 +176,7 @@ export function ReportPdfDocument({
         </View>
 
         <View style={styles.pageFooter} fixed>
-          <Text>{orgName} · raport generat de Lateris Trace</Text>
+          <Text>{orgName} · raport generat de Provenio</Text>
           <Text render={({ pageNumber, totalPages }) => `pagina ${pageNumber}/${totalPages}`} />
         </View>
       </Page>

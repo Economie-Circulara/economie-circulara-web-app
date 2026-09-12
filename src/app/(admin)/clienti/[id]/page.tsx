@@ -13,7 +13,7 @@ import { DocumentList } from "@/features/documents/document-list";
 import { DocumentUpload } from "@/features/documents/document-upload";
 import { listDocuments } from "@/features/documents/service";
 
-export const metadata = { title: "Detalii client - Lateris Trace" };
+export const metadata = { title: "Detalii client - Provenio" };
 
 interface ClientDetailPageProps {
   params: Promise<{ id: string }>;

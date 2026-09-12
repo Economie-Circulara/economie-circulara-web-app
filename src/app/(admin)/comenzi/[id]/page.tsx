@@ -15,7 +15,7 @@ import { ORDER_LINK_TYPE_LABELS } from "@/features/returns/labels";
 import { getReturnableItems, getReturnLinkForOrder } from "@/features/returns/queries";
 import { ReturnActions } from "@/features/returns/return-actions";
 
-export const metadata = { title: "Detalii comandă - Lateris Trace" };
+export const metadata = { title: "Detalii comandă - Provenio" };
 
 interface OrderDetailPageProps {
   params: Promise<{ id: string }>;

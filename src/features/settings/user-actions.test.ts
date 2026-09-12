@@ -49,7 +49,7 @@ beforeEach(() => {
   headers.mockResolvedValue(
     new Map([
       ["x-forwarded-proto", "https"],
-      ["host", "app.lateristrace.ro"],
+      ["host", "app.provenio.ro"],
     ]),
   );
   getCurrentUser.mockResolvedValue(ADMIN);
@@ -199,7 +199,7 @@ describe("inviteClientAction - flux fericit", () => {
     );
 
     expect(inviteUserByEmail).toHaveBeenCalledWith("client@acme.ro", {
-      redirectTo: "https://app.lateristrace.ro/auth/callback?next=/set-password",
+      redirectTo: "https://app.provenio.ro/auth/callback?next=/set-password",
     });
     expect(insert).toHaveBeenCalledWith({
       id: "user-1",

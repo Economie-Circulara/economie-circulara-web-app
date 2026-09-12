@@ -207,7 +207,7 @@ export function AvizPdfDocument({
         </View>
 
         <View style={styles.pageFooter} fixed>
-          <Text>{orgName} · aviz emis de Lateris Trace</Text>
+          <Text>{orgName} · aviz emis de Provenio</Text>
           <Text render={({ pageNumber, totalPages }) => `pagina ${pageNumber}/${totalPages}`} />
         </View>
       </Page>

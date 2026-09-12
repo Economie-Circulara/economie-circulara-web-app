@@ -1,3 +1,4 @@
+import { PLATFORM_NAME } from "@/lib/brand";
 import { NextResponse } from "next/server";
 import { getCurrentOrg } from "@/features/auth/queries";
 import { requireRole } from "@/features/auth/session";
@@ -28,7 +29,7 @@ export async function GET(_request: Request, { params }: RouteParams) {
   const org = await getCurrentOrg();
   const buffer = await renderAvizPdfBuffer(
     delivery,
-    org?.name ?? "Lateris Trace",
+    org?.name ?? PLATFORM_NAME,
     org?.primaryColor,
     org?.secondaryColor,
   );

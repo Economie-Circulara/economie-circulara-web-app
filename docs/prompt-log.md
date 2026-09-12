@@ -13,12 +13,38 @@ Format intrare:
 
 ---
 
+## 2026-09-12 — Claude Opus 5 — Redenumire produs: Lateris Trace -> Provenio
+
+- **Cerut:** userul a ales „Provenio" din opțiunile propuse in `docs/plans/denumire-produs.md`.
+- **Facut:** 65 de fisiere pentru „Lateris Trace" -> „Provenio" + 9 pentru variantele
+  lowercase (`lateristrace`, `lateris-trace`). `PLATFORM_NAME` in `src/lib/brand.ts` e sursa
+  unica la runtime, iar cele 8 locuri cu fallback `?? "Lateris Trace"` importa acum
+  constanta in loc de un literal duplicat.
+- **Doua schimbari cu efect real, nu doar cosmetice:**
+  * `notifications/service.ts` — adresa implicita de expediere e acum
+    `notificari@provenio.ro` (era `notificari@lateristrace.app`). Domeniul trebuie verificat
+    la providerul de email ca notificarile sa plece.
+  * `client-portal/cart-context.tsx` — cheia de `localStorage` a cosului a devenit
+    `provenio:cart:v1`. Goleste cosurile existente; fara efect acum (productia nu are
+    utilizatori reali).
+- **Pastrate intenționat:** `docs/design/Lateris_Trace.dc.html` (numele real al fisierului de
+  mockup) si `Lateris Demo`, organizatia demo din seed — e nume de TENANT, nu al platformei,
+  deci nu e incoerent; redenumirea ar atinge seed-ul, 28 de capturi, manualele si E2E-ul,
+  cost mare pentru valoare mica.
+- **Rămas o singura apariție:** titlul din `src/app/(client)/comenzile-mele/[id]/page.tsx`.
+  Fisierul era in curs de editare de sesiunea concurenta (Codex) si un `sed` peste el i-ar fi
+  putut pierde munca necommitata. Notat in `docs/plans/denumire-produs.md`.
+- **Verificat:** typecheck, lint, **594 teste** — toate verzi.
+- **Domeniul rămâne la user** (cumpararea nu se automatizeaza): `provenio.ro` de la un
+  registrar ROTLD (~10-15 EUR/an, NU prin Vercel la $110.99), apoi
+  `NEXT_PUBLIC_ROOT_DOMAIN=provenio.ro` ca rezolvarea tenantului din subdomeniu sa devina activa.
+
 ## 2026-09-12 — Claude Opus 5 — Entry point neutru fata de tenant + analiza de denumire
 
 - **Cerut:** „homepage-ul nu trebuie sa zica lateris... e un entry point in platforma, nu
   pentru un client anume, decat daca avem un path name, sau un subdomeniu special pentru
   un client" + bonus: cum ar trebui sa se numeasca produsul, eventual si domeniu.
-- **Constatat:** „Lateris Trace" NU e un nume decis — a aparut in faza de mockup
+- **Constatat:** „Provenio" NU e un nume decis — a aparut in faza de mockup
   (`docs/design/Lateris_Trace.dc.html`) si s-a propagat ca nume de produs. Nu vine de la
   client: nu apare nici in `docs/brain-dump.md`, nici in `docs/design-prompt.md`.
 - **Fix arhitectural (nu doar de copy):** `src/app/page.tsx` rezolva acum tenantul

@@ -66,7 +66,7 @@ function isValidSlug(value: string): boolean {
  *   2. subdomeniu     - prima eticheta din `<slug>.<rootDomain>`
  *   3. path           - primul segment `/<slug>/...`
  *
- * `rootDomain` vine din config (ex. NEXT_PUBLIC_ROOT_DOMAIN = "lateristrace.app").
+ * `rootDomain` vine din config (ex. NEXT_PUBLIC_ROOT_DOMAIN = "provenio.app").
  * In dev (localhost) nu exista subdomenii utile, deci se cade pe path.
  */
 export function resolveTenant(

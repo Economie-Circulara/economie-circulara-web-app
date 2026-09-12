@@ -1,3 +1,4 @@
+import { PLATFORM_NAME } from "@/lib/brand";
 import { notFound } from "next/navigation";
 import { PageHeader } from "@/components/page-header";
 import { getCurrentOrg } from "@/features/auth/queries";
@@ -7,7 +8,7 @@ import { getCertificateByOrderId } from "@/features/certificates/service";
 import { listDocuments } from "@/features/documents/service";
 import { getOrderDetail } from "@/features/orders/queries";
 
-export const metadata = { title: "Certificat de trasabilitate - Lateris Trace" };
+export const metadata = { title: "Certificat de trasabilitate - Provenio" };
 
 interface CertificatePageProps {
   params: Promise<{ id: string }>;
@@ -49,7 +50,7 @@ export default async function ClientCertificatePage({ params }: CertificatePageP
         certificateId={certificate.id}
         number={certificate.number}
         issuedAt={certificate.issuedAt}
-        orgName={org?.name ?? "Lateris Trace"}
+        orgName={org?.name ?? PLATFORM_NAME}
         snapshot={certificate.snapshot}
         documents={documents}
       />

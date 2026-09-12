@@ -1,3 +1,4 @@
+import { PLATFORM_NAME } from "@/lib/brand";
 import { NextResponse, type NextRequest } from "next/server";
 import { getCurrentOrg } from "@/features/auth/queries";
 import { requireRole } from "@/features/auth/session";
@@ -30,7 +31,7 @@ export async function GET(request: NextRequest) {
     reportTitle: report.title,
     reportDescription: report.description,
     range,
-    orgName: org?.name ?? "Lateris Trace",
+    orgName: org?.name ?? PLATFORM_NAME,
     brandColor: org?.primaryColor,
     accentColor: org?.secondaryColor,
     columns: report.columns,

@@ -67,7 +67,6 @@ export default async function ClientOrderDetailPage({ params }: OrderDetailPageP
 
       <div className="flex items-center gap-2">
         <StatusBadge group="order" status={ORDER_STATUS_BADGE_STATUS[order.status]} />
-        <span className="text-sm text-muted-foreground">{ORDER_STATUS_LABELS[order.status]}</span>
       </div>
 
       <Card>

@@ -79,6 +79,7 @@ export async function inviteClientAction(
   formData: FormData,
 ): Promise<UserMgmtState> {
   const admin = await getCurrentUser();
+  console.log("inviteClientAction admin", admin);
   if (!admin || admin.role !== "admin" || !admin.organizationId) {
     return { error: "Nu ai permisiunea de a invita utilizatori.", message: null };
   }

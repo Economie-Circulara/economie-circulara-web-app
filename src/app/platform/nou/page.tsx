@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { requireRole } from "@/features/auth/session";
 import { CreateOrganizationForm } from "@/features/platform/create-organization-form";
 
-export const metadata = { title: "Organizatie noua - Platforma Lateris Trace" };
+export const metadata = { title: "Organizatie noua - Platforma Provenio" };
 
 /** Creare organizatie + admin initial (invitatie prin email). */
 export default async function NewOrganizationPage() {

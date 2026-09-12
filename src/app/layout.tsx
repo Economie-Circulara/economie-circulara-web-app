@@ -24,7 +24,7 @@ const spectral = Spectral({
 });
 
 export const metadata: Metadata = {
-  title: "Lateris Trace",
+  title: "Provenio",
   description: "Platforma de trasabilitate a materialelor in economia circulara",
 };
 

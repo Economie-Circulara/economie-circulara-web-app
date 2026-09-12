@@ -6,7 +6,7 @@ import { getRecipeByItemId } from "@/features/recipes/queries";
 import { RecipeEditor } from "@/features/recipes/recipe-editor";
 import { CreateRecipeButton } from "@/features/recipes/create-recipe-button";
 
-export const metadata = { title: "Rețetă - Lateris Trace" };
+export const metadata = { title: "Rețetă - Provenio" };
 
 interface RecipeEditorPageProps {
   params: Promise<{ itemId: string }>;

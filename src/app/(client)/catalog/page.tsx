@@ -4,7 +4,7 @@ import { listClientAddresses } from "@/features/clients/queries";
 import { CatalogView } from "@/features/client-portal/catalog-view";
 import { listCatalogItems } from "@/features/client-portal/queries";
 
-export const metadata = { title: "Catalog - Lateris Trace" };
+export const metadata = { title: "Catalog - Provenio" };
 
 /** Ecranul "Catalog" (Task H): produse vandabile, cos, formular de comanda - fara preturi. */
 export default async function CatalogPage() {

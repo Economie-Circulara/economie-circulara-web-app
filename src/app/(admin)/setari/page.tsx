@@ -6,7 +6,7 @@ import { getCurrentOrg } from "@/features/auth/queries";
 import { requireRole } from "@/features/auth/session";
 import { SettingsForm } from "@/features/settings/settings-form";
 
-export const metadata = { title: "Setari - Lateris Trace" };
+export const metadata = { title: "Setari - Provenio" };
 
 /** Ecranul Setari (doar admin): white-label + acces la managementul utilizatorilor. */
 export default async function SettingsPage() {

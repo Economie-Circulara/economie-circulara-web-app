@@ -82,7 +82,7 @@ export default function ShowcasePage() {
     <AppShell orgName="Lateris Demo" items={navForRole("admin")}>
       <PageHeader
         title="Design system"
-        breadcrumbs={[{ label: "Lateris Trace" }, { label: "Showcase" }]}
+        breadcrumbs={[{ label: "Provenio" }, { label: "Showcase" }]}
         description="Componente reutilizabile si tema vizuala (T0.2)."
         actions={
           <Button>

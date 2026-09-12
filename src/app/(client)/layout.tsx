@@ -1,3 +1,4 @@
+import { PLATFORM_NAME } from "@/lib/brand";
 import type * as React from "react";
 import { AppShell } from "@/components/layout/app-shell";
 import { navForRole } from "@/components/layout/nav-config";
@@ -11,7 +12,7 @@ import { CartProvider } from "@/features/client-portal/cart-context";
 export default async function ClientLayout({ children }: { children: React.ReactNode }) {
   const user = await requireRole(["client"]);
   const org = await getCurrentOrg();
-  const orgName = org?.name ?? "Lateris Trace";
+  const orgName = org?.name ?? PLATFORM_NAME;
   const logoUrl = org?.logoUrl ?? undefined;
   const items = navForRole(user.role);
 

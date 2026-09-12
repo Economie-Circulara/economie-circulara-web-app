@@ -1,3 +1,4 @@
+import { PLATFORM_NAME } from "@/lib/brand";
 import type * as React from "react";
 import { AppShell } from "@/components/layout/app-shell";
 import { navForRole } from "@/components/layout/nav-config";
@@ -13,7 +14,7 @@ import { requireRole } from "@/features/auth/session";
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const user = await requireRole(["admin", "operator"]);
   const org = await getCurrentOrg();
-  const orgName = org?.name ?? "Lateris Trace";
+  const orgName = org?.name ?? PLATFORM_NAME;
   const logoUrl = org?.logoUrl ?? undefined;
   const items = navForRole(user.role);
 

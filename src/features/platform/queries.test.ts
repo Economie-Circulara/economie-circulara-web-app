@@ -91,7 +91,7 @@ describe("listOrganizations", () => {
   });
 
   it("foloseste subdomeniul cand NEXT_PUBLIC_ROOT_DOMAIN e configurat si nu exista custom domain", async () => {
-    process.env.NEXT_PUBLIC_ROOT_DOMAIN = "lateristrace.app";
+    process.env.NEXT_PUBLIC_ROOT_DOMAIN = "provenio.app";
     const orgsBuilder = makeQueryBuilder({
       data: [
         {
@@ -113,7 +113,7 @@ describe("listOrganizations", () => {
 
     const [result] = await listOrganizations();
 
-    expect(result?.accessUrl).toBe("https://acme.lateristrace.app");
+    expect(result?.accessUrl).toBe("https://acme.provenio.app");
     expect(result?.userCount).toBe(0);
   });
 

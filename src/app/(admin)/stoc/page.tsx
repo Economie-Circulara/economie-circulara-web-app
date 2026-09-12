@@ -7,7 +7,7 @@ import { listItemOptions, listLots } from "@/features/stock/queries";
 import { StockTable } from "@/features/stock/stock-table";
 import type { LotProvenance } from "@/features/stock/types";
 
-export const metadata = { title: "Stoc - Lateris Trace" };
+export const metadata = { title: "Stoc - Provenio" };
 
 const selectClassName =
   "flex h-9 w-full rounded-md border border-input bg-card px-3 py-1 text-sm shadow-xs outline-none sm:w-56";

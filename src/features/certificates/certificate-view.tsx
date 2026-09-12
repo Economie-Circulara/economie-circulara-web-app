@@ -173,7 +173,7 @@ export function CertificateView({
           </div>
         </CardContent>
         <div className="flex justify-between bg-primary px-10 py-3 font-mono text-[11px] text-primary-foreground">
-          <span>{orgName} · trasabilitate emisă de Lateris Trace</span>
+          <span>{orgName} · trasabilitate emisă de Provenio</span>
           <span>{number} · pagina 1/1</span>
         </div>
       </Card>

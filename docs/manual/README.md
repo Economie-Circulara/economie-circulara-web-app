@@ -1,7 +1,7 @@
-# Manual Lateris Trace - cuprins
+# Manual Provenio - cuprins
 
 Acest folder conține documentația de utilizare și administrare a platformei
-**Lateris Trace**, livrată ca parte a Task X6 (documentație obligatorie pentru
+**Provenio**, livrată ca parte a Task X6 (documentație obligatorie pentru
 conformitatea cu Anexa 1 - finanțare europeană). Documentele descriu ecranele
 și fluxurile **reale** ale aplicației, verificate în cod la data redactării
 (2026-07-19).

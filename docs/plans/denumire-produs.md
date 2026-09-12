@@ -1,6 +1,9 @@
-# Denumirea produsului — analiză și opțiuni
+# Denumirea produsului — analiză și decizie
 
-**Context (2026-09-12):** „Lateris Trace" **nu e un nume decis**. A apărut în faza de
+> **DECIS (2026-09-12): produsul se numește „Provenio".** Redenumirea e aplicată în cod,
+> teste și documentație. Restul documentului păstrează analiza care a dus la decizie.
+
+**Context (2026-09-12):** „Provenio" **nu e un nume decis**. A apărut în faza de
 mockup (`docs/design/Lateris_Trace.dc.html`) și s-a propagat ca nume de produs prin
 titlurile de pagină, valorile de fallback și footerul certificatului. **Nu vine de la
 client:** nu apare nici în `docs/brain-dump.md`, nici în `docs/design-prompt.md`.
@@ -41,7 +44,7 @@ Decizia devine urgentă acum, pentru că numele apare în locuri cu consecințe:
 
 ## Opțiuni, cu disponibilitate verificată (2026-09-12, prin Vercel)
 
-### 1. Provenio — **recomandat**
+### 1. Provenio — **ALES**
 
 *Proveniența* e exact ce dovedește certificatul: din ce loturi vine materialul livrat. Un
 profesionist român înțelege cuvântul fără explicație („proveniența materialului"), iar
@@ -91,6 +94,61 @@ entry point-ul public. Până la decizie, valoarea e un **descriptor**, nu un br
 iar pagina publică nu afișează niciun nume de firmă când nu există tenant.
 
 Rămâne un singur pass mecanic după decizie: titlurile de pagină (`metadata.title`) și
-valorile de fallback `?? "Lateris Trace"` din ~20 de fișiere din `src/app/` și
+valorile de fallback `?? "Provenio"` din ~20 de fișiere din `src/app/` și
 `src/features/`, plus footerul din `src/features/certificates/pdf.tsx` și textele din
 `docs/` (inclusiv disclaimerul din `docs/analiza-standarde-certificat.md`).
+
+---
+
+## Stadiul redenumirii (2026-09-12)
+
+**Aplicat:** 65 de fișiere pentru „Lateris Trace" → „Provenio" și 9 pentru variantele
+lowercase (`lateristrace` / `lateris-trace`). Incluse:
+
+- `src/lib/brand.ts` — `PLATFORM_NAME = "Provenio"`, sursa unică la runtime. Cele 8 locuri
+  care aveau `?? "Lateris Trace"` ca fallback de brand importă acum constanta, nu un
+  literal duplicat.
+- `src/features/notifications/service.ts` — adresa implicită de expediere a notificărilor
+  a devenit `notificari@provenio.ro` (era `notificari@lateristrace.app`). **Relevant pentru
+  configurarea email:** domeniul de pe care pleacă emailurile trebuie verificat la
+  providerul de email.
+- `src/features/client-portal/cart-context.tsx` — cheia de `localStorage` a coșului
+  (`provenio:cart:v1`). Schimbarea golește coșurile existente; fără efect acum, fiindcă
+  producția nu are încă utilizatori reali.
+- `package.json` — `"name": "provenio"`.
+- Titlurile de pagină, footerele din PDF-uri (certificat, aviz, rapoarte), fixture-urile de
+  test și documentația, inclusiv disclaimerul din `docs/analiza-standarde-certificat.md`.
+
+**Păstrate intenționat:**
+
+- `docs/design/Lateris_Trace.dc.html` și referințele la el din comentarii — e numele real
+  al fișierului de mockup, o referință istorică.
+- `Lateris Demo`, organizația demo din `supabase/seed.sql`. E numele unui **tenant**, nu al
+  platformei, deci nu e incoerent („o firmă demo în Provenio"). Redenumirea ar atinge
+  seed-ul, cele 28 de capturi de ecran, textul manualelor și testele E2E — cost mare,
+  valoare mică. Opțional, după recepție.
+- Testul-gardă din `src/app/page.test.tsx`, care verifică explicit că „Lateris" **nu** mai
+  apare pe entry point-ul platformei.
+
+**Rămas de făcut — o singură apariție:**
+
+```
+src/app/(client)/comenzile-mele/[id]/page.tsx:14
+export const metadata = { title: "Detalii comandă - Lateris Trace" };
+```
+
+Fișierul era în curs de editare de o sesiune concurentă (Codex) în momentul redenumirii, iar
+un `sed` peste el i-ar fi putut pierde munca necommitată. De schimbat la prima atingere.
+
+## Pașii de domeniu (de făcut de client — cumpărarea nu se automatizează)
+
+1. **`provenio.ro`** de la un registrar acreditat ROTLD (~10-15 €/an). **Nu** prin Vercel,
+   care cere $110.99/an pentru `.ro`.
+2. Opțional `provenio.io` ($30/an, aproape de prețul pieței) și/sau `provenio.eu` — ambele
+   erau libere la verificare.
+3. În Vercel: adaugă domeniul pe proiect și urmează instrucțiunile DNS.
+4. Setează `NEXT_PUBLIC_ROOT_DOMAIN=provenio.ro` în variabilele de producție. Abia atunci
+   rezolvarea tenantului din **subdomeniu** devine activă (`<client>.provenio.ro`); până
+   atunci funcționează pe segment de path.
+5. Verifică domeniul la providerul de email, ca notificările să plece de pe
+   `notificari@provenio.ro`.

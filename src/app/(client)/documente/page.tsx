@@ -8,7 +8,7 @@ import { DocumentList } from "@/features/documents/document-list";
 import { listDocuments } from "@/features/documents/service";
 import { listOrders } from "@/features/orders/queries";
 
-export const metadata = { title: "Documente & Certificate - Lateris Trace" };
+export const metadata = { title: "Documente & Certificate - Provenio" };
 
 const dateFormatter = new Intl.DateTimeFormat("ro-RO", { dateStyle: "medium" });
 

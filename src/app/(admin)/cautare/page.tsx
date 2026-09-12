@@ -3,7 +3,7 @@ import { requireRole } from "@/features/auth/session";
 import { globalSearch } from "@/features/search/service";
 import { SearchResults } from "@/features/search/search-results";
 
-export const metadata = { title: "Căutare - Lateris Trace" };
+export const metadata = { title: "Căutare - Provenio" };
 
 interface CautarePageProps {
   searchParams: Promise<{ q?: string }>;

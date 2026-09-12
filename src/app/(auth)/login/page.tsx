@@ -1,3 +1,4 @@
+import { PLATFORM_NAME } from "@/lib/brand";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { LoginForm } from "@/features/auth/login-form";
@@ -5,7 +6,7 @@ import { getCurrentUser, homePathForRole } from "@/features/auth/session";
 import { getOrgBranding } from "@/features/auth/queries";
 import { resolveTenant } from "@/features/auth/tenant";
 
-export const metadata = { title: "Autentificare - Lateris Trace" };
+export const metadata = { title: "Autentificare - Provenio" };
 
 interface LoginPageProps {
   searchParams: Promise<{ error?: string }>;
@@ -25,7 +26,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
 
   return (
     <LoginForm
-      orgName={branding?.name ?? "Lateris Trace"}
+      orgName={branding?.name ?? PLATFORM_NAME}
       logoUrl={branding?.logoUrl ?? undefined}
       errorCode={error}
     />

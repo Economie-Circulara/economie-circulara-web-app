@@ -152,7 +152,7 @@ describe("generateCertificateForOrder", () => {
           order_number: "CMD-2026-0001",
           clients: { name: "Apex SRL", cui: "RO123" },
         },
-        organizations: { name: "Lateris", primary_color: null, secondary_color: null },
+        organizations: { name: "Organizatie Test", primary_color: null, secondary_color: null },
       }),
       rpc,
     });
@@ -230,7 +230,7 @@ describe("generateCertificateForOrder", () => {
       }
       if (table === "organizations") {
         const maybeSingle = vi.fn().mockResolvedValue({
-          data: { name: "Lateris", primary_color: null, secondary_color: null },
+          data: { name: "Organizatie Test", primary_color: null, secondary_color: null },
           error: null,
         });
         return {

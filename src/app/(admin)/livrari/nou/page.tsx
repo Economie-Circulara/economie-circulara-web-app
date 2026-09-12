@@ -6,7 +6,7 @@ import { DeliveryForm } from "@/features/deliveries/delivery-form";
 import { getDeliveryByOrderId } from "@/features/deliveries/queries";
 import { getOrderDetail } from "@/features/orders/queries";
 
-export const metadata = { title: "Planifică livrare - Lateris Trace" };
+export const metadata = { title: "Planifică livrare - Provenio" };
 
 interface LivrareNouaPageProps {
   searchParams: Promise<{ orderId?: string }>;

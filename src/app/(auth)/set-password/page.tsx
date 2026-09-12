@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { SetPasswordForm } from "@/features/auth/set-password-form";
 
-export const metadata = { title: "Seteaza parola - Lateris Trace" };
+export const metadata = { title: "Seteaza parola - Provenio" };
 
 /**
  * Accesat prin link-ul de invitatie / resetare (callback-ul a creat deja o sesiune).

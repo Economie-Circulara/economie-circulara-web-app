@@ -4,7 +4,7 @@ import { listClients } from "@/features/clients/queries";
 import { OrderForm } from "@/features/orders/order-form";
 import { listClientAddressesGrouped, listSellableItemOptions } from "@/features/orders/queries";
 
-export const metadata = { title: "Comandă nouă - Lateris Trace" };
+export const metadata = { title: "Comandă nouă - Provenio" };
 
 /** Ecranul de creare comandă în numele unui client (doar staff, `created_by_admin=true`). */
 export default async function ComandaNouaPage() {
