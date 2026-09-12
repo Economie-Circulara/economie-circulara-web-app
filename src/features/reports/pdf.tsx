@@ -1,5 +1,6 @@
 import { createElement } from "react";
 import { Document, Page, StyleSheet, Text, View, renderToBuffer } from "@react-pdf/renderer";
+import { PDF_FONT_FAMILY, registerPdfFonts } from "@/lib/pdf/fonts";
 import { formatRangeLabel, type DateRange } from "./period";
 
 /**
@@ -12,6 +13,8 @@ import { formatRangeLabel, type DateRange } from "./period";
 
 const DEFAULT_BRAND_COLOR = "#2b3a2f";
 const DEFAULT_ACCENT_COLOR = "#4d6b53";
+
+registerPdfFonts();
 
 export interface ReportPdfColumn {
   key: string;
@@ -37,7 +40,7 @@ export interface ReportPdfDocumentProps {
 }
 
 const styles = StyleSheet.create({
-  page: { paddingBottom: 40, fontSize: 9.5, fontFamily: "Helvetica", color: "#1c2b20" },
+  page: { paddingBottom: 40, fontSize: 9.5, fontFamily: PDF_FONT_FAMILY, color: "#1c2b20" },
   topBar: { height: 6, backgroundColor: "#4d6b53" },
   body: { paddingHorizontal: 36, paddingTop: 26 },
   headerRow: {

@@ -1,5 +1,6 @@
 import { Document, Page, Path, Rect, StyleSheet, Svg, Text, View } from "@react-pdf/renderer";
 import { layoutSankey } from "@/features/production/sankey-data";
+import { PDF_FONT_FAMILY, registerPdfFonts } from "@/lib/pdf/fonts";
 import type { TraceabilitySnapshot } from "./types";
 
 /** Culori implicite (tema "forest" a mockup-ului) — suprascrise de brandingul organizatiei. */
@@ -34,8 +35,10 @@ export interface CertificatePdfProps {
 
 const dateFormatter = new Intl.DateTimeFormat("ro-RO", { dateStyle: "medium" });
 
+registerPdfFonts();
+
 const styles = StyleSheet.create({
-  page: { paddingBottom: 48, fontSize: 10, fontFamily: "Helvetica", color: "#1c2b20" },
+  page: { paddingBottom: 48, fontSize: 10, fontFamily: PDF_FONT_FAMILY, color: "#1c2b20" },
   topBar: { height: 6, backgroundColor: "#4d6b53" },
   body: { paddingHorizontal: 40, paddingTop: 28 },
   headerRow: {

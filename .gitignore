@@ -43,3 +43,4 @@ src/lib/database.types.generated.ts
 
 # Worktree-uri temporare ale subagentilor (izolare paralela)
 .claude/worktrees/
+.vercel

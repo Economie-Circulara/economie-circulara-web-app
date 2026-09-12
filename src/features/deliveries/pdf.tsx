@@ -1,4 +1,5 @@
 import { Document, Page, StyleSheet, Text, View } from "@react-pdf/renderer";
+import { PDF_FONT_FAMILY, registerPdfFonts } from "@/lib/pdf/fonts";
 import type { DeliveryDetail } from "./types";
 
 /** Culori implicite (tema "forest" a mockup-ului), suprascrise de brandingul organizatiei — ca la certificat. */
@@ -14,6 +15,8 @@ export interface AvizPdfProps {
 
 const dateFormatter = new Intl.DateTimeFormat("ro-RO", { dateStyle: "medium" });
 const qtyFormatter = new Intl.NumberFormat("ro-RO");
+
+registerPdfFonts();
 
 /**
  * Textul afisat pt. codul UIT (RO e-Transport) pe aviz — functie PURA, separata de
@@ -34,7 +37,7 @@ export function avizUitStatusText(
 }
 
 const styles = StyleSheet.create({
-  page: { paddingBottom: 48, fontSize: 10, fontFamily: "Helvetica", color: "#1c2b20" },
+  page: { paddingBottom: 48, fontSize: 10, fontFamily: PDF_FONT_FAMILY, color: "#1c2b20" },
   topBar: { height: 6, backgroundColor: "#4d6b53" },
   body: { paddingHorizontal: 40, paddingTop: 28 },
   headerRow: {
@@ -63,7 +66,7 @@ const styles = StyleSheet.create({
     marginBottom: 18,
   },
   sectionTitle: { fontSize: 11, fontWeight: 700, marginBottom: 8 },
-  uitValue: { fontSize: 12, fontWeight: 700, fontFamily: "Courier" },
+  uitValue: { fontSize: 12, fontWeight: 700, fontFamily: PDF_FONT_FAMILY },
   table: { marginBottom: 20 },
   tableHeaderRow: {
     flexDirection: "row",
