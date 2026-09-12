@@ -17,7 +17,7 @@ export interface SessionUser {
   fullName: string | null;
   /**
    * Statusul organizatiei userului curent. `null` pentru super_admin (fara
-   * organizatie — trece peste tenant) sau daca organizatia n-a putut fi rezolvata.
+   * organizatie - trece peste tenant) sau daca organizatia n-a putut fi rezolvata.
    */
   organizationStatus: OrgStatus | null;
 }
@@ -81,11 +81,11 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
 
 /**
  * Cere un utilizator autentificat; altfel redirect la /login. Daca organizatia lui
- * a fost suspendata (guard T2.1), redirect la pagina dedicata — a doua linie de
+ * a fost suspendata (guard T2.1), redirect la pagina dedicata - a doua linie de
  * aparare fata de middleware (`updateSession`), utila si pentru cod care apeleaza
  * direct `requireUser`/`requireRole` (server actions, pagini) fara sa treaca prin
  * verificarea din middleware pentru orice motiv. Pagina `/organizatie-suspendata`
- * insasi NU trebuie sa apeleze `requireUser` (ar cauza redirect catre ea insasi) —
+ * insasi NU trebuie sa apeleze `requireUser` (ar cauza redirect catre ea insasi) -
  * foloseste `getCurrentUser` direct.
  */
 export async function requireUser(): Promise<SessionUser> {

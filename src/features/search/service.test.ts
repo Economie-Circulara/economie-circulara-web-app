@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-// Mocks (nu spies — AGENTS.md §2.2): inlocuim complet clientul Supabase server +
+// Mocks (nu spies - AGENTS.md §2.2): inlocuim complet clientul Supabase server +
 // functiile reutilizate din alte feature-uri (orders/clients/items/client-portal).
 const { createClient } = vi.hoisted(() => ({ createClient: vi.fn() }));
 vi.mock("@/lib/supabase/server", () => ({ createClient }));
@@ -24,7 +24,7 @@ afterEach(() => {
 });
 
 /** Obiect chainable minimal ce imita `PostgrestFilterBuilder` (orice metoda intoarce
- * acelasi obiect, si e "thenable" — se poate `await`-a in orice punct al lantului). */
+ * acelasi obiect, si e "thenable" - se poate `await`-a in orice punct al lantului). */
 function chainable(result: { data: unknown; error: unknown }) {
   const obj: Record<string, unknown> = {
     select: vi.fn(() => obj),
@@ -87,7 +87,7 @@ describe("toIlikePattern", () => {
   });
 });
 
-describe("globalSearch — query goala", () => {
+describe("globalSearch - query goala", () => {
   it("returneaza [] fara sa interogheze nimic", async () => {
     const result = await globalSearch("   ", { role: "admin" });
     expect(result).toEqual([]);
@@ -96,7 +96,7 @@ describe("globalSearch — query goala", () => {
   });
 });
 
-describe("globalSearch — rol staff (admin/operator)", () => {
+describe("globalSearch - rol staff (admin/operator)", () => {
   it("interogheaza toate cele 5 entitati si NU catalogul clientului", async () => {
     listOrders.mockResolvedValue([orderListRow()]);
     listClients.mockResolvedValue([]);
@@ -196,8 +196,8 @@ describe("globalSearch — rol staff (admin/operator)", () => {
   });
 });
 
-describe("globalSearch — rol client", () => {
-  it("NU interogheaza clients/lots (nici service-ul, nici tabelele) — doar comenzi/certificate/catalog proprii", async () => {
+describe("globalSearch - rol client", () => {
+  it("NU interogheaza clients/lots (nici service-ul, nici tabelele) - doar comenzi/certificate/catalog proprii", async () => {
     listOrders.mockResolvedValue([orderListRow()]);
     listCatalogItems.mockResolvedValue([]);
     const supabase = makeSupabase({
@@ -252,7 +252,7 @@ describe("globalSearch — rol client", () => {
   });
 });
 
-describe("globalSearch — alt rol (super_admin, fara organizatie)", () => {
+describe("globalSearch - alt rol (super_admin, fara organizatie)", () => {
   it("returneaza [] fara sa interogheze nimic", async () => {
     const result = await globalSearch("orice", { role: "super_admin" });
     expect(result).toEqual([]);

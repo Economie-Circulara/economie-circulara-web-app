@@ -6,13 +6,13 @@ import { requireRole } from "@/features/auth/session";
 import { getItemById } from "@/features/items/queries";
 import { ItemForm } from "@/features/items/item-form";
 
-export const metadata = { title: "Editează item — Lateris Trace" };
+export const metadata = { title: "Editează item - Lateris Trace" };
 
 interface ItemDetailPageProps {
   params: Promise<{ id: string }>;
 }
 
-/** Formular editare item existent — doar staff. */
+/** Formular editare item existent - doar staff. */
 export default async function ItemDetailPage({ params }: ItemDetailPageProps) {
   await requireRole(["admin", "operator"]);
   const { id } = await params;

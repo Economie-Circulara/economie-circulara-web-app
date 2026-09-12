@@ -23,12 +23,12 @@ export interface CertificateViewProps {
 }
 
 /**
- * Ecranul „Certificat" (mockup docs/design/Lateris_Trace.dc.html#CERTIFICAT) —
+ * Ecranul "Certificat" (mockup docs/design/Lateris_Trace.dc.html#CERTIFICAT) -
  * randat din snapshot-ul INGHETAT (`certificates.traceability_snapshot`), nu din
- * date live: graful si tabelul „Materiale și origine" raman identice chiar daca
- * stocul se schimba ulterior. Graful reutilizeaza `SankeyDiagram` (Task D) —
- * nicio logica SVG noua, doar date cu mai multe coloane (surse → loturi →
- * procese → lot produs → livrare).
+ * date live: graful si tabelul "Materiale și origine" raman identice chiar daca
+ * stocul se schimba ulterior. Graful reutilizeaza `SankeyDiagram` (Task D) -
+ * nicio logica SVG noua, doar date cu mai multe coloane (surse -> loturi ->
+ * procese -> lot produs -> livrare).
  */
 export function CertificateView({
   certificateId,
@@ -63,7 +63,7 @@ export function CertificateView({
         </Button>
         <Button onClick={handleDownload} disabled={isPending}>
           <Download className="size-4" />
-          {isPending ? "Se generează…" : "Descarcă PDF"}
+          {isPending ? "Se generează..." : "Descarcă PDF"}
         </Button>
       </div>
 
@@ -96,7 +96,7 @@ export function CertificateView({
               <p className="font-mono text-[11px] uppercase tracking-wide text-muted-foreground">
                 Comandă
               </p>
-              <p className="mt-1 text-sm font-semibold">{snapshot.order.number ?? "—"}</p>
+              <p className="mt-1 text-sm font-semibold">{snapshot.order.number ?? "-"}</p>
             </div>
             <div>
               <p className="font-mono text-[11px] uppercase tracking-wide text-muted-foreground">
@@ -117,7 +117,7 @@ export function CertificateView({
             <div className="mb-1 flex items-center justify-between">
               <p className="text-sm font-bold">Lanț de trasabilitate</p>
               <p className="font-mono text-[11px] text-muted-foreground">
-                surse → loturi → proces → produs → livrare
+                {"surse -> loturi -> proces -> produs -> livrare"}
               </p>
             </div>
             <SankeyDiagram data={snapshot.graph} height={300} />

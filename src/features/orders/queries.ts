@@ -40,7 +40,7 @@ function mapOrderRow(row: OrderCoreRow): Omit<OrderListRow, "clientName" | "item
 
 /**
  * Rezumatul liniilor pentru un set de comenzi ("Titlu ×cantitate, ..."), intr-o
- * a doua interogare simpla + agregare in JS — evita embed-uri imbricate pe 2
+ * a doua interogare simpla + agregare in JS - evita embed-uri imbricate pe 2
  * niveluri, in stilul `src/features/recipes/queries.ts#listRecipes`.
  */
 async function summarizeOrderItems(
@@ -58,7 +58,7 @@ async function summarizeOrderItems(
   const partsByOrder = new Map<string, string[]>();
   for (const row of data ?? []) {
     const parts = partsByOrder.get(row.order_id) ?? [];
-    parts.push(`${row.items?.title ?? "—"} ×${qtyFormatter.format(Number(row.quantity))}`);
+    parts.push(`${row.items?.title ?? "-"} ×${qtyFormatter.format(Number(row.quantity))}`);
     partsByOrder.set(row.order_id, parts);
   }
 
@@ -95,8 +95,8 @@ export async function listOrders(filters: ListOrdersFilters = {}): Promise<Order
 
   let rows: OrderListRow[] = (orderRows ?? []).map((row) => ({
     ...mapOrderRow(row),
-    clientName: row.clients?.name ?? "—",
-    itemsSummary: summaries.get(row.id) ?? "—",
+    clientName: row.clients?.name ?? "-",
+    itemsSummary: summaries.get(row.id) ?? "-",
   }));
 
   const search = filters.search?.trim().toLowerCase();
@@ -112,9 +112,9 @@ export async function listOrders(filters: ListOrdersFilters = {}): Promise<Order
 }
 
 /**
- * Itemi vandabili (catalog client) — singurele linii permise intr-o comanda.
+ * Itemi vandabili (catalog client) - singurele linii permise intr-o comanda.
  * Interogare proprie (nu `listItemOptions` din features/items/queries.ts, care nu
- * filtreaza dupa `sellable`) — ramane in scope-ul acestui task.
+ * filtreaza dupa `sellable`) - ramane in scope-ul acestui task.
  */
 export async function listSellableItemOptions(): Promise<ItemOption[]> {
   const supabase = await createClient();
@@ -134,7 +134,7 @@ export async function listSellableItemOptions(): Promise<ItemOption[]> {
 }
 
 /**
- * Toate adresele de livrare ale organizatiei, grupate pe client — evita N
+ * Toate adresele de livrare ale organizatiei, grupate pe client - evita N
  * interogari (una per client) la incarcarea formularului de creare comanda.
  * `client_addresses` are RLS pe `organization_id`, deci un singur select intoarce
  * doar adresele organizatiei curente a staff-ului.
@@ -172,7 +172,7 @@ export async function getOrderStatus(id: string): Promise<OrderStatus | null> {
   return data?.status ?? null;
 }
 
-/** Detaliul unei comenzi (client, adresa de livrare, linii) — ecranul /comenzi/[id]. */
+/** Detaliul unei comenzi (client, adresa de livrare, linii) - ecranul /comenzi/[id]. */
 export async function getOrderDetail(id: string): Promise<OrderDetail | null> {
   const supabase = await createClient();
   const { data: order, error } = await supabase
@@ -196,15 +196,15 @@ export async function getOrderDetail(id: string): Promise<OrderDetail | null> {
     id: row.id,
     orderId: id,
     itemId: row.item_id,
-    itemTitle: row.items?.title ?? "—",
+    itemTitle: row.items?.title ?? "-",
     unit: row.items?.unit ?? "kg",
     quantity: Number(row.quantity),
   }));
 
   return {
     ...mapOrderRow(order),
-    clientName: order.clients?.name ?? "—",
-    clientCui: order.clients?.cui ?? "—",
+    clientName: order.clients?.name ?? "-",
+    clientCui: order.clients?.cui ?? "-",
     deliveryAddressLabel: order.client_addresses?.label ?? null,
     deliveryAddress: order.client_addresses?.address ?? null,
     items,

@@ -155,7 +155,7 @@ Reguli:
 ## 12. MVP si termen
 
 - **Termen tinta:** august 2026 *(corectat 2026-07-17; raspunsul initial spunea 2025)*
-- **Flux complet in MVP:** creare organizatie → creare client (cu lookup CUI) → definire itemi si retete → intrare stoc cu lot si documente → proces reciclare cu confirmare output → productie cu consum FIFO → creare comanda → acceptare comanda → livrare → generare certificat trasabilitate
+- **Flux complet in MVP:** creare organizatie -> creare client (cu lookup CUI) -> definire itemi si retete -> intrare stoc cu lot si documente -> proces reciclare cu confirmare output -> productie cu consum FIFO -> creare comanda -> acceptare comanda -> livrare -> generare certificat trasabilitate
 - **Nimic nu este manual** - totul trebuie automatizat de la inceput.
 - **Client pilot:** firma de constructii - materiale de lucru pentru demo: caramizi, beton, balast, deseuri de umplutura, reciclare moloz.
 - **Prioritati:** viteza de livrare > corectitudinea trasabilitatii > conformitate legala.

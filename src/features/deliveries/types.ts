@@ -2,7 +2,7 @@ import type { Database } from "@/lib/database.types";
 
 export type DeliveryDeclarationStatus = Database["public"]["Enums"]["delivery_declaration_status"];
 
-/** O linie de produs a livrarii (preluata din liniile comenzii — vezi AGENTS.md §4: fara livrari partiale). */
+/** O linie de produs a livrarii (preluata din liniile comenzii - vezi AGENTS.md §4: fara livrari partiale). */
 export interface DeliveryItemLine {
   itemId: string;
   itemTitle: string;
@@ -36,7 +36,7 @@ export interface DeliveryDetail extends DeliveryRecord {
   items: DeliveryItemLine[];
 }
 
-/** Rand in lista `/livrari` — subset suficient pt. tabel. */
+/** Rand in lista `/livrari` - subset suficient pt. tabel. */
 export interface DeliveryListRow {
   id: string;
   orderId: string;

@@ -2,7 +2,7 @@ import type { OrderItemRow } from "@/features/orders/types";
 import type { CartLine } from "./types";
 
 /**
- * Logica PURA a cosului (fara React/localStorage) — usor de testat, folosita atat
+ * Logica PURA a cosului (fara React/localStorage) - usor de testat, folosita atat
  * de `cart-context.tsx` (reducer) cat si direct in teste.
  */
 
@@ -24,14 +24,14 @@ export function removeLine(lines: CartLine[], itemId: string): CartLine[] {
 
 /**
  * Seteaza cantitatea unei linii. O cantitate `<= 0` scoate linia din cos (acelasi
- * comportament ca butonul „−” dus la capat, in mockup).
+ * comportament ca butonul "-" dus la capat, in mockup).
  */
 export function setQuantity(lines: CartLine[], itemId: string, quantity: number): CartLine[] {
   if (quantity <= 0) return removeLine(lines, itemId);
   return lines.map((l) => (l.itemId === itemId ? { ...l, quantity } : l));
 }
 
-/** Numarul de produse distincte din cos (afisat in header-ul panoului „Coș"). */
+/** Numarul de produse distincte din cos (afisat in header-ul panoului "Coș"). */
 export function totalLines(lines: CartLine[]): number {
   return lines.length;
 }
@@ -42,8 +42,8 @@ export function totalQuantity(lines: CartLine[]): number {
 }
 
 /**
- * Reconstruieste liniile de cos dintr-o comanda existenta (butonul „Repetă
- * comanda" din /comenzile-mele) — precompleteaza cosul cu aceiasi itemi/cantitati.
+ * Reconstruieste liniile de cos dintr-o comanda existenta (butonul "Repetă
+ * comanda" din /comenzile-mele) - precompleteaza cosul cu aceiasi itemi/cantitati.
  */
 export function linesFromOrder(items: OrderItemRow[]): CartLine[] {
   return items.map((item) => ({

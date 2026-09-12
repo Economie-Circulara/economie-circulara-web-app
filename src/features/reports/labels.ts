@@ -1,4 +1,4 @@
-/** Cheile rapoartelor din pagina /rapoarte — folosite in query-ul rutelor de export. */
+/** Cheile rapoartelor din pagina /rapoarte - folosite in query-ul rutelor de export. */
 export const REPORT_KEYS = [
   "comenzi",
   "livrari",
@@ -14,7 +14,7 @@ export function isReportKey(value: string | null | undefined): value is ReportKe
   return !!value && (REPORT_KEYS as readonly string[]).includes(value);
 }
 
-/** Titlu + descriere RO pentru fiecare raport — reutilizate in UI si in antetul PDF. */
+/** Titlu + descriere RO pentru fiecare raport - reutilizate in UI si in antetul PDF. */
 export const REPORT_META: Record<ReportKey, { title: string; description: string }> = {
   comenzi: {
     title: "Comenzi pe perioadă",
@@ -34,7 +34,7 @@ export const REPORT_META: Record<ReportKey, { title: string; description: string
       "Loturi cu proveniență reciclare, recondiționare sau retur, intrate în stoc în perioadă.",
   },
   "paas-utilizare": {
-    title: "Utilizare PaaS (livrat − returnat)",
+    title: "Utilizare PaaS (livrat - returnat)",
     description:
       "Cantitatea efectiv utilizată de fiecare client (livrat minus returnat acceptat), per produs.",
   },

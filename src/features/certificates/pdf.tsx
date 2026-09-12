@@ -3,18 +3,18 @@ import { layoutSankey } from "@/features/production/sankey-data";
 import { PDF_FONT_FAMILY, registerPdfFonts } from "@/lib/pdf/fonts";
 import type { TraceabilitySnapshot } from "./types";
 
-/** Culori implicite (tema "forest" a mockup-ului) — suprascrise de brandingul organizatiei. */
+/** Culori implicite (tema "forest" a mockup-ului) - suprascrise de brandingul organizatiei. */
 const DEFAULT_BRAND_COLOR = "#2b3a2f";
 const DEFAULT_ACCENT_COLOR = "#4d6b53";
 
 /**
- * PDF-ul certificatului — Task G, decizie S3/PDF (vezi
+ * PDF-ul certificatului - Task G, decizie S3/PDF (vezi
  * docs/plans/task-g-certificate.md si comentariul din `service.ts#renderCertificatePdf`).
  * `@react-pdf/renderer` deseneaza pur JS (fara Chromium), potrivit pt. Vercel
  * serverless. Graful de trasabilitate se randeaza cu primitivele SVG proprii ale
  * libraeriei (<Svg>/<Rect>/<Path>), alimentate de ACEEASI functie de layout
  * (`layoutSankey`, din production/sankey-data.ts) folosita de componenta React
- * din browser (`SankeyDiagram`) — geometria (pozitii, curbe Bezier) se
+ * din browser (`SankeyDiagram`) - geometria (pozitii, curbe Bezier) se
  * calculeaza o singura data, in doua randari diferite.
  */
 
@@ -23,7 +23,7 @@ export interface CertificatePdfProps {
   /**
    * Numarul CERTIFICATULUI (`certificates.number`, format `CRT-<an>-<seq>`), nu al
    * comenzii. Obligatoriu: inainte exista doar `snapshot.order.number`, iar PDF-ul
-   * afisa numarul comenzii etichetat drept numar de certificat — incoerent cu
+   * afisa numarul comenzii etichetat drept numar de certificat - incoerent cu
    * ecranul (`certificate-view.tsx`, care folosea numarul corect) si cu randul din
    * `certificates`. Tip non-optional ca omisiunea sa cada la `typecheck`.
    */
@@ -222,7 +222,7 @@ export function CertificatePdfDocument({
             </View>
             <View style={styles.infoCol}>
               <Text style={styles.infoLabel}>Comandă</Text>
-              <Text style={styles.infoValue}>{snapshot.order.number ?? "—"}</Text>
+              <Text style={styles.infoValue}>{snapshot.order.number ?? "-"}</Text>
             </View>
             <View style={styles.infoCol}>
               <Text style={styles.infoLabel}>Produs(e) livrat(e)</Text>
@@ -278,8 +278,8 @@ export function CertificatePdfDocument({
             <View style={styles.signatureBox}>
               <Text style={styles.signatureLine}>{orgName}</Text>
               {/*
-                NU „semnătură electronică": PDF-ul nu e semnat eIDAS (nici avansat,
-                nici calificat) — vezi docs/analiza-standarde-certificat.md. Formularea
+                NU "semnătură electronică": PDF-ul nu e semnat eIDAS (nici avansat,
+                nici calificat) - vezi docs/analiza-standarde-certificat.md. Formularea
                 descrie exact ce este documentul.
               */}
               <Text style={{ fontSize: 8, color: "#6b7a70" }}>

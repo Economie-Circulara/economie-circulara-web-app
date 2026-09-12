@@ -13,7 +13,7 @@ import type { OrderListRow } from "./types";
 const dateFormatter = new Intl.DateTimeFormat("ro-RO");
 
 function formatDate(iso: string | null): string {
-  return iso ? dateFormatter.format(new Date(iso)) : "—";
+  return iso ? dateFormatter.format(new Date(iso)) : "-";
 }
 
 const columns: ColumnDef<OrderListRow>[] = [

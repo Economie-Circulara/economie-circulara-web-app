@@ -14,7 +14,7 @@ import type {
 } from "./types";
 
 /**
- * Logica de business a rapoartelor (Task X3) — functii PURE, fara Supabase, testate
+ * Logica de business a rapoartelor (Task X3) - functii PURE, fara Supabase, testate
  * direct cu date mock (`calculations.test.ts`). IO-ul (fetch din DB) traieste in
  * `repository.ts`; `queries.ts` combina cele doua straturi, in stilul
  * `certificates/traceability.ts` (pur) + `certificates/repository.ts` (IO).
@@ -32,7 +32,7 @@ function round(value: number, decimals = 3): number {
 }
 
 // -----------------------------------------------------------------------------
-// Raport 1 — Comenzi pe perioada, grupate pe status
+// Raport 1 - Comenzi pe perioada, grupate pe status
 // -----------------------------------------------------------------------------
 
 /** Agrega comenzile (deja filtrate pe perioada dupa `created_at`) pe status. */
@@ -49,13 +49,13 @@ export function aggregateOrdersByStatus(orders: { status: string }[]): OrderStat
 }
 
 // -----------------------------------------------------------------------------
-// Raport 2 — Livrari (+ latura "livrat" a raportului PaaS)
+// Raport 2 - Livrari (+ latura "livrat" a raportului PaaS)
 // -----------------------------------------------------------------------------
 
 /**
  * Data de referinta pentru "livrat in perioada": prioritate `delivered_at` (momentul REAL
  * al tranzitiei -> delivered, Fix F3, 0015_order_status_timestamps.sql) daca exista, altfel
- * fallback pe vechea aproximare — `delivery_date` (planificata, introdusa manual la creare)
+ * fallback pe vechea aproximare - `delivery_date` (planificata, introdusa manual la creare)
  * daca exista, apoi `updated_at` (ultima tranzitie de status). Fallback-ul ramane necesar
  * pentru comenzile livrate/inchise INAINTE de migrarea 0015 (istoric fara `delivered_at`,
  * vezi docs/plans/task-x3-rapoarte.md §2 si docs/plans/fix-f3-status-timestamps.md).
@@ -76,13 +76,13 @@ export function filterDeliveredOrdersInRange(
 
 /** Rezumat text al liniilor unei comenzi, ex. "Cărămidă eco ×4.000, Pavaj ×600". */
 export function formatItemsSummary(items: { itemTitle: string; quantity: number }[]): string {
-  if (items.length === 0) return "—";
+  if (items.length === 0) return "-";
   const qtyFormatter = new Intl.NumberFormat("ro-RO");
   return items.map((item) => `${item.itemTitle} ×${qtyFormatter.format(item.quantity)}`).join(", ");
 }
 
 // -----------------------------------------------------------------------------
-// Raport 3 — Retururi (order_links type return/warranty)
+// Raport 3 - Retururi (order_links type return/warranty)
 // -----------------------------------------------------------------------------
 
 /** Legaturile de retur/garantie a caror cerere (`created_at`) cade in perioada. */
@@ -96,7 +96,7 @@ export function filterReturnLinksRequestedInRange(
 /**
  * Legaturile de retur/garantie ACCEPTATE (material fizic reintrat in stoc) a caror
  * acceptare cade in perioada. Comanda-retur are o singura tranzitie posibila din
- * "draft" (RPC `accept_return_order`, 0010_returns.sql) — `updated_at` e deci un proxy
+ * "draft" (RPC `accept_return_order`, 0010_returns.sql) - `updated_at` e deci un proxy
  * fiabil pentru "acceptat la" (nu se mai schimba ulterior).
  */
 export function filterAcceptedReturnLinksInRange(
@@ -110,7 +110,7 @@ export function filterAcceptedReturnLinksInRange(
 }
 
 // -----------------------------------------------------------------------------
-// Raport 4 — Materiale reciclate/recondiționate reintegrate
+// Raport 4 - Materiale reciclate/recondiționate reintegrate
 // -----------------------------------------------------------------------------
 
 /** Agrega loturile (deja filtrate pe perioada dupa `entry_date`) pe provenienta + item. */
@@ -138,7 +138,7 @@ export function aggregateRecycledMaterials(lots: RecycledLotInput[]): RecycledMa
 }
 
 // -----------------------------------------------------------------------------
-// Raport 5 — PaaS "utilizat = livrat - returnat" per client/item/perioada
+// Raport 5 - PaaS "utilizat = livrat - returnat" per client/item/perioada
 // -----------------------------------------------------------------------------
 
 function paasKey(line: PaasLineInput): string {
@@ -159,9 +159,9 @@ function emptyPaasRow(line: PaasLineInput): PaasUsageRow {
 }
 
 /**
- * `utilizat = livrat - returnat`, per (client, item) — cerinta pietei PaaS (vezi
+ * `utilizat = livrat - returnat`, per (client, item) - cerinta pietei PaaS (vezi
  * docs/analiza-cerere-finantare-client-paas.md, §3). `used` e clamped la 0 (un retur
- * dintr-o perioada urmatoare celei de livrare ar putea, teoretic, depasi livratul —
+ * dintr-o perioada urmatoare celei de livrare ar putea, teoretic, depasi livratul -
  * nu raportam cantitate negativa "utilizata").
  */
 export function computePaasUsage(
@@ -192,12 +192,12 @@ export function computePaasUsage(
 }
 
 // -----------------------------------------------------------------------------
-// Raport 6 — % materii prime secundare per produs/perioada
+// Raport 6 - % materii prime secundare per produs/perioada
 // -----------------------------------------------------------------------------
 
 /**
  * % din inputul de proces provenit din surse secundare (reciclare/recondiționare/retur)
- * vs. total input, per produs fabricat (`processes.output_item_id`) — cerinta pietei PaaS
+ * vs. total input, per produs fabricat (`processes.output_item_id`) - cerinta pietei PaaS
  * (tinta ≥60%, vezi docs/analiza-cerere-finantare-client-paas.md).
  */
 export function computeSecondaryMaterialShare(

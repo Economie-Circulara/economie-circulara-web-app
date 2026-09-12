@@ -7,7 +7,7 @@ export type UnitOfMeasure = Database["public"]["Enums"]["unit_of_measure"];
 export type QualityStatus = Database["public"]["Enums"]["quality_status"];
 
 /**
- * "Tip proces" ales de utilizator in wizard — orthogonal fata de `ProcessType`
+ * "Tip proces" ales de utilizator in wizard - orthogonal fata de `ProcessType`
  * (care descrie DOAR modul de calcul: output fix / input fix). Seteaza
  * provenienta loturilor de output create la confirmare (vezi migrarea 0008 si
  * AGENTS.md §4: recondiționarea trebuie sa apara distinct de reciclare).
@@ -20,7 +20,7 @@ export const PRODUCTION_KIND_TO_PROVENANCE: Record<ProductionKind, LotProvenance
   reconditionare: "reconditioning",
 };
 
-/** Rand din istoricul de procese — ecranul /productie. */
+/** Rand din istoricul de procese - ecranul /productie. */
 export interface ProcessListRow {
   id: string;
   type: ProcessType;
@@ -44,7 +44,7 @@ export interface ProcessLotLine {
   provenance?: LotProvenance;
 }
 
-/** Detaliul complet al unui proces — ecranul /productie/[id]. */
+/** Detaliul complet al unui proces - ecranul /productie/[id]. */
 export interface ProcessDetail {
   id: string;
   type: ProcessType;
@@ -58,13 +58,13 @@ export interface ProcessDetail {
   createdAt: string;
   inputs: ProcessLotLine[];
   outputs: ProcessLotLine[];
-  /** Suma cantitati input - suma cantitati output (randament/pierderi — informativ, nevalidat). */
+  /** Suma cantitati input - suma cantitati output (randament/pierderi - informativ, nevalidat). */
   totalInputQty: number;
   totalOutputQty: number;
 }
 
 // -----------------------------------------------------------------------------
-// Payload-ul trimis catre RPC-ul `confirm_process` (migrarea 0008) — vezi
+// Payload-ul trimis catre RPC-ul `confirm_process` (migrarea 0008) - vezi
 // src/features/production/service.ts#confirmProcess.
 // -----------------------------------------------------------------------------
 export interface ConfirmProcessInputLine {

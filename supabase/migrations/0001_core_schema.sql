@@ -1,5 +1,5 @@
 -- =============================================================================
--- T1.1 — Schema de baza consolidata + RLS (CONTRACTUL COMUN)
+-- T1.1 - Schema de baza consolidata + RLS (CONTRACTUL COMUN)
 -- =============================================================================
 -- O singura migrare care defineste toate entitatile MVP si politicile RLS.
 -- Multi-tenant: baza de date comuna, izolare logica prin RLS pe `organization_id`.

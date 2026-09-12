@@ -1,7 +1,7 @@
 /**
- * Selectia de perioada pentru pagina Rapoarte + KPI-urile de dashboard — functii
+ * Selectia de perioada pentru pagina Rapoarte + KPI-urile de dashboard - functii
  * PURE (fara Supabase), testate direct (`period.test.ts`). Datele sunt manipulate ca
- * text ISO `YYYY-MM-DD` (fara ora) — perioada e mereu inclusiva la ambele capete.
+ * text ISO `YYYY-MM-DD` (fara ora) - perioada e mereu inclusiva la ambele capete.
  */
 
 export interface DateRange {
@@ -22,7 +22,7 @@ function toIsoDate(date: Date): string {
   return date.toISOString().slice(0, 10);
 }
 
-/** Prima zi a lunii curente (UTC) → azi. Interval implicit pentru pagina Rapoarte. */
+/** Prima zi a lunii curente (UTC) -> azi. Interval implicit pentru pagina Rapoarte. */
 export function currentMonthRange(now: Date = new Date()): DateRange {
   const start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
   return { from: toIsoDate(start), to: toIsoDate(now) };
@@ -31,7 +31,7 @@ export function currentMonthRange(now: Date = new Date()): DateRange {
 /**
  * Parseaza + valideaza perioada din query params (`?from=&to=`); cade pe luna curenta
  * daca lipsesc/sunt invalide. Daca `from > to`, le inverseaza defensiv (nu arunca eroare
- * — un utilizator care inverseaza datele in URL nu trebuie sa vada un ecran stricat).
+ * - un utilizator care inverseaza datele in URL nu trebuie sa vada un ecran stricat).
  */
 export function parseDateRange(
   params: { from?: string | null; to?: string | null },
@@ -43,14 +43,14 @@ export function parseDateRange(
   return from <= to ? { from, to } : { from: to, to: from };
 }
 
-/** Inceputul zilei (`00:00:00.000Z`) — pentru comparatii/query-uri pe coloane timestamptz. */
+/** Inceputul zilei (`00:00:00.000Z`) - pentru comparatii/query-uri pe coloane timestamptz. */
 export function startOfDayIso(dateIso: string): string {
   return `${dateIso}T00:00:00.000Z`;
 }
 
 /**
  * Limita superioara EXCLUSIVA a intervalului (ziua urmatoare lui `to`, miezul noptii UTC)
- * — folosita cu `.lt()` in query-uri pe coloane timestamptz, ca sa includa toata ziua `to`
+ * - folosita cu `.lt()` in query-uri pe coloane timestamptz, ca sa includa toata ziua `to`
  * indiferent de ora exacta a inregistrarii.
  */
 export function exclusiveEndOfDay(dateIso: string): string {
@@ -61,7 +61,7 @@ export function exclusiveEndOfDay(dateIso: string): string {
 
 /**
  * `true` daca un timestamp ISO (cu sau fara ora) cade in interval, inclusiv la ambele
- * capete. `null`/`undefined`/text invalid → `false` (nu poate fi plasat in nicio perioada).
+ * capete. `null`/`undefined`/text invalid -> `false` (nu poate fi plasat in nicio perioada).
  */
 export function isDateWithinRange(dateIso: string | null | undefined, range: DateRange): boolean {
   if (!dateIso) return false;
@@ -72,9 +72,9 @@ export function isDateWithinRange(dateIso: string | null | undefined, range: Dat
 
 const RANGE_LABEL_FORMATTER = new Intl.DateTimeFormat("ro-RO", { dateStyle: "medium" });
 
-/** Eticheta afisabila a perioadei, ex. "1 iul. 2026 – 18 iul. 2026". */
+/** Eticheta afisabila a perioadei, ex. "1 iul. 2026 - 18 iul. 2026". */
 export function formatRangeLabel(range: DateRange): string {
   const from = RANGE_LABEL_FORMATTER.format(new Date(startOfDayIso(range.from)));
   const to = RANGE_LABEL_FORMATTER.format(new Date(startOfDayIso(range.to)));
-  return `${from} – ${to}`;
+  return `${from} - ${to}`;
 }

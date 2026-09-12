@@ -18,7 +18,7 @@ const textareaClassName =
   "flex min-h-20 w-full rounded-md border border-input bg-card px-3 py-2 text-sm shadow-xs outline-none " +
   "focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50";
 
-/** Formular creare/editare item — acelasi component, actiune diferita dupa mod. */
+/** Formular creare/editare item - acelasi component, actiune diferita dupa mod. */
 export function ItemForm({ item }: { item?: Item }) {
   const action = item ? updateItemAction : createItemAction;
   const [state, formAction, pending] = useActionState(action, initialItemFormState);
@@ -30,7 +30,7 @@ export function ItemForm({ item }: { item?: Item }) {
         <CardHeader>
           <CardTitle>Detalii item</CardTitle>
           <CardDescription>
-            Titlu, unitate de măsură și tip — fizic (stoc + rețetă opțională) sau serviciu
+            Titlu, unitate de măsură și tip - fizic (stoc + rețetă opțională) sau serviciu
             (abonament/serviciu PaaS, fără stoc).
           </CardDescription>
         </CardHeader>

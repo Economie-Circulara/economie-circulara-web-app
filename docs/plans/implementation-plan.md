@@ -13,16 +13,16 @@ acceptare verificabile.
 > (ANAF) + S3 (Sankey/PDF) rezolvate; S2 (standarde certificat) si S4 (Socrate.io e-Transport)
 > inca deschise. **Milestone 2 COMPLET** (X1 notificari, X3 rapoarte, X2 cautare,
 > T2.1 guard suspendare, X4 seed+E2E) ✅. **Milestone 3 COMPLET** (X5 livrari/avize/
-> e-Transport — adapter mock, real depinde de S4 Socrate.io; X6 documentatie/instruire) ✅.
+> e-Transport - adapter mock, real depinde de S4 Socrate.io; X6 documentatie/instruire) ✅.
 > **TOT PLANUL LIVRAT IN COD.** Ramas non-cod: cablare reala Socrate.io (S4), screenshot-uri manual.
 >
-> **Update (2026-09-12) — reluare dupa pauza, recepție iminenta:** fix-urile de review
+> **Update (2026-09-12) - reluare dupa pauza, recepție iminenta:** fix-urile de review
 > (F1-F7: migrarile 0014-0016, invitare client, `/cauta`, CI e2e) erau pe un branch
-> **nemerge** — acum sunt pe `main`. Tipurile generate au fost **regenerate canonic** pe
+> **nemerge** - acum sunt pe `main`. Tipurile generate au fost **regenerate canonic** pe
 > toate cele 17 migrari (commitul anterior le regenerase contra unei baze incomplete si
 > spargea `typecheck`). Verificat efectiv: typecheck, lint, 584 teste, build, **suita RLS
 > pe Postgres real (T1-T19)**. **Deschis:** (1) `mvp-flow.spec.ts` esueaza pe selectori la
-> prima rulare reala; (2) Supabase **hosted** e la migrarea 0010 — lipsesc 0011-0016;
+> prima rulare reala; (2) Supabase **hosted** e la migrarea 0010 - lipsesc 0011-0016;
 > (3) nu exista deploy (`.vercel/` absent); (4) 27 capturi de ecran in `docs/manual/`;
 > (5) S2 + S4 tot deschise; (6) SMTP real.
 
@@ -42,7 +42,7 @@ Ca mai multi agenti sa poata lucra in paralel fara sa se calce reciproc:
    _un singur_ fisier de migrare cu prefix ordonat (`0007_orders.sql`). Nu se editeaza
    migrari existente.
 4. **Un task = un PR.** Fiecare task produce un branch + PR mic, review-abil, cu teste.
-5. **Acceptance criteria sunt executabile.** Fiecare task se considera „done" doar cu
+5. **Acceptance criteria sunt executabile.** Fiecare task se considera "done" doar cu
    teste verzi + lint + typecheck.
 6. **Romana in UI, engleza in cod** (conform handoff).
 
@@ -87,15 +87,15 @@ Wave 3  Cross-cutting (paralel, dupa ce verticalele exista)
 Reguli de dependenta cheie in Wave 2:
 
 - **C (Stoc/Loturi)** trebuie sa expuna API-ul de consum FIFO + creare lot inainte ca
-  **D (Productie)** si **E (Comenzi)** sa fie complete. Vezi „contracte interne" mai jos.
+  **D (Productie)** si **E (Comenzi)** sa fie complete. Vezi "contracte interne" mai jos.
 - **G (Certificate)** depinde de modelul de trasabilitate produs de **D** si **E**.
 - **F (Retur/Garantie)** depinde de **E (Comenzi)**.
 
 ---
 
-## 4. WAVE 0 — Foundation (blocheaza tot, un singur agent) — ✅ LIVRAT
+## 4. WAVE 0 - Foundation (blocheaza tot, un singur agent) - ✅ LIVRAT
 
-### T0.1 — Scaffolding proiect Next.js + tooling ✅
+### T0.1 - Scaffolding proiect Next.js + tooling ✅
 
 - **Scop:** initializare Next.js (App Router, TS), Tailwind, ESLint/Prettier, Vitest +
   Playwright, structura de foldere `src/app`, `src/features`, `src/components/ui`,
@@ -106,9 +106,9 @@ Reguli de dependenta cheie in Wave 2:
   - **`AGENTS.md` §3.1 completat** cu caile reale catre domeniile principale
     (`src/features/<domeniu>/`, schema/migrari Supabase, tipuri generate) si cu comenzile
     uzuale efective (`dev`, `build`, `test`, `typecheck`, `lint`, `db reset`, `gen-types`).
-    Placeholder-ul „de completat" din §3.1 nu mai exista dupa acest task.
+    Placeholder-ul "de completat" din §3.1 nu mai exista dupa acest task.
 
-### T0.2 — Design system & tema (din mockup) ✅
+### T0.2 - Design system & tema (din mockup) ✅
 
 - **Scop:** instalare shadcn/ui; extragerea tokenilor din `Lateris_Trace.dc.html`
   (paleta pamant/verde/ocru/slate, tipografie, pattern de fundal, badge-uri de status);
@@ -118,7 +118,7 @@ Reguli de dependenta cheie in Wave 2:
 - **Acceptare:** un Storybook/pagina de showcase reda tema; DataTable si StatusBadge
   refolosibile; suport white-label prin CSS variables (logo + culori per org).
 
-### T0.3 — Integrare Supabase (clienti + env) ✅
+### T0.3 - Integrare Supabase (clienti + env) ✅
 
 - **Scop:** proiect Supabase (regiune EU), `supabase/` cu CLI + migrari, clienti server
   & browser, helper de sesiune (`@supabase/ssr`), script `gen-types`.
@@ -128,9 +128,9 @@ Reguli de dependenta cheie in Wave 2:
 
 ---
 
-## 5. WAVE 1 — Schema de date, Auth, Multi-tenant (blocheaza Wave 2) — ✅ LIVRAT
+## 5. WAVE 1 - Schema de date, Auth, Multi-tenant (blocheaza Wave 2) - ✅ LIVRAT
 
-### T1.1 — Schema completa de baza de date + RLS (CONTRACTUL COMUN) ✅
+### T1.1 - Schema completa de baza de date + RLS (CONTRACTUL COMUN) ✅
 
 - **Scop:** o migrare consolidata care defineste toate entitatile MVP si politicile RLS.
   Tabele minime:
@@ -145,10 +145,10 @@ Reguli de dependenta cheie in Wave 2:
     calitate, blocat + motiv)
   - `stock_events` (audit trail: cine/cand/cantitate/lot/motiv/tip miscare)
   - `processes` (tip: output_fix | input_fix; status; reteta) + `process_inputs` (loturi
-    consumate) + `process_outputs` (loturi create) — baza pentru Sankey & trasabilitate
-  - `orders` + `order_items` (status: draft→trimisa→acceptata→livrata→inchisa/anulata;
+    consumate) + `process_outputs` (loturi create) - baza pentru Sankey & trasabilitate
+  - `orders` + `order_items` (status: draft->trimisa->acceptata->livrata->inchisa/anulata;
     flag `created_by_admin`; `delivery_address_id`, `delivery_date?`, `expected_return_date?`)
-  - `order_links` (retur/garantie → comanda originala)
+  - `order_links` (retur/garantie -> comanda originala)
   - `certificates` (numar unic, data, order_id, snapshot trasabilitate, path PDF)
 - **RLS:** fiecare tabel filtrat pe `organization_id`; clientul vede doar randurile
   legate de `client_id`-ul propriu. Super-admin trece peste tenant.
@@ -156,25 +156,25 @@ Reguli de dependenta cheie in Wave 2:
 - **Acceptare:** `db reset` ruleaza curat; teste RLS (pgTAP sau integrare) demonstreaza
   izolarea intre 2 organizatii si intre 2 clienti.
 - **Nota:** Acesta este cel mai important task de coordonare. Trebuie revizuit si
-  „inghetat" inainte de a porni Wave 2. Modificarile ulterioare de schema = migrari noi.
+  "inghetat" inainte de a porni Wave 2. Modificarile ulterioare de schema = migrari noi.
 - **Livrat:** migrarea `0001_core_schema.sql` (toate entitatile MVP + RLS + helper-e
   `app.*` SECURITY DEFINER) + test izolare `supabase/tests/rls_isolation.sql`.
-  Schema e **inghetata** — orice modificare = migrare noua (vezi T2.0, Task B, Task D).
+  Schema e **inghetata** - orice modificare = migrare noua (vezi T2.0, Task B, Task D).
 
-### T1.2 — Auth, rutare pe roluri, context de tenant ✅
+### T1.2 - Auth, rutare pe roluri, context de tenant ✅
 
 - **Scop:** login email/parola, invitatie + setare parola, reset;
   middleware Next.js care rezolva organizatia (din domeniu/white-label) si rolul; guard-uri
   de ruta `/(admin)`, `/(client)`; helper `getCurrentUser()` + `requireRole()`.
 - **Dependente:** T1.1, T0.2
-- **Acceptare:** login functional (mockup „Autentificare"); rolul determina layout-ul;
+- **Acceptare:** login functional (mockup "Autentificare"); rolul determina layout-ul;
   acces neautorizat redirectat; teste pe guard-uri.
 - **Livrat (peste plan):** formulare custom + server actions (nu widgetul Supabase),
   **Google OAuth + magic link** pe langa email/parola; rezolvare tenant pe 3 niveluri
-  (custom domain → subdomeniu → segment de path, fallback path in dev); RPC
+  (custom domain -> subdomeniu -> segment de path, fallback path in dev); RPC
   `org_branding` (anon) pentru branding per tenant pe ecranul de login.
 
-### T1.3 — Setari organizatie & white labeling (admin) ✅
+### T1.3 - Setari organizatie & white labeling (admin) ✅
 
 - **Scop:** ecranul **Setari** (doar admin): logo, culori, domeniu, sender email; aplicarea
   temei per tenant in runtime; management useri (creare operator & client, invitatii).
@@ -184,14 +184,14 @@ Reguli de dependenta cheie in Wave 2:
 
 ---
 
-## 6. WAVE 2 — Verticale de feature (PARALEL)
+## 6. WAVE 2 - Verticale de feature (PARALEL)
 
 Fiecare task de mai jos este auto-continut: foloseste schema din T1.1, livreaza
 UI + server actions + queries + teste pentru ecranul/fluxul lui.
 
-### Contracte interne (interfete intre verticale) — de definit la inceputul Wave 2
+### Contracte interne (interfete intre verticale) - de definit la inceputul Wave 2
 
-Pentru a permite paralelismul, **Task C** publica primul un mic modul de „stock service":
+Pentru a permite paralelismul, **Task C** publica primul un mic modul de "stock service":
 
 ```
 createLot(input): Lot
@@ -205,34 +205,34 @@ stub tipat (mock) cu aceeasi semnatura.
 
 ---
 
-### Task T2.0 — Hardening RLS scrieri client (PRECONDITIE pt. E & H)
+### Task T2.0 - Hardening RLS scrieri client (PRECONDITIE pt. E & H)
 
 - **Problema (review 2026-07):** politica `orders_client_all` din `0001_core_schema.sql`
   e `FOR ALL` conditionata doar de `client_id`, iar tabelele au GRANT pe `authenticated`
   si sunt expuse prin Data API. Un user client poate face PATCH **direct pe `status`**
-  (ex. `sent` → `accepted`/`closed`) ocolind server actions — fara scadere de stoc,
+  (ex. `sent` -> `accepted`/`closed`) ocolind server actions - fara scadere de stoc,
   fara certificat. Similar `order_items_client_all` (editare cantitati pe comenzi
   deja acceptate).
 - **Scop:** migrare noua (aditiva) care restrange scrierile rolului client:
   clientul poate crea/edita comenzi si `order_items` doar in status `draft`/`sent`;
   schimbarea de `status` de catre client e limitata la tranzitiile permise lui
-  (draft→sent, si eventual →cancelled cat timp nu e acceptata) — prin politici RLS
+  (draft->sent, si eventual ->cancelled cat timp nu e acceptata) - prin politici RLS
   restranse + trigger, sau prin mutarea scrierilor client in RPC-uri SECURITY DEFINER.
 - **Dependente:** T1.1
 - **Acceptare:** test SQL (extindere `rls_isolation.sql`) demonstreaza ca un client
   NU poate seta `accepted`/`closed` si NU poate modifica itemii unei comenzi acceptate;
   fluxurile legitime (draft, trimitere) raman functionale.
 
-### Task T2.1 — Guard organizatie suspendata (hardening, dupa Task I) — ✅ livrat
+### Task T2.1 - Guard organizatie suspendata (hardening, dupa Task I) - ✅ livrat
 
 - **Problema (semnalata la livrarea Task I):** suspendarea unei organizatii seteaza
   `organizations.status = 'suspended'`, dar middleware-ul si `getCurrentUser`/
-  `requireRole` nu verifica statusul — userii tenantului suspendat isi pastreaza
+  `requireRole` nu verifica statusul - userii tenantului suspendat isi pastreaza
   accesul complet.
 - **Scop:** blocarea accesului pentru organizatii suspendate: verificare
   `status = 'active'` in `getCurrentUser`/middleware (redirect la o pagina
-  „organizatie suspendata") si, ca a doua linie de aparare, in RLS (politicile de
-  scriere pe tabelele de business sau helper-ul `app.is_staff_of`/`app.org_id` —
+  "organizatie suspendata") si, ca a doua linie de aparare, in RLS (politicile de
+  scriere pe tabelele de business sau helper-ul `app.is_staff_of`/`app.org_id` -
   migrare noua). Super-adminul ramane neafectat.
 - **Dependente:** Task I
 - **Acceptare:** user admin/operator/client dintr-o organizatie suspendata nu mai
@@ -246,54 +246,54 @@ stub tipat (mock) cu aceeasi semnatura.
     in `src/features/auth/session.ts`: `SessionUser.organizationStatus` +
     `isOrgSuspended()`, verificate in `requireUser()` (deci si in `requireRole`).
   - RLS: `app.is_staff_of`/`app.is_admin_of` (CREATE OR REPLACE, semnatura pastrata)
-    cer suplimentar `app.org_is_active(org)` pe ramura de tenant — blocheaza
+    cer suplimentar `app.org_is_active(org)` pe ramura de tenant - blocheaza
     select/insert/update/delete pentru staff pe (aproape) toate tabelele de business,
     fara sa atinga fiecare politica individual. Super_admin (prima ramura a OR-ului)
     neafectat. Politicile de SCRIERE ale clientului pe `orders`/`order_items`/
     `documents` (introduse per-operatie in `0003`) redefinite (drop+create) cu
     aceeasi conditie; SELECT-urile clientului si `client_addresses` raman neatinse
-    (documentat in comentariul migrarii — suprafata de risc reala e scrierea, iar
+    (documentat in comentariul migrarii - suprafata de risc reala e scrierea, iar
     citirea nu are efecte si e deja blocata de guard-ul de aplicatie).
   - Teste: `src/features/auth/session.test.ts` (guard `requireUser`/`isOrgSuspended`),
     `src/lib/supabase/middleware.test.ts` (redirect middleware, super_admin neafectat,
     fara bucla pe pagina insasi), `supabase/tests/rls_isolation.sql` (T11-T14: a treia
     organizatie de test, suspendata; staff blocat la insert/update, reactivare, super
-    admin neafectat — T9 ramane neschimbat, filtreaza explicit dupa id).
+    admin neafectat - T9 ramane neschimbat, filtreaza explicit dupa id).
   - Plan detaliat: [`docs/plans/task-t2.1-guard-suspendare.md`](task-t2.1-guard-suspendare.md).
 
-### Task A — Clienti
+### Task A - Clienti
 
 - **Ecrane:** lista clienti, detaliu/creare client, adrese de livrare, documente client.
 - **Scop:** CRUD clienti firme juridice; **lookup CUI** (research spike S1) cu precompletare
   - confirmare manuala; adrese multiple; flag furnizor; upload documente.
 - **Dependente:** T1.x; spike S1 (API CUI)
-- **Nota contracte (decizie 2026-07: „arhivare"):** contractele semnate se **arhiveaza**
-  ca documente PDF atasate clientului (infrastructura `documents` existenta) —
+- **Nota contracte (decizie 2026-07: "arhivare"):** contractele semnate se **arhiveaza**
+  ca documente PDF atasate clientului (infrastructura `documents` existenta) -
   platforma NU gestioneaza structurat perioade/obligatii/tarife contractuale.
   UI-ul de documente client trebuie sa faca arhivarea contractelor evidenta
-  (ex. tip/eticheta „contract" la upload).
+  (ex. tip/eticheta "contract" la upload).
 - **Acceptare:** creezi client prin CUI lookup, editezi, adaugi 2 adrese, atasezi un PDF;
   RLS izoleaza per organizatie.
 
-### Task B — Itemi, Catalog (definitie) & Retete
+### Task B - Itemi, Catalog (definitie) & Retete
 
 - **Ecrane:** lista itemi, creare/editare item (titlu, descriere, poza, UM, flag `vandabil`,
   atasamente), **Retete** (componente in procente).
 - **Scop:** CRUD itemi; editor reteta (suma procente validata informativ); fara versionare.
 - **Nota (2026-07):** tipurile de abonament/serviciu PaaS (ex. Basic/Premium/Pay-per-Use/
   Flexi-Beton din cererea unui viitor client) se modeleaza ca **tip de produs/serviciu**
-  in catalog (item ne-fizic sau categorie „serviciu"), nu ca modul separat de abonamente.
+  in catalog (item ne-fizic sau categorie "serviciu"), nu ca modul separat de abonamente.
   Fara preturi/facturare. **Atentie schema:** `items` din T1.1 (inghetata) nu are camp
-  de tip/categorie — Task B include o **migrare noua** (ex. `items.kind`:
-  `physical | service`) care sustine cerinta revizuita din Anexa 1 („gestionarea
+  de tip/categorie - Task B include o **migrare noua** (ex. `items.kind`:
+  `physical | service`) care sustine cerinta revizuita din Anexa 1 ("gestionarea
   tipurilor de produse si servicii furnizate").
 - **Dependente:** T1.x
-- **Acceptare:** definesti „Caramida eco" cu reteta din 3 componente; itemul cu `vandabil`
+- **Acceptare:** definesti "Caramida eco" cu reteta din 3 componente; itemul cu `vandabil`
   apare in catalogul clientului (Task G).
 
-### Task C — Stoc & Loturi + Audit (FUNDAMENT pt. D & E)
+### Task C - Stoc & Loturi + Audit (FUNDAMENT pt. D & E)
 
-- **Ecrane:** lista loturi (mockup „Stoc"), adauga lot (provenienta: achizitie/productie/
+- **Ecrane:** lista loturi (mockup "Stoc"), adauga lot (provenienta: achizitie/productie/
   reciclare/retur/ajustare), blocare lot cu motiv, **Audit stoc** (listing `stock_events`
   - **export CSV/Excel**).
 - **Scop:** managementul loturilor; **stock service** (vezi contracte); FIFO; toate
@@ -302,61 +302,61 @@ stub tipat (mock) cu aceeasi semnatura.
 - **Acceptare:** adaugi lot, blochezi/deblochezi, consumi FIFO si vezi evenimentele in
   audit; exportul CSV contine miscarile; **publica modulul stock service**.
 
-### Task D — Productie & Reciclare (cu Sankey)
+### Task D - Productie & Reciclare (cu Sankey)
 
-- **Ecrane:** pornire proces — **4a output fix** (introduci cantitate output → consum FIFO
-  calculat automat → confirmare → loturi noi) si **4b input fix/output variabil** (introduci
-  input → output ideal pe reteta → tabel editabil → confirmare → loturi noi); istoric proces
-  cu **Sankey diagram** (input loturi → proces → output loturi).
-- **Scop:** ambele fluxuri; statusuri planificat→in lucru→asteapta confirmare→finalizat/anulat;
+- **Ecrane:** pornire proces - **4a output fix** (introduci cantitate output -> consum FIFO
+  calculat automat -> confirmare -> loturi noi) si **4b input fix/output variabil** (introduci
+  input -> output ideal pe reteta -> tabel editabil -> confirmare -> loturi noi); istoric proces
+  cu **Sankey diagram** (input loturi -> proces -> output loturi).
+- **Scop:** ambele fluxuri; statusuri planificat->in lucru->asteapta confirmare->finalizat/anulat;
   inregistreaza randament/pierderi (nu valideaza); leaga `process_inputs`/`process_outputs`
   pentru trasabilitate.
 - **Recondiționare vizibila (conformitate Anexa 1, cerinta d):** enum-urile din T1.1
-  nu au valori pentru recondiționare — Task D adauga o **migrare noua**
+  nu au valori pentru recondiționare - Task D adauga o **migrare noua**
   (`lot_provenance` += `reconditioning` si/sau categorie de proces
   `production | recycling | reconditioning`), astfel incat recondiționarea sa apara
   **distinct** in trasabilitate si in rapoarte (X3). Fluxul de retur (Task F) foloseste
   aceeasi valoare la reintrarea in stoc dupa recondiționare.
 - **Dependente:** Task C (stock service), Task B (retete)
 - **Acceptare:** ambele sub-fluxuri creeaza loturi noi si scad stoc corect (FIFO);
-  Sankey reda fluxul; cazul „stoc insuficient" tratat.
+  Sankey reda fluxul; cazul "stoc insuficient" tratat.
 
-### Task E — Comenzi (admin/operator)
+### Task E - Comenzi (admin/operator)
 
-- **Ecrane:** lista comenzi (mockup „Comenzi": client, produse, data livrare, status badge,
+- **Ecrane:** lista comenzi (mockup "Comenzi": client, produse, data livrare, status badge,
   actiuni rapide Accepta/Anuleaza, filtre+search), detaliu comanda, creare comanda in numele
   clientului (`created_by_admin`).
-- **Scop:** statusuri draft→trimisa→acceptata→livrata→inchisa/anulata; **scadere stoc la
+- **Scop:** statusuri draft->trimisa->acceptata->livrata->inchisa/anulata; **scadere stoc la
   acceptare**, refacere la anulare; fara livrari partiale; trigger notificari (Wave 3) la
   fiecare schimbare de status; trigger generare certificat la inchidere (Task Certificate).
 - **Dependente:** Task C (stock service), Task A (clienti), Task B (itemi)
 - **Acceptare:** acceptarea scade stocul si scrie `stock_events`; anularea reface; tranzitiile
   de status respecta masina de stari; emite evenimentele consumate de notificari & certificat.
 
-### Task F — Retur & Garantie & Inchiriere
+### Task F - Retur & Garantie & Inchiriere
 
-- **Ecrane:** pe o comanda finalizata — butoane Retur / Garantie; formular retur cu cantitati
+- **Ecrane:** pe o comanda finalizata - butoane Retur / Garantie; formular retur cu cantitati
   editabile; intrare in stoc dupa inspectie/acceptare manuala.
 - **Scop:** retur (creeaza comanda legata), garantie (retur + comanda de inlocuire automata);
   inchiriere = comanda + retur cu `expected_return_date`.
 - **Dependente:** Task E, Task C
 - **Acceptare:** retur creeaza comanda legata cu date precompletate; dupa acceptare,
-  materialele intra in stoc (lot cu provenienta „retur").
+  materialele intra in stoc (lot cu provenienta "retur").
 
-### Task G — Certificate de trasabilitate (PDF + graf)
+### Task G - Certificate de trasabilitate (PDF + graf)
 
 - **Ecrane:** ecranul **Certificat** (mockup, cel mai important vizual): header logo+numar+data,
-  date comanda, **graf de trasabilitate** (produs livrat → loturi → procese → loturi materie
-  prima → surse), tabel „Materiale si origine" (procente per sursa), documente atasate, footer
+  date comanda, **graf de trasabilitate** (produs livrat -> loturi -> procese -> loturi materie
+  prima -> surse), tabel "Materiale si origine" (procente per sursa), documente atasate, footer
   semnatura.
-- **Scop:** la inchiderea comenzii (eveniment din Task E) → construieste snapshot-ul de
+- **Scop:** la inchiderea comenzii (eveniment din Task E) -> construieste snapshot-ul de
   trasabilitate parcurgand `process_inputs/outputs` + `lots`; **genereaza PDF** server-side;
   numar unic; salveaza in Supabase Storage; expune download.
-- **Dependente:** Task E (eveniment inchidere), Task D (lant proces→loturi); spike S2 (standarde)
+- **Dependente:** Task E (eveniment inchidere), Task D (lant proces->loturi); spike S2 (standarde)
 - **Acceptare:** inchiderea unei comenzi genereaza automat PDF descarcabil; graful reda lantul
   pana la sursele reciclate; template extensibil.
 
-### Task H — Portal client
+### Task H - Portal client
 
 - **Ecrane:** **Catalog** (grid carduri produs, search/filtre, cos), formular comanda (adresa
   livrare, data optionala, observatii), **Comenzile mele** (lista cu status, Retur/Garantie pe
@@ -367,7 +367,7 @@ stub tipat (mock) cu aceeasi semnatura.
 - **Acceptare:** clientul adauga in cos, trimite comanda, vede statusul, descarca certificatul;
   RLS interzice accesul la alte comenzi/clienti.
 
-### Task I — Super-admin (management organizatii)
+### Task I - Super-admin (management organizatii)
 
 - **Ecrane:** lista organizatii, creare organizatie + admin initial, suspendare.
 - **Scop:** administrarea platformei (peste tenant).
@@ -377,43 +377,43 @@ stub tipat (mock) cu aceeasi semnatura.
 
 ---
 
-## 7. WAVE 3 — Cross-cutting & finisare (paralel, dupa verticale)
+## 7. WAVE 3 - Cross-cutting & finisare (paralel, dupa verticale)
 
-### Task X1 — Notificari email
+### Task X1 - Notificari email
 
 - Sender per organizatie (white-label); template-uri pentru fiecare schimbare de status
   comanda + invitatii. Consuma evenimentele emise de Task E/Task 1.3.
 - **Acceptare:** la fiecare tranzitie de status pleaca un email; testat cu un mock SMTP.
 
-### Task X2 — Cautare globala
+### Task X2 - Cautare globala
 
 - Search peste comanda, client, lot, produs, certificat (mockup are bara de cautare).
 - **Acceptare:** cautarea returneaza rezultate cross-entitate, respectand RLS.
 
-### Task X3 — Dashboard, KPI & Rapoarte (obligatoriu — conformitate Anexa 1)
+### Task X3 - Dashboard, KPI & Rapoarte (obligatoriu - conformitate Anexa 1)
 
 - Carduri KPI din mockup (comenzi active, de acceptat, livrate luna asta, certificate emise).
-- **Pagina dedicata „Rapoarte"** (decizie 2026-07): rapoarte operationale pe perioada
+- **Pagina dedicata "Rapoarte"** (decizie 2026-07): rapoarte operationale pe perioada
   (comenzi, livrari, retururi, materiale reciclate reintegrate) cu **export PDF**
   (+ CSV unde are sens), antet white-label per organizatie.
 - Rapoarte cerute de piata PaaS (vezi `docs/analiza-cerere-finantare-client-paas.md`):
-  **„utilizat = livrat − returnat"** per client/perioada (baza pay-per-use; datele exista
+  **"utilizat = livrat - returnat"** per client/perioada (baza pay-per-use; datele exista
   in comenzi/retururi/`stock_events`) si **% materii prime secundare** per produs/perioada
   (derivat din trasabilitate).
-- **v2 (NU in acest task):** raport CO2 economisit — cere factori de emisie configurabili
+- **v2 (NU in acest task):** raport CO2 economisit - cere factori de emisie configurabili
   per organizatie; metodologia = raspunderea clientului.
 - **Acceptare:** valorile reflecta datele reale ale tenantului; fiecare raport se exporta
   ca PDF descarcabil.
 
-### Task X5 — Livrari, avize & integrare e-Transport (cerinta noua, v1.x)
+### Task X5 - Livrari, avize & integrare e-Transport (cerinta noua, v1.x)
 
 - **Scop:** entitate `deliveries` pe comanda (data programata, transportator, nr.
   inmatriculare, sofer, ruta plecare/sosire); generare **aviz de insotire a marfii**;
   declarare in **RO e-Transport** prin **Socrate.io** (validat in S4); stocare **cod UIT**
   pe livrare; aviz PDF printabil cu UIT.
 - **Nota de design:** modelul `deliveries` se proiecteaza de la inceput cu v2 in minte
-  (monitorizare GPS a livrarilor — vehicul identificabil, legatura livrare ↔ transport).
-  **Atentie schema:** `document_owner_type` din T1.1 este `client|order|item` — avizul
+  (monitorizare GPS a livrarilor - vehicul identificabil, legatura livrare ↔ transport).
+  **Atentie schema:** `document_owner_type` din T1.1 este `client|order|item` - avizul
   PDF pe livrare cere fie extinderea enum-ului cu `delivery` (`ALTER TYPE ... ADD VALUE`,
   migrare noua), fie coloana proprie de path pe `deliveries`.
 - **Dependente:** Task E (comenzi), spike S4
@@ -421,25 +421,25 @@ stub tipat (mock) cu aceeasi semnatura.
   declaratia e-Transport pleaca prin API-ul tert (mock/sandbox in teste), UIT-ul apare
   pe livrare si pe PDF; erorile de declarare sunt vizibile si re-incercabile.
 
-### Task X4 — Seed data & E2E ✅ livrat
+### Task X4 - Seed data & E2E ✅ livrat
 
 - Date demo pt. clientul pilot (moloz, nisip reciclat, pietris, caramizi, beton, balast);
-  teste Playwright pe **fluxul complet MVP** (1→9 din handoff).
-- **Acceptare:** un singur test E2E parcurge: creare org → client → itemi/retete → lot →
-  reciclare → productie → comanda → acceptare → livrare/inchidere → certificat.
+  teste Playwright pe **fluxul complet MVP** (1->9 din handoff).
+- **Acceptare:** un singur test E2E parcurge: creare org -> client -> itemi/retete -> lot ->
+  reciclare -> productie -> comanda -> acceptare -> livrare/inchidere -> certificat.
 - **Livrat:** `supabase/seed.sql` extins (nu rescris) cu date bogate pentru "Lateris Demo"
   (3 clienti, 8 itemi, 3 retete, 9 loturi cu 5 proveniente diferite inclusiv un lot blocat,
-  4 procese, 2 comenzi in stadii diferite + certificat) — insertii directe (nu prin RPC,
+  4 procese, 2 comenzi in stadii diferite + certificat) - insertii directe (nu prin RPC,
   care sunt SECURITY INVOKER si necesita `auth.uid()` inexistent la `db reset` ca `postgres`).
   Test E2E (`tests/e2e/mvp-flow.spec.ts`) parcurge pasii 2-9 prin UI cu date noi (pasul 1,
-  creare organizatie+useri, ramane acoperit de seed — ar necesita altfel invitatie email
+  creare organizatie+useri, ramane acoperit de seed - ar necesita altfel invitatie email
   reala, in afara scope-ului E2E). Detalii + plan: `docs/plans/task-x4-seed-e2e.md`.
 - **Nota mediu:** testul NU a putut fi rulat efectiv in mediul agentic (fara Docker/Supabase
-  local) — verificat doar static (`pnpm typecheck`, `pnpm lint`, `pnpm exec playwright test
+  local) - verificat doar static (`pnpm typecheck`, `pnpm lint`, `pnpm exec playwright test
   --list`). Ruleaza-l complet cu `pnpm test:e2e` intr-un mediu cu Supabase local pornit sau
   in CI dedicat.
 
-### Task X6 — Documentatie utilizare & instruire (livrabile Anexa 1, obligatoriu) ✅ livrat
+### Task X6 - Documentatie utilizare & instruire (livrabile Anexa 1, obligatoriu) ✅ livrat
 
 - **Scop:** livrabilele de proiect din sectiunea 5 a Anexei 1, singurul ❌ ramas in
   [analiza-conformitate-anexa.md](../analiza-conformitate-anexa.md): **manual de
@@ -448,19 +448,19 @@ stub tipat (mock) cu aceeasi semnatura.
   programarea **sesiunilor de instruire** a utilizatorilor desemnati.
 - **Dependente:** verticalele Wave 2 (documenteaza ecranele reale); se scrie la final,
   inainte de receptie.
-- **Acceptare:** manualele acopera fluxul complet MVP (1→9 din handoff) cu capturi din
+- **Acceptare:** manualele acopera fluxul complet MVP (1->9 din handoff) cu capturi din
   aplicatia reala; ghidul de administrare permite unui admin nou sa configureze o
   organizatie de la zero; plan de instruire agreat cu Beneficiarul.
-- **Livrat:** `docs/manual/` — `README.md` (cuprins), `utilizare-admin-operator.md`,
+- **Livrat:** `docs/manual/` - `README.md` (cuprins), `utilizare-admin-operator.md`,
   `utilizare-client.md`, `ghid-administrare.md`, `instruire.md`; plan in
   `docs/plans/task-x6-documentatie.md`; `docs/index.md` actualizat cu sectiunea Manual.
-  Textul e verificat pe ecranele reale din `src/app/` (titluri, butoane, campuri) — nu
+  Textul e verificat pe ecranele reale din `src/app/` (titluri, butoane, campuri) - nu
   pe mockup. **Capturile de ecran raman de adaugat** ulterior, din aplicatia rulanta
-  (marcate explicit in text, format „📷 [Captura de adaugat: ...]"). Doua onestitati
-  semnalate in text: (1) Task X5 (livrari/aviz/e-Transport) nu e inca livrat — sectiunea
-  corespunzatoare descrie fluxul planificat, marcat clar „in curs de implementare”;
+  (marcate explicit in text, format "📷 [Captura de adaugat: ...]"). Doua onestitati
+  semnalate in text: (1) Task X5 (livrari/aviz/e-Transport) nu e inca livrat - sectiunea
+  corespunzatoare descrie fluxul planificat, marcat clar "in curs de implementare";
   (2) nu exista inca un formular de invitare a unui utilizator cu rol `client` in
-  `/setari/utilizatori` (doar operator/admin) — semnalat ca gap cunoscut in
+  `/setari/utilizatori` (doar operator/admin) - semnalat ca gap cunoscut in
   `ghid-administrare.md`, cu procedura tehnica temporara.
 
 ---
@@ -469,20 +469,20 @@ stub tipat (mock) cu aceeasi semnatura.
 
 | ID  | Subiect                                                                           | Deblocheaza | Output asteptat            |
 | --- | --------------------------------------------------------------------------------- | ----------- | -------------------------- |
-| S1 ✅ | API public lookup CUI Romania — **rezolvat: ANAF v9** (webservicesp.anaf.ro), adapter in `src/features/clients/cui-lookup.ts` | Task A | alegere sursa + adapter |
-| S2 ✅ | Standarde legale RO/EU pt. certificat trasabilitate materiale reciclate — **rezolvat: nu exista obligatie legala pentru acest certificat** (e document voluntar); obligatorii sunt DoP+marcaj CE (EN 12620/EN 13242), evidenta deseurilor, bonul de livrare beton (NE 012/1-2022) si e-Transport. Continut minim recomandat, delta pe cod si disclaimer in [`../analiza-standarde-certificat.md`](../analiza-standarde-certificat.md) | Task G      | continut minim obligatoriu |
-| S3 (Sankey) ✅ | Sankey — **decizie: SVG custom** (fara librarie; risc peer-deps React 19/Next 16, portat din mockup) in `src/features/production/sankey-*`. Abordarea PDF ramane de decis la Task G. | Task D, G | decizie + POC mic |
+| S1 ✅ | API public lookup CUI Romania - **rezolvat: ANAF v9** (webservicesp.anaf.ro), adapter in `src/features/clients/cui-lookup.ts` | Task A | alegere sursa + adapter |
+| S2 ✅ | Standarde legale RO/EU pt. certificat trasabilitate materiale reciclate - **rezolvat: nu exista obligatie legala pentru acest certificat** (e document voluntar); obligatorii sunt DoP+marcaj CE (EN 12620/EN 13242), evidenta deseurilor, bonul de livrare beton (NE 012/1-2022) si e-Transport. Continut minim recomandat, delta pe cod si disclaimer in [`../analiza-standarde-certificat.md`](../analiza-standarde-certificat.md) | Task G      | continut minim obligatoriu |
+| S3 (Sankey) ✅ | Sankey - **decizie: SVG custom** (fara librarie; risc peer-deps React 19/Next 16, portat din mockup) in `src/features/production/sankey-*`. Abordarea PDF ramane de decis la Task G. | Task D, G | decizie + POC mic |
 | S4  | Validare **Socrate.io** ca furnizor RO e-Transport (decis 2026-07, platit): acces API/sandbox, costuri, contract | Task X5 | POC adapter Socrate.io |
 
 ---
 
 ## 9. Ordinea recomandata de executie
 
-1. ~~**Wave 0** (T0.1 → T0.2 / T0.3 in paralel) — un agent.~~ ✅ livrat
-2. ~~**T1.1 schema** — review + inghetare. **Critic.**~~ ✅ livrat (schema inghetata)
+1. ~~**Wave 0** (T0.1 -> T0.2 / T0.3 in paralel) - un agent.~~ ✅ livrat
+2. ~~**T1.1 schema** - review + inghetare. **Critic.**~~ ✅ livrat (schema inghetata)
 3. ~~**T1.2 / T1.3** auth & tenant.~~ ✅ livrat
-4. **Spikes S1–S4 pornesc ACUM**, in paralel cu Wave 2. Prioritate: **S1** (blocheaza
-   Task A, pe lantul critic) si **S4** (Socrate.io — lead time extern: contract, acces
+4. **Spikes S1-S4 pornesc ACUM**, in paralel cu Wave 2. Prioritate: **S1** (blocheaza
+   Task A, pe lantul critic) si **S4** (Socrate.io - lead time extern: contract, acces
    sandbox; nu e sub controlul nostru).
 5. **Wave 2:** porneste **Task C** primul (publica stock service) + **T2.0** (hardening
    RLS) devreme; apoi A, B, I in paralel; urmeaza D & E; apoi F, G, H.
@@ -491,23 +491,23 @@ stub tipat (mock) cu aceeasi semnatura.
 ### Prioritizare pentru termenul august 2026 (decizie 2026-07)
 
 Timpul ramas pana la termen e scurt (~6 saptamani) pentru 10 task-uri Wave 2 +
-6 task-uri Wave 3. **Lantul critic al demo-ului MVP** (fluxul 1→9 din handoff,
+6 task-uri Wave 3. **Lantul critic al demo-ului MVP** (fluxul 1->9 din handoff,
 certificatul e selling point-ul si trebuie sa existe):
 
 ```
-C (stoc) → B (itemi/retete) → A (clienti) → E (comenzi) → D (productie) → G (certificate) → H (portal)
+C (stoc) -> B (itemi/retete) -> A (clienti) -> E (comenzi) -> D (productie) -> G (certificate) -> H (portal)
 ```
 
 - **Prioritate 1 (demo MVP):** T2.0, C, B, A, E, D, G, H + X4 (E2E pe fluxul complet).
 - **Prioritate 2 (post-demo, inainte de receptie):** F (retur/garantie), I (super-admin),
-  X1 (notificari), X3 (rapoarte — obligatoriu conformitate), X6 (documentatie/instruire).
-- **Prioritate 3 (v1.x):** X2 (cautare), X5 (livrari/e-Transport — depinde oricum de S4).
+  X1 (notificari), X3 (rapoarte - obligatoriu conformitate), X6 (documentatie/instruire).
+- **Prioritate 3 (v1.x):** X2 (cautare), X5 (livrari/e-Transport - depinde oricum de S4).
 
 ### Tabel rezumat tasks
 
 | Task                    | Wave | Depinde de   | Status / Paralelizabil |
 | ----------------------- | ---- | ------------ | ---------------------- |
-| T0.1 Scaffolding        | 0    | —            | ✅ livrat              |
+| T0.1 Scaffolding        | 0    | -            | ✅ livrat              |
 | T0.2 Design system      | 0    | T0.1         | ✅ livrat              |
 | T0.3 Supabase           | 0    | T0.1         | ✅ livrat              |
 | T1.1 Schema+RLS         | 1    | T0.3         | ✅ livrat (inghetata)  |

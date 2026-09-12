@@ -28,9 +28,9 @@ interface OutputRow {
 }
 
 /**
- * 4b — Input fix / output variabil (reciclare): alegi materialul de input +
+ * 4b - Input fix / output variabil (reciclare): alegi materialul de input +
  * cantitatea, sistemul afișează outputul ideal (dacă itemul de input are o
- * "rețetă" — interpretata aici ca descompunere in fracții, vezi migrarea 0008),
+ * "rețetă" - interpretata aici ca descompunere in fracții, vezi migrarea 0008),
  * apoi utilizatorul ajustează cantitățile reale intr-un tabel editabil.
  */
 export function VariableOutputForm({ inputItems }: { inputItems: ItemOption[] }) {
@@ -39,7 +39,7 @@ export function VariableOutputForm({ inputItems }: { inputItems: ItemOption[] })
   const [kind, setKind] = useState<ProductionKind>("reciclare");
   const [recipe, setRecipe] = useState<RecipeDetail | null>(null);
   // Editarile utilizatorului pe coloana "Real" (cheie: itemId fractie). Se
-  // reseteaza cand se schimba itemul de input (vezi pattern-ul de mai jos —
+  // reseteaza cand se schimba itemul de input (vezi pattern-ul de mai jos -
   // "adjusting state when a prop changes", render-time, nu intr-un efect:
   // https://react.dev/learn/you-might-not-need-an-effect).
   const [realQtyOverrides, setRealQtyOverrides] = useState<Record<string, string>>({});
@@ -54,7 +54,7 @@ export function VariableOutputForm({ inputItems }: { inputItems: ItemOption[] })
     availableQty: number;
     error: string | null;
   } | null>(null);
-  // Cheia (item + cantitate) pentru care `fifoResult` e valid — vezi comentariul
+  // Cheia (item + cantitate) pentru care `fifoResult` e valid - vezi comentariul
   // din fixed-output-form.tsx pentru motivul evitarii unui `loadingPreview`
   // setat sincron in efect.
   const [fifoResultKey, setFifoResultKey] = useState<string | null>(null);
@@ -69,7 +69,7 @@ export function VariableOutputForm({ inputItems }: { inputItems: ItemOption[] })
     getRecipeForItem(inputItemId).then(setRecipe);
   }, [inputItemId]);
 
-  // Outputul ideal (fractii) e derivat pur din rețetă + cantitate — nu are
+  // Outputul ideal (fractii) e derivat pur din rețetă + cantitate - nu are
   // nevoie de state/efect propriu.
   const idealLines = useMemo(() => {
     if (!recipe || recipe.components.length === 0 || !Number.isFinite(qtyNum) || qtyNum <= 0)
@@ -169,7 +169,7 @@ export function VariableOutputForm({ inputItems }: { inputItems: ItemOption[] })
 
   function onConfirm() {
     if (!selectedInput || !canConfirm) return;
-    // `processes.output_item_id` e un singur camp (schema) — la 4b, cu output
+    // `processes.output_item_id` e un singur camp (schema) - la 4b, cu output
     // multiplu, folosim prima fracție cu cantitate > 0 ca item "reprezentativ"
     // (informativ; trasabilitatea reala vine din `process_outputs`, cu toate
     // itemii/loturile create).
@@ -256,11 +256,11 @@ export function VariableOutputForm({ inputItems }: { inputItems: ItemOption[] })
 
         <div>
           <div className="mb-2 font-mono text-[11px] tracking-wide text-muted-foreground uppercase">
-            Output real — ajustează fracțiile
+            Output real - ajustează fracțiile
           </div>
           {!recipe || recipe.components.length === 0 ? (
             <p className="text-sm text-muted-foreground">
-              Itemul ales nu are o rețetă/descompunere definită — introdu manual outputul din
+              Itemul ales nu are o rețetă/descompunere definită - introdu manual outputul din
               /retete pentru a vedea fracțiile ideale aici.
             </p>
           ) : (
@@ -282,7 +282,7 @@ export function VariableOutputForm({ inputItems }: { inputItems: ItemOption[] })
                       </div>
                     </td>
                     <td className="py-2 text-right text-muted-foreground tabular-nums">
-                      {row.idealQty ?? "—"}
+                      {row.idealQty ?? "-"}
                     </td>
                     <td className="py-2 text-right">
                       <Input
@@ -319,7 +319,7 @@ export function VariableOutputForm({ inputItems }: { inputItems: ItemOption[] })
         <div className="mb-2 flex items-center justify-between">
           <span className="text-sm font-semibold">Flux reciclare</span>
           <span className="font-mono text-[11px] text-muted-foreground">
-            input → proces → fracții
+            {"input -> proces -> fracții"}
           </span>
         </div>
         <div className="flex min-h-[250px] flex-1 items-center">
@@ -327,7 +327,7 @@ export function VariableOutputForm({ inputItems }: { inputItems: ItemOption[] })
         </div>
         <div className="flex justify-end border-t pt-4">
           <Button onClick={onConfirm} disabled={!canConfirm || isPending}>
-            {isPending ? "Se finalizează…" : "Finalizează procesul →"}
+            {isPending ? "Se finalizează..." : "Finalizează procesul ->"}
           </Button>
         </div>
       </div>

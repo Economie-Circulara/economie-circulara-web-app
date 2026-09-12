@@ -8,7 +8,7 @@ import { initialBlockFormState } from "./action-state";
 import type { LotWithItem } from "./types";
 
 /**
- * Blocare/deblocare lot cu motiv — formular inline (nu dialog modal, ca sa ramanem
+ * Blocare/deblocare lot cu motiv - formular inline (nu dialog modal, ca sa ramanem
  * in scope-ul featurii: nu adaugam un primitive `Dialog` nou in `src/components/ui/`).
  */
 export function LotBlockControls({ lot }: { lot: LotWithItem }) {
@@ -48,7 +48,7 @@ export function LotBlockControls({ lot }: { lot: LotWithItem }) {
     <form action={blockAction} className="flex flex-col items-end gap-2">
       <input type="hidden" name="lot_id" value={lot.id} />
       {/* `aria-label`: inputul nu are <label> vizibil (formular inline, compact), deci
-          fara el n-ar avea nume accesibil — nici pentru cititoarele de ecran, nici
+          fara el n-ar avea nume accesibil - nici pentru cititoarele de ecran, nici
           pentru testele care il caută după etichetă. */}
       <Input
         name="reason"

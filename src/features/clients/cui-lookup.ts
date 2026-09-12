@@ -1,7 +1,7 @@
 // =============================================================================
-// Spike S1 (research, rezolvat inline) — API public de lookup CUI Romania
+// Spike S1 (research, rezolvat inline) - API public de lookup CUI Romania
 // =============================================================================
-// Alegere: serviciul public ANAF de verificare platitor TVA, v9 —
+// Alegere: serviciul public ANAF de verificare platitor TVA, v9 -
 //   POST https://webservicesp.anaf.ro/api/PlatitorTvaRest/v9/tva
 //   body: [{ cui: <numeric>, data: 'YYYY-MM-DD' }]
 //
@@ -12,7 +12,7 @@
 // termeneonline.ro (fragil, contra ToS).
 //
 // Limitari cunoscute: rate-limit ANAF (informal ~1 request/secunda per IP, max
-// 500 coduri per request — noi trimitem mereu un singur CUI), disponibilitate
+// 500 coduri per request - noi trimitem mereu un singur CUI), disponibilitate
 // variabila (mentenanta programata), fara CORS -> apelul TREBUIE facut
 // server-side (server action), niciodata din browser.
 //
@@ -20,7 +20,7 @@
 // interfata `CuiLookupProvider` face sursa inlocuibila (alt API sau un provider
 // stub in medii fara acces la retea), iar daca API-ul nu raspunde la timp
 // (timeout scurt, vezi `DEFAULT_TIMEOUT_MS`) sau raspunde cu eroare, formularul
-// de client ramane complet completabil manual — lookup-ul nu blocheaza salvarea.
+// de client ramane complet completabil manual - lookup-ul nu blocheaza salvarea.
 // =============================================================================
 
 const ANAF_TVA_URL = "https://webservicesp.anaf.ro/api/PlatitorTvaRest/v9/tva";
@@ -84,7 +84,7 @@ export class CuiNotFoundError extends CuiLookupError {
   }
 }
 
-/** ANAF nu a raspuns in timp util — degradare grațioasă, formularul rămâne editabil manual. */
+/** ANAF nu a raspuns in timp util - degradare grațioasă, formularul rămâne editabil manual. */
 export class CuiLookupTimeoutError extends CuiLookupError {
   constructor() {
     super("Serviciul ANAF nu a răspuns la timp. Poți completa datele manual.");
@@ -150,7 +150,7 @@ export class AnafCuiLookupProvider implements CuiLookupProvider {
   async lookup(rawCui: string): Promise<CuiLookupResult> {
     const cui = normalizeCui(rawCui);
     if (!isValidCuiFormat(cui)) {
-      throw new CuiLookupError("CUI invalid — verifică numărul introdus.");
+      throw new CuiLookupError("CUI invalid - verifică numărul introdus.");
     }
 
     const controller = new AbortController();

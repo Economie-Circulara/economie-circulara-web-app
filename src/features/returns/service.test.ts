@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-// Mocks (nu spies — vezi AGENTS.md §2.2).
+// Mocks (nu spies - vezi AGENTS.md §2.2).
 const { createClient } = vi.hoisted(() => ({ createClient: vi.fn() }));
 vi.mock("@/lib/supabase/server", () => ({ createClient }));
 
@@ -303,12 +303,10 @@ describe("createReturnOrder", () => {
 
 describe("acceptReturnOrder", () => {
   it("apeleaza RPC accept_return_order si returneaza comanda acceptata", async () => {
-    const rpc = vi
-      .fn()
-      .mockResolvedValue({
-        data: { ...orderRow({ status: "accepted" }), id: "return-1" },
-        error: null,
-      });
+    const rpc = vi.fn().mockResolvedValue({
+      data: { ...orderRow({ status: "accepted" }), id: "return-1" },
+      error: null,
+    });
     createClient.mockResolvedValue({ rpc });
 
     const order = await acceptReturnOrder("return-1");

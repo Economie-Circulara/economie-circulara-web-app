@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-// Mocks (nu spies — AGENTS.md §2.2): inlocuim clientii Supabase, sesiunea,
-// fetch-ul de trasabilitate (repository.ts) si randarea PDF (grea/lenta —
+// Mocks (nu spies - AGENTS.md §2.2): inlocuim clientii Supabase, sesiunea,
+// fetch-ul de trasabilitate (repository.ts) si randarea PDF (grea/lenta -
 // izolam orchestrarea din service.ts de randarea reala @react-pdf/renderer).
 const { createClient } = vi.hoisted(() => ({ createClient: vi.fn() }));
 vi.mock("@/lib/supabase/server", () => ({ createClient }));

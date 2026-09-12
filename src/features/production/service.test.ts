@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-// Mocks (nu spies — vezi AGENTS.md §2.2): inlocuim complet clientul Supabase server.
+// Mocks (nu spies - vezi AGENTS.md §2.2): inlocuim complet clientul Supabase server.
 const { createClient } = vi.hoisted(() => ({ createClient: vi.fn() }));
 vi.mock("@/lib/supabase/server", () => ({ createClient }));
 
@@ -64,7 +64,7 @@ describe("confirmProcess", () => {
     expect(result.status).toBe("completed");
   });
 
-  it("suporta provenienta 'reconditioning' (recondiționare) pe output — migrarea 0008", async () => {
+  it("suporta provenienta 'reconditioning' (recondiționare) pe output - migrarea 0008", async () => {
     const rpc = vi.fn().mockResolvedValue({ data: processRow(), error: null });
     createClient.mockResolvedValue({ rpc });
 

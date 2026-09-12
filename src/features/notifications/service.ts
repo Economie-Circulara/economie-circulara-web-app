@@ -26,7 +26,7 @@ export interface SendOrderStatusNotificationResult {
   sent: boolean;
 }
 
-/** Comanda nu a putut fi gasita — nimic de notificat (defensiv, nu ar trebui sa apara in flux normal). */
+/** Comanda nu a putut fi gasita - nimic de notificat (defensiv, nu ar trebui sa apara in flux normal). */
 export class NotificationOrderNotFoundError extends Error {
   constructor(public readonly orderId: string) {
     super("Comanda nu a putut fi găsită pentru trimiterea notificării.");
@@ -34,7 +34,7 @@ export class NotificationOrderNotFoundError extends Error {
   }
 }
 
-/** Clientul comenzii nu are o adresa de email configurata — nu exista destinatar. */
+/** Clientul comenzii nu are o adresa de email configurata - nu exista destinatar. */
 export class NotificationRecipientMissingError extends Error {
   constructor(public readonly orderId: string) {
     super("Clientul comenzii nu are o adresă de email configurată.");
@@ -72,7 +72,7 @@ interface OrderContextForEmail {
  * client, sender white-label al organizatiei) folosind clientul ADMIN. Alegere
  * deliberata fata de clientul legat de sesiune (ca in certificates/service.ts):
  * acest serviciu ruleaza DUPA ce tranzitia de status a fost deja autorizata de
- * action-ul apelant (`requireRole` in orders/actions.ts) — nu mai are nevoie de o
+ * action-ul apelant (`requireRole` in orders/actions.ts) - nu mai are nevoie de o
  * a doua verificare RLS, si ramane corect indiferent de contextul de
  * sesiune/cookie al apelantului (hook intern, nu un ecran expus direct).
  */
@@ -103,7 +103,7 @@ async function loadOrderContext(
 
 /**
  * Notificarea deja trimisa cu succes pt. aceeasi comanda+tip (idempotenta
- * rezonabila — cerinta task): daca hook-ul ar rula de doua ori pt. aceeasi
+ * rezonabila - cerinta task): daca hook-ul ar rula de doua ori pt. aceeasi
  * tranzitie, nu retrimitem un al doilea email, doar returnam randul existent.
  */
 async function findAlreadySent(
@@ -126,22 +126,22 @@ async function findAlreadySent(
 /**
  * Trimite notificarea prin email pt. o tranzitie de status a unei comenzi.
  * Apelata din `orders/notifications.ts#onOrderStatusChanged` la fiecare
- * tranzitie (alaturi de generarea certificatului la `closed`, Task G — vezi
+ * tranzitie (alaturi de generarea certificatului la `closed`, Task G - vezi
  * acel fisier).
  *
  * Pasi: 1) rezolva tipul de notificare din statusul tinta (`null` -> no-op,
  * `draft` nu se notifica niciodata); 2) idempotenta (`findAlreadySent`); 3)
  * incarca datele comenzii; 4) randeaza template-ul (functie pura,
  * `renderOrderStatusEmail`); 5) insereaza randul `notifications` (`queued`);
- * 6) apeleaza providerul de email (`getEmailProvider()` implicit — mock in
+ * 6) apeleaza providerul de email (`getEmailProvider()` implicit - mock in
  * dev/teste, HTTP API daca sunt setate `EMAIL_API_URL`/`EMAIL_API_KEY`); 7)
  * actualizeaza randul la `sent`/`failed`.
  *
- * NU arunca daca DOAR providerul de email eșuează — marcheaza randul `failed`
+ * NU arunca daca DOAR providerul de email eșuează - marcheaza randul `failed`
  * si intoarce `{ sent: false }`; apelantul ramane responsabil doar de
  * jurnalizare (tranzitia comenzii, deja persistata, nu trebuie intrerupta de
  * o eroare de livrare a emailului). Erorile de date (comanda/client
- * inexistent/fara email) SUNT aruncate — indica o problema de configurare, nu
+ * inexistent/fara email) SUNT aruncate - indica o problema de configurare, nu
  * o eroare tranzitorie a providerului.
  */
 export async function sendOrderStatusNotification(

@@ -9,7 +9,7 @@ const { getUser, createServerClient, singleMock } = vi.hoisted(() => ({
   createServerClient: vi.fn(),
   // Mock-ul lantului `.from("profiles").select(...).eq(...).single()` folosit de
   // guard-ul de organizatie suspendata (T2.1). Implicit: fara profil rezolvat (ca un
-  // user fara organizatie) — testele T2.1 il suprascriu explicit per caz.
+  // user fara organizatie) - testele T2.1 il suprascriu explicit per caz.
   singleMock: vi.fn(),
 }));
 

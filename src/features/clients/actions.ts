@@ -49,7 +49,7 @@ function readClientFields(formData: FormData): {
   };
 }
 
-/** Creeaza un client nou (ecranul /clienti/nou) — doar staff. */
+/** Creeaza un client nou (ecranul /clienti/nou) - doar staff. */
 export async function createClientAction(
   _prev: ClientFormState,
   formData: FormData,
@@ -63,6 +63,15 @@ export async function createClientAction(
   try {
     const client = await createClientRecord({ ...fields, organizationId: user.organizationId });
     clientId = client.id;
+    if (fields.hqAddress) {
+      await upsertAddress({
+        clientId,
+        organizationId: user.organizationId,
+        label: "Sediu social",
+        address: fields.hqAddress,
+        isDefault: true,
+      });
+    }
   } catch (err) {
     return {
       error:
@@ -78,7 +87,7 @@ export async function createClientAction(
   redirect(`/clienti/${clientId}`);
 }
 
-/** Actualizeaza un client existent (ecranul /clienti/[id]) — doar staff. */
+/** Actualizeaza un client existent (ecranul /clienti/[id]) - doar staff. */
 export async function updateClientAction(
   _prev: ClientFormState,
   formData: FormData,
@@ -115,7 +124,7 @@ export interface CuiLookupState {
 
 /**
  * Cauta datele firmei dupa CUI (ANAF). Apelata direct din client component (nu
- * ca form action clasic) — e o precompletare, nu un submit: formularul de
+ * ca form action clasic) - e o precompletare, nu un submit: formularul de
  * creare ramane complet editabil daca lookup-ul esueaza sau nu gaseste nimic.
  */
 export async function lookupCuiAction(cui: string): Promise<CuiLookupState> {
@@ -128,7 +137,7 @@ export async function lookupCuiAction(cui: string): Promise<CuiLookupState> {
   }
 }
 
-/** Creeaza/actualizeaza o adresa de livrare — doar staff. */
+/** Creeaza/actualizeaza o adresa de livrare - doar staff. */
 export async function upsertAddressAction(
   _prev: AddressFormState,
   formData: FormData,
@@ -158,7 +167,7 @@ export async function upsertAddressAction(
   return { error: null };
 }
 
-/** Sterge o adresa de livrare — doar staff. */
+/** Sterge o adresa de livrare - doar staff. */
 export async function deleteAddressAction(
   _prev: AddressFormState,
   formData: FormData,

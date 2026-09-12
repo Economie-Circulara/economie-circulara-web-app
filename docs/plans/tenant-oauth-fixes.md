@@ -1,4 +1,4 @@
-# Plan — PR 3 remediere: tenant pe request, segmente rezervate, OAuth neprovizionat, showcase
+# Plan - PR 3 remediere: tenant pe request, segmente rezervate, OAuth neprovizionat, showcase
 
 Task mic de remediere (3 fix-uri de securitate/corectitudine + 1 fix minor), descris
 integral in prompt-ul agentului. Plan pastrat ca referinta conform AGENTS.md §1.1.
@@ -6,7 +6,7 @@ integral in prompt-ul agentului. Plan pastrat ca referinta conform AGENTS.md §1
 ## 1. Tenant propagat pe response headers in loc de request headers
 
 `src/lib/supabase/middleware.ts` seta `x-tenant-slug` / `x-tenant-domain` pe
-`supabaseResponse.headers`, care ajung doar la browser — server components si route
+`supabaseResponse.headers`, care ajung doar la browser - server components si route
 handlers nu le vad niciodata. Fix: rezolva tenantul **inainte** de a crea raspunsul,
 propaga-l pe **request headers** (`NextResponse.next({ request: { headers } })`),
 pastrand exact pattern-ul de cookie-uri din `@supabase/ssr` (recreare `supabaseResponse`
@@ -22,8 +22,8 @@ Fix: adauga segmentele lipsa + teste.
 
 ## 3. Useri OAuth fara profil (provizionare ocolita)
 
-`signInWithGoogleAction` foloseste `signInWithOAuth`, care — spre deosebire de magic link
-(`shouldCreateUser: false`) — poate crea un rand nou in `auth.users` FARA profil in
+`signInWithGoogleAction` foloseste `signInWithOAuth`, care - spre deosebire de magic link
+(`shouldCreateUser: false`) - poate crea un rand nou in `auth.users` FARA profil in
 `public.profiles`, daca sign-up-ul public nu e dezactivat din dashboard-ul Supabase.
 
 - `src/app/auth/callback/route.ts`: dupa `exchangeCodeForSession` reusit, verifica daca
@@ -33,8 +33,8 @@ Fix: adauga segmentele lipsa + teste.
 - `src/features/auth/login-form.tsx` + `src/app/(auth)/login/page.tsx`: afiseaza un mesaj
   clar in romana pentru `error=unprovisioned` (si, aditional, pentru `error=auth` /
   `error=oauth`, care erau setate dar niciodata afisate).
-- `docs/setup.md`: pas obligatoriu — dezactivarea sign-up-ului public din dashboard-ul
-  Supabase (Authentication → Sign In / Up).
+- `docs/setup.md`: pas obligatoriu - dezactivarea sign-up-ului public din dashboard-ul
+  Supabase (Authentication -> Sign In / Up).
 
 ## 4. `/showcase` public in productie
 
@@ -44,7 +44,7 @@ Fix: adauga segmentele lipsa + teste.
 ## Criterii de acceptare
 
 - `pnpm typecheck && pnpm lint && pnpm test` verzi.
-- Teste noi/extinse: `tenant.test.ts` (segmente noi), `middleware.test.ts` (nou — headere
-  pe request, nu pe response), `auth/callback/route.test.ts` (nou — gating profil),
-  `login-form.test.tsx` (nou — mesaje de eroare).
+- Teste noi/extinse: `tenant.test.ts` (segmente noi), `middleware.test.ts` (nou - headere
+  pe request, nu pe response), `auth/callback/route.test.ts` (nou - gating profil),
+  `login-form.test.tsx` (nou - mesaje de eroare).
 - Build de productie verificat manual: `/showcase` -> 404 cu `NODE_ENV=production`.

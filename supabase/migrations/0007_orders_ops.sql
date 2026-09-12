@@ -1,8 +1,8 @@
 -- =============================================================================
--- Task E — Comenzi: numar de comanda + masina de stari (acceptare / anulare)
+-- Task E - Comenzi: numar de comanda + masina de stari (acceptare / anulare)
 -- =============================================================================
 -- Migrare aditiva peste schema inghetata din 0001_core_schema.sql. Nu modifica
--- tabele/enum-uri existente — adauga:
+-- tabele/enum-uri existente - adauga:
 --
 --   public.order_counters       -> tabel contor, un rand per (organizatie, an)
 --   public.generate_order_number(p_org uuid) -> numar de comanda secvential
@@ -18,7 +18,7 @@
 -- =============================================================================
 
 -- -----------------------------------------------------------------------------
--- 1. order_counters — contor de numerotare, un rand per (organizatie, an)
+-- 1. order_counters - contor de numerotare, un rand per (organizatie, an)
 -- -----------------------------------------------------------------------------
 -- Alegere: tabel contor cu cheie (organization_id, year) + `INSERT ... ON CONFLICT
 -- DO UPDATE ... RETURNING`, in loc de a parsa `max(order_number)` din `orders`.
@@ -32,12 +32,12 @@
 --     set de randuri variabil (mult mai greu de facut corect si eficient).
 --   * Reset anual natural (seq reincepe de la 1 pe an) + numar lizibil, in stilul
 --     "CMD-2026-0001" (varianta ilustrativa din mockup, "CMD-2048", e doar un id
---     scurt fara semnificatie de an — am preferat formatul cu an pentru claritate
+--     scurt fara semnificatie de an - am preferat formatul cu an pentru claritate
 --     pe termen lung, fara ambiguitate intre organizatii/ani).
 --   * Trade-off acceptat: la un rollback dupa ce numarul a fost generat (ex.
 --     `orders` UPDATE-ul care seteaza `order_number`/`status='sent'` esueaza dupa
 --     apelul catre `generate_order_number`), secventa "sare" un numar. E acceptabil
---     (comun la orice generator de secventa) — numerele raman unice, doar nu
+--     (comun la orice generator de secventa) - numerele raman unice, doar nu
 --     perfect contigue.
 create table public.order_counters (
   organization_id uuid not null references public.organizations (id) on delete cascade,
@@ -59,7 +59,7 @@ create policy order_counters_org_all on public.order_counters
 grant select, insert, update on public.order_counters to authenticated, service_role;
 
 -- -----------------------------------------------------------------------------
--- 2. generate_order_number — numar de comanda secvential per (organizatie, an)
+-- 2. generate_order_number - numar de comanda secvential per (organizatie, an)
 -- -----------------------------------------------------------------------------
 create or replace function public.generate_order_number(p_org uuid)
 returns text
@@ -93,11 +93,11 @@ revoke all on function public.generate_order_number(uuid) from public;
 grant execute on function public.generate_order_number(uuid) to authenticated, service_role;
 
 -- -----------------------------------------------------------------------------
--- 3. accept_order — sent -> accepted, consuma stocul FIFO pentru fiecare linie
+-- 3. accept_order - sent -> accepted, consuma stocul FIFO pentru fiecare linie
 -- -----------------------------------------------------------------------------
 -- SECURITY INVOKER (ca si RPC-urile din 0004): ruleaza in tranzactia (implicita) a
 -- apelului, deci orice eroare (tranzitie invalida, stoc insuficient LT001 din
--- `consume_fifo`) face ROLLBACK complet — nu ramane niciun consum partial, iar
+-- `consume_fifo`) face ROLLBACK complet - nu ramane niciun consum partial, iar
 -- comanda ramane `sent`. RLS ramane in vigoare (`orders_staff_all`,
 -- `stock_events_staff_insert`, `lots_staff_all`) evaluata cu identitatea apelantului.
 create or replace function public.accept_order(p_order_id uuid)
@@ -162,11 +162,11 @@ revoke all on function public.accept_order(uuid) from public;
 grant execute on function public.accept_order(uuid) to authenticated, service_role;
 
 -- -----------------------------------------------------------------------------
--- 4. cancel_order — draft/sent/accepted -> cancelled; reface stocul daca era accepted
+-- 4. cancel_order - draft/sent/accepted -> cancelled; reface stocul daca era accepted
 -- -----------------------------------------------------------------------------
 -- Anularea unei comenzi `draft`/`sent` e o simpla schimbare de status (nu s-a scazut
 -- inca stoc). Anularea unei comenzi `accepted` trebuie sa refaca stocul consumat la
--- acceptare — parcurge `stock_events` de tip 'consumption' scrise pentru aceasta
+-- acceptare - parcurge `stock_events` de tip 'consumption' scrise pentru aceasta
 -- comanda (create de `accept_order`/`consume_fifo`) si, pentru fiecare, readauga
 -- cantitatea in lotul respectiv (`remaining_qty += qty`) + scrie un `stock_event`
 -- 'reversal' de audit (cantitate pozitiva, acelasi lot). Atomic: orice eroare (ex.
@@ -194,7 +194,7 @@ begin
   end if;
 
   if v_order.status = 'accepted' then
-    -- Refacerea stocului e o operatiune interna (miscare de stoc) — rezervata
+    -- Refacerea stocului e o operatiune interna (miscare de stoc) - rezervata
     -- staff-ului, la fel ca restul RPC-urilor din stock service. Clientul poate
     -- anula direct (fara aceasta functie) doar cat comanda e draft/sent, conform
     -- politicilor din 0003_client_write_hardening.sql; o comanda `accepted` nu mai

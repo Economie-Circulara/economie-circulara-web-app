@@ -26,7 +26,7 @@ export async function listLots(filters: ListLotsFilters = {}): Promise<LotWithIt
   return (data ?? []).map((row) => ({
     id: row.id,
     itemId: row.item_id,
-    itemTitle: row.items?.title ?? "—",
+    itemTitle: row.items?.title ?? "-",
     unit: row.items?.unit ?? "kg",
     entryDate: row.entry_date,
     source: row.source,
@@ -53,11 +53,11 @@ export async function listItemOptions(): Promise<ItemOption[]> {
 export interface ListStockEventsFilters {
   itemId?: string;
   eventType?: StockEventType;
-  /** ISO datetime — inclusiv. */
+  /** ISO datetime - inclusiv. */
   from?: string;
-  /** ISO datetime — inclusiv. */
+  /** ISO datetime - inclusiv. */
   to?: string;
-  /** Implicit 500 — folosit si de exportul CSV (fara plafon suplimentar in UI). */
+  /** Implicit 500 - folosit si de exportul CSV (fara plafon suplimentar in UI). */
   limit?: number;
 }
 
@@ -82,7 +82,7 @@ export async function listStockEvents(filters: ListStockEventsFilters = {}): Pro
   return (data ?? []).map((row) => ({
     id: row.id,
     itemId: row.item_id,
-    itemTitle: row.items?.title ?? "—",
+    itemTitle: row.items?.title ?? "-",
     lotId: row.lot_id,
     eventType: row.event_type,
     quantity: Number(row.quantity),

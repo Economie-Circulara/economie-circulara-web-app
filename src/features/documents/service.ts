@@ -78,7 +78,7 @@ function buildStoragePath(
 
 /**
  * Rezolva organizatia ownerului (client/order/item) folosind clientul
- * utilizatorului curent — RLS ii limiteaza vizibilitatea la ce are voie sa vada,
+ * utilizatorului curent - RLS ii limiteaza vizibilitatea la ce are voie sa vada,
  * deci un rand gasit aici inseamna acces valid, fara logica de autorizare
  * duplicata in acest modul.
  */
@@ -112,7 +112,7 @@ export interface UploadDocumentInput {
  *  1. verifica prin clientul UTILIZATORULUI (RLS) ca ownerul exista si e accesibil;
  *  2. valideaza tipul/marimea fisierului (vezi validation.ts);
  *  3. incarca fisierul SI insereaza randul `documents` prin clientul ADMIN
- *     (service-role) — necesar pentru ca bucketul nu are politici pe
+ *     (service-role) - necesar pentru ca bucketul nu are politici pe
  *     `storage.objects` (migrarea 0006), iar insertul in `documents` nu trebuie
  *     sa depinda de politicile RLS restrictive de pe acel tabel (ex. clientul nu
  *     poate insera documente de tip `client`).
@@ -164,7 +164,7 @@ export async function uploadDocument(input: UploadDocumentInput): Promise<Docume
   return mapDocument(data);
 }
 
-/** Lista documentelor unui owner — select simplu, filtrat de RLS pe `documents`. */
+/** Lista documentelor unui owner - select simplu, filtrat de RLS pe `documents`. */
 export async function listDocuments(
   ownerType: DocumentOwnerType,
   ownerId: string,
@@ -185,7 +185,7 @@ export async function listDocuments(
 
 /**
  * URL semnat, temporar, de descarcare pentru un document. Verifica intai RLS pe
- * randul `documents` (select cu clientul utilizatorului — daca nu returneaza
+ * randul `documents` (select cu clientul utilizatorului - daca nu returneaza
  * rand, apelantul nu are acces), apoi semneaza URL-ul cu clientul admin (bucketul
  * nu e accesibil direct, fara politici pe `storage.objects`).
  */
@@ -209,7 +209,7 @@ export async function getDownloadUrl(documentId: string): Promise<string> {
 }
 
 /**
- * Sterge un document — doar staff (admin/operator). Citeste `file_path` prin
+ * Sterge un document - doar staff (admin/operator). Citeste `file_path` prin
  * clientul utilizatorului (RLS ca linie secundara de aparare), sterge obiectul
  * din storage cu clientul admin, apoi sterge randul prin clientul utilizatorului
  * (politica `documents_staff_all` permite delete pentru staff din organizatie).

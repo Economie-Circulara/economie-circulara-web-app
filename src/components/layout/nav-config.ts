@@ -5,9 +5,9 @@ export type AppRole = "super_admin" | "admin" | "operator" | "client";
  * `navForRole()` e apelat in layout-urile SERVER (`src/app/(admin)/layout.tsx`,
  * `src/app/(client)/layout.tsx`), iar rezultatul e pasat ca prop catre `Sidebar`,
  * care e `"use client"`. O referinta de componenta (forwardRef) nu e serializabila
- * peste granita RSC — Next 16/React 19 arunca
- * „Functions cannot be passed directly to Client Components" si pagina da 500.
- * Maparea cheie → componenta Lucide se face in `sidebar.tsx` (modul client).
+ * peste granita RSC - Next 16/React 19 arunca
+ * "Functions cannot be passed directly to Client Components" si pagina da 500.
+ * Maparea cheie -> componenta Lucide se face in `sidebar.tsx` (modul client).
  */
 export type NavIconName =
   | "dashboard"

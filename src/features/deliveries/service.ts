@@ -47,16 +47,16 @@ const PLANNABLE_ORDER_STATUS: OrderStatus = "accepted";
 
 function requireNonEmpty(value: string, field: string): string {
   const trimmed = value.trim();
-  if (!trimmed) throw new DeliveryValidationError(`Câmpul „${field}” este obligatoriu.`);
+  if (!trimmed) throw new DeliveryValidationError(`Câmpul "${field}" este obligatoriu.`);
   return trimmed;
 }
 
 /**
  * Planifica o livrare noua pt. o comanda ACCEPTATA: valideaza campurile + statusul
- * comenzii + absenta unei livrari existente (unique(order_id) — o comanda are cel
+ * comenzii + absenta unei livrari existente (unique(order_id) - o comanda are cel
  * mult o livrare, AGENTS.md §4 "fara livrari partiale"), apoi insereaza randul.
  * Nu foloseste RPC dedicat (spre deosebire de `accept_return_order`): un singur
- * insert, fara efecte secundare pe alte tabele — RLS (`deliveries_staff_all`,
+ * insert, fara efecte secundare pe alte tabele - RLS (`deliveries_staff_all`,
  * 0013_deliveries.sql) e suficienta ca linie de aparare.
  */
 export async function planDelivery(input: PlanDeliveryInput): Promise<DeliveryRecord> {
@@ -107,7 +107,7 @@ export async function planDelivery(input: PlanDeliveryInput): Promise<DeliveryRe
     .select(DELIVERY_CORE_COLUMNS)
     .single();
   if (insertError || !inserted) {
-    // unique(order_id) — o cursa cu alt request care a planificat intre timp aceeasi comanda.
+    // unique(order_id) - o cursa cu alt request care a planificat intre timp aceeasi comanda.
     throw new DeliveryValidationError(
       insertError?.message ?? "Nu am putut planifica livrarea (posibil deja planificată).",
     );
@@ -118,14 +118,14 @@ export async function planDelivery(input: PlanDeliveryInput): Promise<DeliveryRe
 
 /**
  * Declara (sau RE-incearca) declararea e-Transport a unei livrari: apeleaza
- * adapterul activ (`e-transport.ts#getETransportProvider` — mock/sandbox implicit,
+ * adapterul activ (`e-transport.ts#getETransportProvider` - mock/sandbox implicit,
  * Socrate.io cand vor exista credentiale S4) si salveaza rezultatul.
  *
  * IDEMPOTENT pe succes: daca livrarea e deja `declared`, o intoarce neschimbata,
  * fara sa mai apeleze providerul (evita costuri/duplicate la un re-click accidental).
  * Pe eroare (`not_declared` sau retry dupa `failed`): salveaza `declaration_status =
  * 'failed'` + mesajul in `declaration_error`, ca eroarea sa fie VIZIBILA in UI si
- * RE-INCERCABILA (chemarea urmatoare a acestei functii incearca din nou) — nu
+ * RE-INCERCABILA (chemarea urmatoare a acestei functii incearca din nou) - nu
  * arunca mai departe (apelantul citeste rezultatul din randul returnat, nu dintr-o
  * exceptie).
  */
@@ -179,7 +179,7 @@ export async function declareETransport(deliveryId: string): Promise<DeliveryRec
       .select(DELIVERY_CORE_COLUMNS)
       .single();
     if (updateError || !failed) {
-      // Nu am putut nici macar salva eroarea — intoarcem eroarea originala, mai utila.
+      // Nu am putut nici macar salva eroarea - intoarcem eroarea originala, mai utila.
       throw new Error(message);
     }
 
@@ -188,9 +188,9 @@ export async function declareETransport(deliveryId: string): Promise<DeliveryRec
 }
 
 /**
- * Randeaza avizul PDF (buffer) — folosit de ruta de descarcare
+ * Randeaza avizul PDF (buffer) - folosit de ruta de descarcare
  * (`src/app/(admin)/livrari/[id]/aviz/route.ts`). Randare ON-DEMAND, nu stocata
- * (vezi comentariul din 0013_deliveries.sql) — mereu cu UIT-ul/statusul curent.
+ * (vezi comentariul din 0013_deliveries.sql) - mereu cu UIT-ul/statusul curent.
  */
 export async function renderAvizPdfBuffer(
   delivery: DeliveryDetail,

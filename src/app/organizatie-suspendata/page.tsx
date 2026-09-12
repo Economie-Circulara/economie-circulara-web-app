@@ -4,14 +4,14 @@ import { getCurrentOrg } from "@/features/auth/queries";
 import { getCurrentUser, homePathForRole, isOrgSuspended } from "@/features/auth/session";
 import { SignOutButton } from "@/features/auth/sign-out-button";
 
-export const metadata = { title: "Organizatie suspendata — Lateris Trace" };
+export const metadata = { title: "Organizatie suspendata - Lateris Trace" };
 
 /**
  * Pagina dedicata (guard T2.1): singura ruta de business la care mai ajunge un
- * user (admin/operator/client) al unei organizatii suspendate — middleware-ul
+ * user (admin/operator/client) al unei organizatii suspendate - middleware-ul
  * (`updateSession`) si `requireUser` redirectioneaza aici in loc de shell-ul lor.
  *
- * IMPORTANT: foloseste `getCurrentUser` direct, NU `requireUser`/`requireRole` — acelea
+ * IMPORTANT: foloseste `getCurrentUser` direct, NU `requireUser`/`requireRole` - acelea
  * ar redirectiona un user suspendat inapoi catre aceasta pagina (bucla infinita).
  */
 export default async function OrganizatieSuspendataPage() {
@@ -19,7 +19,7 @@ export default async function OrganizatieSuspendataPage() {
   if (!user) redirect("/login");
 
   // Userii care NU sunt intr-o organizatie suspendata (super_admin sau organizatie
-  // reactivata) nu au ce cauta aici — trimite-i la shell-ul propriu.
+  // reactivata) nu au ce cauta aici - trimite-i la shell-ul propriu.
   if (!isOrgSuspended(user)) redirect(homePathForRole(user.role));
 
   const org = await getCurrentOrg();

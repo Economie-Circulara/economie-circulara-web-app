@@ -93,7 +93,7 @@ describe("getFifoPreview", () => {
     expect(result.availableQty).toBe(60);
   });
 
-  it("raporteaza eroare (fara sa arunce) cand stocul e insuficient — cazul 'stoc insuficient'", async () => {
+  it("raporteaza eroare (fara sa arunce) cand stocul e insuficient - cazul 'stoc insuficient'", async () => {
     requireRole.mockResolvedValue({ id: "u1" });
     listLots.mockResolvedValue([lot({ id: "lot-1", remainingQty: 10 })]);
 

@@ -1,7 +1,7 @@
-# ANEXA NR. 1 — Specificații tehnice (DRAFT — nedepusă, în revizuire)
+# ANEXA NR. 1 - Specificații tehnice (DRAFT - nedepusă, în revizuire)
 
 > **Statut (17 iulie 2026):** anexa NU a fost încă depusă. Textul de mai jos este
-> **draftul revizuit** — modificările față de versiunea inițială (cu motivația fiecăreia)
+> **draftul revizuit** - modificările față de versiunea inițială (cu motivația fiecăreia)
 > sunt în [anexa-1-modificari-propuse.md](anexa-1-modificari-propuse.md), de validat cu
 > echipa de proiect înainte de depunere. După depunere devine document de referință
 > contractual pe care platforma trebuie să-l respecte.
@@ -11,7 +11,7 @@
 ---
 
 Platforma informatică va reprezenta un instrument digital integrat destinat gestionării
-modelului de afaceri de tip Product-as-a-Service („produs ca serviciu”), adaptat
+modelului de afaceri de tip Product-as-a-Service ("produs ca serviciu"), adaptat
 activității Beneficiarului de producție, livrare, utilizare și gestionare a elementelor
 din beton și a serviciilor asociate.
 
@@ -43,7 +43,7 @@ intuitive și va fi dezvoltată utilizând tehnologii adecvate scopului propus, 
 limitarea Prestatorului la o anumită soluție tehnică, arhitectură software sau limbaj
 de programare.
 
-## Platformă informatică pentru managementul modelului Product-as-a-Service („produs ca serviciu”)
+## Platformă informatică pentru managementul modelului Product-as-a-Service ("produs ca serviciu")
 
 ### 1. Obiectivul platformei
 

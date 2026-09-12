@@ -95,7 +95,7 @@ describe("createReturnAction", () => {
 });
 
 describe("acceptReturnAction", () => {
-  it("cere rolul staff (admin/operator) — clientul NU e in lista de roluri permise", async () => {
+  it("cere rolul staff (admin/operator) - clientul NU e in lista de roluri permise", async () => {
     requireRole.mockResolvedValue({ id: "u1", role: "admin" });
     acceptReturnOrder.mockResolvedValue({ id: "return-1", status: "accepted" });
 

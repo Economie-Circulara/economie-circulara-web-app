@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-// Mock (nu spy — AGENTS.md §2.2): inlocuim complet clientul admin Supabase.
+// Mock (nu spy - AGENTS.md §2.2): inlocuim complet clientul admin Supabase.
 const { createAdminClient } = vi.hoisted(() => ({ createAdminClient: vi.fn() }));
 vi.mock("@/lib/supabase/admin", () => ({ createAdminClient }));
 
@@ -148,7 +148,7 @@ describe("sendOrderStatusNotification", () => {
     expect(result?.notification.id).toBe("notif-0");
     expect(result?.sent).toBe(true);
     expect(provider.send).not.toHaveBeenCalled();
-    // Nu s-a mai facut un insert nou — un singur consum din coada "orders" nu are loc
+    // Nu s-a mai facut un insert nou - un singur consum din coada "orders" nu are loc
     // (context-ul comenzii nu se mai incarca dupa ce gasim notificarea deja trimisa).
   });
 

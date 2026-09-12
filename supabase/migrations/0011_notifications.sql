@@ -1,5 +1,5 @@
 -- =============================================================================
--- Task X1 — Notificari email
+-- Task X1 - Notificari email
 -- =============================================================================
 -- Migrare aditiva peste schema inghetata din 0001_core_schema.sql (nu modifica
 -- niciun tabel/enum existent). Adauga:
@@ -13,13 +13,13 @@
 --                                  (o linie per incercare de trimitere), scris de
 --                                  src/features/notifications/service.ts
 --
--- RLS: staff-ul vede jurnalul organizatiei proprii (audit/debug trimiteri) — NU
+-- RLS: staff-ul vede jurnalul organizatiei proprii (audit/debug trimiteri) - NU
 -- se acorda insert/update rolului `authenticated`: randurile se scriu DOAR prin
--- serviciul server-side (clientul administrativ, service-role — vezi
+-- serviciul server-side (clientul administrativ, service-role - vezi
 -- src/lib/supabase/admin.ts), in stilul deja folosit pt. bucket-urile private
 -- `documents`/`certificates` (0006/0009): un singur punct de control server-side,
 -- fara sa duplicam logica de autorizare a scrierii intr-o politica RLS separata.
--- Clientul (rol `client`) nu are acces la acest jurnal — nu e cerut de task
+-- Clientul (rol `client`) nu are acces la acest jurnal - nu e cerut de task
 -- (notificarile ii sunt trimise PRIN email, nu citite in aplicatie).
 -- =============================================================================
 
@@ -42,7 +42,7 @@ create table public.notifications (
   subject           text not null,
   body              text not null,
   -- Comanda asociata (cand notificarea e o tranzitie de status). `on delete set
-  -- null`, ca la `stock_events.order_id` (0001) — jurnalul de notificari ramane
+  -- null`, ca la `stock_events.order_id` (0001) - jurnalul de notificari ramane
   -- ca audit chiar daca (ipotetic) comanda ar fi stearsa.
   related_order_id  uuid references public.orders (id) on delete set null,
   status            public.notification_status not null default 'queued',
@@ -60,7 +60,7 @@ alter table public.notifications enable row level security;
 create policy notifications_staff_select on public.notifications
   for select using (app.is_staff_of(organization_id));
 
--- DOAR select pt. `authenticated` — insert/update raman rezervate `service_role`
+-- DOAR select pt. `authenticated` - insert/update raman rezervate `service_role`
 -- (clientul admin din src/features/notifications/service.ts). Fara aceasta
 -- restrictie, un cont de staff ar putea insera/actualiza direct randuri de
 -- notificare prin Data API, ocolind serviciul (randare template, apelul catre

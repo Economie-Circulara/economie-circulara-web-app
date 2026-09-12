@@ -1,5 +1,5 @@
 -- =============================================================================
--- Fix F3 (review) — Timestamp-uri per tranzitie de status pe comenzi
+-- Fix F3 (review) - Timestamp-uri per tranzitie de status pe comenzi
 -- =============================================================================
 -- Migrare aditiva peste schema inghetata din 0001_core_schema.sql (NU modifica
 -- niciun tabel/enum/RPC existent, in afara de `accept_order` de mai jos). Adauga:
@@ -11,23 +11,23 @@
 -- Context: rapoartele (src/features/reports/calculations.ts) aproximau "livrat in
 -- perioada" cu `delivery_date ?? updated_at` (delivery_date e o data PLANIFICATA,
 -- introdusa manual la creare; updated_at se schimba la orice tranzitie ulterioara,
--- inclusiv delivered -> closed) — imprecis. Coloanele noi permit rapoartelor sa
+-- inclusiv delivered -> closed) - imprecis. Coloanele noi permit rapoartelor sa
 -- foloseasca momentul REAL al tranzitiei.
 --
 -- Toate 3 coloane sunt NULLABLE: istoricul existent (comenzi deja acceptate/livrate/
--- inchise inainte de aceasta migrare) ramane cu valoarea null — rapoartele cad pe
+-- inchise inainte de aceasta migrare) ramane cu valoarea null - rapoartele cad pe
 -- vechea aproximare pentru acele randuri (vezi
 -- `calculations.ts#resolveDeliveryReferenceDate`, fallback pastrat explicit).
 --
 -- Cine seteaza fiecare coloana:
 --   * accepted_at  -> RPC `public.accept_order` (recreat mai jos: corp IDENTIC cu
 --     0007_orders_ops.sql#accept_order, DOAR UPDATE-ul final schimbat sa includa
---     `accepted_at = now()` — nicio alta linie de logica atinsa).
+--     `accepted_at = now()` - nicio alta linie de logica atinsa).
 --   * delivered_at / closed_at -> NU au RPC dedicat (delivered/closed sunt tranzitii
---     "plain", fara efecte de stoc) — se seteaza la nivel de aplicatie, in
+--     "plain", fara efecte de stoc) - se seteaza la nivel de aplicatie, in
 --     `src/features/orders/service.ts#setOrderStatus` (UPDATE simplu din server
 --     action), nu in aceasta migrare.
---   * `cancel_order` (0007_orders_ops.sql) ramane NESCHIMBAT — anularea nu e o
+--   * `cancel_order` (0007_orders_ops.sql) ramane NESCHIMBAT - anularea nu e o
 --     tranzitie de timeline pozitiva (nu are coloana proprie de timestamp).
 -- =============================================================================
 
@@ -37,11 +37,11 @@ alter table public.orders
   add column closed_at timestamptz;
 
 -- -----------------------------------------------------------------------------
--- accept_order — sent -> accepted, consuma stocul FIFO pentru fiecare linie
+-- accept_order - sent -> accepted, consuma stocul FIFO pentru fiecare linie
 -- -----------------------------------------------------------------------------
 -- Corp IDENTIC cu 0007_orders_ops.sql#accept_order (aceleasi verificari, acelasi
 -- FOR UPDATE, aceeasi bucla FIFO/consume_fifo, aceleasi coduri de eroare OR001/
--- OR002/OR004) — SINGURA schimbare e in UPDATE-ul final, care acum seteaza si
+-- OR002/OR004) - SINGURA schimbare e in UPDATE-ul final, care acum seteaza si
 -- `accepted_at = now()`.
 create or replace function public.accept_order(p_order_id uuid)
 returns public.orders

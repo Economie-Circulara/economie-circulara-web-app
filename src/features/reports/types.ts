@@ -8,7 +8,7 @@ export type LotProvenance = Database["public"]["Enums"]["lot_provenance"];
 // KPI dashboard (`dashboard-queries.ts`)
 // -----------------------------------------------------------------------------
 
-/** Cardurile KPI din mockup — vezi formulele in docs/plans/task-x3-rapoarte.md §2. */
+/** Cardurile KPI din mockup - vezi formulele in docs/plans/task-x3-rapoarte.md §2. */
 export interface DashboardKpis {
   activeOrders: number;
   ordersToAccept: number;
@@ -17,7 +17,7 @@ export interface DashboardKpis {
 }
 
 // -----------------------------------------------------------------------------
-// Raport 1 — Comenzi pe perioada
+// Raport 1 - Comenzi pe perioada
 // -----------------------------------------------------------------------------
 
 export interface OrderStatusCount {
@@ -27,7 +27,7 @@ export interface OrderStatusCount {
 }
 
 // -----------------------------------------------------------------------------
-// Date brute comune (repository.ts) — linie de item generica (comanda/retur).
+// Date brute comune (repository.ts) - linie de item generica (comanda/retur).
 // -----------------------------------------------------------------------------
 
 export interface OrderItemLine {
@@ -37,7 +37,7 @@ export interface OrderItemLine {
   quantity: number;
 }
 
-/** O comanda `delivered`/`closed`, cu liniile ei — sursa pt. rapoartele 2 si 5. */
+/** O comanda `delivered`/`closed`, cu liniile ei - sursa pt. rapoartele 2 si 5. */
 export interface DeliveredOrderInput {
   id: string;
   orderNumber: string | null;
@@ -46,18 +46,18 @@ export interface DeliveredOrderInput {
   clientName: string;
   /**
    * Momentul REAL al tranzitiei -> delivered (Fix F3, 0015_order_status_timestamps.sql).
-   * Null pentru comenzile livrate/inchise INAINTE de migrare (istoric fara timestamp) —
+   * Null pentru comenzile livrate/inchise INAINTE de migrare (istoric fara timestamp) -
    * `resolveDeliveryReferenceDate` cade pe vechea aproximare pentru acele randuri.
    */
   deliveredAt: string | null;
-  /** Data planificata de livrare (optionala, introdusa la creare) — vezi limitarea din plan. */
+  /** Data planificata de livrare (optionala, introdusa la creare) - vezi limitarea din plan. */
   deliveryDate: string | null;
   updatedAt: string;
   items: OrderItemLine[];
 }
 
 // -----------------------------------------------------------------------------
-// Raport 2 — Livrari
+// Raport 2 - Livrari
 // -----------------------------------------------------------------------------
 
 export interface DeliveryReportRow {
@@ -65,13 +65,13 @@ export interface DeliveryReportRow {
   orderNumber: string | null;
   status: OrderStatus;
   clientName: string;
-  /** Data folosita pt. filtrarea pe perioada — `resolveDeliveryReferenceDate`. */
+  /** Data folosita pt. filtrarea pe perioada - `resolveDeliveryReferenceDate`. */
   referenceDate: string;
   itemsSummary: string;
 }
 
 // -----------------------------------------------------------------------------
-// Raport 3 — Retururi (order_links type return/warranty)
+// Raport 3 - Retururi (order_links type return/warranty)
 // -----------------------------------------------------------------------------
 
 /** Un `order_links` (return/warranty) + comanda originala/retur + liniile returnate. */
@@ -102,7 +102,7 @@ export interface ReturnReportRow {
 }
 
 // -----------------------------------------------------------------------------
-// Raport 4 — Materiale reciclate/recondiționate reintegrate
+// Raport 4 - Materiale reciclate/recondiționate reintegrate
 // -----------------------------------------------------------------------------
 
 export interface RecycledLotInput {
@@ -124,7 +124,7 @@ export interface RecycledMaterialRow {
 }
 
 // -----------------------------------------------------------------------------
-// Raport 5 — PaaS "utilizat = livrat - returnat" per client/perioada
+// Raport 5 - PaaS "utilizat = livrat - returnat" per client/perioada
 // -----------------------------------------------------------------------------
 
 export interface PaasLineInput {
@@ -148,7 +148,7 @@ export interface PaasUsageRow {
 }
 
 // -----------------------------------------------------------------------------
-// Raport 6 — % materii prime secundare per produs/perioada
+// Raport 6 - % materii prime secundare per produs/perioada
 // -----------------------------------------------------------------------------
 
 export interface ProcessInputLineInput {

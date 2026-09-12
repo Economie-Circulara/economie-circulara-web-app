@@ -83,7 +83,7 @@ begin
 end $$;
 
 -- =============================================================================
--- Task X4 — Date demo bogate pentru organizatia "Lateris Demo" (clientul pilot:
+-- Task X4 - Date demo bogate pentru organizatia "Lateris Demo" (clientul pilot:
 -- firma de constructii care concaseaza moloz -> nisip/pietris/balast reciclat ->
 -- caramizi/beton, cf. handoff.md "MVP - termen si flux").
 --
@@ -166,7 +166,7 @@ begin
   -- ---------------------------------------------------------------------------
   insert into public.items (organization_id, title, description, unit, kind, sellable)
   values (
-    v_org, 'Moloz', 'Deșeu brut de demolare — materie primă pentru reciclare, nevandabil.',
+    v_org, 'Moloz', 'Deșeu brut de demolare - materie primă pentru reciclare, nevandabil.',
     'tona', 'physical', false
   ) returning id into v_item_moloz;
 
@@ -205,14 +205,14 @@ begin
 
   insert into public.items (organization_id, title, description, unit, kind, sellable)
   values (
-    v_org, 'Abonament preluare deșeuri — Basic', 'Serviciu recurent de preluare deșeuri de șantier.',
+    v_org, 'Abonament preluare deșeuri - Basic', 'Serviciu recurent de preluare deșeuri de șantier.',
     'bucata', 'service', true
   ) returning id into v_item_abonament;
 
   -- ---------------------------------------------------------------------------
   -- 3. Rețete (procente; "reteta" e folosita atat pentru compozitia unui produs
-  --    finit — 4a output fix — cat si pentru descompunerea in fractii a unui
-  --    material la reciclare — 4b input fix, vezi migrarea 0008 si
+  --    finit - 4a output fix - cat si pentru descompunerea in fractii a unui
+  --    material la reciclare - 4b input fix, vezi migrarea 0008 si
   --    src/features/production/variable-output-form.tsx)
   -- ---------------------------------------------------------------------------
   insert into public.recipes (organization_id, item_id) values (v_org, v_item_moloz)
@@ -251,14 +251,14 @@ begin
     initial_qty, remaining_qty, quality_status
   ) values (
     v_org, v_item_moloz, current_date - 20,
-    'Achiziție moloz — șantier demolare Bloc A, Edilamo Trading SRL', 'purchase',
+    'Achiziție moloz - șantier demolare Bloc A, Edilamo Trading SRL', 'purchase',
     'Depozit principal', 500, 200, 'passed'
   ) returning id into v_lot_moloz;
 
   insert into public.stock_events (organization_id, item_id, lot_id, event_type, quantity, reason, created_by)
-  values (v_org, v_item_moloz, v_lot_moloz, 'intake', 500, 'Intrare stoc — achiziție', v_operator);
+  values (v_org, v_item_moloz, v_lot_moloz, 'intake', 500, 'Intrare stoc - achiziție', v_operator);
 
-  -- 4.2 Proces 1 — reciclare (input fix / output variabil): 300t moloz -> nisip/pietriș/balast
+  -- 4.2 Proces 1 - reciclare (input fix / output variabil): 300t moloz -> nisip/pietriș/balast
   insert into public.processes (
     organization_id, type, status, output_item_id, recipe_id, notes, started_at, completed_at, created_by
   ) values (
@@ -305,7 +305,7 @@ begin
   insert into public.process_outputs (organization_id, process_id, lot_id, item_id, quantity)
   values (v_org, v_proc_recycling, v_lot_balast, v_item_balast, 40);
 
-  -- 4.3 Proces 2 — recondiționare (sortare/curățare pietriș, DISTINCTA de
+  -- 4.3 Proces 2 - recondiționare (sortare/curățare pietriș, DISTINCTA de
   --     reciclare in provenienta lotului nou -- cerinta Anexa 1d / AGENTS.md §4)
   insert into public.processes (
     organization_id, type, status, output_item_id, recipe_id, notes, started_at, completed_at, created_by
@@ -331,7 +331,7 @@ begin
   insert into public.process_outputs (organization_id, process_id, lot_id, item_id, quantity)
   values (v_org, v_proc_recond, v_lot_pietris_recond, v_item_pietris, 38);
 
-  -- 4.4 Proces 3 — producție (output fix): 150 buc. cărămizi eco din rețetă
+  -- 4.4 Proces 3 - producție (output fix): 150 buc. cărămizi eco din rețetă
   insert into public.processes (
     organization_id, type, status, output_item_id, recipe_id, notes, started_at, completed_at, created_by
   ) values (
@@ -365,7 +365,7 @@ begin
   insert into public.process_outputs (organization_id, process_id, lot_id, item_id, quantity)
   values (v_org, v_proc_caramizi, v_lot_caramizi, v_item_caramizi, 150);
 
-  -- 4.5 Proces 4 — producție (output fix): 20 mc beton reciclat din rețetă
+  -- 4.5 Proces 4 - producție (output fix): 20 mc beton reciclat din rețetă
   insert into public.processes (
     organization_id, type, status, output_item_id, recipe_id, notes, started_at, completed_at, created_by
   ) values (
@@ -400,15 +400,15 @@ begin
   values (v_org, v_proc_beton, v_lot_beton, v_item_beton, 20);
 
   -- 4.6 Retur material neconsumat (proveniența "retur", fara flux formal de
-  --     retur/garanție — doar o intrare de stoc cu aceasta proveniență)
+  --     retur/garanție - doar o intrare de stoc cu aceasta proveniență)
   insert into public.lots (
     organization_id, item_id, entry_date, source, provenance, location, initial_qty, remaining_qty, quality_status
   ) values (
-    v_org, v_item_umplutura, current_date - 5, 'Retur material neconsumat — șantier Bravo Construct SRL',
+    v_org, v_item_umplutura, current_date - 5, 'Retur material neconsumat - șantier Bravo Construct SRL',
     'return', 'Depozit principal', 25, 25, 'passed'
   ) returning id into v_lot_umplutura;
   insert into public.stock_events (organization_id, item_id, lot_id, event_type, quantity, reason, created_by)
-  values (v_org, v_item_umplutura, v_lot_umplutura, 'intake', 25, 'Intrare stoc — retur', v_operator);
+  values (v_org, v_item_umplutura, v_lot_umplutura, 'intake', 25, 'Intrare stoc - retur', v_operator);
 
   -- 4.7 Lot BLOCAT (control calitate esuat) -- demonstreaza `set_lot_block`
   insert into public.lots (
@@ -417,24 +417,24 @@ begin
   ) values (
     v_org, v_item_beton, current_date - 2, 'Proces fabricație #3 (test)', 'internal_production',
     'Depozit principal', 3, 3, 'failed', true,
-    'Rezistență la compresiune sub pragul minim — în așteptare retestare.'
+    'Rezistență la compresiune sub pragul minim - în așteptare retestare.'
   ) returning id into v_lot_beton_blocat;
   insert into public.stock_events (organization_id, item_id, lot_id, event_type, quantity, reason, created_by)
-  values (v_org, v_item_beton, v_lot_beton_blocat, 'intake', 3, 'Intrare stoc — lot test', v_operator);
+  values (v_org, v_item_beton, v_lot_beton_blocat, 'intake', 3, 'Intrare stoc - lot test', v_operator);
   insert into public.stock_events (organization_id, item_id, lot_id, event_type, quantity, reason, created_by)
   values (
     v_org, v_item_beton, v_lot_beton_blocat, 'block', 0,
-    'Rezistență la compresiune sub pragul minim — în așteptare retestare.', v_admin
+    'Rezistență la compresiune sub pragul minim - în așteptare retestare.', v_admin
   );
 
   -- ---------------------------------------------------------------------------
-  -- 5. Comenzi — 2 stadii diferite (flux 7->8->9 din handoff)
+  -- 5. Comenzi - 2 stadii diferite (flux 7->8->9 din handoff)
   -- ---------------------------------------------------------------------------
 
   -- 5.1 Comanda 1 (Bravo Construct SRL): flux COMPLET, INCHISA + certificat.
   -- Timestamp-urile de tranzitie (accepted_at/delivered_at/closed_at, adaugate de
   -- migrarea 0013) trebuie scrise EXPLICIT: seed-ul insereaza direct in tabela, nu
-  -- prin RPC-urile care le pun. Fara ele, o comanda `closed` arata cu "—" la toate
+  -- prin RPC-urile care le pun. Fara ele, o comanda `closed` arata cu "-" la toate
   -- datele pe ecranul de detaliu si pe certificat. Ordine cronologica stricta:
   -- creata acum 6 zile -> acceptata acum 5 -> livrata acum 3 (= delivery_date)
   -- -> inchisa acum 2, toate in trecut.
@@ -486,7 +486,7 @@ begin
       'materials', jsonb_build_array(
         jsonb_build_object(
           'material', 'Moloz', 'origin', 'Achiziție',
-          'source', 'Achiziție moloz — șantier demolare Bloc A, Edilamo Trading SRL',
+          'source', 'Achiziție moloz - șantier demolare Bloc A, Edilamo Trading SRL',
           'quantity', 55, 'unit', 'tona', 'percentage', 100.0
         )
       )
@@ -494,7 +494,7 @@ begin
   );
 
   -- 5.2 Comanda 2 (Client Demo SRL): doar TRIMISA, in asteptarea acceptarii.
-  -- Comanda trimisa: fara accepted_at/delivered_at/closed_at (corect — nu a trecut
+  -- Comanda trimisa: fara accepted_at/delivered_at/closed_at (corect - nu a trecut
   -- inca prin tranzitiile respective), dar cu `created_at` in trecut, ca lista de
   -- comenzi sa nu arate toate comenzile demo create "acum".
   insert into public.orders (
@@ -509,7 +509,7 @@ begin
   values (v_org, v_order2, v_item_nisip, 10);
 
   -- ---------------------------------------------------------------------------
-  -- 6. Contoare — sincronizate cu numerele deja alocate mai sus, ca urmatoarea
+  -- 6. Contoare - sincronizate cu numerele deja alocate mai sus, ca urmatoarea
   --    comanda/certificat creat din UI sa continue numerotarea fara coliziune
   --    (generate_order_number/generate_certificate_number fac ON CONFLICT DO
   --    UPDATE pe (organization_id, year), vezi migrarile 0007/0009).

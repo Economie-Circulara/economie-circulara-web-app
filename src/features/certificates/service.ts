@@ -32,7 +32,7 @@ type CertificateSelectRow = Pick<
 /** Numele bucket-ului privat creat in migrarea 0009_certificates_storage.sql. */
 export const CERTIFICATES_BUCKET = "certificates";
 
-/** Durata de valabilitate a unui URL semnat de descarcare (secunde) — ca la documente. */
+/** Durata de valabilitate a unui URL semnat de descarcare (secunde) - ca la documente. */
 const SIGNED_URL_TTL_SECONDS = 60;
 
 /** Certificatul nu exista sau nu e accesibil apelantului (RLS pe `certificates`). */
@@ -60,7 +60,7 @@ function mapCertificate(row: CertificateSelectRow): CertificateRecord {
     issuedAt: row.issued_at,
     pdfPath: row.pdf_path,
     // `traceability_snapshot` e jsonb liber la nivel de DB; forma e garantata de
-    // acest modul (singurul care scrie randul) — vezi TraceabilitySnapshot.
+    // acest modul (singurul care scrie randul) - vezi TraceabilitySnapshot.
     snapshot: row.traceability_snapshot as unknown as TraceabilitySnapshot,
   };
 }
@@ -82,7 +82,7 @@ export async function generateCertificateNumber(organizationId: string): Promise
   return data;
 }
 
-/** Certificatul unei comenzi, daca a fost deja generat (`null` altfel — comanda index unic). */
+/** Certificatul unei comenzi, daca a fost deja generat (`null` altfel - comanda index unic). */
 export async function getCertificateByOrderId(orderId: string): Promise<CertificateRecord | null> {
   const supabase = await createClient();
   const { data, error } = await supabase
@@ -121,7 +121,7 @@ interface OrderForSnapshot {
  * Construieste snapshot-ul de trasabilitate (sectiunea 1, Task G): fetch datele
  * brute (repository.ts, iterativ, respecta RLS) apoi apeleaza functia PURA
  * `buildTraceabilityGraph` (traceability.ts). Rezultatul e menit sa fie
- * INGHETAT in `certificates.traceability_snapshot` — reproductibil chiar daca
+ * INGHETAT in `certificates.traceability_snapshot` - reproductibil chiar daca
  * stocul se schimba ulterior.
  */
 export async function buildOrderTraceabilitySnapshot(
@@ -145,8 +145,8 @@ export async function buildOrderTraceabilitySnapshot(
     order: {
       id: order.id,
       number: order.order_number,
-      clientName: order.clients?.name ?? "—",
-      clientCui: order.clients?.cui ?? "—",
+      clientName: order.clients?.name ?? "-",
+      clientCui: order.clients?.cui ?? "-",
     },
     deliveredItems: aggregateDeliveredItems(raw.delivered),
     graph,
@@ -156,7 +156,7 @@ export async function buildOrderTraceabilitySnapshot(
   return { organizationId: order.organization_id, snapshot };
 }
 
-/** Randeaza PDF-ul certificatului (buffer) — vezi decizia S3/PDF in pdf.tsx. */
+/** Randeaza PDF-ul certificatului (buffer) - vezi decizia S3/PDF in pdf.tsx. */
 async function renderCertificatePdf(
   snapshot: TraceabilitySnapshot,
   certificateNumber: string,
@@ -173,33 +173,33 @@ async function renderCertificatePdf(
   });
   // `renderToBuffer` tipizeaza strict argumentul ca `ReactElement<DocumentProps>`
   // (props-urile <Document>-ului react-pdf), desi accepta la runtime orice element
-  // care randeaza in final un <Document> (cazul nostru — CertificatePdfDocument e
+  // care randeaza in final un <Document> (cazul nostru - CertificatePdfDocument e
   // un wrapper cu props proprii). Cast explicit, documentat, nu un `any` implicit.
   return renderToBuffer(element as unknown as Parameters<typeof renderToBuffer>[0]);
 }
 
 export interface GenerateCertificateResult {
   certificate: CertificateRecord;
-  /** `false` daca certificatul exista deja (idempotent — nu s-a regenerat nimic). */
+  /** `false` daca certificatul exista deja (idempotent - nu s-a regenerat nimic). */
   created: boolean;
 }
 
 /**
- * Genereaza certificatul unei comenzi — apelat din
+ * Genereaza certificatul unei comenzi - apelat din
  * `orders/notifications.ts#onOrderStatusChanged` la `toStatus==='closed'`.
  * IDEMPOTENT: `certificates.order_id` e UNIQUE (0001_core_schema.sql); daca
  * exista deja un rand, il returneaza neschimbat, fara sa regenereze
- * numarul/PDF-ul/snapshot-ul. Doar staff (admin/operator) — comanda ajunge
+ * numarul/PDF-ul/snapshot-ul. Doar staff (admin/operator) - comanda ajunge
  * aici mereu dintr-o actiune de staff (inchiderea comenzii), dar verificarea
  * ramane si aici ca a doua linie de aparare (in stilul `deleteDocument`).
  *
  * Pasii (dupa idempotenta): 1) construieste snapshot-ul de trasabilitate
- * (query-uri prin clientul UTILIZATORULUI — RLS ramane in vigoare); 2) genereaza
+ * (query-uri prin clientul UTILIZATORULUI - RLS ramane in vigoare); 2) genereaza
  * numarul (RPC, siguranta la concurenta din 0009); 3) randeaza PDF-ul; 4) incarca
  * PDF-ul SI insereaza randul `certificates` prin clientul ADMIN (acelasi motiv
  * ca la `uploadDocument`: bucketul `certificates` nu are politici pe
  * `storage.objects`). La esecul insertului, sterge fisierul deja incarcat
- * (best-effort) — daca insertul a esuat din cauza unei curse (alt request a
+ * (best-effort) - daca insertul a esuat din cauza unei curse (alt request a
  * generat certificatul intre timp), recitim si returnam randul existent.
  */
 export async function generateCertificateForOrder(
@@ -264,9 +264,9 @@ export async function generateCertificateForOrder(
 }
 
 /**
- * URL semnat, temporar, de descarcare a PDF-ului certificatului — acelasi
+ * URL semnat, temporar, de descarcare a PDF-ului certificatului - acelasi
  * pattern ca `documents/service.ts#getDownloadUrl`: verifica intai RLS pe
- * randul `certificates` (clientul utilizatorului — staff vede tot din
+ * randul `certificates` (clientul utilizatorului - staff vede tot din
  * organizatia proprie, clientul doar certificatele comenzilor sale, vezi
  * `certificates_client_select` din 0001_core_schema.sql), apoi semneaza URL-ul
  * cu clientul admin (bucketul nu are politici pe `storage.objects`).

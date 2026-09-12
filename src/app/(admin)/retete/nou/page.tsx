@@ -4,7 +4,7 @@ import { requireRole } from "@/features/auth/session";
 import { listPhysicalItemsWithoutRecipe } from "@/features/recipes/queries";
 import { RecipeNewForm } from "@/features/recipes/recipe-new-form";
 
-export const metadata = { title: "Rețetă nouă — Lateris Trace" };
+export const metadata = { title: "Rețetă nouă - Lateris Trace" };
 
 /** Pornire rețetă noua: alege itemul fizic (fara rețetă inca). */
 export default async function RetetaNouaPage() {
@@ -20,7 +20,7 @@ export default async function RetetaNouaPage() {
       />
       {items.length === 0 ? (
         <p className="text-sm text-muted-foreground">
-          Toți itemii fizici au deja o rețetă definită (sau nu există încă niciun item fizic —
+          Toți itemii fizici au deja o rețetă definită (sau nu există încă niciun item fizic -
           adaugă unul în{" "}
           <Link className="underline" href="/itemi/nou">
             Itemi

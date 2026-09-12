@@ -1,6 +1,6 @@
 import type { UserRole } from "@/features/auth/session";
 
-/** Tipurile de entitate cautabile — ordinea canonica de grupare e in `labels.ts`. */
+/** Tipurile de entitate cautabile - ordinea canonica de grupare e in `labels.ts`. */
 export type SearchResultType = "order" | "client" | "lot" | "item" | "certificate";
 
 /** Un rezultat individual de cautare, gata de afisat (label + link catre detaliu). */

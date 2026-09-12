@@ -10,7 +10,7 @@ import type { OrderListRow } from "@/features/orders/types";
 const dateFormatter = new Intl.DateTimeFormat("ro-RO", { dateStyle: "medium" });
 
 function formatDate(iso: string | null): string {
-  return iso ? dateFormatter.format(new Date(iso)) : "—";
+  return iso ? dateFormatter.format(new Date(iso)) : "-";
 }
 
 /** `true` pentru comenzile finalizate (retur/garanție au sens doar dupa livrare). */
@@ -19,10 +19,10 @@ function isFinished(status: OrderListRow["status"]): boolean {
 }
 
 /**
- * Ecranul „Comenzile mele" (mockup #COMENZILE MELE): o comanda per card — status,
- * produse, data, actiuni. „Repetă comanda" traieste pe ecranul de detaliu (are
+ * Ecranul "Comenzile mele" (mockup #COMENZILE MELE): o comanda per card - status,
+ * produse, data, actiuni. "Repetă comanda" traieste pe ecranul de detaliu (are
  * nevoie de liniile complete cu `itemId`, nu doar de rezumatul text din aceasta
- * lista) — de aici doar link catre detaliu + acces rapid la certificat/retur.
+ * lista) - de aici doar link catre detaliu + acces rapid la certificat/retur.
  */
 export function OrderList({ orders }: { orders: OrderListRow[] }) {
   if (orders.length === 0) {

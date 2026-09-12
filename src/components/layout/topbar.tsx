@@ -14,11 +14,11 @@ export interface TopbarProps {
 }
 
 /**
- * Path-ul paginii de rezultate a căutării globale, per rol (fix F7b — grupurile
+ * Path-ul paginii de rezultate a căutării globale, per rol (fix F7b - grupurile
  * de rute `(admin)`/`(client)` nu pot defini același path, deci fiecare are
- * pagina lui: staff → `/cautare` (`src/app/(admin)/cautare/page.tsx`), client →
+ * pagina lui: staff -> `/cautare` (`src/app/(admin)/cautare/page.tsx`), client ->
  * `/cauta` (`src/app/(client)/cauta/page.tsx`). Alte roluri (super_admin) nu au
- * bară de căutare — `globalSearch` oricum întoarce `[]` pentru ele.
+ * bară de căutare - `globalSearch` oricum întoarce `[]` pentru ele.
  */
 const SEARCH_PATH_BY_ROLE: Partial<Record<UserRole, string>> = {
   admin: "/cautare",
@@ -26,11 +26,11 @@ const SEARCH_PATH_BY_ROLE: Partial<Record<UserRole, string>> = {
   client: "/cauta",
 };
 
-/** Placeholder-ul bării de căutare, per rol — clientul nu caută loturi/clienți (AGENTS.md §4). */
+/** Placeholder-ul bării de căutare, per rol - clientul nu caută loturi/clienți (AGENTS.md §4). */
 const SEARCH_PLACEHOLDER_BY_ROLE: Partial<Record<UserRole, string>> = {
-  admin: "Caută comenzi, loturi, clienți…",
-  operator: "Caută comenzi, loturi, clienți…",
-  client: "Caută comenzi, certificate, produse…",
+  admin: "Caută comenzi, loturi, clienți...",
+  operator: "Caută comenzi, loturi, clienți...",
+  client: "Caută comenzi, certificate, produse...",
 };
 
 /** Bara de sus a shell-ului: căutare globală (staff + client) + identitatea utilizatorului + delogare. */

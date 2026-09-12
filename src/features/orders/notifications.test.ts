@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-// Mocks (nu spies — AGENTS.md §2.2): inlocuim complet generarea certificatului si
-// trimiterea notificarii — acest fisier testeaza doar ORCHESTRAREA hook-ului
+// Mocks (nu spies - AGENTS.md §2.2): inlocuim complet generarea certificatului si
+// trimiterea notificarii - acest fisier testeaza doar ORCHESTRAREA hook-ului
 // (ce se apeleaza, cu ce argumente, ca o eroare intr-un apel nu o blocheaza pe
 // cealalta), nu logica interna a fiecarui serviciu (testata separat, colocat).
 const { generateCertificateForOrder } = vi.hoisted(() => ({
@@ -88,7 +88,7 @@ describe("onOrderStatusChanged", () => {
     expect(generateCertificateForOrder).not.toHaveBeenCalled();
   });
 
-  it("genereaza certificatul (idempotent — Task G) cand comanda ajunge in closed", async () => {
+  it("genereaza certificatul (idempotent - Task G) cand comanda ajunge in closed", async () => {
     generateCertificateForOrder.mockResolvedValue({ created: true });
 
     await silenceConsole(() =>

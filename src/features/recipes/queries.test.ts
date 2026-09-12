@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-// Mocks (nu spies — vezi AGENTS.md §2.2).
+// Mocks (nu spies - vezi AGENTS.md §2.2).
 const { createClient } = vi.hoisted(() => ({ createClient: vi.fn() }));
 vi.mock("@/lib/supabase/server", () => ({ createClient }));
 

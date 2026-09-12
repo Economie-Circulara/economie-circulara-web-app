@@ -6,7 +6,7 @@ import { isReportKey } from "@/features/reports/labels";
 import { parseDateRange } from "@/features/reports/period";
 
 /**
- * Export CSV al unui raport din /rapoarte — acelasi format ca `/stoc/audit/export`
+ * Export CSV al unui raport din /rapoarte - acelasi format ca `/stoc/audit/export`
  * (`buildReportCsv`, BOM UTF-8 + CRLF). `?report=<cheie>&from=&to=`.
  */
 export async function GET(request: NextRequest) {
@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
   const report = await loadFormattedReport(reportParam, range);
 
   const headers = report.columns.map((col) => col.header);
-  const rows = report.rows.map((row) => report.columns.map((col) => row[col.key] ?? "—"));
+  const rows = report.rows.map((row) => report.columns.map((col) => row[col.key] ?? "-"));
   const csv = buildReportCsv(headers, rows);
 
   const fileName = `${reportParam}-${range.from}_${range.to}.csv`;

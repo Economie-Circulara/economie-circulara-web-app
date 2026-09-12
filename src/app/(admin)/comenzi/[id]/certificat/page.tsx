@@ -7,16 +7,16 @@ import { getCertificateByOrderId } from "@/features/certificates/service";
 import { listDocuments } from "@/features/documents/service";
 import { getOrderDetail } from "@/features/orders/queries";
 
-export const metadata = { title: "Certificat de trasabilitate — Lateris Trace" };
+export const metadata = { title: "Certificat de trasabilitate - Lateris Trace" };
 
 interface CertificatePageProps {
   params: Promise<{ id: string }>;
 }
 
 /**
- * Ecranul „Certificat" (Task G, mockup docs/design/Lateris_Trace.dc.html) —
+ * Ecranul "Certificat" (Task G, mockup docs/design/Lateris_Trace.dc.html) -
  * doar staff. Certificatul se genereaza AUTOMAT la inchiderea comenzii (hook in
- * `orders/notifications.ts`); aceasta pagina doar il afiseaza — daca nu exista
+ * `orders/notifications.ts`); aceasta pagina doar il afiseaza - daca nu exista
  * inca (comanda nu a ajuns la `closed`, sau generarea a eșuat), 404.
  */
 export default async function CertificatePage({ params }: CertificatePageProps) {

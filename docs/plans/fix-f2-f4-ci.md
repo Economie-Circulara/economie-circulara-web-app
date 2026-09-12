@@ -4,7 +4,7 @@ Plan scurt (AGENTS.md §1.1), scris inainte de codare. Scope strict: `.github/wo
 (DOAR pasul de drift), `.github/workflows/e2e.yml` (nou), acest plan. NU s-a atins cod TS,
 migrari, `database.types.ts`, `playwright.config.ts` (doar citit), alte workflow-uri.
 
-## F2 — drift real de schema, nu de format (`.github/workflows/db.yml`)
+## F2 - drift real de schema, nu de format (`.github/workflows/db.yml`)
 
 **Problema:** pasul "Verifica drift..." facea `diff` byte-cu-byte intre
 `database.types.generated.ts` (output brut `supabase gen types`) si `database.types.ts`
@@ -29,7 +29,7 @@ se foloseste `exit 1`).
 **Ce NU s-a schimbat:** restul jobului `migrations` (start/reset Supabase, RLS tests,
 regenerarea in `database.types.generated.ts`), header-ul workflow-ului, trigger-ele.
 
-## F4 — job E2E nou (`.github/workflows/e2e.yml`)
+## F4 - job E2E nou (`.github/workflows/e2e.yml`)
 
 Workflow nou, separat de `db.yml` (nu se ating trigger-ele/pasii existenti), care ruleaza
 `tests/e2e/mvp-flow.spec.ts` (Playwright) end-to-end pe CI.

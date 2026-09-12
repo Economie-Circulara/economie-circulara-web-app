@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { requireRole } from "@/features/auth/session";
 import { CreateOrganizationForm } from "@/features/platform/create-organization-form";
 
-export const metadata = { title: "Organizatie noua — Platforma Lateris Trace" };
+export const metadata = { title: "Organizatie noua - Platforma Lateris Trace" };
 
 /** Creare organizatie + admin initial (invitatie prin email). */
 export default async function NewOrganizationPage() {
@@ -15,7 +15,7 @@ export default async function NewOrganizationPage() {
       <PageHeader
         title="Organizatie noua"
         breadcrumbs={[{ label: "Organizatii", href: "/platform" }, { label: "Organizatie noua" }]}
-        description="Creeaza organizatia si invita adminul ei initial — primeste un email pentru a-si seta parola."
+        description="Creeaza organizatia si invita adminul ei initial - primeste un email pentru a-si seta parola."
         actions={
           <Button asChild variant="outline">
             <Link href="/platform">Inapoi la lista</Link>

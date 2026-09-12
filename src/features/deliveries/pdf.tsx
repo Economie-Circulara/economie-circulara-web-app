@@ -2,7 +2,7 @@ import { Document, Page, StyleSheet, Text, View } from "@react-pdf/renderer";
 import { PDF_FONT_FAMILY, registerPdfFonts } from "@/lib/pdf/fonts";
 import type { DeliveryDetail } from "./types";
 
-/** Culori implicite (tema "forest" a mockup-ului), suprascrise de brandingul organizatiei — ca la certificat. */
+/** Culori implicite (tema "forest" a mockup-ului), suprascrise de brandingul organizatiei - ca la certificat. */
 const DEFAULT_BRAND_COLOR = "#2b3a2f";
 const DEFAULT_ACCENT_COLOR = "#4d6b53";
 
@@ -19,9 +19,9 @@ const qtyFormatter = new Intl.NumberFormat("ro-RO");
 registerPdfFonts();
 
 /**
- * Textul afisat pt. codul UIT (RO e-Transport) pe aviz — functie PURA, separata de
+ * Textul afisat pt. codul UIT (RO e-Transport) pe aviz - functie PURA, separata de
  * randare ca sa fie testabila fara `@react-pdf/renderer` (vezi pdf.test.ts).
- * Trei cazuri: declarat (cod UIT), esuat (mesajul erorii — vizibil pe aviz, nu doar
+ * Trei cazuri: declarat (cod UIT), esuat (mesajul erorii - vizibil pe aviz, nu doar
  * in UI, util cand avizul e printat inainte de re-incercare), nedeclarat inca.
  */
 export function avizUitStatusText(
@@ -111,7 +111,7 @@ const styles = StyleSheet.create({
 });
 
 /**
- * Avizul de insotire a marfii (Task X5) — PDF printabil, antet white-label, randat
+ * Avizul de insotire a marfii (Task X5) - PDF printabil, antet white-label, randat
  * ON-DEMAND (nu stocat, vezi comentariul din 0013_deliveries.sql) direct din datele
  * curente ale livrarii, deci reflecta mereu statusul/UIT-ul cel mai recent, chiar
  * dupa o re-incercare de declarare e-Transport. Stil vizual identic cu certificatul
@@ -135,7 +135,7 @@ export function AvizPdfDocument({
             </View>
             <View>
               <Text style={styles.docTitle}>Aviz de însoțire a mărfii</Text>
-              <Text style={styles.docMeta}>Comandă {delivery.orderNumber ?? "—"}</Text>
+              <Text style={styles.docMeta}>Comandă {delivery.orderNumber ?? "-"}</Text>
               <Text style={styles.docMeta}>
                 Data livrare: {dateFormatter.format(new Date(delivery.scheduledDate))}
               </Text>
@@ -157,7 +157,10 @@ export function AvizPdfDocument({
             <View style={styles.infoCol}>
               <Text style={styles.infoLabel}>Rută</Text>
               <Text style={styles.infoValue}>{delivery.routeOrigin}</Text>
-              <Text style={styles.infoSub}>→ {delivery.routeDestination}</Text>
+              <Text style={styles.infoSub}>
+                {"-> "}
+                {delivery.routeDestination}
+              </Text>
             </View>
           </View>
 

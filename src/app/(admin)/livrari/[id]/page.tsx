@@ -6,7 +6,7 @@ import { requireRole } from "@/features/auth/session";
 import { DeliveryActionsPanel } from "@/features/deliveries/delivery-actions-panel";
 import { getDeliveryDetail } from "@/features/deliveries/queries";
 
-export const metadata = { title: "Detalii livrare — Lateris Trace" };
+export const metadata = { title: "Detalii livrare - Lateris Trace" };
 
 interface DeliveryDetailPageProps {
   params: Promise<{ id: string }>;
@@ -29,7 +29,7 @@ export default async function DeliveryDetailPage({ params }: DeliveryDetailPageP
   return (
     <div className="space-y-8">
       <PageHeader
-        title={`Livrare — ${delivery.orderNumber ?? "Draft"}`}
+        title={`Livrare - ${delivery.orderNumber ?? "Draft"}`}
         description={delivery.clientName}
         breadcrumbs={[
           { label: "Livrări", href: "/livrari" },
@@ -62,7 +62,7 @@ export default async function DeliveryDetailPage({ params }: DeliveryDetailPageP
             </p>
             <p>
               <span className="text-muted-foreground">Rută: </span>
-              {delivery.routeOrigin} → {delivery.routeDestination}
+              {delivery.routeOrigin} {"->"} {delivery.routeDestination}
             </p>
           </CardContent>
         </Card>

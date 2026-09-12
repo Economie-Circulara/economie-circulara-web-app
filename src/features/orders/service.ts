@@ -85,7 +85,7 @@ export async function generateOrderNumber(organizationId: string): Promise<strin
  * Trimite o comanda `draft`: aloca numarul (RPC `generate_order_number`) apoi
  * seteaza `status='sent'` + `order_number` intr-un singur UPDATE. Nota: alocarea
  * numarului si acest UPDATE sunt doi pasi separati (vezi comentariul din
- * 0007_orders_ops.sql) — daca UPDATE-ul esueaza dupa alocare, numarul e "ars"
+ * 0007_orders_ops.sql) - daca UPDATE-ul esueaza dupa alocare, numarul e "ars"
  * (secventa sare un numar), trade-off acceptat, comun la generatoare de secventa.
  */
 export async function sendOrder(orderId: string, organizationId: string): Promise<Order> {
@@ -106,7 +106,7 @@ export async function sendOrder(orderId: string, organizationId: string): Promis
 }
 
 /**
- * Seteaza direct statusul (fara efecte de stoc) — folosit pentru accepted->delivered->closed.
+ * Seteaza direct statusul (fara efecte de stoc) - folosit pentru accepted->delivered->closed.
  * Fara RPC dedicat (spre deosebire de accept/cancel_order), asa ca timestamp-ul de
  * tranzitie (Fix F3, 0015_order_status_timestamps.sql) se seteaza chiar aici, in acelasi
  * UPDATE: `delivered_at` la tranzitia -> delivered, `closed_at` la tranzitia -> closed.
@@ -134,9 +134,9 @@ export async function setOrderStatus(orderId: string, status: OrderStatus): Prom
 
 /**
  * Accepta o comanda `sent`: consuma FIFO stocul fiecarei linii si seteaza
- * `status='accepted'` — atomic, prin RPC-ul Postgres `accept_order` (vezi
+ * `status='accepted'` - atomic, prin RPC-ul Postgres `accept_order` (vezi
  * 0007_orders_ops.sql). Stoc insuficient (LT001) sau tranzitie invalida (OR001)
- * fac rollback complet — comanda ramane `sent`.
+ * fac rollback complet - comanda ramane `sent`.
  */
 export async function acceptOrder(orderId: string): Promise<Order> {
   const supabase = await createClient();
@@ -147,7 +147,7 @@ export async function acceptOrder(orderId: string): Promise<Order> {
 
 /**
  * Anuleaza o comanda (din draft/sent/accepted); daca era `accepted`, reface stocul
- * consumat la acceptare — atomic, prin RPC-ul Postgres `cancel_order`.
+ * consumat la acceptare - atomic, prin RPC-ul Postgres `cancel_order`.
  */
 export async function cancelOrder(orderId: string): Promise<Order> {
   const supabase = await createClient();

@@ -81,7 +81,7 @@ describe("isDateWithinRange", () => {
 describe("formatRangeLabel", () => {
   it("formateaza perioada in romana", () => {
     const label = formatRangeLabel({ from: "2026-07-01", to: "2026-07-18" });
-    expect(label).toContain("–");
+    expect(label).toContain("-");
     expect(label).toContain("2026");
   });
 });

@@ -5,11 +5,11 @@ export type LotProvenance = Database["public"]["Enums"]["lot_provenance"];
 export type ProcessType = Database["public"]["Enums"]["process_type"];
 
 // -----------------------------------------------------------------------------
-// Date brute (fetch dintr-o singura data — vezi repository.ts) consumate de
+// Date brute (fetch dintr-o singura data - vezi repository.ts) consumate de
 // `buildTraceabilitySnapshot` (traceability.ts, functie PURA, fara Supabase).
 // -----------------------------------------------------------------------------
 
-/** O linie efectiv livrata (consumata din stoc la acceptarea comenzii — `stock_events`). */
+/** O linie efectiv livrata (consumata din stoc la acceptarea comenzii - `stock_events`). */
 export interface DeliveredLotLine {
   lotId: string;
   itemId: string;
@@ -45,7 +45,7 @@ export interface RawProcessOutput {
   quantity: number;
 }
 
-/** Un rand din `process_inputs` — un lot consumat de un proces. */
+/** Un rand din `process_inputs` - un lot consumat de un proces. */
 export interface RawProcessInput {
   processId: string;
   lotId: string;
@@ -54,7 +54,7 @@ export interface RawProcessInput {
 
 /**
  * Setul complet de date brute necesar reconstructiei graf-ului de trasabilitate
- * pentru o comanda — deja fetch-uit din DB (vezi `repository.ts`), fara nicio
+ * pentru o comanda - deja fetch-uit din DB (vezi `repository.ts`), fara nicio
  * dependenta ulterioara de retea. Consumat de functia pura `buildTraceabilitySnapshot`.
  */
 export interface TraceabilityRawData {
@@ -68,7 +68,7 @@ export interface TraceabilityRawData {
 }
 
 // -----------------------------------------------------------------------------
-// Rezultatul constructiei (graf + tabel "Materiale si origine") — forma
+// Rezultatul constructiei (graf + tabel "Materiale si origine") - forma
 // inghetata in `certificates.traceability_snapshot` (jsonb).
 // -----------------------------------------------------------------------------
 
@@ -96,7 +96,7 @@ export interface TraceabilitySnapshotItem {
   quantity: number;
 }
 
-/** Versiunea structurii — creste daca forma se schimba, ca sa poata fi migrata la citire. */
+/** Versiunea structurii - creste daca forma se schimba, ca sa poata fi migrata la citire. */
 export const TRACEABILITY_SNAPSHOT_VERSION = 1 as const;
 
 export interface TraceabilitySnapshot {

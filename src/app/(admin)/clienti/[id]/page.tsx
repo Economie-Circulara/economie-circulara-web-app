@@ -13,7 +13,7 @@ import { DocumentList } from "@/features/documents/document-list";
 import { DocumentUpload } from "@/features/documents/document-upload";
 import { listDocuments } from "@/features/documents/service";
 
-export const metadata = { title: "Detalii client — Lateris Trace" };
+export const metadata = { title: "Detalii client - Lateris Trace" };
 
 interface ClientDetailPageProps {
   params: Promise<{ id: string }>;
@@ -21,8 +21,8 @@ interface ClientDetailPageProps {
 
 /**
  * Ecranul de detaliu/editare client (doar staff): date firmă, adrese de livrare
- * (CRUD, o singură adresă implicită), documente (inclusiv contracte arhivate —
- * decizie 2026-07) și istoric comenzi — placeholder, populat de Task E.
+ * (CRUD, o singură adresă implicită), documente (inclusiv contracte arhivate -
+ * decizie 2026-07) și istoric comenzi - placeholder, populat de Task E.
  */
 export default async function ClientDetailPage({ params }: ClientDetailPageProps) {
   await requireRole(["admin", "operator"]);
@@ -64,8 +64,8 @@ export default async function ClientDetailPage({ params }: ClientDetailPageProps
       <section className="max-w-2xl space-y-3">
         <h2 className="text-lg font-semibold">Documente</h2>
         <p className="text-sm text-muted-foreground">
-          Contractele semnate se arhivează aici ca documente (etichetă „Contract&rdquo;) — platforma
-          nu gestionează structurat perioade/obligații/tarife contractuale.
+          Contractele semnate se arhivează aici ca documente (etichetă &quot;Contract&quot;) -
+          platforma nu gestionează structurat perioade/obligații/tarife contractuale.
         </p>
         <Card>
           <CardHeader>
@@ -83,7 +83,7 @@ export default async function ClientDetailPage({ params }: ClientDetailPageProps
         <EmptyState
           icon={<History />}
           title="În curând"
-          description="Istoricul comenzilor acestui client va apărea aici (Task E — Comenzi)."
+          description="Istoricul comenzilor acestui client va apărea aici (Task E - Comenzi)."
         />
       </section>
     </div>

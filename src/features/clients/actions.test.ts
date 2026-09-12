@@ -95,6 +95,42 @@ describe("createClientAction", () => {
     expect(revalidatePath).toHaveBeenCalledWith("/clienti");
   });
 
+  it("creeaza adresa de livrare implicita din adresa sediului", async () => {
+    requireRole.mockResolvedValue({ id: "u1", organizationId: "org-1" });
+    createClientRecord.mockResolvedValue({ id: "client-1" });
+    upsertAddress.mockResolvedValue({ id: "addr-1" });
+
+    await expect(
+      createClientAction(
+        { error: null },
+        formData({
+          cui: "4183300",
+          name: "SC Exemplu SRL",
+          hq_address: "Str. Fabricii 12, Bucuresti",
+        }),
+      ),
+    ).rejects.toThrow("REDIRECT:/clienti/client-1");
+
+    expect(upsertAddress).toHaveBeenCalledWith({
+      clientId: "client-1",
+      organizationId: "org-1",
+      label: "Sediu social",
+      address: "Str. Fabricii 12, Bucuresti",
+      isDefault: true,
+    });
+  });
+
+  it("nu creeaza adresa implicita daca sediul lipseste", async () => {
+    requireRole.mockResolvedValue({ id: "u1", organizationId: "org-1" });
+    createClientRecord.mockResolvedValue({ id: "client-1" });
+
+    await expect(
+      createClientAction({ error: null }, formData({ cui: "4183300", name: "SC Exemplu SRL" })),
+    ).rejects.toThrow("REDIRECT:/clienti/client-1");
+
+    expect(upsertAddress).not.toHaveBeenCalled();
+  });
+
   it("returneaza mesajul clar la CUI duplicat", async () => {
     requireRole.mockResolvedValue({ id: "u1", organizationId: "org-1" });
     createClientRecord.mockRejectedValue(new DuplicateCuiError("4183300"));

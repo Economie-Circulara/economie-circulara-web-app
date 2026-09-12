@@ -3,7 +3,7 @@ import { requireRole } from "@/features/auth/session";
 import { listItemOptions } from "@/features/stock/queries";
 import { LotForm } from "@/features/stock/lot-form";
 
-export const metadata = { title: "Adaugă lot — Lateris Trace" };
+export const metadata = { title: "Adaugă lot - Lateris Trace" };
 
 /** Formular adăugare lot nou în stoc (doar staff). */
 export default async function StocNouPage() {

@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-// Mocks (nu spies — vezi AGENTS.md §2.2): inlocuim clientii Supabase (admin + sesiune).
+// Mocks (nu spies - vezi AGENTS.md §2.2): inlocuim clientii Supabase (admin + sesiune).
 const { createAdminClient } = vi.hoisted(() => ({ createAdminClient: vi.fn() }));
 vi.mock("@/lib/supabase/admin", () => ({ createAdminClient }));
 

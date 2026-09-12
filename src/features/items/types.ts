@@ -16,7 +16,7 @@ export interface Item {
   updatedAt: string;
 }
 
-/** Rand din lista /itemi — itemul + daca are reteta definita. */
+/** Rand din lista /itemi - itemul + daca are reteta definita. */
 export interface ItemListRow extends Item {
   hasRecipe: boolean;
 }

@@ -44,7 +44,7 @@ export interface FifoPreviewResult {
 
 /**
  * Calculeaza alocarea FIFO pentru un set de componente (4a) sau pentru un item de
- * input (4b), folosind `planFifoConsumption` (helper-ul PUR din stock service) —
+ * input (4b), folosind `planFifoConsumption` (helper-ul PUR din stock service) -
  * un singur apel de server action pentru toate liniile, ca sa evitam un
  * round-trip per componenta din wizard.
  */
@@ -77,7 +77,7 @@ export interface ConfirmProcessState {
   error: string | null;
 }
 
-/** Confirma un proces (4a sau 4b) — pornire + finalizare atomica, apoi redirect la detaliu. */
+/** Confirma un proces (4a sau 4b) - pornire + finalizare atomica, apoi redirect la detaliu. */
 export async function confirmProcessAction(
   input: ConfirmProcessInput,
 ): Promise<ConfirmProcessState> {

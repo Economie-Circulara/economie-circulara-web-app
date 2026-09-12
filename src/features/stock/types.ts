@@ -5,7 +5,7 @@ export type QualityStatus = Database["public"]["Enums"]["quality_status"];
 export type StockEventType = Database["public"]["Enums"]["stock_event_type"];
 export type UnitOfMeasure = Database["public"]["Enums"]["unit_of_measure"];
 
-/** Un lot, asa cum il returneaza `service.ts` (fara detalii de item — vezi `LotWithItem`). */
+/** Un lot, asa cum il returneaza `service.ts` (fara detalii de item - vezi `LotWithItem`). */
 export interface Lot {
   id: string;
   itemId: string;

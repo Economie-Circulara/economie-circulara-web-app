@@ -3,17 +3,17 @@
  *
  *  - `ConsoleEmailProvider` (dezvoltare/mock): NU trimite nimic, doar
  *    jurnalizeaza in consola serverului. E providerul implicit ori de cate ori
- *    lipsesc credentialele reale — inclusiv in teste (AGENTS.md §2.2: testele nu
+ *    lipsesc credentialele reale - inclusiv in teste (AGENTS.md §2.2: testele nu
  *    depind de servicii externe reale).
  *  - `HttpApiEmailProvider` (real, stub configurabil prin env): POST JSON catre
  *    un API HTTP de email generic (compatibil cu formatul minimal folosit de
  *    Resend/Postmark: `{ from, to, subject, html, text }`), autentificat cu un
  *    Bearer token. Configurare: `EMAIL_API_URL` + `EMAIL_API_KEY` (vezi
- *    `.env.example`). Fara retry/backoff — suficient pt. MVP; nu e exercitata in
+ *    `.env.example`). Fara retry/backoff - suficient pt. MVP; nu e exercitata in
  *    teste (fetch-ul real nu ruleaza in CI), doar formatul cererii (fetch mockuit
  *    in provider.test.ts).
  *
- * `getEmailProvider()` alege implementarea in functie de configurare — serviciul
+ * `getEmailProvider()` alege implementarea in functie de configurare - serviciul
  * (`service.ts`) nu stie si nu trebuie sa stie care e providerul activ.
  */
 
@@ -49,7 +49,7 @@ export class ConsoleEmailProvider implements EmailProvider {
 }
 
 /**
- * Provider real, minimal — vezi comentariul de sus. Constructorul primeste
+ * Provider real, minimal - vezi comentariul de sus. Constructorul primeste
  * explicit url/cheia (nu citeste `process.env` direct) ca sa ramana usor
  * testabil/instantiabil independent de mediu.
  */

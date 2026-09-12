@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import type { ProcessDetail, ProcessListRow, ProcessLotLine } from "./types";
 import { sumQty } from "./calc";
 
-/** Istoricul proceselor (cele mai recente primele) — ecranul /productie. */
+/** Istoricul proceselor (cele mai recente primele) - ecranul /productie. */
 export async function listProcesses(): Promise<ProcessListRow[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
@@ -19,7 +19,7 @@ export async function listProcesses(): Promise<ProcessListRow[]> {
     type: row.type,
     status: row.status,
     outputItemId: row.output_item_id,
-    outputItemTitle: row.items?.title ?? "—",
+    outputItemTitle: row.items?.title ?? "-",
     recipeId: row.recipe_id,
     startedAt: row.started_at,
     completedAt: row.completed_at,
@@ -27,7 +27,7 @@ export async function listProcesses(): Promise<ProcessListRow[]> {
   }));
 }
 
-/** Detaliul unui proces (cu input/output loturi) — ecranul /productie/[id]. */
+/** Detaliul unui proces (cu input/output loturi) - ecranul /productie/[id]. */
 export async function getProcessById(id: string): Promise<ProcessDetail | null> {
   const supabase = await createClient();
 
@@ -61,7 +61,7 @@ export async function getProcessById(id: string): Promise<ProcessDetail | null> 
   const inputs: ProcessLotLine[] = (inputRows ?? []).map((row) => ({
     lotId: row.lot_id,
     itemId: row.item_id,
-    itemTitle: row.items?.title ?? "—",
+    itemTitle: row.items?.title ?? "-",
     unit: row.items?.unit ?? "kg",
     quantity: Number(row.quantity),
     provenance: row.lots?.provenance ?? undefined,
@@ -69,7 +69,7 @@ export async function getProcessById(id: string): Promise<ProcessDetail | null> 
   const outputs: ProcessLotLine[] = (outputRows ?? []).map((row) => ({
     lotId: row.lot_id,
     itemId: row.item_id,
-    itemTitle: row.items?.title ?? "—",
+    itemTitle: row.items?.title ?? "-",
     unit: row.items?.unit ?? "kg",
     quantity: Number(row.quantity),
     provenance: row.lots?.provenance ?? undefined,
@@ -80,7 +80,7 @@ export async function getProcessById(id: string): Promise<ProcessDetail | null> 
     type: process.type,
     status: process.status,
     outputItemId: process.output_item_id,
-    outputItemTitle: process.items?.title ?? "—",
+    outputItemTitle: process.items?.title ?? "-",
     recipeId: process.recipe_id,
     notes: process.notes,
     startedAt: process.started_at,

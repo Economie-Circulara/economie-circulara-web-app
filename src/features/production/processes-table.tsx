@@ -13,7 +13,7 @@ import type { ProcessListRow } from "./types";
 const dateFormatter = new Intl.DateTimeFormat("ro-RO", { dateStyle: "short", timeStyle: "short" });
 
 function formatDate(iso: string | null): string {
-  return iso ? dateFormatter.format(new Date(iso)) : "—";
+  return iso ? dateFormatter.format(new Date(iso)) : "-";
 }
 
 const columns: ColumnDef<ProcessListRow>[] = [
@@ -45,7 +45,7 @@ const columns: ColumnDef<ProcessListRow>[] = [
         href={`/productie/${row.original.id}`}
         className="text-sm font-medium text-accent hover:underline"
       >
-        Detalii →
+        {"Detalii ->"}
       </Link>
     ),
   },

@@ -2,7 +2,7 @@
 export interface CreateOrganizationState {
   error: string | null;
   message: string | null;
-  /** Setat dupa ce randul organizatiei exista in DB — ramane intre reincercari. */
+  /** Setat dupa ce randul organizatiei exista in DB - ramane intre reincercari. */
   organizationId: string | null;
   orgName: string;
   orgSlug: string;

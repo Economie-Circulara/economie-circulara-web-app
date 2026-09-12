@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 import type { FormattedReport } from "./format";
 
 /**
- * Tabel generic pentru orice raport din /rapoarte — reutilizeaza ACELEASI coloane +
+ * Tabel generic pentru orice raport din /rapoarte - reutilizeaza ACELEASI coloane +
  * randuri (deja formatate ca text in `format.ts`) folosite si de exporturile CSV/PDF,
  * ca sa nu existe doua surse de adevar pentru ce se afiseaza.
  */
@@ -31,7 +31,7 @@ export function ReportTable({
     header: col.header,
     cell: ({ row }) => (
       <span className={cn(col.align === "right" && "block text-right tabular-nums")}>
-        {row.original[col.key] ?? "—"}
+        {row.original[col.key] ?? "-"}
       </span>
     ),
   }));

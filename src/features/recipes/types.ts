@@ -21,7 +21,7 @@ export interface RecipeListRow {
   percentageSum: number;
 }
 
-/** Rețeta unui item, cu toate componentele — ecranul /retete/[itemId]. */
+/** Rețeta unui item, cu toate componentele - ecranul /retete/[itemId]. */
 export interface RecipeDetail {
   recipeId: string;
   itemId: string;

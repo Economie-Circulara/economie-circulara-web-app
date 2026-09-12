@@ -29,7 +29,7 @@ function errorMessage(err: unknown, fallback: string): string {
 }
 
 /**
- * Planifica livrarea unei comenzi ACCEPTATE (ecranul /livrari/nou) — DOAR staff.
+ * Planifica livrarea unei comenzi ACCEPTATE (ecranul /livrari/nou) - DOAR staff.
  * Foloseste `useActionState`/`<form action=...>` (ca `createOrderAction`, Task E):
  * redirect direct la ecranul de detaliu al livrarii nou-create la succes.
  */
@@ -71,10 +71,10 @@ export interface DeclareETransportResult {
 
 /**
  * Declara (sau RE-incearca, dupa un `declaration_status = 'failed'`) declararea
- * e-Transport a unei livrari — DOAR staff. Acelasi buton din UI apeleaza aceasta
- * actiune de fiecare data (prima declarare SAU reincercare) — `service.ts` decide
+ * e-Transport a unei livrari - DOAR staff. Acelasi buton din UI apeleaza aceasta
+ * actiune de fiecare data (prima declarare SAU reincercare) - `service.ts` decide
  * ce se intampla in functie de statusul curent (idempotent daca deja `declared`).
- * Apelata direct din `onClick` (nu ca form action), la fel ca `ReturnActions` —
+ * Apelata direct din `onClick` (nu ca form action), la fel ca `ReturnActions` -
  * fara FormData de trimis, doar id-ul livrarii.
  */
 export async function declareETransportAction(

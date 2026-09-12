@@ -11,29 +11,29 @@ procesul de lucru si pentru regulile de business invatate pe parcurs.
 
 ## 1. Reguli de proces (obligatorii)
 
-### 1.1 Planuri de implementare → `docs/plans/`
+### 1.1 Planuri de implementare -> `docs/plans/`
 
 Daca un task are un plan de implementare (oricat de mic), acesta **trebuie scris ca
 fisier markdown in `docs/plans/`** inainte de a incepe codarea. Numire:
 `docs/plans/<nume-scurt-task>.md`. Planul ramane in repo ca referinta.
 
-### 1.2 Prompt log la fiecare commit → `docs/prompt-log.md`
+### 1.2 Prompt log la fiecare commit -> `docs/prompt-log.md`
 
 La **fiecare commit**, agentul adauga o intrare in [`docs/prompt-log.md`](docs/prompt-log.md)
 care contine:
 
 - **Data** (YYYY-MM-DD)
 - **Agent / model** care a facut munca (ex. `Claude Opus 4.8`)
-- **Ce s-a cerut** — un rezumat scurt al promptului/sarcinii
-- **Ce s-a facut** — rezumat al modificarilor + (optional) hash-ul de commit
+- **Ce s-a cerut** - un rezumat scurt al promptului/sarcinii
+- **Ce s-a facut** - rezumat al modificarilor + (optional) hash-ul de commit
 
 Intrarea se adauga in acelasi commit cu modificarile. Cele mai noi intrari sus.
 
-### 1.3 Corectii → actualizeaza AGENTS.md
+### 1.3 Corectii -> actualizeaza AGENTS.md
 
-Oricand un agent este corectat pe o **regula de business** (ex. „stocul se scade la
+Oricand un agent este corectat pe o **regula de business** (ex. "stocul se scade la
 acceptarea comenzii, nu la livrare") **sau pe o directie generica de dezvoltare**
-(ex. „in teste folosim mocks, nu spies"), regula nou invatata **trebuie adaugata in
+(ex. "in teste folosim mocks, nu spies"), regula nou invatata **trebuie adaugata in
 acest fisier** (sectiunile 3 sau 4, dupa caz), in acelasi commit cu corectia. Scopul:
 nicio regula sa nu fie reinvatata de doua ori.
 
@@ -50,11 +50,11 @@ Fiecare task produce modificari mici, review-abile, cu mesaj de commit clar.
 **Tot codul nou trebuie sa aiba teste unitare.** Nu se cere acoperire 100%, dar
 **functionalitatea principala** (logica de business, edge case-urile critice,
 tranzitiile de stare) trebuie testata. Un task fara teste pentru logica lui noua nu
-este „done".
+este "done".
 
 ### 2.2 Stil de testare
 
-- Folosim **mocks**, nu spies. (regula de directie — vezi 1.3)
+- Folosim **mocks**, nu spies. (regula de directie - vezi 1.3)
 - Testele nu depind de servicii externe reale; dependentele externe se mock-uiesc.
 
 ### 2.3 Definition of Done (global)
@@ -72,7 +72,7 @@ Un task e gata doar cand:
 
 ## 3. Descrierea proiectului (crucial pentru context)
 
-**Lateris Trace** — platforma web **multi-tenant** pentru **trasabilitatea
+**Lateris Trace** - platforma web **multi-tenant** pentru **trasabilitatea
 materialelor in economia circulara**. Clientul platitor este firma
 producatoare/reciclatoare; selling point-ul este **certificatul de trasabilitate**
 care arata din ce loturi de materie prima (inclusiv reciclata) e facut un produs livrat.
@@ -102,8 +102,8 @@ pregateste `.env.local`).
 | `src/components/ui/`      | Primitive shadcn-style retematizate (`button`, `badge`, `table`, `input`, `label`, `card`); adauga altele cu `shadcn add` (`components.json` e configurat).                                                                       |
 | `src/components/`         | Componente partajate: `StatusBadge`, `DataTable`, `EmptyState`, `PageHeader`, `FormField`, `BrandProvider` (white-label) si `layout/` (sidebar fix + `AppShell` + `nav-config`).                                                  |
 | `src/app/showcase/`       | Pagina de showcase a design system-ului (tema + toate componentele).                                                                                                                                                              |
-| `src/lib/`                | Utilitare comune (`utils.ts` → `cn()`, `env.ts`) si clientii Supabase in `src/lib/supabase/` (`client` browser, `server`, `middleware`). Tipuri DB in `src/lib/database.types.ts` (generat, nu edita manual).                     |
-| `middleware.ts`           | Middleware Next.js — reimprospateaza sesiunea Supabase (rutarea pe roluri se adauga in T1.2).                                                                                                                                     |
+| `src/lib/`                | Utilitare comune (`utils.ts` -> `cn()`, `env.ts`) si clientii Supabase in `src/lib/supabase/` (`client` browser, `server`, `middleware`). Tipuri DB in `src/lib/database.types.ts` (generat, nu edita manual).                    |
+| `middleware.ts`           | Middleware Next.js - reimprospateaza sesiunea Supabase (rutarea pe roluri se adauga in T1.2).                                                                                                                                     |
 | `tests/e2e/`              | Teste Playwright (suita completa in Task X4).                                                                                                                                                                                     |
 | `supabase/`               | `config.toml` + `migrations/` (o migrare per task, prefix numerotat). Schema de business completa in T1.1.                                                                                                                        |
 | `docs/`                   | Cerinte, design si planuri (vezi `docs/plans/`).                                                                                                                                                                                  |
@@ -129,7 +129,7 @@ Testele unitare sunt **colocate** langa cod (`*.test.ts` / `*.test.tsx`).
 | `pnpm gen:types`                    | Regenereaza `src/lib/database.types.ts` din DB-ul local.                                                |
 
 > **Notă mediu:** comenzile `db:*` / `gen:types` au nevoie de imaginile Docker Supabase
-> (`ghcr.io`). In unele medii agentice egress-ul catre `ghcr.io` este blocat de politica —
+> (`ghcr.io`). In unele medii agentice egress-ul catre `ghcr.io` este blocat de politica -
 > ruleaza acesti pasi local sau in CI cu acces la registry.
 
 ---
@@ -146,7 +146,7 @@ Testele unitare sunt **colocate** langa cod (`*.test.ts` / `*.test.tsx`).
 - Un **UM unic** per produs; fara conversii intre unitati.
 - Un **client = un singur utilizator**; clientii sunt doar firme juridice.
 - Certificatul PDF se genereaza **automat la inchiderea** comenzii.
-- Clientul **nu** vede stocul si procesele interne — doar comenzile, documentele si
+- Clientul **nu** vede stocul si procesele interne - doar comenzile, documentele si
   certificatele proprii.
 - Pierderile/randamentul la productie se **inregistreaza**, nu se **valideaza**.
 - Fara livrari partiale; fara productie partiala.
@@ -154,20 +154,20 @@ Testele unitare sunt **colocate** langa cod (`*.test.ts` / `*.test.tsx`).
   incarca ca documente PDF atasate clientului; platforma NU gestioneaza structurat
   perioade, obligatii sau tarife contractuale (fara preturi/bani/facturare).
 - **Recondiționarea trebuie sa fie vizibila distinct** in trasabilitate si rapoarte
-  (cerinta Anexa 1, sectiunea d) — valoare proprie de provenienta/categorie de proces,
-  nu inghesuita in „reciclare" (migrare in Task D).
+  (cerinta Anexa 1, sectiunea d) - valoare proprie de provenienta/categorie de proces,
+  nu inghesuita in "reciclare" (migrare in Task D).
 - **Scrierile rolului client trec prin server actions**, iar RLS trebuie sa impuna
   acelasi lucru la nivel de DB: clientul nu poate schimba statusul comenzilor si nu
   poate edita itemii comenzilor acceptate direct prin Data API (hardening in
-  migrarea `0003_rls_hardening.sql` — politici client constiente de status +
+  migrarea `0003_rls_hardening.sql` - politici client constiente de status +
   trigger anti-escaladare pe `profiles`).
 - **O organizatie suspendata (`organizations.status = 'suspended'`) blocheaza
   accesul userilor ei** (admin/operator/client), pe DOUA linii: aplicatie
   (`middleware.ts` + `getCurrentUser`/`requireUser` din `session.ts` redirectioneaza
-  la `/organizatie-suspendata`) si DB (migrarea `0012_suspended_org_guard.sql` —
+  la `/organizatie-suspendata`) si DB (migrarea `0012_suspended_org_guard.sql` -
   `app.is_staff_of`/`app.is_admin_of` cer suplimentar organizatie activa; politicile
   de scriere ale clientului pe `orders`/`order_items`/`documents` idem, via helper-ul
-  nou `app.org_is_active`). Super-adminul (fara organizatie) trece peste, neafectat —
+  nou `app.org_is_active`). Super-adminul (fara organizatie) trece peste, neafectat -
   el e singurul care poate reactiva o organizatie suspendata.
 
 ### 4.1 Limitari cunoscute / trade-off-uri acceptate
@@ -178,7 +178,7 @@ Testele unitare sunt **colocate** langa cod (`*.test.ts` / `*.test.tsx`).
   enumerarea slugurilor/domeniilor organizatiilor este un trade-off acceptat.
 - **`profiles.email` duplicat**: se poate desincroniza de la `auth.users.email`; sursa de adevar
   pentru autentificare este `auth.users`, `profiles.email` e copie de afisare.
-- **„Un client = un singur user" (invitare client, F7a)**: impus pe DOUA nivele —
+- **"Un client = un singur user" (invitare client, F7a)**: impus pe DOUA nivele -
   aplicatie (`inviteClientAction` in `src/features/settings/user-actions.ts`
   verifica inainte de insert ca firma nu are deja un profil `client`) SI DB (index
   unic partial `profiles_client_id_unique` pe `client_id where client_id is not null`,
@@ -204,26 +204,26 @@ Daca scrii plpgsql sau treci date peste granita server/client, citeste asta.
   `select ... for update` returneaza **0 randuri**, deci bucla care le parcurge nu
   ruleaza niciodata. A facut ca anularea unei comenzi acceptate sa nu refaca stocul
   (migrarea de fix: `0018_fix_cancel_order_stock_restore.sql`). Inainte de a pune
-  `for update`, verifica ce politici are tabelul — si lock-uieste entitatea care chiar
+  `for update`, verifica ce politici are tabelul - si lock-uieste entitatea care chiar
   are nevoie (aici: `orders`, nu auditul).
 - **Corpul unei functii plpgsql NU e verificat la tip la creare, doar la executie.**
   O migrare se poate aplica impecabil si functia sa cada la primul apel. O migrare
   aplicata cu succes **nu** e dovada ca RPC-ul functioneaza.
 
 De aceea exista `supabase/tests/business_flow.sql` (`pnpm db:test:business`): verifica
-**invariantii de business** direct pe RPC-uri, pe un Postgres real — scaderea stocului
+**invariantii de business** direct pe RPC-uri, pe un Postgres real - scaderea stocului
 la acceptare, FIFO, sarirea loturilor blocate, atomicitatea la stoc insuficient,
 refacerea stocului la anulare, loturile de output la procese, reintrarea in stoc la
 retur. Fiecare test ruleaza in `begin; ... rollback;`, deci **nu lasa urme** (spre
-deosebire de `rls_isolation.sql`, care isi insereaza fixture-urile in autocommit — de
+deosebire de `rls_isolation.sql`, care isi insereaza fixture-urile in autocommit - de
 aceea in CI testele functionale ruleaza PRIMELE). **Orice regula de business noua sau
 modificata primeste un test aici**, nu doar un test unitar cu RPC-ul mock-uit.
 
 - **Granita RSC transporta doar date simple.** Nu pasa referinte de componente (ex.
   iconite Lucide) din Server Components catre Client Components: Next/React arunca la
-  RUNTIME („Functions cannot be passed directly to Client Components"), iar `build`
+  RUNTIME ("Functions cannot be passed directly to Client Components"), iar `build`
   trece. Pasa un **identificator** (string tipat) si rezolva-l in componenta client
   (vezi `NavIconName` in `src/components/layout/nav-config.ts` +
   `NAV_ICONS` in `sidebar.tsx`). Plasa de siguranta:
-  `tests/e2e/routes-smoke.spec.ts` — orice ruta noua adaugata in sidebar intra automat
+  `tests/e2e/routes-smoke.spec.ts` - orice ruta noua adaugata in sidebar intra automat
   in smoke test.

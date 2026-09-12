@@ -1,25 +1,25 @@
 -- =============================================================================
--- Task D — Productie & Reciclare: recondiționare (provenienta noua) + RPC finalizare
+-- Task D - Productie & Reciclare: recondiționare (provenienta noua) + RPC finalizare
 -- =============================================================================
 -- Migrare aditiva peste schema inghetata din 0001_core_schema.sql si peste Task C
 -- (0004_stock_service.sql). NU modifica migrari existente.
 --
 -- -----------------------------------------------------------------------------
--- NOTA IMPORTANTA — de ce ambele bucati sunt in ACEEASI migrare/tranzactie
+-- NOTA IMPORTANTA - de ce ambele bucati sunt in ACEEASI migrare/tranzactie
 -- -----------------------------------------------------------------------------
 -- `ALTER TYPE ... ADD VALUE` este permis in Postgres 15 chiar si intr-o migrare
 -- transactionala (aplicata implicit intr-o singura tranzactie de `psql -f`),
 -- ATATA TIMP CAT valoarea noua NU e FOLOSITA (nu apare ca literal/constanta
--- evaluata) in ACEEASI tranzactie — altfel Postgres arunca:
+-- evaluata) in ACEEASI tranzactie - altfel Postgres arunca:
 --   "unsafe use of new value of enum type" (eroare la commit).
 --
 -- Functia `confirm_process` de mai jos primeste un parametru de tip
 -- `public.lot_provenance` (tipul enum, extins mai jos cu 'reconditioning'), dar
--- NU foloseste literalul 'reconditioning' nicaieri in corpul ei — valoarea vine
+-- NU foloseste literalul 'reconditioning' nicaieri in corpul ei - valoarea vine
 -- runtime, din `p_outputs` (jsonb), la un apel ULTERIOR, intr-o cu totul alta
 -- tranzactie (cea a cererii HTTP care porneste efectiv un proces de
 -- recondiționare). A crea o functie al carei parametru e DOAR tipizat cu enum-ul
--- extins nu "foloseste" noua valoare in sensul restrictiei Postgres — doar
+-- extins nu "foloseste" noua valoare in sensul restrictiei Postgres - doar
 -- OID-ul tipului conteaza la compilarea functiei, nu lista de labeluri.
 --
 -- Daca la un moment viitor s-ar adauga in ACEASTA migrare un DEFAULT, un CHECK,
@@ -31,35 +31,35 @@
 -- -----------------------------------------------------------------------------
 -- 1. Provenienta noua de lot: 'reconditioning' (recondiționare)
 -- -----------------------------------------------------------------------------
--- Distincta de 'recycling' (reciclare) — cerinta Anexa 1 d / AGENTS.md §4: un
+-- Distincta de 'recycling' (reciclare) - cerinta Anexa 1 d / AGENTS.md §4: un
 -- proces de recondiționare (ex. sortare/curatare/reambalare a unor loturi
 -- existente, fara reteta de descompunere in fractii noi) trebuie sa apara
 -- SEPARAT de reciclare in trasabilitate si rapoarte, nu confundat cu ea.
 alter type public.lot_provenance add value 'reconditioning';
 
 -- -----------------------------------------------------------------------------
--- 2. confirm_process — pornire + finalizare atomica a unui proces de
+-- 2. confirm_process - pornire + finalizare atomica a unui proces de
 --    productie/reciclare/recondiționare (Task D, fluxurile 4a si 4b)
 -- -----------------------------------------------------------------------------
 -- Creeaza randul `processes` + consuma inputurile (FIFO sau selectie manuala,
 -- prin `public.consume_fifo`, deja definit in 0004) + creeaza loturile de output
 -- (prin `public.create_lot`, 0004) + scrie `process_inputs`/`process_outputs`
--- pentru trasabilitate — TOTUL intr-un singur apel, deci o singura tranzactie
+-- pentru trasabilitate - TOTUL intr-un singur apel, deci o singura tranzactie
 -- (funcțiile apelate din corp ruleaza in tranzactia apelantului, nu isi
 -- deschid una noua). Daca stocul e insuficient (LT001 din consume_fifo) sau
--- orice alt pas esueaza, INTREG apelul face rollback — nu ramane niciun proces
+-- orice alt pas esueaza, INTREG apelul face rollback - nu ramane niciun proces
 -- "orfan" fara input/output (consistent cu "fara productie partiala", AGENTS.md §4).
 --
--- p_inputs  — jsonb array: [{"item_id": uuid, "lot_ids": uuid[], "qty": numeric}, ...]
+-- p_inputs  - jsonb array: [{"item_id": uuid, "lot_ids": uuid[], "qty": numeric}, ...]
 --             cate un rand per item consumat; `lot_ids` = loturile alese la preview
 --             (FIFO calculat de `planFifoConsumption` pt. 4a, sau selectie manuala
---             pt. 4b) — trimise explicit ca sa oglindeasca exact ce a vazut
+--             pt. 4b) - trimise explicit ca sa oglindeasca exact ce a vazut
 --             utilizatorul, indiferent daca a fost FIFO automat sau ales manual.
--- p_outputs — jsonb array: [{"item_id": uuid, "qty": numeric,
+-- p_outputs - jsonb array: [{"item_id": uuid, "qty": numeric,
 --             "provenance": lot_provenance, "source": text|null,
 --             "location": text|null, "quality_status": quality_status|null}, ...]
 --             cate un rand per lot nou creat (un singur output la 4a; unul sau
---             mai multe la 4b — fractiile editate de utilizator).
+--             mai multe la 4b - fractiile editate de utilizator).
 --
 -- SECURITY INVOKER (ca toate RPC-urile din 0004): RLS ramane in vigoare pe
 -- fiecare INSERT/UPDATE din corp, evaluata cu identitatea apelantului;
@@ -107,7 +107,7 @@ begin
       using errcode = 'LT005';
   end if;
 
-  -- 2.1 Randul de proces — pornit si finalizat in aceeasi tranzactie (fara
+  -- 2.1 Randul de proces - pornit si finalizat in aceeasi tranzactie (fara
   -- productie partiala: fie totul reuseste, fie nimic nu se persista).
   insert into public.processes (
     organization_id, type, status, output_item_id, recipe_id, notes,
@@ -119,7 +119,7 @@ begin
   )
   returning * into v_process;
 
-  -- 2.2 Inputuri — consum FIFO/manual per item (poate implica mai multe loturi).
+  -- 2.2 Inputuri - consum FIFO/manual per item (poate implica mai multe loturi).
   for v_input in
     select * from jsonb_to_recordset(p_inputs) as x(item_id uuid, lot_ids uuid[], qty numeric)
   loop
@@ -142,8 +142,8 @@ begin
     end loop;
   end loop;
 
-  -- 2.3 Outputuri — un lot nou per rand (provenance: internal_production /
-  -- recycling / reconditioning, ales de utilizator — vezi src/features/production).
+  -- 2.3 Outputuri - un lot nou per rand (provenance: internal_production /
+  -- recycling / reconditioning, ales de utilizator - vezi src/features/production).
   for v_output in
     select * from jsonb_to_recordset(p_outputs) as x(
       item_id uuid,
@@ -184,14 +184,14 @@ grant execute on function public.confirm_process(
 ) to authenticated, service_role;
 
 -- -----------------------------------------------------------------------------
--- 3. cancel_process — anulare proces neinceput/nefinalizat (nicio miscare de stoc)
+-- 3. cancel_process - anulare proces neinceput/nefinalizat (nicio miscare de stoc)
 -- -----------------------------------------------------------------------------
 -- `confirm_process` de mai sus e singurul mod curent de a crea un proces, si
--- creeaza direct un proces 'completed' (atomic, vezi nota de mai sus) — deci in
+-- creeaza direct un proces 'completed' (atomic, vezi nota de mai sus) - deci in
 -- fluxul actual nu ramane niciodata un proces "in asteptare" de anulat. Functia
 -- exista totusi ca sa acopere masina de stari completa a `process_status`
 -- (planned/in_progress/awaiting_confirmation -> cancelled), pt. procese create
--- pe alte cai (viitoare planificare, interventie manuala) — vezi
+-- pe alte cai (viitoare planificare, interventie manuala) - vezi
 -- src/features/production/service.ts#cancelProcess.
 create or replace function public.cancel_process(p_process_id uuid)
 returns public.processes

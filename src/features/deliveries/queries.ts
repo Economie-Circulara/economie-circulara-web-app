@@ -23,7 +23,7 @@ type DeliveryCoreRow = Pick<
   | "updated_at"
 >;
 
-/** Exportat — reutilizat de `service.ts` dupa insert/update (aceleasi coloane selectate). */
+/** Exportat - reutilizat de `service.ts` dupa insert/update (aceleasi coloane selectate). */
 export function mapDelivery(row: DeliveryCoreRow): DeliveryRecord {
   return {
     id: row.id,
@@ -50,7 +50,7 @@ export function mapDelivery(row: DeliveryCoreRow): DeliveryRecord {
 export const DELIVERY_CORE_COLUMNS = "id, organization_id, order_id, scheduled_date, carrier_name, vehicle_plate, driver_name, route_origin, route_destination, uit_code, declaration_status, declaration_error, created_at, updated_at";
 const CORE_COLUMNS = DELIVERY_CORE_COLUMNS;
 
-/** Livrarea unei comenzi, daca a fost deja planificata (`null` altfel — unique(order_id)). */
+/** Livrarea unei comenzi, daca a fost deja planificata (`null` altfel - unique(order_id)). */
 export async function getDeliveryByOrderId(orderId: string): Promise<DeliveryRecord | null> {
   const supabase = await createClient();
   const { data, error } = await supabase
@@ -62,7 +62,7 @@ export async function getDeliveryByOrderId(orderId: string): Promise<DeliveryRec
   return data ? mapDelivery(data) : null;
 }
 
-/** Liniile comenzii asociate livrarii (produse + cantitati) — pt. avizul PDF/ecranul de detaliu. */
+/** Liniile comenzii asociate livrarii (produse + cantitati) - pt. avizul PDF/ecranul de detaliu. */
 async function loadOrderItemLines(
   supabase: SupabaseClient,
   orderId: string,
@@ -76,13 +76,13 @@ async function loadOrderItemLines(
 
   return (data ?? []).map((row) => ({
     itemId: row.item_id,
-    itemTitle: row.items?.title ?? "—",
+    itemTitle: row.items?.title ?? "-",
     unit: row.items?.unit ?? "kg",
     quantity: Number(row.quantity),
   }));
 }
 
-/** Detaliul unei livrari (comanda, client, linii) — ecranul /livrari/[id] + avizul PDF. */
+/** Detaliul unei livrari (comanda, client, linii) - ecranul /livrari/[id] + avizul PDF. */
 export async function getDeliveryDetail(id: string): Promise<DeliveryDetail | null> {
   const supabase = await createClient();
   const { data: delivery, error } = await supabase
@@ -98,8 +98,8 @@ export async function getDeliveryDetail(id: string): Promise<DeliveryDetail | nu
   return {
     ...mapDelivery(delivery),
     orderNumber: delivery.orders?.order_number ?? null,
-    clientName: delivery.orders?.clients?.name ?? "—",
-    clientCui: delivery.orders?.clients?.cui ?? "—",
+    clientName: delivery.orders?.clients?.name ?? "-",
+    clientCui: delivery.orders?.clients?.cui ?? "-",
     items,
   };
 }
@@ -117,7 +117,7 @@ export async function listDeliveries(): Promise<DeliveryListRow[]> {
     id: row.id,
     orderId: row.order_id,
     orderNumber: row.orders?.order_number ?? null,
-    clientName: row.orders?.clients?.name ?? "—",
+    clientName: row.orders?.clients?.name ?? "-",
     scheduledDate: row.scheduled_date,
     carrierName: row.carrier_name,
     vehiclePlate: row.vehicle_plate,

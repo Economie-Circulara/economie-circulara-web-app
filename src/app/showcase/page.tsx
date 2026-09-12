@@ -56,7 +56,7 @@ const orders: OrderRow[] = [
     id: "CMD-1990",
     client: "Ceramheld SRL",
     produs: "Cărămidă eco portantă",
-    livrare: "—",
+    livrare: "-",
     status: "anulata",
   },
 ];

@@ -10,7 +10,7 @@ import type {
 } from "./types";
 
 /**
- * Formatarea tabelara comuna PDF/CSV a fiecarui raport — un singur loc care decide
+ * Formatarea tabelara comuna PDF/CSV a fiecarui raport - un singur loc care decide
  * coloanele + textul afisat per rand, consumat atat de rutele de export CSV cat si
  * PDF (`ReportPdfColumn` + `Record<string,string>`, format cerut de `pdf.tsx`).
  */
@@ -60,7 +60,7 @@ export function formatDeliveriesReport(rows: DeliveryReportRow[]): FormattedRepo
       { key: "itemsSummary", header: "Produse", flex: 2 },
     ],
     rows: rows.map((row) => ({
-      orderNumber: row.orderNumber ?? "—",
+      orderNumber: row.orderNumber ?? "-",
       clientName: row.clientName,
       status: ORDER_STATUS_LABELS[row.status],
       referenceDate: formatDate(row.referenceDate),
@@ -82,7 +82,7 @@ export function formatReturnsReport(rows: ReturnReportRow[]): FormattedReport {
     rows: rows.map((row) => ({
       linkCreatedAt: formatDate(row.linkCreatedAt),
       linkType: RETURN_LINK_TYPE_LABELS[row.linkType] ?? row.linkType,
-      originalOrderNumber: row.originalOrderNumber ?? "—",
+      originalOrderNumber: row.originalOrderNumber ?? "-",
       clientName: row.clientName,
       returnOrderStatus: ORDER_STATUS_LABELS[row.returnOrderStatus],
       itemsSummary: row.itemsSummary,

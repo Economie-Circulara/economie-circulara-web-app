@@ -1,5 +1,5 @@
 -- =============================================================================
--- 0017 — FIX: `set_lot_block` esua la RUNTIME (blocarea loturilor nu a functionat
+-- 0017 - FIX: `set_lot_block` esua la RUNTIME (blocarea loturilor nu a functionat
 --        niciodata)
 -- =============================================================================
 -- BUG (descoperit 2026-09-12, prin `supabase/tests/business_flow.sql`):
@@ -10,7 +10,7 @@
 --
 -- Expresia `CASE` forteaza rezolvarea literalilor `unknown` la **text** INAINTE de
 -- atribuirea catre coloana, iar `stock_events.event_type` e enum
--- (`public.stock_event_type`) — Postgres NU face cast implicit text -> enum la
+-- (`public.stock_event_type`) - Postgres NU face cast implicit text -> enum la
 -- INSERT. Rezultat:
 --
 --   ERROR: column "event_type" is of type public.stock_event_type
@@ -18,20 +18,20 @@
 --
 -- Deci ORICE blocare sau deblocare de lot cadea. (Un literal simplu, ex. 'reversal'
 -- in `cancel_order`, functioneaza: rămâne de tip `unknown` si e coercitat in
--- contextul de atribuire. Doar expresiile — CASE/COALESCE — forteaza `text`.)
+-- contextul de atribuire. Doar expresiile - CASE/COALESCE - forteaza `text`.)
 --
 -- DE CE NU A FOST PRINS PANA ACUM: corpul unei functii plpgsql nu e verificat la
 -- tip la creare, doar la EXECUTIE. Migrarea se aplica fara eroare, `typecheck`,
--- `lint`, testele unitare (care mock-uiesc RPC-ul) si `pnpm build` trec toate —
+-- `lint`, testele unitare (care mock-uiesc RPC-ul) si `pnpm build` trec toate -
 -- niciunul nu executa functia pe un Postgres real. Acum e acoperit de testul
 -- functional B6 din `supabase/tests/business_flow.sql`.
 --
--- IMPACT: „Loturile pot fi blocate cu un motiv => ies din stocul disponibil"
--- (docs/handoff.md, secțiunea Loturi) — functionalitate MVP complet nefunctionala.
+-- IMPACT: "Loturile pot fi blocate cu un motiv => ies din stocul disponibil"
+-- (docs/handoff.md, secțiunea Loturi) - functionalitate MVP complet nefunctionala.
 --
 -- FIX: cast explicit la enum. Functia e recreata IDENTIC in restul corpului
--- (migrari aditive: nu se editeaza `0004_stock_service.sql` — AGENTS.md regula
--- „migrari aditive, numerotate"). Semnatura e neschimbata, deci GRANT-urile
+-- (migrari aditive: nu se editeaza `0004_stock_service.sql` - AGENTS.md regula
+-- "migrari aditive, numerotate"). Semnatura e neschimbata, deci GRANT-urile
 -- existente rămân valabile; le re-aplicam oricum, pentru ca `create or replace`
 -- pe o functie existenta pastreaza privilegiile, dar explicitul e mai sigur la
 -- re-rulari pe baze noi.

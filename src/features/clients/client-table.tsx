@@ -18,7 +18,7 @@ const columns: ColumnDef<Client>[] = [
     cell: ({ row }) => {
       const { contactPerson, email, phone } = row.original;
       const parts = [contactPerson, email, phone].filter(Boolean);
-      return parts.length ? parts.join(" · ") : "—";
+      return parts.length ? parts.join(" · ") : "-";
     },
   },
   {
@@ -41,7 +41,7 @@ export function ClientTable({ clients }: { clients: Client[] }) {
       <EmptyState
         icon={<Building2 />}
         title="Niciun client"
-        description="Adaugă primul client — poți căuta datele firmei după CUI."
+        description="Adaugă primul client - poți căuta datele firmei după CUI."
       />
     );
   }

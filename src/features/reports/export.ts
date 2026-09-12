@@ -19,7 +19,7 @@ import {
 } from "./queries";
 
 /**
- * Dispatch pe cheia raportului (`ReportKey`) — un singur loc care leaga fetch + format,
+ * Dispatch pe cheia raportului (`ReportKey`) - un singur loc care leaga fetch + format,
  * folosit de ambele rute de export (`export/pdf`, `export/csv`) ca sa nu duplice
  * switch-ul intre cele doua formate.
  */

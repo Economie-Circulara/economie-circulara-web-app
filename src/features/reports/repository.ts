@@ -10,15 +10,15 @@ import type {
 } from "./types";
 
 /**
- * Stratul de IO al rapoartelor (Task X3) — un fetch brut per sursa de date, fara logica
+ * Stratul de IO al rapoartelor (Task X3) - un fetch brut per sursa de date, fara logica
  * de business (agregari/formule in `calculations.ts`). RLS filtreaza automat pe
- * organizatia curenta — niciun filtru explicit de `organization_id` (acelasi pattern ca
+ * organizatia curenta - niciun filtru explicit de `organization_id` (acelasi pattern ca
  * `orders/queries.ts`, `stock/queries.ts`).
  */
 
 const STATUSES_DELIVERED_OR_CLOSED: OrderStatus[] = ["delivered", "closed"];
 
-/** Statusul comenzilor create in perioada (dupa `created_at`) — Raport 1. */
+/** Statusul comenzilor create in perioada (dupa `created_at`) - Raport 1. */
 export async function fetchOrderStatusesCreatedInRange(
   range: DateRange,
 ): Promise<{ status: OrderStatus }[]> {
@@ -33,7 +33,7 @@ export async function fetchOrderStatusesCreatedInRange(
 }
 
 /**
- * Liniile unui set de comenzi, grupate pe `order_id` — interogare separata (nu embed pe
+ * Liniile unui set de comenzi, grupate pe `order_id` - interogare separata (nu embed pe
  * 2 niveluri), in stilul `orders/queries.ts#summarizeOrderItems`.
  */
 async function fetchOrderItemLinesByOrder(
@@ -53,7 +53,7 @@ async function fetchOrderItemLinesByOrder(
     const lines = byOrder.get(row.order_id) ?? [];
     lines.push({
       itemId: row.item_id,
-      itemTitle: row.items?.title ?? "—",
+      itemTitle: row.items?.title ?? "-",
       unit: row.items?.unit ?? "kg",
       quantity: Number(row.quantity),
     });
@@ -63,7 +63,7 @@ async function fetchOrderItemLinesByOrder(
 }
 
 /**
- * Toate comenzile `delivered`/`closed` (fara filtru de perioada — data de referinta
+ * Toate comenzile `delivered`/`closed` (fara filtru de perioada - data de referinta
  * prioritizeaza `delivered_at` (Fix F3), cu fallback `delivery_date ?? updated_at` pentru
  * istoricul fara timestamp, vezi `calculations.ts#resolveDeliveryReferenceDate`; filtrarea
  * pe perioada se face in JS, pur, dupa fetch) + liniile lor. Sursa comuna pt. Raportul 2
@@ -87,7 +87,7 @@ export async function fetchDeliveredOrdersWithItems(): Promise<DeliveredOrderInp
     orderNumber: row.order_number,
     status: row.status,
     clientId: row.client_id,
-    clientName: row.clients?.name ?? "—",
+    clientName: row.clients?.name ?? "-",
     deliveredAt: row.delivered_at,
     deliveryDate: row.delivery_date,
     updatedAt: row.updated_at,
@@ -96,10 +96,10 @@ export async function fetchDeliveredOrdersWithItems(): Promise<DeliveredOrderInp
 }
 
 /**
- * Toate legaturile `order_links` de tip `return`/`warranty` (fara `replacement` — nu e o
+ * Toate legaturile `order_links` de tip `return`/`warranty` (fara `replacement` - nu e o
  * miscare de material), cu comanda originala (client) + comanda-retur (status/`updated_at`)
  * + liniile ei. Fara filtru de perioada la fetch (doua rapoarte folosesc doua date de
- * referinta diferite — cererea legaturii vs. acceptarea returului — filtrarea e pura,
+ * referinta diferite - cererea legaturii vs. acceptarea returului - filtrarea e pura,
  * in `calculations.ts`). Interogari secventiale + imbinare in JS, in stilul
  * `returns/queries.ts#getReturnableItems` (evita embed ambiguu: `order_links` are DOUA
  * chei straine catre `orders`).
@@ -131,7 +131,7 @@ export async function fetchReturnLinks(): Promise<ReturnLinkInput[]> {
   for (const link of linkRows) {
     const original = orderById.get(link.original_order_id);
     const returnOrder = orderById.get(link.linked_order_id);
-    if (!original || !returnOrder) continue; // RLS a ascuns una dintre comenzi — defensiv
+    if (!original || !returnOrder) continue; // RLS a ascuns una dintre comenzi - defensiv
     results.push({
       linkId: link.id,
       linkType: link.link_type as "return" | "warranty",
@@ -139,7 +139,7 @@ export async function fetchReturnLinks(): Promise<ReturnLinkInput[]> {
       originalOrderId: original.id,
       originalOrderNumber: original.order_number,
       clientId: original.client_id,
-      clientName: original.clients?.name ?? "—",
+      clientName: original.clients?.name ?? "-",
       returnOrderId: returnOrder.id,
       returnOrderNumber: returnOrder.order_number,
       returnOrderStatus: returnOrder.status,
@@ -152,7 +152,7 @@ export async function fetchReturnLinks(): Promise<ReturnLinkInput[]> {
 
 /**
  * Loturi cu proveniența secundara (reciclare/recondiționare/retur), filtrate direct in
- * SQL pe `entry_date` (coloana `date`, comparabila cu perioada fara conversie de ora) —
+ * SQL pe `entry_date` (coloana `date`, comparabila cu perioada fara conversie de ora) -
  * Raportul 4 (Materiale reciclate/recondiționate reintegrate).
  */
 export async function fetchRecycledLotsInRange(range: DateRange): Promise<RecycledLotInput[]> {
@@ -168,7 +168,7 @@ export async function fetchRecycledLotsInRange(range: DateRange): Promise<Recycl
   return (data ?? []).map((row) => ({
     provenance: row.provenance,
     itemId: row.item_id,
-    itemTitle: row.items?.title ?? "—",
+    itemTitle: row.items?.title ?? "-",
     unit: row.items?.unit ?? "kg",
     quantity: Number(row.initial_qty),
   }));
@@ -176,7 +176,7 @@ export async function fetchRecycledLotsInRange(range: DateRange): Promise<Recycl
 
 /**
  * Liniile de input de proces (cu proveniența lotului consumat) pentru procesele
- * finalizate in perioada, grupate implicit pe `output_item_id` (produsul fabricat) —
+ * finalizate in perioada, grupate implicit pe `output_item_id` (produsul fabricat) -
  * Raportul 6 (% materii prime secundare). Procesele fara `output_item_id` (nu ar trebui
  * sa existe la un proces `completed`, dar defensiv) sunt ignorate.
  */
@@ -212,7 +212,7 @@ export async function fetchProcessInputsCompletedInRange(
     if (!process || !input.lots) continue;
     results.push({
       productItemId: process.output_item_id,
-      productTitle: process.items?.title ?? "—",
+      productTitle: process.items?.title ?? "-",
       provenance: input.lots.provenance,
       quantity: Number(input.quantity),
     });

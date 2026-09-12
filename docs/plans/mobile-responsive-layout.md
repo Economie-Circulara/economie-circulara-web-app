@@ -1,30 +1,30 @@
-# Plan — layout responsive pentru mobil
+# Plan - layout responsive pentru mobil
 
-**Context:** `docs/design-prompt.md` §1 e explicit: *„Aplicația trebuie să meargă și pe
+**Context:** `docs/design-prompt.md` §1 e explicit: *"Aplicația trebuie să meargă și pe
 mobil, dar targetul principal este desktop."* În plus, `docs/analiza-conformitate-anexa.md`
-(cerințe transversale) marchează „Interfață intuitivă, echipamente uzuale" ca ✅, motivat
-prin „responsive" — dar la verificare, shell-ul aplicației (`AppShell` + `Sidebar` +
+(cerințe transversale) marchează "Interfață intuitivă, echipamente uzuale" ca ✅, motivat
+prin "responsive" - dar la verificare, shell-ul aplicației (`AppShell` + `Sidebar` +
 `Topbar`) **nu are nicio adaptare pentru mobil**: sidebar fix `w-60`, fără breakpoint-uri,
 fără meniu hamburger. Pe un viewport de telefon (≤480px), sidebar-ul singur ocupă >60%
 din lățime și conținutul e comprimat/scrollat orizontal. Practic e un gap de conformitate,
-nu doar o îmbunătățire UX — vezi [[eu-funding-annex-compliance]].
+nu doar o îmbunătățire UX - vezi [[eu-funding-annex-compliance]].
 
 Bug mic găsit și corectat separat: `Sidebar` folosea `position-sticky` (clasă
 inexistentă, nu produce niciun efect) în loc de `sticky` din Tailwind.
 
 ## Obiectiv
 
-Aplicația să fie **funcțională și utilizabilă** pe mobil (≥375px lățime) — navigare,
+Aplicația să fie **funcțională și utilizabilă** pe mobil (≥375px lățime) - navigare,
 citire, completare formulare, fără scroll orizontal și fără elemente tăiate. Nu e o
 redesenare mobile-first: desktop rămâne target principal (conform design-prompt), deci nu
 optimizăm agresiv fiecare ecran pentru degete/gesture, doar eliminăm blocajele reale.
 
 ## Ce nu e nevoie (scope explicit exclus)
 
-- Nav gestual, bottom-nav bar, PWA/offline — nimic din documentație nu cere asta.
-- Redesign vizual pe mobil diferit de desktop — reutilizăm aceleași componente, doar
+- Nav gestual, bottom-nav bar, PWA/offline - nimic din documentație nu cere asta.
+- Redesign vizual pe mobil diferit de desktop - reutilizăm aceleași componente, doar
   cu breakpoint-uri.
-- Tabele HTML native de responsive-izat — verificat: doar 3 fișiere folosesc `<table>`
+- Tabele HTML native de responsive-izat - verificat: doar 3 fișiere folosesc `<table>`
   (`setari/utilizatori`, `certificate-view`, `variable-output-form`); restul listelor
   sunt grid-uri/flex-uri proprii, deci se rezolvă cu breakpoint-uri Tailwind, nu cu
   pattern-uri complexe de "responsive table".
@@ -34,11 +34,11 @@ optimizăm agresiv fiecare ecran pentru degete/gesture, doar eliminăm blocajele
 ### 1. Shell-ul aplicației (blocajul principal)
 
 - **`AppShell`** (`src/components/layout/app-shell.tsx`): sub `lg`, sidebar-ul nu se mai
-  randează inline — devine un panou ascuns, deschis printr-un buton hamburger în
+  randează inline - devine un panou ascuns, deschis printr-un buton hamburger în
   `Topbar`.
 - **Componentă nouă de drawer mobil**: proiectul nu are încă `Sheet`/`Dialog` (nu există
   `@radix-ui/react-dialog` în `package.json`). Adăugăm dependența și componenta shadcn
-  `sheet` (`pnpm dlx shadcn@latest add sheet`, sau instalare manuală a primitivei) —
+  `sheet` (`pnpm dlx shadcn@latest add sheet`, sau instalare manuală a primitivei) -
   e calea standard cu accesibilitate (focus trap, Esc, overlay) inclusă, mai sigură decât
   un drawer custom.
 - **`Sidebar`**: extragem conținutul de navigare într-un sub-component reutilizabil
@@ -51,19 +51,19 @@ optimizăm agresiv fiecare ecran pentru degete/gesture, doar eliminăm blocajele
 
 ### 2. Container de conținut
 
-- `main` din `AppShell`: padding `p-6` → `p-4 sm:p-6`, verificat că `max-w-7xl` nu
+- `main` din `AppShell`: padding `p-6` -> `p-4 sm:p-6`, verificat că `max-w-7xl` nu
   forțează scroll orizontal pe ecrane înguste (nu ar trebui, dar de validat vizual).
 
 ### 3. Audit pagini cheie (breakpoint-uri pe grid-uri existente)
 
 Pagini cu `md:`/`lg:` grid deja parțial: `dashboard`, `comenzi/[id]`, `productie/[id]`,
-`livrari/[id]` — de verificat că varianta de o singură coloană sub `md` e completă și nu
-lasă card-uri cu lățime fixă. Pagini fără niciun breakpoint (marea majoritate — liste
-comenzi/stoc/clienți/catalog, formulare) — de trecut prin ele și înlocuit orice `w-[Npx]`
+`livrari/[id]` - de verificat că varianta de o singură coloană sub `md` e completă și nu
+lasă card-uri cu lățime fixă. Pagini fără niciun breakpoint (marea majoritate - liste
+comenzi/stoc/clienți/catalog, formulare) - de trecut prin ele și înlocuit orice `w-[Npx]`
 fix sau `grid-cols-N` fără variantă mobilă cu echivalent responsive (`grid-cols-1
 md:grid-cols-N`).
 
-Prioritate: **portalul de client** (catalog, coș, comenzile-mele) — clienții au șanse mai
+Prioritate: **portalul de client** (catalog, coș, comenzile-mele) - clienții au șanse mai
 mari să folosească telefonul decât operatorii/adminii (care lucrează la birou/hală, per
 design-prompt). Ecranele admin/operator rămân cu bară joasă de efort (must-work, nu
 must-be-pretty).
@@ -79,7 +79,7 @@ must-be-pretty).
 ### 5. Corectare status conformitate
 
 - După ce shell-ul + paginile cheie sunt responsive, actualizăm nota din
-  `docs/analiza-conformitate-anexa.md` (linia „Interfață intuitivă... responsive") ca să
+  `docs/analiza-conformitate-anexa.md` (linia "Interfață intuitivă... responsive") ca să
   reflecte starea reală, nu doar intenția.
 
 ## Definition of Done

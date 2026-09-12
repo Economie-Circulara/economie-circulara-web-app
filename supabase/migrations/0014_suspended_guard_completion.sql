@@ -1,5 +1,5 @@
 -- =============================================================================
--- 0014 — Completare guard organizatie suspendata (F1 + F6, review 0012)
+-- 0014 - Completare guard organizatie suspendata (F1 + F6, review 0012)
 -- =============================================================================
 -- Migrarea 0012 a adaugat a doua linie de aparare (RLS) pentru organizatiile
 -- suspendate, dar a lasat deliberat doua goluri, documentate explicit in
@@ -22,18 +22,18 @@
 --
 -- NEATINS in aceasta migrare (afara scopului F1/F6):
 --   - `order_links_client_insert` (adaugata in 0010_returns.sql, dupa 0012) nu cere
---     `app.org_is_active(organization_id)` — acelasi gol de scriere, dar pe un tabel
+--     `app.org_is_active(organization_id)` - acelasi gol de scriere, dar pe un tabel
 --     din domeniul `orders`, in afara scopului acestei migrari (evitam sa atingem
 --     cod/politici din zona `orders` in timp ce alt task lucreaza acolo in paralel).
 --     Semnalat separat pentru o migrare viitoare dedicata.
 -- =============================================================================
 
 -- -----------------------------------------------------------------------------
--- F1a. client_addresses — sparge FOR ALL in politici per-operatie
+-- F1a. client_addresses - sparge FOR ALL in politici per-operatie
 -- -----------------------------------------------------------------------------
 -- SELECT ramane cu exact aceeasi conditie ca politica veche (citirea nu produce
 -- efecte de business; ramane neguardat aici, redeschis punctual la F1b mai jos
--- doar pentru tabelele explicit vizate acolo — `client_addresses` NU e in acea
+-- doar pentru tabelele explicit vizate acolo - `client_addresses` NU e in acea
 -- lista, ca sa pastram schimbarea din F1a strict pe scriere, usor de revizuit).
 -- INSERT/UPDATE/DELETE adauga suplimentar `app.org_is_active(organization_id)`,
 -- exact ca politicile client pe orders/order_items/documents din 0012.
@@ -71,16 +71,16 @@ create policy client_addresses_client_delete on public.client_addresses
   );
 
 -- `client_addresses_staff_all` (0001, FOR ALL, `app.is_staff_of(organization_id)`)
--- ramane neatinsa — deja guardata tranzitiv prin `app.is_staff_of` (0012).
+-- ramane neatinsa - deja guardata tranzitiv prin `app.is_staff_of` (0012).
 
 -- -----------------------------------------------------------------------------
--- F1b. SELECT-urile clientului — defense-in-depth, `app.org_is_active` in plus
+-- F1b. SELECT-urile clientului - defense-in-depth, `app.org_is_active` in plus
 -- -----------------------------------------------------------------------------
 -- Decizie: DA, extindem toate SELECT-urile clientului enumerate mai jos. Citirea
 -- nu are efecte de business (motivul pentru care 0012 le-a lasat neatinse), dar
 -- odata ce scrierea e guardata complet (0012 + F1a de mai sus), a lasa SELECT-ul
--- neguardat inseamna ca un client al unei organizatii suspendate — deja scos din
--- portal de aplicatie — isi poate totusi citi comenzile/certificatele/documentele
+-- neguardat inseamna ca un client al unei organizatii suspendate - deja scos din
+-- portal de aplicatie - isi poate totusi citi comenzile/certificatele/documentele
 -- proprii direct prin Data API. Impactul modificarii e minim: clientii activi nu
 -- sunt afectati (`app.org_is_active` e adevarat pentru orice organizatie `active`,
 -- acelasi cost de evaluare ca-n politicile de scriere deja in productie din 0012);
@@ -169,14 +169,14 @@ create policy order_links_client_select on public.order_links
 -- F6. Index de suport pentru app.org_is_active(org)
 -- -----------------------------------------------------------------------------
 -- `app.org_is_active` (0012) face `select status = 'active' from organizations
--- where id = org` — un subquery evaluat PER RAND de aproape toate politicile RLS
+-- where id = org` - un subquery evaluat PER RAND de aproape toate politicile RLS
 -- de staff (via is_staff_of/is_admin_of) si acum, dupa aceasta migrare, si de toate
 -- SELECT-urile de client de mai sus. `id` e deja PRIMARY KEY (index unic pe `id`
 -- singur), deci lookup-ul dupa `id` era deja rapid; problema e ca planner-ul tot
 -- trebuie sa viziteze heap-ul ca sa citeasca `status`, pentru ca PK-ul nu contine
 -- acea coloana. Un index compus `(id, status)` face ca interogarea `where id = ?`
 -- (care doar citeste `status`) sa fie raspunsa integral din index (index-only
--- scan), fara heap fetch — relevant la scara, cand `organizations` are multe
+-- scan), fara heap fetch - relevant la scara, cand `organizations` are multe
 -- randuri si multe randuri din alte tabele evalueaza acest subquery in aceeasi
 -- interogare (ex. un SELECT staff pe `orders` cu multe randuri).
 create index if not exists organizations_id_status_idx

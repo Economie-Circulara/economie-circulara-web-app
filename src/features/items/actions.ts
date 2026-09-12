@@ -27,7 +27,7 @@ function parseSellable(formData: FormData): boolean {
   return formData.get("sellable") === "on";
 }
 
-/** Creeaza un item nou in catalog (formularul /itemi/nou) — doar staff (admin/operator). */
+/** Creeaza un item nou in catalog (formularul /itemi/nou) - doar staff (admin/operator). */
 export async function createItemAction(
   _prev: ItemFormState,
   formData: FormData,
@@ -61,7 +61,7 @@ export async function createItemAction(
   redirect("/itemi");
 }
 
-/** Actualizeaza un item existent (formularul /itemi/[id]) — doar staff (admin/operator). */
+/** Actualizeaza un item existent (formularul /itemi/[id]) - doar staff (admin/operator). */
 export async function updateItemAction(
   _prev: ItemFormState,
   formData: FormData,

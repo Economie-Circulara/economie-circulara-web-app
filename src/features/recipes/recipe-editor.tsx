@@ -39,7 +39,7 @@ function RemoveComponentButton({ componentId, itemId }: { componentId: string; i
 
 /**
  * Editor de rețetă: lista componentelor + formular adaugare/actualizare + suma
- * procentelor (INFORMATIVA — nu blocheaza salvarea daca difera de 100%, regula din
+ * procentelor (INFORMATIVA - nu blocheaza salvarea daca difera de 100%, regula din
  * handoff/AGENTS.md).
  */
 export function RecipeEditor({
@@ -58,7 +58,7 @@ export function RecipeEditor({
         <CardHeader>
           <CardTitle>Componente</CardTitle>
           <CardDescription>
-            Procentele sunt informative — reteta se poate salva chiar daca suma nu e 100%.
+            Procentele sunt informative - reteta se poate salva chiar daca suma nu e 100%.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -67,7 +67,7 @@ export function RecipeEditor({
             <Badge variant={sumComplete ? "ok" : "warn"}>{recipe.percentageSum}%</Badge>
             {!sumComplete ? (
               <span className="text-xs text-warn">
-                Diferă de 100% — verifică rețeta (nu blochează salvarea).
+                Diferă de 100% - verifică rețeta (nu blochează salvarea).
               </span>
             ) : null}
           </div>

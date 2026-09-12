@@ -21,15 +21,15 @@ const textareaClassName =
   "focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50";
 
 interface OrderLine extends OrderLineInput {
-  /** Cheie stabila pentru randare — nu se refoloseste `itemId` (acelasi item se poate cumula manual). */
+  /** Cheie stabila pentru randare - nu se refoloseste `itemId` (acelasi item se poate cumula manual). */
   key: string;
 }
 
 interface OrderFormProps {
   clients: Client[];
-  /** Adresele fiecarui client, precalculate — evita un fetch suplimentar la schimbarea clientului. */
+  /** Adresele fiecarui client, precalculate - evita un fetch suplimentar la schimbarea clientului. */
   addressesByClient: Record<string, ClientAddress[]>;
-  /** Itemi vandabili (catalog client) — singurele linii permise intr-o comanda. */
+  /** Itemi vandabili (catalog client) - singurele linii permise intr-o comanda. */
   itemOptions: ItemOption[];
 }
 
@@ -103,7 +103,7 @@ export function OrderForm({ clients, addressesByClient, itemOptions }: OrderForm
 
           <FormField
             label="Adresă de livrare"
-            hint="Opțional — alege una dintre adresele clientului."
+            hint="Opțional - alege una dintre adresele clientului."
           >
             {(id) => (
               <select
@@ -116,7 +116,7 @@ export function OrderForm({ clients, addressesByClient, itemOptions }: OrderForm
                 <option value="">Fără adresă precizată</option>
                 {addresses.map((address) => (
                   <option key={address.id} value={address.id}>
-                    {address.label ? `${address.label} — ` : ""}
+                    {address.label ? `${address.label} - ` : ""}
                     {address.address}
                     {address.isDefault ? " (implicită)" : ""}
                   </option>
@@ -151,7 +151,7 @@ export function OrderForm({ clients, addressesByClient, itemOptions }: OrderForm
                 const item = itemTitleById.get(line.itemId);
                 return (
                   <li key={line.key} className="flex items-center justify-between gap-3 px-4 py-2">
-                    <span>{item?.title ?? "—"}</span>
+                    <span>{item?.title ?? "-"}</span>
                     <div className="flex items-center gap-3">
                       <span className="font-mono text-sm tabular-nums">
                         {line.quantity} {item?.unit}

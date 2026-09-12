@@ -7,7 +7,7 @@ import { layoutSankey, type SankeyData } from "./sankey-data";
 export interface SankeyDiagramProps {
   data: SankeyData;
   className?: string;
-  /** Inaltimea (viewBox) desenului — latimea e mereu 100% (responsive). */
+  /** Inaltimea (viewBox) desenului - latimea e mereu 100% (responsive). */
   height?: number;
 }
 
@@ -16,7 +16,7 @@ const WIDTH = 680;
 
 /**
  * Sankey minimal, dependency-free (SVG + React), pe 3 coloane fixe: loturi de
- * input → proces → loturi de output. Vezi spike S3 (implementation-plan.md) —
+ * input -> proces -> loturi de output. Vezi spike S3 (implementation-plan.md) -
  * decizie: NU am adaugat o librarie externa (recharts/@nivo/sankey); ambele au
  * risc de compatibilitate cu React 19 / Next 16 (peer deps neactualizate la data
  * scrierii) si aduc bundle semnificativ pentru un caz de folosire simplu (2 legaturi
@@ -37,7 +37,7 @@ export function SankeyDiagram({ data, className, height = 260 }: SankeyDiagramPr
     () => layoutSankey(data, { width: WIDTH, height, nodeWidth: NODE_WIDTH }),
     [data, height],
   );
-  // Coloana maxima a graf-ului curent — folosita ca sa generalizam alinierea
+  // Coloana maxima a graf-ului curent - folosita ca sa generalizam alinierea
   // pentru un numar variabil de coloane (certificatul de trasabilitate, Task G,
   // poate avea mai mult de 3 coloane in functie de adancimea lantului), fara sa
   // schimbam vizual layout-ul fix pe 3 coloane al proceselor de productie.
@@ -79,7 +79,7 @@ export function SankeyDiagram({ data, className, height = 260 }: SankeyDiagramPr
           {positioned.map((node) => {
             const rightAligned = node.column === maxColumn;
             // Centrarea deasupra nodului se pastreaza DOAR pentru layout-ul clasic
-            // pe 3 coloane (procesul, la mijloc) — un graf cu mai multe coloane
+            // pe 3 coloane (procesul, la mijloc) - un graf cu mai multe coloane
             // (certificat) foloseste aliniere start/end simpla, fara centrare.
             const centered = maxColumn === 2 && node.column === 1;
             const textX = centered

@@ -38,7 +38,7 @@ export interface AvailableClient {
 
 /**
  * Firmele-client din organizatie care NU au inca un utilizator `client` legat
- * (`profiles.client_id`) — candidate pentru invitare (un client = un singur user,
+ * (`profiles.client_id`) - candidate pentru invitare (un client = un singur user,
  * vezi AGENTS.md). Foloseste clientul de sesiune (RLS), doar citire.
  */
 export async function listAvailableClientsForInvite(): Promise<AvailableClient[]> {

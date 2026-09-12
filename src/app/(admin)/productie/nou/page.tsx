@@ -4,10 +4,10 @@ import { listRecipes } from "@/features/recipes/queries";
 import { listItemOptions } from "@/features/items/queries";
 import { ProcessWizard } from "@/features/production/process-wizard";
 
-export const metadata = { title: "Pornește proces — Lateris Trace" };
+export const metadata = { title: "Pornește proces - Lateris Trace" };
 
 /**
- * Ecranul de pornire proces — doua sub-fluxuri (4a output fix / 4b output
+ * Ecranul de pornire proces - doua sub-fluxuri (4a output fix / 4b output
  * variabil). Datele initiale (retete + itemi fizici) se incarca server-side;
  * preview-ul FIFO si confirmarea sunt server actions apelate din wizard.
  */

@@ -59,7 +59,7 @@ export function DocumentUpload({ ownerType, ownerId, revalidatePath }: DocumentU
 
       <FormField
         label="Etichetă"
-        hint='Opțional — ex. "Contract" pentru contracte semnate arhivate.'
+        hint='Opțional - ex. "Contract" pentru contracte semnate arhivate.'
       >
         {(id) => (
           <>

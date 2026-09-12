@@ -1,5 +1,5 @@
 -- =============================================================================
--- 0003 — Intarire RLS: anti-escaladare privilegii + politici client pe status
+-- 0003 - Intarire RLS: anti-escaladare privilegii + politici client pe status
 -- =============================================================================
 -- Migrare aditiva (nu se editeaza 0001/0002). Inchide doua gauri de securitate
 -- confirmate in modelul RLS din 0001:
@@ -23,14 +23,14 @@
 -- =============================================================================
 
 -- -----------------------------------------------------------------------------
--- 1. GAURA 1 — trigger anti-escaladare pe public.profiles
+-- 1. GAURA 1 - trigger anti-escaladare pe public.profiles
 -- -----------------------------------------------------------------------------
 -- SECURITY DEFINER + search_path gol (toate referintele sunt calificate complet),
 -- in stilul lui app.touch_updated_at() din 0001.
 --
 -- Se aplica DOAR cand exista un apelant autentificat (auth.uid() not null) care NU
 -- este super_admin. Contextele de serviciu (seed-uri, service_role, auth admin,
--- migrari) au auth.uid() null si trec neatinse — la fel super_admin-ul, care are
+-- migrari) au auth.uid() null si trec neatinse - la fel super_admin-ul, care are
 -- voie sa administreze roluri/tenant.
 --
 -- Ridica exceptia cu errcode `insufficient_privilege` (42501), acelasi cod ca o
@@ -75,18 +75,18 @@ create trigger profiles_enforce_security
   for each row execute function app.enforce_profile_security();
 
 -- -----------------------------------------------------------------------------
--- 2. GAURA 2 — politici client pe comenzi, constiente de status
+-- 2. GAURA 2 - politici client pe comenzi, constiente de status
 -- -----------------------------------------------------------------------------
 -- Inlocuim politicile FOR ALL cu politici per-operatie. Clientul poate:
---   SELECT  — propriile comenzi, in orice status;
---   INSERT  — doar cu propriul client_id + propria organizatie, status draft/sent;
---   UPDATE  — doar cat timp comanda e draft/sent; poate trece la 'cancelled'
+--   SELECT  - propriile comenzi, in orice status;
+--   INSERT  - doar cu propriul client_id + propria organizatie, status draft/sent;
+--   UPDATE  - doar cat timp comanda e draft/sent; poate trece la 'cancelled'
 --             (anulare inainte de acceptare), dar nu la alte statusuri;
---   DELETE  — doar cat timp comanda e in draft.
+--   DELETE  - doar cat timp comanda e in draft.
 -- Dupa acceptare (stoc scazut) clientul nu mai poate modifica/sterge comanda.
 --
 -- In plus, toate WITH CHECK-urile de client pun conditia `organization_id =
--- app.org_id()` — politicile FOR ALL din 0001 verificau doar client_id, deci un
+-- app.org_id()` - politicile FOR ALL din 0001 verificau doar client_id, deci un
 -- client putea re-punta un rand propriu catre alt tenant (organization_id strain),
 -- plantand un rand corupt in listele altei organizatii.
 

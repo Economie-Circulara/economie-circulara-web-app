@@ -15,7 +15,7 @@ export interface DeliveryFormProps {
 }
 
 /**
- * Formular de planificare livrare (ecranul /livrari/nou) — creeaza un singur rand
+ * Formular de planificare livrare (ecranul /livrari/nou) - creeaza un singur rand
  * `deliveries` pt. o comanda ACCEPTATA (`planDeliveryAction`, care redirectioneaza
  * la ecranul de detaliu al livrarii nou-create). Camp cerute de Task X5: data
  * programata, transportator, nr. inmatriculare, sofer, ruta (plecare/sosire).
@@ -40,7 +40,7 @@ export function DeliveryForm({ orderId, orderNumber, clientName }: DeliveryFormP
         <CardHeader>
           <CardTitle>Detalii transport</CardTitle>
           <CardDescription>
-            Vehicul, șofer și rută — necesare pt. avizul de însoțire.
+            Vehicul, șofer și rută - necesare pt. avizul de însoțire.
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4 sm:grid-cols-2">

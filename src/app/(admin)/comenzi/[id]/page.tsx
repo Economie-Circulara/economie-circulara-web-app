@@ -15,7 +15,7 @@ import { ORDER_LINK_TYPE_LABELS } from "@/features/returns/labels";
 import { getReturnableItems, getReturnLinkForOrder } from "@/features/returns/queries";
 import { ReturnActions } from "@/features/returns/return-actions";
 
-export const metadata = { title: "Detalii comandă — Lateris Trace" };
+export const metadata = { title: "Detalii comandă - Lateris Trace" };
 
 interface OrderDetailPageProps {
   params: Promise<{ id: string }>;
@@ -25,13 +25,13 @@ const dateFormatter = new Intl.DateTimeFormat("ro-RO");
 const qtyFormatter = new Intl.NumberFormat("ro-RO");
 
 function formatDate(iso: string | null): string {
-  return iso ? dateFormatter.format(new Date(iso)) : "—";
+  return iso ? dateFormatter.format(new Date(iso)) : "-";
 }
 
 /**
  * Istoricul de status afisat aici e derivat din masina de stari (nu exista inca un
- * tabel dedicat de audit al tranzitiilor) — arata pozitia curenta pe traseul
- * draft -> trimisă -> acceptată -> livrată -> închisă, sau „Anulată” daca a fost
+ * tabel dedicat de audit al tranzitiilor) - arata pozitia curenta pe traseul
+ * draft -> trimisă -> acceptată -> livrată -> închisă, sau "Anulată" daca a fost
  * intrerupt. Un istoric cu marcaje de timp per tranzitie ar necesita un tabel nou,
  * in afara scope-ului acestui task (schema 0001 e inghetata).
  */
@@ -52,22 +52,22 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
   if (!order) notFound();
 
   // Certificatul se genereaza automat la inchidere (hook in orders/notifications.ts,
-  // Task G) — verificam daca exista deja ca sa afisam link-ul de vizualizare/descarcare.
+  // Task G) - verificam daca exista deja ca sa afisam link-ul de vizualizare/descarcare.
   const certificate = order.status === "closed" ? await getCertificateByOrderId(id) : null;
 
   // Task F (Retur & Garanție & Închiriere): daca aceasta comanda e ea insași o
   // comanda-retur/garanție (are o legatura `order_links` catre o comanda
   // originala), ascundem tranzițiile generice (`OrderStatusActions` e gandit pt.
-  // comenzi de vanzare — "Acceptă" acolo CONSUMA stoc, gresit pt. un retur) si
+  // comenzi de vanzare - "Acceptă" acolo CONSUMA stoc, gresit pt. un retur) si
   // aratam in loc butonul dedicat `AcceptReturnButton`. Altfel, daca e o comanda
   // finalizata (delivered/closed), oferim butoanele Retur/Garanție.
   // Task X5 (Livrari & e-Transport): planificarea livrarii se face pe o comanda
-  // acceptata, in ecranul dedicat /livrari/nou (nu inline aici — vezi acel ecran).
+  // acceptata, in ecranul dedicat /livrari/nou (nu inline aici - vezi acel ecran).
   const delivery = await getDeliveryByOrderId(id);
 
   const returnLink = await getReturnLinkForOrder(id);
   // "replacement" (comanda de inlocuire la garanție) e o comanda de vanzare
-  // obișnuită — parcurge fluxul normal (send/accept/deliver/close); doar
+  // obișnuită - parcurge fluxul normal (send/accept/deliver/close); doar
   // "return"/"warranty" au acceptare dedicata (creeaza stoc, nu-l consuma).
   const isReturnOrder = returnLink?.linkType === "return" || returnLink?.linkType === "warranty";
   const returnableItems =
@@ -153,7 +153,7 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
             <p>
               <span className="text-muted-foreground">Adresă: </span>
               {order.deliveryAddress
-                ? `${order.deliveryAddressLabel ? `${order.deliveryAddressLabel} — ` : ""}${order.deliveryAddress}`
+                ? `${order.deliveryAddressLabel ? `${order.deliveryAddressLabel} - ` : ""}${order.deliveryAddress}`
                 : "Neprecizată"}
             </p>
             <p>
@@ -212,7 +212,7 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
               const reached = index <= currentStepIndex;
               return (
                 <li key={step} className="flex items-center gap-2">
-                  {index > 0 ? <span className="text-muted-foreground">→</span> : null}
+                  {index > 0 ? <span className="text-muted-foreground">{"->"}</span> : null}
                   <span className={reached ? "" : "opacity-40"}>
                     <StatusBadge group="order" status={ORDER_STATUS_BADGE_STATUS[step]} />
                   </span>

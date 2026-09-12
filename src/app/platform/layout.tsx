@@ -3,7 +3,7 @@ import { requireRole } from "@/features/auth/session";
 import { SignOutButton } from "@/features/auth/sign-out-button";
 
 /**
- * Shell minim pentru super-admin — NU foloseste `AppShell` (sidebar-ul de business
+ * Shell minim pentru super-admin - NU foloseste `AppShell` (sidebar-ul de business
  * cu navigatia catre stoc/comenzi/etc.): super-adminul administreaza platforma
  * (organizatii), nu datele de business ale unui tenant. Doar un topbar simplu cu
  * identitate + delogare. Guard de rol la nivel de layout (ca in (admin)/layout.tsx).
@@ -16,7 +16,7 @@ export default async function PlatformLayout({ children }: { children: React.Rea
       <div className="mx-auto max-w-6xl space-y-6 p-4 sm:p-6">
         <header className="flex flex-col gap-3 border-b pb-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-sm font-semibold tracking-tight">Lateris Trace — Platforma</p>
+            <p className="text-sm font-semibold tracking-tight">Lateris Trace - Platforma</p>
             <p className="text-xs text-muted-foreground">Administrare organizatii (super-admin)</p>
           </div>
           <div className="flex min-w-0 items-center gap-3">

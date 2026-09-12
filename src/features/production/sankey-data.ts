@@ -4,12 +4,12 @@ import type { ProcessLotLine } from "./types";
  * Coloana in layout-ul pe N coloane (0..n). Procesele de productie/reciclare
  * folosesc mereu 3 coloane fixe (0 = input, 1 = proces, 2 = output); certificatul
  * de trasabilitate (Task G, src/features/certificates/traceability.ts) foloseste
- * un numar variabil de coloane (surse → loturi → procese → ... → livrare, in
- * functie de adancimea lantului) — de-aici tipul larg `number`, nu o uniune fixa.
+ * un numar variabil de coloane (surse -> loturi -> procese -> ... -> livrare, in
+ * functie de adancimea lantului) - de-aici tipul larg `number`, nu o uniune fixa.
  */
 export type SankeyColumn = number;
 
-/** Categoria unui nod — optionala, folosita doar de certificat (Task G) pt. stil/culoare. */
+/** Categoria unui nod - optionala, folosita doar de certificat (Task G) pt. stil/culoare. */
 export type SankeyNodeKind = "source" | "lot" | "process" | "delivery";
 
 export interface SankeyNode {
@@ -37,8 +37,8 @@ const PROCESS_NODE_ID = "process";
 
 /**
  * Mapeaza `process_inputs`/`process_outputs` (deja incarcate in `ProcessDetail`)
- * la forma generica noduri/legaturi consumata de `SankeyDiagram` — loturi de
- * input → nodul de proces → loturi de output (vezi spike S3 pentru alegerea
+ * la forma generica noduri/legaturi consumata de `SankeyDiagram` - loturi de
+ * input -> nodul de proces -> loturi de output (vezi spike S3 pentru alegerea
  * implementarii Sankey; aceasta functie e pura, testabila fara React/SVG).
  */
 export function buildProcessSankeyData(
@@ -91,11 +91,11 @@ function formatQty(qty: number, unit: string): string {
 }
 
 // -----------------------------------------------------------------------------
-// Layout pur (fara React/DOM) — calculeaza pozitiile nodurilor (rect-uri) si
+// Layout pur (fara React/DOM) - calculeaza pozitiile nodurilor (rect-uri) si
 // curbele Bezier ale "panglicilor" dintre coloane. Extras din `sankey-diagram.tsx`
 // (era o functie locala, ne-exportata) ca sa poata fi reutilizat si de PDF-ul
 // certificatului (Task G, src/features/certificates/pdf.tsx), care deseneaza
-// acelasi graf cu primitivele <Svg>/<Rect>/<Path> din @react-pdf/renderer — un
+// acelasi graf cu primitivele <Svg>/<Rect>/<Path> din @react-pdf/renderer - un
 // singur loc care calculeaza geometria, doua randari (browser SVG + PDF).
 // -----------------------------------------------------------------------------
 
@@ -182,7 +182,7 @@ export function layoutSankey(
     return {
       id: link.id,
       d,
-      label: `${source.label} → ${target.label}`,
+      label: `${source.label} -> ${target.label}`,
       value: link.value.toLocaleString("ro-RO"),
     };
   });

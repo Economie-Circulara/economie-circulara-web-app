@@ -18,10 +18,10 @@ export interface DeliveryActionsPanelProps {
 
 /**
  * Panoul de declarare e-Transport (ecranul /livrari/[id]): buton "Declară" (status
- * `not_declared`) sau "Reîncearcă" (status `failed`, cu eroarea vizibilă) — ambele
+ * `not_declared`) sau "Reîncearcă" (status `failed`, cu eroarea vizibilă) - ambele
  * apeleaza aceeasi `declareETransportAction` (apelata direct din `onClick`, in
  * stilul `ReturnActions`). Cand e deja `declared`, arata doar codul UIT (fara
- * buton — actiunea repetata e idempotenta, dar re-click-ul nu are sens in UI).
+ * buton - actiunea repetata e idempotenta, dar re-click-ul nu are sens in UI).
  */
 export function DeliveryActionsPanel({
   deliveryId,
@@ -69,7 +69,7 @@ export function DeliveryActionsPanel({
 
       <div>
         <Button asChild variant="outline" size="sm">
-          {/* Ruta de descarcare randeaza avizul ON-DEMAND (vezi pdf.tsx) — mereu cu UIT-ul curent. */}
+          {/* Ruta de descarcare randeaza avizul ON-DEMAND (vezi pdf.tsx) - mereu cu UIT-ul curent. */}
           <a href={`/livrari/${deliveryId}/aviz`} target="_blank" rel="noopener noreferrer">
             <Download className="size-4" />
             Descarcă avizul (PDF)

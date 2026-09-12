@@ -1,8 +1,8 @@
 -- =============================================================================
--- 0012 — Guard organizatie suspendata: a doua linie de aparare in RLS (Task T2.1)
+-- 0012 - Guard organizatie suspendata: a doua linie de aparare in RLS (Task T2.1)
 -- =============================================================================
 -- Problema (semnalata la livrarea Task I): `organizations.status = 'suspended'` era
--- salvat, dar nimic nu-l verifica in scriere/citire prin Data API — un admin/operator/
+-- salvat, dar nimic nu-l verifica in scriere/citire prin Data API - un admin/operator/
 -- client al unui tenant suspendat pastra acces complet la randurile organizatiei lui.
 -- Guard-ul de nivel aplicatie (middleware + `getCurrentUser`/`requireUser`, vezi
 -- src/lib/supabase/middleware.ts si src/features/auth/session.ts) e prima linie:
@@ -18,7 +18,7 @@
 -- =============================================================================
 
 -- -----------------------------------------------------------------------------
--- 1. Helper nou: app.org_is_active(org) — organizatia exista si e `active`.
+-- 1. Helper nou: app.org_is_active(org) - organizatia exista si e `active`.
 -- -----------------------------------------------------------------------------
 -- SECURITY DEFINER (ca toate helper-ele de tenant din 0001) => citeste direct
 -- `organizations`, fara sa depinda de RLS (evita orice recursivitate/interactiune cu
@@ -46,7 +46,7 @@ $$;
 -- ramura super_admin), blocam automat SELECT/INSERT/UPDATE/DELETE pentru staff-ul unei
 -- organizatii suspendate pe toate aceste tabele, fara sa mai atingem fiecare politica
 -- individual. Super-adminul (`app.is_super_admin()`, prima ramura a OR-ului) ramane
--- neafectat — poate in continuare vedea/reactiva o organizatie suspendata (ex.
+-- neafectat - poate in continuare vedea/reactiva o organizatie suspendata (ex.
 -- `organizations_update` foloseste `app.is_admin_of(id)`).
 create or replace function app.is_staff_of(org uuid)
 returns boolean
@@ -77,7 +77,7 @@ $$;
 -- `app.role() = 'client'` + `client_id`/`organization_id`), deci helper-ele de mai sus
 -- nu le ating automat. Redefinim explicit politicile de SCRIERE pe `orders`/
 -- `order_items`/`documents` (introduse per-operatie in 0003) ca sa ceara suplimentar
--- `app.org_is_active(organization_id)` — echivalentul cerintei de business "scrierile
+-- `app.org_is_active(organization_id)` - echivalentul cerintei de business "scrierile
 -- rolului client trec prin server actions, iar RLS trebuie sa impuna acelasi lucru"
 -- (AGENTS.md §4), extinsa acum si la statusul organizatiei.
 --
@@ -89,7 +89,7 @@ $$;
 -- nivel de aplicatie (middleware + requireUser -> redirect `/organizatie-suspendata`),
 -- deci suprafata reala de risc e scrierea directa prin Data API, acoperita mai jos.
 -- Extinderea completa (inclusiv SELECT si `client_addresses`) ar cere spargerea unei
--- politici `FOR ALL` in 4 politici per-operatie — lasata deliberat in afara acestei
+-- politici `FOR ALL` in 4 politici per-operatie - lasata deliberat in afara acestei
 -- migrari, ca sa pastram schimbarea minima si usor de revizuit; poate fi adaugata
 -- separat daca se decide ca e necesara.
 

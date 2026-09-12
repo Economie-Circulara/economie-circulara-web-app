@@ -1,8 +1,8 @@
-# Manual Lateris Trace — cuprins
+# Manual Lateris Trace - cuprins
 
 Acest folder conține documentația de utilizare și administrare a platformei
 **Lateris Trace**, livrată ca parte a Task X6 (documentație obligatorie pentru
-conformitatea cu Anexa 1 — finanțare europeană). Documentele descriu ecranele
+conformitatea cu Anexa 1 - finanțare europeană). Documentele descriu ecranele
 și fluxurile **reale** ale aplicației, verificate în cod la data redactării
 (2026-07-19).
 
@@ -19,24 +19,24 @@ conformitatea cu Anexa 1 — finanțare europeană). Documentele descriu ecranel
 
 Ambele manuale de utilizare (`utilizare-admin-operator.md`, `utilizare-client.md`)
 urmăresc **fluxul complet al platformei**, de la crearea organizației până la
-certificatul de trasabilitate — același flux descris în
+certificatul de trasabilitate - același flux descris în
 [`docs/handoff.md`](../handoff.md) și rezumat în [`docs/index.md`](../index.md):
 
 1. Creare organizație + useri
-2. Creare client (lookup CUI → precompletare → confirmare)
+2. Creare client (lookup CUI -> precompletare -> confirmare)
 3. Definire itemi cu rețete
 4. Intrare stoc cu lot și documente
-5. Proces reciclare (input → confirmare output manual → loturi noi)
-6. Producție (cantitate output → consum FIFO automat → loturi noi)
+5. Proces reciclare (input -> confirmare output manual -> loturi noi)
+6. Producție (cantitate output -> consum FIFO automat -> loturi noi)
 7. Comandă (client sau admin)
-8. Acceptare comandă → scădere stoc
-9. Livrare → închidere → generare certificat PDF automat
+8. Acceptare comandă -> scădere stoc
+9. Livrare -> închidere -> generare certificat PDF automat
 
-Manualul admin/operator acoperă pașii 1–9 din perspectiva organizației; manualul
-clientului acoperă partea vizibilă lui din pașii 7–9 (plasare comandă, urmărire
+Manualul admin/operator acoperă pașii 1-9 din perspectiva organizației; manualul
+clientului acoperă partea vizibilă lui din pașii 7-9 (plasare comandă, urmărire
 status, retur, descărcare documente/certificate).
 
-## Notă importantă — capturi de ecran
+## Notă importantă - capturi de ecran
 
 **Acest manual nu conține încă capturi de ecran (screenshot-uri).** Textul
 descrie titlurile de ecran, denumirile de buton și câmpurile de formular exact
@@ -53,17 +53,17 @@ capturi sunt marcate în text cu formatul:
 Cateva note de onestitate, ca sa nu existe asteptari gresite:
 
 - **Livrări, aviz de însoțire a mărfii și declarare e-Transport** (Task X5) sunt
-  **în curs de implementare** — nu există încă o rută `/livrari` dedicată în
+  **în curs de implementare** - nu există încă o rută `/livrari` dedicată în
   aplicație. Secțiunea corespunzătoare din manualul admin/operator descrie
   fluxul *planificat* (conform planului de implementare) și va fi actualizată
   cu pașii exacți din interfață când task-ul e livrat.
 - **Invitarea unui utilizator cu rol `client`** (creare cont de logare pentru
   portalul clientului) nu are încă un formular dedicat în `/setari/utilizatori`
-  — ecranul acela permite azi doar invitarea de operatori/administratori. Vezi
+  - ecranul acela permite azi doar invitarea de operatori/administratori. Vezi
   nota din [`ghid-administrare.md`](ghid-administrare.md#gap-cunoscut-invitarea-unui-client)
   pentru detalii și soluția temporară.
-- Secțiunea „CO₂ economisit" din pagina Rapoarte este marcată explicit în
-  aplicație ca fiind în pregătire (v2) — nu e un raport funcțional încă.
+- Secțiunea "CO₂ economisit" din pagina Rapoarte este marcată explicit în
+  aplicație ca fiind în pregătire (v2) - nu e un raport funcțional încă.
 
 Restul fluxurilor descrise (autentificare, clienți, itemi, rețete, stoc,
 producție/reciclare, comenzi, retur/garanție, certificate, rapoarte, căutare,

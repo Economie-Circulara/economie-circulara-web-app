@@ -16,7 +16,7 @@ export interface ProcessWizardProps {
 type Tab = "fix" | "var";
 
 /**
- * Wizard-ul de pornire proces (/productie/nou) — doua sub-fluxuri, ca in mockup
+ * Wizard-ul de pornire proces (/productie/nou) - doua sub-fluxuri, ca in mockup
  * (docs/design/Lateris_Trace.dc.html): 4a "Output fix" si 4b "Output variabil".
  */
 export function ProcessWizard({ recipes, inputItems }: ProcessWizardProps) {
@@ -26,13 +26,13 @@ export function ProcessWizard({ recipes, inputItems }: ProcessWizardProps) {
     <div className="max-w-5xl">
       <div className="flex overflow-hidden rounded-t-lg border border-b-0 bg-card">
         <TabButton active={tab === "fix"} onClick={() => setTab("fix")}>
-          <div className="font-semibold">Output fix — Fabricație</div>
+          <div className="font-semibold">Output fix - Fabricație</div>
           <div className="text-xs text-muted-foreground">
             Cărămizi, pavaje · consum FIFO automat
           </div>
         </TabButton>
         <TabButton active={tab === "var"} onClick={() => setTab("var")}>
-          <div className="font-semibold">Output variabil — Reciclare</div>
+          <div className="font-semibold">Output variabil - Reciclare</div>
           <div className="text-xs text-muted-foreground">
             Moloz, demolări · fracții reale ajustabile
           </div>

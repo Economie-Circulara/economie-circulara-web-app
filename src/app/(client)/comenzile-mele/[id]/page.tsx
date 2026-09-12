@@ -11,7 +11,7 @@ import { getOrderDetail } from "@/features/orders/queries";
 import { ReturnActions } from "@/features/returns/return-actions";
 import { getReturnableItems } from "@/features/returns/queries";
 
-export const metadata = { title: "Detalii comandă — Lateris Trace" };
+export const metadata = { title: "Detalii comandă - Lateris Trace" };
 
 interface OrderDetailPageProps {
   params: Promise<{ id: string }>;
@@ -21,7 +21,7 @@ const dateFormatter = new Intl.DateTimeFormat("ro-RO", { dateStyle: "medium" });
 const qtyFormatter = new Intl.NumberFormat("ro-RO");
 
 function formatDate(iso: string | null): string {
-  return iso ? dateFormatter.format(new Date(iso)) : "—";
+  return iso ? dateFormatter.format(new Date(iso)) : "-";
 }
 
 function isFinished(status: string): boolean {
@@ -30,7 +30,7 @@ function isFinished(status: string): boolean {
 
 /**
  * Detaliul unei comenzi proprii (Task H). `getOrderDetail` e RLS-scoped
- * (`orders_client_select`) — un client care incearca id-ul unei comenzi straine
+ * (`orders_client_select`) - un client care incearca id-ul unei comenzi straine
  * primeste `null` -> 404, fara logica suplimentara de autorizare aici. Nu se
  * afiseaza nimic despre stoc/loturi/procese (doar itemul, UM, cantitatea).
  */
@@ -78,7 +78,7 @@ export default async function ClientOrderDetailPage({ params }: OrderDetailPageP
           <p>
             <span className="text-muted-foreground">Adresă: </span>
             {order.deliveryAddress
-              ? `${order.deliveryAddressLabel ? `${order.deliveryAddressLabel} — ` : ""}${order.deliveryAddress}`
+              ? `${order.deliveryAddressLabel ? `${order.deliveryAddressLabel} - ` : ""}${order.deliveryAddress}`
               : "Neprecizată"}
           </p>
           <p>

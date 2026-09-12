@@ -66,7 +66,7 @@ Utilizatorii principali sunt administratori si operatori de firma (desktop, biro
 ### 3. Stoc - Lista loturi
 - Tabel cu loturile din stoc: item, cantitate ramasa, provenienta, data intrare, status
 - Badge pentru loturi blocate
-- Buton "Adauga lot" → formular cu: item, cantitate, UM, provenienta (dropdown: achizitie / productie / reciclare / retur / ajustare inventar), data, documente atasate
+- Buton "Adauga lot" -> formular cu: item, cantitate, UM, provenienta (dropdown: achizitie / productie / reciclare / retur / ajustare inventar), data, documente atasate
 
 ### 4. Productie - Pornire proces
 Acesta este un ecran cheie - doua sub-fluxuri:
@@ -83,7 +83,7 @@ Acesta este un ecran cheie - doua sub-fluxuri:
 - Tabel editabil cu outputurile reale: utilizatorul ajusteaza cantitatile
 - Confirmare si finalizare
 
-**Elementul wow:** un **Sankey diagram** care vizualizeaza fluxul de materiale: loturile de input → procesul → loturile de output rezultate. Util atat la confirmare cat si in istoricul unui proces finalizat.
+**Elementul wow:** un **Sankey diagram** care vizualizeaza fluxul de materiale: loturile de input -> procesul -> loturile de output rezultate. Util atat la confirmare cat si in istoricul unui proces finalizat.
 
 ### 5. Catalog client
 - Grid de produse (card cu poza, titlu, UM, buton "Adauga in cos")
@@ -102,7 +102,7 @@ Acesta este **cel mai important ecran vizual** al produsului - trebuie sa impres
 Structura certificat (pagina A4 / export PDF):
 - Header cu logo organizatie, numar certificat, data emitere
 - Datele comenzii: client, produse livrate, cantitati
-- **Elementul wow: graf/diagram de trasabilitate** - un arbore sau Sankey diagram care arata lantul complet: produs livrat → loturi produs → procese → loturi materie prima → surse (furnizori / deseuri reciclate / retururi). Fiecare nod are tooltip cu detalii.
+- **Elementul wow: graf/diagram de trasabilitate** - un arbore sau Sankey diagram care arata lantul complet: produs livrat -> loturi produs -> procese -> loturi materie prima -> surse (furnizori / deseuri reciclate / retururi). Fiecare nod are tooltip cu detalii.
 - Sectiune "Materiale si origine" - tabel cu procentele din fiecare sursa
 - Sectiune documente atasate (lista cu linkuri)
 - Footer cu semnatura organizatie

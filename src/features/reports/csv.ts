@@ -1,5 +1,5 @@
 /**
- * Generator CSV generic pentru rapoarte — acelasi format ca `stock/csv.ts`
+ * Generator CSV generic pentru rapoarte - acelasi format ca `stock/csv.ts`
  * (RFC 4180, separator `,`, CRLF, BOM UTF-8 pt. diacritice/Excel), dar reutilizabil
  * de toate cele 6 rapoarte (headere + randuri deja formatate ca text, per raport).
  */

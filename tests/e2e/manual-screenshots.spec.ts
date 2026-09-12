@@ -19,7 +19,7 @@ import { join } from "node:path";
 const PASSWORD = "password123";
 const IMG_DIR = join(process.cwd(), "docs", "manual", "img");
 
-/** Sufix unic per rulare — testele creeaza entitati reale, fara cleanup. */
+/** Sufix unic per rulare - testele creeaza entitati reale, fara cleanup. */
 const RUN_ID = Date.now().toString(36);
 
 test.use({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 2 });
@@ -178,14 +178,14 @@ test("D. stoc: lot nou, blocare lot, audit + export CSV", async ({ page }) => {
   });
   await shot(page, "admin-stock-list");
 
-  // …si deblocarea il readuce in stocul disponibil.
+  // ...si deblocarea il readuce in stocul disponibil.
   await page.getByRole("button", { name: "Deblochează" }).first().click();
   await page.waitForTimeout(3_000);
 
   await page.goto("/stoc/audit");
   await expect(page.getByRole("heading", { name: "Audit stoc", level: 1 })).toBeVisible();
   await shot(page, "admin-stock-audit");
-  // Export CSV — trebuie sa porneasca un download real.
+  // Export CSV - trebuie sa porneasca un download real.
   const [download] = await Promise.all([
     page.waitForEvent("download", { timeout: 20_000 }),
     page
@@ -258,7 +258,7 @@ test("G. comanda admin -> trimite -> accepta -> livrare -> inchide -> certificat
   await expect(page.getByRole("button", { name: "Livrează" })).toBeVisible({ timeout: 20_000 });
   await shot(page, "admin-order-detail");
 
-  // Livrare planificata (Task X5) — butonul exista doar pe comenzi acceptate.
+  // Livrare planificata (Task X5) - butonul exista doar pe comenzi acceptate.
   const planDelivery = page.getByRole("link", { name: /Planifică livrare/ });
   if (await planDelivery.count()) {
     await planDelivery.first().click();
@@ -421,8 +421,8 @@ test("K. portal client: catalog, cos, comanda, retur, documente, certificat", as
   await expect(page.getByRole("heading", { name: /Comenzile mele/, level: 1 })).toBeVisible();
   await shot(page, "client-orders");
 
-  // Detaliul comenzii INCHISE a clientului (creata in testul G) — are „Repetă
-  // comanda", „Vezi certificat" si formularul de retur.
+  // Detaliul comenzii INCHISE a clientului (creata in testul G) - are "Repetă
+  // comanda", "Vezi certificat" si formularul de retur.
   await page.getByRole("link", { name: /CMD-/ }).first().click();
   await expect(page).toHaveURL(/\/comenzile-mele\/[0-9a-f-]+$/);
   await shot(page, "client-order-detail");
@@ -482,7 +482,7 @@ test("L. super_admin: organizatii, creare, suspendare/reactivare", async ({ page
   }
 });
 
-test("M. anulare comanda acceptata — stocul se reface (migrarea 0018)", async ({ page }) => {
+test("M. anulare comanda acceptata - stocul se reface (migrarea 0018)", async ({ page }) => {
   await login(page, "admin@demo.local");
 
   await page.goto("/comenzi/nou");
@@ -574,7 +574,7 @@ test("N. capturi read-only din datele demo curate", async ({ page }) => {
 
   // Detaliul clientului demo (secțiunea Documente).
   // Randurile din /clienti NU sunt link-uri: `ClientTable` navigheaza prin
-  // `onRowClick` (router.push) pe <tr> — de aceea se apasa randul, nu un link.
+  // `onRowClick` (router.push) pe <tr> - de aceea se apasa randul, nu un link.
   await page.goto("/clienti");
   await page
     .getByRole("row", { name: /Client Demo SRL/ })

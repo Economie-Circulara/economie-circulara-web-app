@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-// Izolam orchestrarea de randarea reala @react-pdf/renderer — acelasi pattern ca
+// Izolam orchestrarea de randarea reala @react-pdf/renderer - acelasi pattern ca
 // `certificates/service.test.ts` (randarea in sine nu se testeaza, doar apelul).
 const { renderToBuffer } = vi.hoisted(() => ({ renderToBuffer: vi.fn() }));
 vi.mock("@react-pdf/renderer", async (importOriginal) => {

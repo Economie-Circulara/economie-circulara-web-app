@@ -6,13 +6,13 @@ import { requireRole } from "@/features/auth/session";
 import { ClientTable } from "@/features/clients/client-table";
 import { listClients } from "@/features/clients/queries";
 
-export const metadata = { title: "Clienți — Lateris Trace" };
+export const metadata = { title: "Clienți - Lateris Trace" };
 
 interface ClientiPageProps {
   searchParams: Promise<{ q?: string }>;
 }
 
-/** Ecranul Clienți — lista firmelor (doar staff), cu căutare după denumire/CUI. */
+/** Ecranul Clienți - lista firmelor (doar staff), cu căutare după denumire/CUI. */
 export default async function ClientiPage({ searchParams }: ClientiPageProps) {
   await requireRole(["admin", "operator"]);
   const params = await searchParams;
@@ -37,12 +37,7 @@ export default async function ClientiPage({ searchParams }: ClientiPageProps) {
           <label htmlFor="q" className="text-sm font-medium">
             Căutare
           </label>
-          <Input
-            id="q"
-            name="q"
-            defaultValue={search ?? ""}
-            placeholder="Denumire sau CUI..."
-          />
+          <Input id="q" name="q" defaultValue={search ?? ""} placeholder="Denumire sau CUI..." />
         </div>
         <Button type="submit" variant="outline">
           Caută

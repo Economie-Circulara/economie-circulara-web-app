@@ -38,7 +38,7 @@ export function stockEventsToCsv(events: StockEvent[]): string {
         event.createdAt,
         STOCK_EVENT_LABELS[event.eventType] ?? event.eventType,
         event.itemTitle,
-        event.lotId ? event.lotId.slice(0, 8).toUpperCase() : "—",
+        event.lotId ? event.lotId.slice(0, 8).toUpperCase() : "-",
         String(event.quantity),
         event.reason ?? "",
         event.orderId ?? "",

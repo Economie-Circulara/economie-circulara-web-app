@@ -3,14 +3,14 @@ import { requireRole } from "@/features/auth/session";
 import { globalSearch } from "@/features/search/service";
 import { SearchResults } from "@/features/search/search-results";
 
-export const metadata = { title: "Căutare — Lateris Trace" };
+export const metadata = { title: "Căutare - Lateris Trace" };
 
 interface CautarePageProps {
   searchParams: Promise<{ q?: string }>;
 }
 
 /**
- * Ecranul de rezultate al căutării globale (Task X2) — doar staff (bara din
+ * Ecranul de rezultate al căutării globale (Task X2) - doar staff (bara din
  * topbar navighează aici doar pentru admin/operator, vezi `topbar.tsx`).
  * Rezultatele sunt grupate pe tip (comandă/client/lot/produs/certificat) de
  * `globalSearch`, care respectă deja izolarea multi-tenant (RLS, clientul
@@ -29,7 +29,7 @@ export default async function CautarePage({ searchParams }: CautarePageProps) {
         title="Căutare"
         description={
           query
-            ? `Rezultate pentru „${query}”`
+            ? `Rezultate pentru "${query}"`
             : "Caută comenzi, clienți, loturi, produse sau certificate."
         }
       />

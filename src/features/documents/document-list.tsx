@@ -11,7 +11,7 @@ import type { DocumentRecord } from "./types";
 const dateFormatter = new Intl.DateTimeFormat("ro-RO", { dateStyle: "medium" });
 
 function formatSize(bytes: number | null): string {
-  if (bytes == null) return "—";
+  if (bytes == null) return "-";
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;

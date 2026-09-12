@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-// Mocks (nu spies — vezi AGENTS.md §2.2): inlocuim complet clientul Supabase server.
+// Mocks (nu spies - vezi AGENTS.md §2.2): inlocuim complet clientul Supabase server.
 const { createClient } = vi.hoisted(() => ({ createClient: vi.fn() }));
 vi.mock("@/lib/supabase/server", () => ({ createClient }));
 

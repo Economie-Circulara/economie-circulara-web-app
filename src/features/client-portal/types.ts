@@ -4,7 +4,7 @@ export type ItemKind = Database["public"]["Enums"]["item_kind"];
 export type UnitOfMeasure = Database["public"]["Enums"]["unit_of_measure"];
 
 /**
- * Un item din catalogul clientului (doar `sellable=true`, FARA pret/stoc — regula
+ * Un item din catalogul clientului (doar `sellable=true`, FARA pret/stoc - regula
  * de business AGENTS.md §4: clientul nu vede stocul/procesele interne).
  */
 export interface CatalogItem {

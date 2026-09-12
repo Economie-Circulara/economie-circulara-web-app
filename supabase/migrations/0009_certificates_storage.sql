@@ -1,5 +1,5 @@
 -- =============================================================================
--- Task G — Certificate de trasabilitate: numar unic + bucket de storage
+-- Task G - Certificate de trasabilitate: numar unic + bucket de storage
 -- =============================================================================
 -- Migrare aditiva peste schema inghetata din 0001_core_schema.sql (tabelul
 -- `certificates` exista deja, cu RLS proprie). Adauga:
@@ -13,7 +13,7 @@
 -- =============================================================================
 
 -- -----------------------------------------------------------------------------
--- 1. certificate_counters — contor de numerotare, un rand per (organizatie, an)
+-- 1. certificate_counters - contor de numerotare, un rand per (organizatie, an)
 -- -----------------------------------------------------------------------------
 -- Aceeasi alegere si motivatie ca `order_counters` (0007_orders_ops.sql): tabel
 -- contor + `INSERT ... ON CONFLICT DO UPDATE ... RETURNING` da siguranta la
@@ -32,7 +32,7 @@ create table public.certificate_counters (
 alter table public.certificate_counters enable row level security;
 
 -- Certificatele se genereaza DOAR de staff (la inchiderea comenzii, actiune
--- rezervata admin/operator — vezi src/features/orders/actions.ts#closeOrderAction),
+-- rezervata admin/operator - vezi src/features/orders/actions.ts#closeOrderAction),
 -- spre deosebire de `order_counters`, unde si clientul poate trimite propria
 -- comanda. Politica ramane consistenta cu restul RLS-ului: `app.is_staff_of`.
 create policy certificate_counters_staff_all on public.certificate_counters
@@ -42,7 +42,7 @@ create policy certificate_counters_staff_all on public.certificate_counters
 grant select, insert, update on public.certificate_counters to authenticated, service_role;
 
 -- -----------------------------------------------------------------------------
--- 2. generate_certificate_number — numar de certificat secvential per (organizatie, an)
+-- 2. generate_certificate_number - numar de certificat secvential per (organizatie, an)
 -- -----------------------------------------------------------------------------
 create or replace function public.generate_certificate_number(p_org uuid)
 returns text
@@ -76,7 +76,7 @@ revoke all on function public.generate_certificate_number(uuid) from public;
 grant execute on function public.generate_certificate_number(uuid) to authenticated, service_role;
 
 -- -----------------------------------------------------------------------------
--- 3. Bucket privat `certificates` — acces DOAR prin server actions (client admin)
+-- 3. Bucket privat `certificates` - acces DOAR prin server actions (client admin)
 -- -----------------------------------------------------------------------------
 -- Acelasi model ca bucket-ul `documents` (0006_documents_storage.sql): FARA
 -- politici pe `storage.objects` (deny implicit pentru orice rol autentificat).

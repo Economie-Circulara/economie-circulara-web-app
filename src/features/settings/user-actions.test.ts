@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-// Mocks (nu spies — AGENTS.md §2.2).
+// Mocks (nu spies - AGENTS.md §2.2).
 const { headers } = vi.hoisted(() => ({ headers: vi.fn() }));
 vi.mock("next/headers", () => ({ headers }));
 
@@ -59,7 +59,7 @@ afterEach(() => {
   vi.clearAllMocks();
 });
 
-describe("inviteStaffAction — gating rol", () => {
+describe("inviteStaffAction - gating rol", () => {
   it("respinge cererea daca userul curent nu e admin", async () => {
     getCurrentUser.mockResolvedValue({ id: "u1", role: "operator", organizationId: "org-1" });
 
@@ -84,7 +84,7 @@ describe("inviteStaffAction — gating rol", () => {
   });
 });
 
-describe("inviteClientAction — gating rol", () => {
+describe("inviteClientAction - gating rol", () => {
   it("respinge cererea daca userul curent nu e admin", async () => {
     getCurrentUser.mockResolvedValue({ id: "u1", role: "operator", organizationId: "org-1" });
 
@@ -110,7 +110,7 @@ describe("inviteClientAction — gating rol", () => {
   });
 });
 
-describe("inviteClientAction — validare", () => {
+describe("inviteClientAction - validare", () => {
   it("respinge cererea fara client_id", async () => {
     const state = await inviteClientAction(
       initialUserMgmtState,
@@ -172,7 +172,7 @@ describe("inviteClientAction — validare", () => {
   });
 });
 
-describe("inviteClientAction — flux fericit", () => {
+describe("inviteClientAction - flux fericit", () => {
   function mockAdminHappyPath() {
     const maybeSingle = vi.fn().mockResolvedValue({ data: null, error: null });
     const eq = vi.fn().mockReturnValue({ maybeSingle });

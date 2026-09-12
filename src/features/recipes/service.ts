@@ -7,7 +7,7 @@ export interface CreatedRecipe {
 }
 
 /**
- * Creeaza rețeta (goala) unui item — doar pentru itemi de tip `physical`
+ * Creeaza rețeta (goala) unui item - doar pentru itemi de tip `physical`
  * (retetele nu au sens pentru servicii/abonamente PaaS, vezi migrarea 0005).
  * O singura rețeta per item (constraint `unique(item_id)` din 0001).
  */
@@ -44,8 +44,8 @@ export interface AddComponentInput {
 
 /**
  * Adauga o componenta a rețetei (sau actualizeaza procentul, daca acel item e deja
- * componenta — `unique(recipe_id, component_item_id)` din 0001, folosit ca upsert).
- * Valideaza procentul si non-auto-referinta fata de itemul propriu al rețetei —
+ * componenta - `unique(recipe_id, component_item_id)` din 0001, folosit ca upsert).
+ * Valideaza procentul si non-auto-referinta fata de itemul propriu al rețetei -
  * itemul rețetei se preia din DB (nu din input extern), la fel ca in
  * `src/features/stock/service.ts#recordStockEvent`.
  */

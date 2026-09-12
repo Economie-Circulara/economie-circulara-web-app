@@ -5,7 +5,7 @@ export const PROVENANCE_LABELS: Record<LotProvenance, string> = {
   purchase: "Achiziție",
   internal_production: "Producție internă",
   recycling: "Reciclare",
-  // Task D: recondiționare — distincta de reciclare (Anexa 1 d).
+  // Task D: recondiționare - distincta de reciclare (Anexa 1 d).
   reconditioning: "Recondiționare",
   return: "Retur",
   inventory_adjustment: "Ajustare inventar",

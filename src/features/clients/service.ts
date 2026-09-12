@@ -60,15 +60,15 @@ export interface ClientFields {
 }
 
 export interface CreateClientInput extends ClientFields {
-  /** Organizatia curenta (din sesiune) — RLS impune `app.is_staff_of(organization_id)`. */
+  /** Organizatia curenta (din sesiune) - RLS impune `app.is_staff_of(organization_id)`. */
   organizationId: string;
 }
 
 /**
- * Creeaza un client nou. CUI normalizat (fara "RO"/spatii — vezi cui-lookup.ts)
+ * Creeaza un client nou. CUI normalizat (fara "RO"/spatii - vezi cui-lookup.ts)
  * inainte de salvare, ca sa nu apara duplicate din formatari diferite ale
  * aceluiasi CUI. `organization_id` vine explicit din sesiune (nu exista RPC
- * dedicat — schema + migrarea 0004 sunt inghetate, Task A nu adauga alta migrare
+ * dedicat - schema + migrarea 0004 sunt inghetate, Task A nu adauga alta migrare
  * de schema, doar bucket-ul de storage din 0006).
  */
 export async function createClientRecord(input: CreateClientInput): Promise<Client> {
@@ -148,7 +148,7 @@ export interface UpsertAddressInput {
  * Creeaza/actualizeaza o adresa de livrare. O singura adresa implicita per
  * client: cand `isDefault` e true, orice alta adresa a clientului marcata
  * implicit e dezactivata INAINTE de insert/update (doua interogari secventiale,
- * nu o singura tranzactie — nu exista RPC dedicat in acest task, iar operatiunea
+ * nu o singura tranzactie - nu exista RPC dedicat in acest task, iar operatiunea
  * e facuta de staff, cu concurenta scazuta pe un singur client; o eventuala
  * migrare viitoare ar putea adauga un index unic partial + RPC daca devine nevoie).
  */

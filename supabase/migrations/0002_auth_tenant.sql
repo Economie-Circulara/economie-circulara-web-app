@@ -1,5 +1,5 @@
 -- =============================================================================
--- T1.2 — Auth & tenant context
+-- T1.2 - Auth & tenant context
 -- =============================================================================
 -- Lookup public, sigur, al brandingului unei organizatii (pentru ecranul de login,
 -- inainte ca utilizatorul sa fie autentificat). Expune DOAR campuri de prezentare

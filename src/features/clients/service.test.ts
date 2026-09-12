@@ -129,7 +129,7 @@ describe("updateClientRecord", () => {
   });
 });
 
-describe("upsertAddress — o singura adresa implicita per client", () => {
+describe("upsertAddress - o singura adresa implicita per client", () => {
   it("la crearea unei adrese implicite, dezactiveaza intai orice alta adresa implicita a clientului", async () => {
     const clearEq2 = vi.fn().mockResolvedValue({ error: null });
     const clearEq1 = vi.fn().mockReturnValue({ eq: clearEq2 });

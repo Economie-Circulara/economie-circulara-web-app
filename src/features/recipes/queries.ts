@@ -5,7 +5,7 @@ import type { RecipeComponent, RecipeDetail, RecipeItemOption, RecipeListRow } f
 /**
  * Lista retetelor cu agregate (nr. componente + suma procentelor). Ecranul /retete.
  * Doua interogari simple + agregare in JS (evita embed-uri imbricate pe 2 nivele,
- * nefolosite inca in alta parte a codebase-ului — pattern consistent cu
+ * nefolosite inca in alta parte a codebase-ului - pattern consistent cu
  * `src/features/items/queries.ts#listItems`, care agrega la fel `hasRecipe`).
  */
 export async function listRecipes(): Promise<RecipeListRow[]> {
@@ -35,7 +35,7 @@ export async function listRecipes(): Promise<RecipeListRow[]> {
     return {
       recipeId: row.id,
       itemId: row.item_id,
-      itemTitle: row.items?.title ?? "—",
+      itemTitle: row.items?.title ?? "-",
       unit: row.items?.unit ?? "kg",
       componentCount: agg.count,
       percentageSum: agg.sum,
@@ -65,7 +65,7 @@ export async function getRecipeByItemId(itemId: string): Promise<RecipeDetail | 
   const components: RecipeComponent[] = (componentRows ?? []).map((row) => ({
     id: row.id,
     componentItemId: row.component_item_id,
-    componentItemTitle: row.items?.title ?? "—",
+    componentItemTitle: row.items?.title ?? "-",
     unit: row.items?.unit ?? "kg",
     percentage: Number(row.percentage),
   }));
@@ -73,14 +73,14 @@ export async function getRecipeByItemId(itemId: string): Promise<RecipeDetail | 
   return {
     recipeId: recipe.id,
     itemId: recipe.item_id,
-    itemTitle: recipe.items?.title ?? "—",
+    itemTitle: recipe.items?.title ?? "-",
     unit: recipe.items?.unit ?? "kg",
     components,
     percentageSum: components.reduce((sum, c) => sum + c.percentage, 0),
   };
 }
 
-/** Itemi fizici fara rețetă inca — pentru selectul din /retete/nou. */
+/** Itemi fizici fara rețetă inca - pentru selectul din /retete/nou. */
 export async function listPhysicalItemsWithoutRecipe(): Promise<RecipeItemOption[]> {
   const supabase = await createClient();
 

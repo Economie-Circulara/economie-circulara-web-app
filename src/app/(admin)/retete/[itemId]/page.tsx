@@ -6,13 +6,13 @@ import { getRecipeByItemId } from "@/features/recipes/queries";
 import { RecipeEditor } from "@/features/recipes/recipe-editor";
 import { CreateRecipeButton } from "@/features/recipes/create-recipe-button";
 
-export const metadata = { title: "Rețetă — Lateris Trace" };
+export const metadata = { title: "Rețetă - Lateris Trace" };
 
 interface RecipeEditorPageProps {
   params: Promise<{ itemId: string }>;
 }
 
-/** Editor rețetă pentru un item — creeaza reteta daca nu exista inca, altfel o editeaza. */
+/** Editor rețetă pentru un item - creeaza reteta daca nu exista inca, altfel o editeaza. */
 export default async function RecipeEditorPage({ params }: RecipeEditorPageProps) {
   await requireRole(["admin", "operator"]);
   const { itemId } = await params;
@@ -24,11 +24,12 @@ export default async function RecipeEditorPage({ params }: RecipeEditorPageProps
     return (
       <div className="space-y-6">
         <PageHeader
-          title={`Rețetă — ${item.title}`}
+          title={`Rețetă - ${item.title}`}
           breadcrumbs={[{ label: "Rețete", href: "/retete" }, { label: item.title }]}
         />
         <p className="text-sm text-muted-foreground">
-          Rețetele se pot defini doar pentru itemi de tip fizic. „{item.title}” este un serviciu.
+          Rețetele se pot defini doar pentru itemi de tip fizic. &quot;{item.title}&quot; este un
+          serviciu.
         </p>
       </div>
     );
@@ -42,7 +43,7 @@ export default async function RecipeEditorPage({ params }: RecipeEditorPageProps
   return (
     <div className="space-y-6">
       <PageHeader
-        title={`Rețetă — ${item.title}`}
+        title={`Rețetă - ${item.title}`}
         description={`Unitate de măsură: ${item.unit}.`}
         breadcrumbs={[{ label: "Rețete", href: "/retete" }, { label: item.title }]}
       />

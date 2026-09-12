@@ -20,7 +20,7 @@ function parseQty(value: FormDataEntryValue | null): number | null {
 
 /**
  * Liniile cosului vin ca perechi de campuri repetate `item_id`/`quantity` (acelasi
- * contract ca `orders/actions.ts#readLines`) — populate de `catalog-view.tsx` din
+ * contract ca `orders/actions.ts#readLines`) - populate de `catalog-view.tsx` din
  * starea cosului (`useCart`) chiar inainte de submit.
  */
 function readLines(formData: FormData): OrderLineInput[] {
@@ -38,10 +38,10 @@ function readLines(formData: FormData): OrderLineInput[] {
 
 /**
  * Creeaza + trimite o comanda in numele clientului curent (`created_by_admin:
- * false`): un singur pas din UI (buton „Trimite comanda", ca in mockup), desi la
+ * false`): un singur pas din UI (buton "Trimite comanda", ca in mockup), desi la
  * nivel de date trece prin doua stari (`draft` -> `sent`, RLS `orders_client_update`
  * din 0003_rls_hardening.sql permite tranzitia). Nu exista rol admin/operator aici
- * — un singur user per firma-client (AGENTS.md §4), deci nicio distinctie de rol
+ * - un singur user per firma-client (AGENTS.md §4), deci nicio distinctie de rol
  * de facut in interiorul acestei actiuni.
  */
 export async function createClientOrderAction(
@@ -55,7 +55,7 @@ export async function createClientOrderAction(
 
   const lines = readLines(formData);
   if (lines.length === 0) {
-    return { error: "Coșul este gol — adaugă cel puțin un produs.", orderId: null };
+    return { error: "Coșul este gol - adaugă cel puțin un produs.", orderId: null };
   }
 
   let orderId: string;
@@ -81,8 +81,8 @@ export async function createClientOrderAction(
     await sendOrder(orderId, user.organizationId);
   } catch (err) {
     // Comanda a fost salvata ca draft, dar nu a putut fi trimisa (ex. generarea
-    // numarului a esuat) — semnalam eroarea, dar orderId ramane util (utilizatorul
-    // poate incerca din nou din /comenzile-mele, comanda apare acolo ca „Draft").
+    // numarului a esuat) - semnalam eroarea, dar orderId ramane util (utilizatorul
+    // poate incerca din nou din /comenzile-mele, comanda apare acolo ca "Draft").
     revalidatePath("/comenzile-mele");
     return {
       error:

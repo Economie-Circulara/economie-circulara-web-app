@@ -1,5 +1,5 @@
 /**
- * Validare slug organizatie — TREBUIE sa ramana identica cu constraint-ul din
+ * Validare slug organizatie - TREBUIE sa ramana identica cu constraint-ul din
  * schema (supabase/migrations/0001_core_schema.sql, `organizations_slug_format`)
  * si cu regexul folosit la rezolvarea tenantului (src/features/auth/tenant.ts).
  * Litere mici, cifre si cratime; fara cratima la inceput/sfarsit.
@@ -12,7 +12,7 @@ export function isValidSlug(value: string): boolean {
 
 /**
  * Sugestie de slug pornind de la numele organizatiei (diacritice eliminate,
- * spatii -> cratima). Doar UX (pre-completare) — validarea reala e `isValidSlug`.
+ * spatii -> cratima). Doar UX (pre-completare) - validarea reala e `isValidSlug`.
  */
 export function slugify(name: string): string {
   return name

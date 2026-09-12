@@ -10,8 +10,8 @@ import { createReturnAction } from "./actions";
 import type { ReturnableItem, ReturnFlowType } from "./types";
 
 /**
- * `createReturnAction` primeste un obiect simplu (nu `FormData`) — semnatura
- * fixata de contractul consumat si de Task H (vezi actions.ts) — deci acest
+ * `createReturnAction` primeste un obiect simplu (nu `FormData`) - semnatura
+ * fixata de contractul consumat si de Task H (vezi actions.ts) - deci acest
  * formular NU foloseste `useActionState`/`<form action=...>` ca in
  * `orders/order-status-actions.tsx`; apeleaza direct server action-ul din
  * `onClick`, in interiorul unui `useTransition` (pattern standard Next.js pt.

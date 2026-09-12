@@ -34,7 +34,7 @@ const SLUG_ERROR_MESSAGE =
  * doua scenarii:
  *  - prima trimitere: creeaza organizatia, apoi invita adminul;
  *  - re-incercare (dupa esec partial): `organization_id` vine ascuns in formular, deci
- *    NU se mai creeaza organizatia a doua oara — se reia doar pasul de invitatie.
+ *    NU se mai creeaza organizatia a doua oara - se reia doar pasul de invitatie.
  * Esecul e mereu vizibil in state (organizationId + date completate se pastreaza),
  * niciodata ascuns: super-adminul vede clar ca organizatia exista si poate retrimite
  * invitatia.

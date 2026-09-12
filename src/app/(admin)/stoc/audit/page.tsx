@@ -7,7 +7,7 @@ import { STOCK_EVENT_LABELS } from "@/features/stock/labels";
 import { listItemOptions, listStockEvents } from "@/features/stock/queries";
 import type { StockEventType } from "@/features/stock/types";
 
-export const metadata = { title: "Audit stoc — Lateris Trace" };
+export const metadata = { title: "Audit stoc - Lateris Trace" };
 
 const selectClassName =
   "flex h-9 w-full rounded-md border border-input bg-card px-3 py-1 text-sm shadow-xs outline-none sm:w-56";
@@ -25,7 +25,7 @@ interface AuditPageProps {
   searchParams: Promise<{ item_id?: string; event_type?: string }>;
 }
 
-/** Ecranul Audit stoc — jurnalul `stock_events` (doar staff), cu export CSV. */
+/** Ecranul Audit stoc - jurnalul `stock_events` (doar staff), cu export CSV. */
 export default async function AuditPage({ searchParams }: AuditPageProps) {
   await requireRole(["admin", "operator"]);
   const params = await searchParams;
@@ -50,7 +50,7 @@ export default async function AuditPage({ searchParams }: AuditPageProps) {
     <div className="space-y-6">
       <PageHeader
         title="Audit stoc"
-        description="Jurnalul tuturor mișcărilor de stoc — intrări, consum, ajustări, blocări."
+        description="Jurnalul tuturor mișcărilor de stoc - intrări, consum, ajustări, blocări."
         breadcrumbs={[{ label: "Stoc", href: "/stoc" }, { label: "Audit" }]}
         actions={
           <Button asChild variant="outline">

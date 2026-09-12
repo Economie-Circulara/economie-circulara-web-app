@@ -1,5 +1,5 @@
 /**
- * Validari pure (fara efecte secundare) pentru editorul de retete — usor de testat
+ * Validari pure (fara efecte secundare) pentru editorul de retete - usor de testat
  * izolat. Reflecta regulile de business din AGENTS.md/handoff: procente 0-100,
  * fara auto-referinta, suma procentelor DOAR informativa (nu blocheaza salvarea).
  */
@@ -23,7 +23,7 @@ export function sumPercentages(components: { percentage: number }[]): number {
 }
 
 /**
- * Suma procentelor e DOAR informativa — reteta se poate salva chiar daca suma nu e
+ * Suma procentelor e DOAR informativa - reteta se poate salva chiar daca suma nu e
  * 100 (regula din handoff: fara validare stricta a sumei). Returneaza `true` cand
  * suma e (aproximativ) 100, folosit doar pentru un avertisment vizual in UI.
  */

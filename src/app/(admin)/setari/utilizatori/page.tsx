@@ -17,7 +17,7 @@ import { listAvailableClientsForInvite, listOrgUsers } from "@/features/settings
 import { InviteStaffForm } from "@/features/settings/invite-staff-form";
 import { InviteClientForm } from "@/features/settings/invite-client-form";
 
-export const metadata = { title: "Utilizatori — Lateris Trace" };
+export const metadata = { title: "Utilizatori - Lateris Trace" };
 
 export default async function UsersPage() {
   await requireRole(["admin"]);
@@ -70,10 +70,10 @@ export default async function UsersPage() {
         <TableBody>
           {users.map((u) => (
             <TableRow key={u.id}>
-              <TableCell>{u.fullName ?? "—"}</TableCell>
-              <TableCell>{u.email ?? "—"}</TableCell>
+              <TableCell>{u.fullName ?? "-"}</TableCell>
+              <TableCell>{u.email ?? "-"}</TableCell>
               <TableCell>{ROLE_LABELS[u.role]}</TableCell>
-              <TableCell>{u.role === "client" ? (u.clientName ?? "—") : "—"}</TableCell>
+              <TableCell>{u.role === "client" ? (u.clientName ?? "-") : "-"}</TableCell>
               <TableCell>
                 <Badge variant={u.status === "active" ? "ok" : "neutral"}>
                   {u.status === "active" ? "Activ" : "Suspendat"}

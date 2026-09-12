@@ -123,7 +123,7 @@ describe("formatItemsSummary", () => {
   });
 
   it("intoarce em-dash pentru lista goala", () => {
-    expect(formatItemsSummary([])).toBe("—");
+    expect(formatItemsSummary([])).toBe("-");
   });
 });
 
@@ -223,7 +223,7 @@ describe("aggregateRecycledMaterials", () => {
   });
 });
 
-describe("computePaasUsage — utilizat = livrat - returnat", () => {
+describe("computePaasUsage - utilizat = livrat - returnat", () => {
   it("calculeaza livrat/returnat/utilizat per (client, item)", () => {
     const delivered = [
       {
@@ -292,7 +292,7 @@ describe("computePaasUsage — utilizat = livrat - returnat", () => {
     expect(row.used).toBe(0);
   });
 
-  it("include clientii cu doar retur (fara livrare in perioada) — delivered = 0", () => {
+  it("include clientii cu doar retur (fara livrare in perioada) - delivered = 0", () => {
     const returned = [
       {
         clientId: "c2",
@@ -308,7 +308,7 @@ describe("computePaasUsage — utilizat = livrat - returnat", () => {
   });
 });
 
-describe("computeSecondaryMaterialShare — % materii prime secundare", () => {
+describe("computeSecondaryMaterialShare - % materii prime secundare", () => {
   it("calculeaza procentul de input secundar (reciclare/recondiționare/retur) per produs", () => {
     const rows = computeSecondaryMaterialShare([
       { productItemId: "p1", productTitle: "Cărămidă eco", provenance: "recycling", quantity: 600 },

@@ -24,7 +24,7 @@ import {
 } from "@/features/reports/queries";
 import { ReportTable } from "@/features/reports/report-table";
 
-export const metadata = { title: "Rapoarte — Lateris Trace" };
+export const metadata = { title: "Rapoarte - Lateris Trace" };
 
 interface RapoartePageProps {
   searchParams: Promise<{ from?: string; to?: string }>;
@@ -72,7 +72,7 @@ function ReportSection({
 }
 
 /**
- * Pagina Rapoarte (Task X3, decizie 2026-07) — 6 rapoarte operationale pe perioada
+ * Pagina Rapoarte (Task X3, decizie 2026-07) - 6 rapoarte operationale pe perioada
  * selectata, fiecare cu export PDF (antet white-label) + CSV. Vezi formulele exacte in
  * docs/plans/task-x3-rapoarte.md.
  */
@@ -157,10 +157,10 @@ export default async function RapoartePage({ searchParams }: RapoartePageProps) 
 
       <Card className="border-dashed opacity-70">
         <CardHeader>
-          <CardTitle className="text-base">CO₂ economisit — în pregătire (v2)</CardTitle>
+          <CardTitle className="text-base">CO₂ economisit - în pregătire (v2)</CardTitle>
           <p className="text-sm text-muted-foreground">
             Necesită factori de emisie configurabili per organizație (metodologia rămâne
-            responsabilitatea clientului) — vezi{" "}
+            responsabilitatea clientului) - vezi{" "}
             <code className="text-xs">docs/analiza-cerere-finantare-client-paas.md</code>. Nu face
             parte din acest task.
           </p>

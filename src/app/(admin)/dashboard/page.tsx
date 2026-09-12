@@ -6,7 +6,7 @@ import { PageHeader } from "@/components/page-header";
 import { requireRole } from "@/features/auth/session";
 import { getDashboardKpis } from "@/features/reports/dashboard-queries";
 
-export const metadata = { title: "Dashboard — Lateris Trace" };
+export const metadata = { title: "Dashboard - Lateris Trace" };
 
 const numberFormatter = new Intl.NumberFormat("ro-RO");
 
@@ -33,7 +33,7 @@ function KpiCard({ label, value, icon: Icon, hint }: KpiCardProps) {
 }
 
 /**
- * Dashboard admin/operator (Task X3) — carduri KPI din mockup, cu date reale ale
+ * Dashboard admin/operator (Task X3) - carduri KPI din mockup, cu date reale ale
  * tenantului curent (RLS). Formulele exacte in docs/plans/task-x3-rapoarte.md §2.
  */
 export default async function DashboardPage() {
@@ -77,7 +77,7 @@ export default async function DashboardPage() {
             <CardTitle>Rapoarte operaționale</CardTitle>
             <p className="text-sm text-muted-foreground">
               Comenzi, livrări, retururi, materiale reciclate și rapoartele de conformitate PaaS, pe
-              orice perioadă — cu export PDF/CSV.
+              orice perioadă - cu export PDF/CSV.
             </p>
           </div>
           <Link

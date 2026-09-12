@@ -10,7 +10,7 @@ export interface CertificateDownloadResult {
 /**
  * Genereaza un link semnat de descarcare a PDF-ului certificatului. Apelata
  * direct (nu ca form action) din ecranul de certificat, la click pe
- * "Descarcă PDF" — acelasi pattern ca `documents/actions.ts#getDownloadUrlAction`.
+ * "Descarcă PDF" - acelasi pattern ca `documents/actions.ts#getDownloadUrlAction`.
  */
 export async function getCertificateDownloadUrlAction(
   certificateId: string,

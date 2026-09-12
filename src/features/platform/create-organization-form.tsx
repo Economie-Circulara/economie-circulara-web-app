@@ -31,7 +31,7 @@ export function CreateOrganizationForm() {
       {orgExists ? (
         <p className="rounded-md border border-warn/40 bg-warn-bg px-3 py-2 text-sm text-warn">
           Organizatia <strong>{state.orgName}</strong> (slug <strong>{state.orgSlug}</strong>)
-          exista deja — a fost creata la o incercare anterioara, dar invitatia adminului nu a plecat
+          exista deja - a fost creata la o incercare anterioara, dar invitatia adminului nu a plecat
           cu succes. Corecteaza emailul daca e nevoie si retrimite invitatia.
         </p>
       ) : null}

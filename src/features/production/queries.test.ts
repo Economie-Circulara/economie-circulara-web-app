@@ -7,7 +7,7 @@ import { getProcessById, listProcesses } from "./queries";
 
 /**
  * Query builder Supabase fals: chainable (select/order/eq intorc `this`) si
- * "thenable" / suporta `maybeSingle()` care rezolva direct rezultatul final —
+ * "thenable" / suporta `maybeSingle()` care rezolva direct rezultatul final -
  * la fel ca PostgrestFilterBuilder-ul real. (Pattern reluat din
  * src/features/stock/queries.test.ts.)
  */

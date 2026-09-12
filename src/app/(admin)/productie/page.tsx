@@ -5,9 +5,9 @@ import { requireRole } from "@/features/auth/session";
 import { listProcesses } from "@/features/production/queries";
 import { ProcessesTable } from "@/features/production/processes-table";
 
-export const metadata = { title: "Producție — Lateris Trace" };
+export const metadata = { title: "Producție - Lateris Trace" };
 
-/** Ecranul Producție — istoricul proceselor de fabricație/reciclare/recondiționare. */
+/** Ecranul Producție - istoricul proceselor de fabricație/reciclare/recondiționare. */
 export default async function ProductiePage() {
   await requireRole(["admin", "operator"]);
 
@@ -17,7 +17,7 @@ export default async function ProductiePage() {
     <div className="space-y-6">
       <PageHeader
         title="Producție"
-        description="Procese de fabricație, reciclare și recondiționare — consum FIFO și trasabilitate."
+        description="Procese de fabricație, reciclare și recondiționare - consum FIFO și trasabilitate."
         actions={
           <Button asChild>
             <Link href="/productie/nou">+ Pornește proces</Link>

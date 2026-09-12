@@ -8,13 +8,13 @@ import { DocumentList } from "@/features/documents/document-list";
 import { listDocuments } from "@/features/documents/service";
 import { listOrders } from "@/features/orders/queries";
 
-export const metadata = { title: "Documente & Certificate — Lateris Trace" };
+export const metadata = { title: "Documente & Certificate - Lateris Trace" };
 
 const dateFormatter = new Intl.DateTimeFormat("ro-RO", { dateStyle: "medium" });
 
 /**
- * Ecranul „Documente & Certificate": documentele proprii ale firmei (contracte
- * arhivate etc., `owner_type='client'`) + certificatele comenzilor inchise —
+ * Ecranul "Documente & Certificate": documentele proprii ale firmei (contracte
+ * arhivate etc., `owner_type='client'`) + certificatele comenzilor inchise -
  * doar consultare/descarcare, fara upload (Task H, punctul 4). Comenzile si
  * certificatele sunt RLS-scoped la clientul curent, la fel ca in
  * `/comenzile-mele`.

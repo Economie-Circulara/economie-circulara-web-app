@@ -7,7 +7,7 @@ import { initialOrgStatusState } from "./form-state";
 import type { OrgStatus } from "./types";
 
 /**
- * Suspendare/reactivare cu confirmare simpla inline (nu dialog modal — vezi
+ * Suspendare/reactivare cu confirmare simpla inline (nu dialog modal - vezi
  * src/features/stock/lot-block-controls.tsx pentru acelasi pattern in codebase).
  * Parintele trebuie sa monteze componenta cu `key={organizationId + status}` ca
  * starea locala de confirmare sa se resetze automat dupa ce actiunea reuseste si

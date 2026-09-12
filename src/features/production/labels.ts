@@ -28,7 +28,7 @@ export const PROCESS_STATUS_LABELS: Record<ProcessStatus, string> = {
 /**
  * Cheia din `STATUS_REGISTRY.process` (src/components/status-badge.tsx) pentru
  * fiecare valoare din enum-ul DB `process_status`. Registrul e definit deja (din
- * T0.2) cu exact aceste chei — nu se modifica din acest task.
+ * T0.2) cu exact aceste chei - nu se modifica din acest task.
  */
 export const PROCESS_STATUS_BADGE_STATUS: Record<ProcessStatus, string> = {
   planned: "planificat",

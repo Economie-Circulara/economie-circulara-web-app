@@ -32,7 +32,7 @@ function parseQuality(value: FormDataEntryValue | null): QualityStatus | null {
   return (QUALITY_OPTIONS as string[]).includes(s ?? "") ? (s as QualityStatus) : null;
 }
 
-/** Creeaza un lot nou (formularul /stoc/nou) — doar staff (admin/operator). */
+/** Creeaza un lot nou (formularul /stoc/nou) - doar staff (admin/operator). */
 export async function createLotAction(
   _prev: LotFormState,
   formData: FormData,

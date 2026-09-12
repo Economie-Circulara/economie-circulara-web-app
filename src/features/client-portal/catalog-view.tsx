@@ -152,7 +152,7 @@ function CartPanel({ addresses }: { addresses: ClientAddress[] }) {
                   <option value="">Fără adresă precizată</option>
                   {addresses.map((address) => (
                     <option key={address.id} value={address.id}>
-                      {address.label ? `${address.label} — ` : ""}
+                      {address.label ? `${address.label} - ` : ""}
                       {address.address}
                       {address.isDefault ? " (implicită)" : ""}
                     </option>
@@ -188,7 +188,7 @@ export interface CatalogViewProps {
 
 const KIND_FILTER_OPTIONS: ItemKind[] = ["physical", "service"];
 
-/** Ecranul „Catalog" (mockup #CATALOG): grid de carduri + panou coș, fara preturi. */
+/** Ecranul "Catalog" (mockup #CATALOG): grid de carduri + panou coș, fara preturi. */
 export function CatalogView({ items, addresses }: CatalogViewProps) {
   const [search, setSearch] = useState("");
   const [kind, setKind] = useState<ItemKind | "">("");
@@ -211,7 +211,7 @@ export function CatalogView({ items, addresses }: CatalogViewProps) {
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Caută în catalog…"
+              placeholder="Caută în catalog..."
               className="w-full border-none bg-transparent text-sm outline-none"
             />
           </div>

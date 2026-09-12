@@ -5,7 +5,7 @@ import { getCurrentUser, homePathForRole } from "@/features/auth/session";
 import { getOrgBranding } from "@/features/auth/queries";
 import { resolveTenant } from "@/features/auth/tenant";
 
-export const metadata = { title: "Autentificare — Lateris Trace" };
+export const metadata = { title: "Autentificare - Lateris Trace" };
 
 interface LoginPageProps {
   searchParams: Promise<{ error?: string }>;

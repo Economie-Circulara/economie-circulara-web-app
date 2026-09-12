@@ -4,7 +4,7 @@ import type { RecipeComponent } from "@/features/recipes/types";
  * O linie distribuita pro-rata dupa procentul unei componente de rețetă.
  * Reprezinta atat "consumul calculat" (4a: cate din fiecare componenta trebuie
  * consumate ca sa obtii cantitatea de output dorita), cat si "outputul ideal"
- * (4b: in ce fractii se descompune, teoretic, cantitatea de input consumata) —
+ * (4b: in ce fractii se descompune, teoretic, cantitatea de input consumata) -
  * matematic e aceeasi operatie (procent × total), doar directia semantica difera
  * (vezi comentariul din migrarea 0008 despre reteta interpretata bidirectional).
  */
@@ -16,7 +16,7 @@ export interface DistributedLine {
   qty: number;
 }
 
-/** Rotunjire la 3 zecimale — precizia coloanelor `numeric(14,3)` din schema. */
+/** Rotunjire la 3 zecimale - precizia coloanelor `numeric(14,3)` din schema. */
 export function roundQty(value: number): number {
   return Math.round((value + Number.EPSILON) * 1000) / 1000;
 }
@@ -42,10 +42,10 @@ export function distributeByPercentage(
   }));
 }
 
-/** 4a — cantitatea de consumat din fiecare componenta, pentru output-ul dorit. */
+/** 4a - cantitatea de consumat din fiecare componenta, pentru output-ul dorit. */
 export const computeRequiredConsumption = distributeByPercentage;
 
-/** 4b — outputul ideal (fractii), conform "rețetei" materialului de input. */
+/** 4b - outputul ideal (fractii), conform "rețetei" materialului de input. */
 export const computeIdealOutput = distributeByPercentage;
 
 /** Suma cantitatilor dintr-o lista de linii (input sau output). */
@@ -54,10 +54,10 @@ export function sumQty(lines: { qty: number }[]): number {
 }
 
 /**
- * Randament/pierderi — diferenta intre masa totala de input si cea de output
- * (informativ; se INREGISTREAZA, nu se VALIDEAZA — AGENTS.md §4). Pozitiv =
+ * Randament/pierderi - diferenta intre masa totala de input si cea de output
+ * (informativ; se INREGISTREAZA, nu se VALIDEAZA - AGENTS.md §4). Pozitiv =
  * pierdere (output < input, normal la reciclare/recondiționare); negativ ar
- * insemna output > input (posibil doar daca unitatile difera intre componente —
+ * insemna output > input (posibil doar daca unitatile difera intre componente -
  * afisat ca atare, fara blocare).
  */
 export function computeLoss(totalInputQty: number, totalOutputQty: number): number {

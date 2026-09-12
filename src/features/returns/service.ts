@@ -114,7 +114,7 @@ export interface CreateReturnOrderResult {
  * `order_links` (tip `return` sau `warranty`); pentru `warranty` creeaza si o a
  * doua comanda ("inlocuire", tot `draft`, aceleasi linii) legata prin tip
  * `replacement`. Insert-uri secventiale + compensare best-effort pe eroare (in
- * stilul `createOrderWithItems` din features/orders/service.ts) — nu exista un
+ * stilul `createOrderWithItems` din features/orders/service.ts) - nu exista un
  * RPC dedicat pt. creare (doar pt. acceptare, unde atomicitatea conteaza mai
  * mult: N loturi + status intr-un singur pas, vezi 0010_returns.sql).
  */
@@ -254,12 +254,12 @@ function throwReturnRpcError(error: { code?: string; message: string } | null): 
 
 /**
  * Accepta o comanda-retur `draft`: creeaza un lot (provenance `return`) pentru
- * fiecare linie + seteaza `status='accepted'` — atomic, prin RPC-ul Postgres
+ * fiecare linie + seteaza `status='accepted'` - atomic, prin RPC-ul Postgres
  * `accept_return_order` (vezi 0010_returns.sql). Nu invocă
  * `orders/notifications.ts#onOrderStatusChanged` (Task F, decizie deliberata):
  * acel hook genereaza automat certificatul de trasabilitate la `toStatus ===
  * 'closed'`, ceea ce nu are sens pt. o comanda-retur (nu e o vanzare livrata
- * clientului) — vezi nota din `actions.ts`.
+ * clientului) - vezi nota din `actions.ts`.
  */
 export async function acceptReturnOrder(returnOrderId: string) {
   const supabase = await createClient();

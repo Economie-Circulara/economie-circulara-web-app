@@ -29,7 +29,7 @@ const columns: ColumnDef<OrganizationSummary>[] = [
   {
     accessorKey: "customDomain",
     header: "Domeniu custom",
-    cell: ({ row }) => row.original.customDomain ?? "—",
+    cell: ({ row }) => row.original.customDomain ?? "-",
   },
   {
     accessorKey: "status",

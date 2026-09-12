@@ -14,15 +14,15 @@ const MAX_LEVELS = 25;
 
 /**
  * Fetch iterativ (pe niveluri, batch-uit cu `.in()`) al datelor brute necesare
- * traversarii graf-ului de trasabilitate — vezi `traceability.ts` pentru
+ * traversarii graf-ului de trasabilitate - vezi `traceability.ts` pentru
  * algoritmul PUR care consuma acest rezultat. Foloseste clientul UTILIZATORULUI
- * (RLS ramane in vigoare — staff-ul are acces `for all` pe toate tabelele
+ * (RLS ramane in vigoare - staff-ul are acces `for all` pe toate tabelele
  * atinse aici, deci izolarea multi-tenant se aplica natural, fara verificari
  * suplimentare in acest modul).
  *
  * Pornim de la loturile efectiv CONSUMATE la acceptarea comenzii (`stock_events`
  * cu `order_id` + `event_type='consumption'`, scrise de `accept_order`/
- * `consume_fifo` — 0004/0007) — acestea sunt loturile "livrate" pe aceasta
+ * `consume_fifo` - 0004/0007) - acestea sunt loturile "livrate" pe aceasta
  * comanda. Pentru fiecare, urcam un nivel: e produs de un proces
  * (`process_outputs.lot_id`)? Daca da, adaugam procesul + input-urile lui
  * (`process_inputs`) la coada urmatorului nivel. Repetam pana la loturi fara
@@ -97,7 +97,7 @@ async function fetchDeliveredLots(
       byLot.set(row.lot_id, {
         lotId: row.lot_id,
         itemId: row.item_id,
-        itemTitle: row.items?.title ?? "—",
+        itemTitle: row.items?.title ?? "-",
         unit: row.items?.unit ?? "kg",
         quantity: qty,
       });
@@ -122,7 +122,7 @@ async function fetchLotsInto(
     target[row.id] = {
       id: row.id,
       itemId: row.item_id,
-      itemTitle: row.items?.title ?? "—",
+      itemTitle: row.items?.title ?? "-",
       unit: row.items?.unit ?? "kg",
       provenance: row.provenance,
       source: row.source,

@@ -6,18 +6,18 @@ import { DeliveryForm } from "@/features/deliveries/delivery-form";
 import { getDeliveryByOrderId } from "@/features/deliveries/queries";
 import { getOrderDetail } from "@/features/orders/queries";
 
-export const metadata = { title: "Planifică livrare — Lateris Trace" };
+export const metadata = { title: "Planifică livrare - Lateris Trace" };
 
 interface LivrareNouaPageProps {
   searchParams: Promise<{ orderId?: string }>;
 }
 
 /**
- * Ecranul de planificare livrare (Task X5) — pornit din butonul „Planifică
+ * Ecranul de planificare livrare (Task X5) - pornit din butonul "Planifică
  * livrare" al detaliului comenzii (`/comenzi/[id]`), cu `orderId` in query string.
  * Doar comenzile ACCEPTATE, fara o livrare deja planificata, pot fi programate aici
  * (validarea de business ramane oricum si in `service.ts#planDelivery`, a doua
- * linie de aparare) — altfel afisam un mesaj clar in loc de formular.
+ * linie de aparare) - altfel afisam un mesaj clar in loc de formular.
  */
 export default async function LivrareNouaPage({ searchParams }: LivrareNouaPageProps) {
   await requireRole(["admin", "operator"]);

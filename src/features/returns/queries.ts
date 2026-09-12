@@ -5,7 +5,7 @@ import type { OrderReturnLink, ReturnableItem } from "./types";
  * Itemii unei comenzi cu cantitatea inca returnabila = cantitatea din linia
  * originala minus tot ce a fost deja cerut in comenzi-retur/garantie legate
  * (order_links, tip return/warranty) si neanulate. Nu impune aici statusul
- * comenzii originale (delivered/closed) — asta e o regula de business
+ * comenzii originale (delivered/closed) - asta e o regula de business
  * (`service.ts#loadOriginalOrderForReturn`), aceasta functie e o interogare pura.
  * Comanda inexistenta sau fara acces (RLS) -> listă goală (acelasi tratament ca
  * `getOrderStatus` din features/orders/queries.ts pt. cazuri "not found").
@@ -37,7 +37,7 @@ export async function getReturnableItems(orderId: string): Promise<ReturnableIte
 
   const linkedOrderIds = (linkRows ?? []).map((row) => row.linked_order_id);
 
-  // Excludem comenzile-retur anulate — cantitatea lor NU mai blocheaza un retur nou.
+  // Excludem comenzile-retur anulate - cantitatea lor NU mai blocheaza un retur nou.
   let activeLinkedOrderIds: string[] = [];
   if (linkedOrderIds.length > 0) {
     const { data: linkedOrders, error: linkedOrdersError } = await supabase
@@ -71,7 +71,7 @@ export async function getReturnableItems(orderId: string): Promise<ReturnableIte
     return {
       orderItemId: row.id,
       itemId: row.item_id,
-      itemTitle: row.items?.title ?? "—",
+      itemTitle: row.items?.title ?? "-",
       unit: row.items?.unit ?? "kg",
       orderedQuantity: ordered,
       alreadyReturnedQuantity: alreadyReturned,

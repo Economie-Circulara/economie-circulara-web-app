@@ -143,7 +143,7 @@
           <div style="display:flex;align-items:center;gap:16px;">
             <div style="display:flex;align-items:center;gap:9px;background:var(--surface2);border:1px solid var(--line);border-radius:9px;padding:7px 12px;width:230px;">
               <span style="color:var(--faint);font-size:13px;">⌕</span>
-              <input placeholder="Caută comenzi, loturi, clienți…" style="border:none;background:transparent;outline:none;font-size:13px;color:var(--ink);width:100%;" />
+              <input placeholder="Caută comenzi, loturi, clienți..." style="border:none;background:transparent;outline:none;font-size:13px;color:var(--ink);width:100%;" />
             </div>
             <div style="width:34px;height:34px;border-radius:9px;background:var(--accent);color:var(--onAccent);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;">AM</div>
           </div>
@@ -362,11 +362,11 @@
             <div style="animation:scIn .35s ease;max-width:1180px;">
               <div style="display:flex;background:var(--surface);border:1px solid var(--line);border-radius:14px 14px 0 0;border-bottom:none;overflow:hidden;">
                 <button onClick="{{ setProdFix }}" style="{{ prodTabFixStyle }}">
-                  <div style="font-size:14.5px;font-weight:700;">Output fix — Fabricație</div>
+                  <div style="font-size:14.5px;font-weight:700;">Output fix - Fabricație</div>
                   <div style="font-size:12px;color:var(--muted);margin-top:2px;">Cărămizi, pavaje · consum FIFO automat</div>
                 </button>
                 <button onClick="{{ setProdVar }}" style="{{ prodTabVarStyle }}">
-                  <div style="font-size:14.5px;font-weight:700;">Output variabil — Reciclare</div>
+                  <div style="font-size:14.5px;font-weight:700;">Output variabil - Reciclare</div>
                   <div style="font-size:12px;color:var(--muted);margin-top:2px;">Moloz, demolări · fracții reale ajustabile</div>
                 </button>
               </div>
@@ -399,12 +399,12 @@
                   <div style="padding:24px;display:flex;flex-direction:column;">
                     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
                       <div style="font-size:13px;font-weight:700;">Flux materiale</div>
-                      <div style="font-size:11.5px;color:var(--faint);font-family:'IBM Plex Mono',monospace;">loturi → proces → output · plimbă cursorul</div>
+                      <div style="font-size:11.5px;color:var(--faint);font-family:'IBM Plex Mono',monospace;">loturi -> proces -> output · plimbă cursorul</div>
                     </div>
                     <div style="flex:1;display:flex;align-items:center;min-height:240px;padding:8px 0;">{{ fixSankey }}</div>
                     <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding-top:18px;border-top:1px solid var(--line);">
-                      <div style="font-size:13px;color:var(--muted);">Total intrare <b style="color:var(--ink);font-variant-numeric:tabular-nums;">{{ fixMassL }} kg</b> → <b style="color:var(--ink);">{{ prodQtyL }} {{ fixOutUm }}</b> {{ fixOut }}</div>
-                      <button style="{{ confirmFixStyle }}">Confirmă și pornește →</button>
+                      <div style="font-size:13px;color:var(--muted);">Total intrare <b style="color:var(--ink);font-variant-numeric:tabular-nums;">{{ fixMassL }} kg</b> -> <b style="color:var(--ink);">{{ prodQtyL }} {{ fixOutUm }}</b> {{ fixOut }}</div>
+                      <button style="{{ confirmFixStyle }}">Confirmă și pornește -></button>
                     </div>
                   </div>
                 </div>
@@ -425,7 +425,7 @@
                     <sc-if value="{{ varErrorMsg }}" hint-placeholder-val="{{ false }}">
                       <div style="margin-bottom:16px;display:flex;gap:9px;padding:11px 13px;background:var(--dangerBg);border:1px solid var(--danger);border-radius:9px;"><span style="color:var(--danger);font-weight:700;">⚠</span><span style="font-size:12.5px;color:var(--danger);font-weight:600;line-height:1.4;">{{ varErrorMsg }}</span></div>
                     </sc-if>
-                    <div style="font-size:11.5px;font-family:'IBM Plex Mono',monospace;letter-spacing:0.5px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">Output real — ajustează fracțiile</div>
+                    <div style="font-size:11.5px;font-family:'IBM Plex Mono',monospace;letter-spacing:0.5px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">Output real - ajustează fracțiile</div>
                     <table style="width:100%;border-collapse:collapse;font-size:13px;">
                       <thead><tr style="color:var(--faint);font-size:11px;text-align:left;"><th style="padding:6px 0;font-weight:600;">Fracție</th><th style="padding:6px 8px;font-weight:600;text-align:right;">Ideal</th><th style="padding:6px 0;font-weight:600;text-align:right;">Real (kg)</th></tr></thead>
                       <tbody>
@@ -446,11 +446,11 @@
                   <div style="padding:24px;display:flex;flex-direction:column;">
                     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
                       <div style="font-size:13px;font-weight:700;">Flux reciclare</div>
-                      <div style="font-size:11.5px;color:var(--faint);font-family:'IBM Plex Mono',monospace;">input → proces → fracții</div>
+                      <div style="font-size:11.5px;color:var(--faint);font-family:'IBM Plex Mono',monospace;">input -> proces -> fracții</div>
                     </div>
                     <div style="flex:1;display:flex;align-items:center;min-height:250px;">{{ varSankey }}</div>
                     <div style="display:flex;justify-content:flex-end;padding-top:18px;border-top:1px solid var(--line);">
-                      <button style="{{ confirmVarStyle }}">Finalizează procesul →</button>
+                      <button style="{{ confirmVarStyle }}">Finalizează procesul -></button>
                     </div>
                   </div>
                 </div>
@@ -464,7 +464,7 @@
               <div>
                 <div style="display:flex;gap:10px;margin-bottom:20px;">
                   <div style="flex:1;display:flex;align-items:center;gap:9px;background:var(--surface);border:1px solid var(--line);border-radius:9px;padding:10px 14px;">
-                    <span style="color:var(--faint);">⌕</span><input placeholder="Caută în catalog…" style="border:none;background:transparent;outline:none;font-size:13.5px;width:100%;color:var(--ink);" />
+                    <span style="color:var(--faint);">⌕</span><input placeholder="Caută în catalog..." style="border:none;background:transparent;outline:none;font-size:13.5px;width:100%;color:var(--ink);" />
                   </div>
                   <button style="padding:10px 16px;border:1px solid var(--line);background:var(--surface);border-radius:9px;font-size:13px;font-weight:600;color:var(--ink);cursor:pointer;">Toate categoriile ▾</button>
                 </div>
@@ -497,7 +497,7 @@
                       <div style="display:flex;justify-content:space-between;gap:8px;"><span style="font-weight:600;font-size:13px;">{{ c.name }}</span><button onClick="{{ c.remove }}" style="border:none;background:none;color:var(--faint);cursor:pointer;font-size:14px;">×</button></div>
                       <div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px;">
                         <div style="display:flex;align-items:center;gap:0;border:1px solid var(--line);border-radius:7px;overflow:hidden;">
-                          <button onClick="{{ c.dec }}" style="width:26px;height:26px;border:none;background:var(--surface2);cursor:pointer;color:var(--ink);">−</button>
+                          <button onClick="{{ c.dec }}" style="width:26px;height:26px;border:none;background:var(--surface2);cursor:pointer;color:var(--ink);">-</button>
                           <span style="padding:0 10px;font-size:12.5px;font-weight:700;font-variant-numeric:tabular-nums;">{{ c.qtyL }}</span>
                           <button onClick="{{ c.inc }}" style="width:26px;height:26px;border:none;background:var(--surface2);cursor:pointer;color:var(--ink);">+</button>
                         </div>
@@ -670,7 +670,7 @@
                   <div style="background:var(--surface2);border:1px solid var(--line);border-radius:11px;padding:20px 22px;margin-bottom:24px;">
                     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
                       <div style="font-weight:700;font-size:14px;">Lanț de trasabilitate</div>
-                      <div style="font-size:11px;font-family:'IBM Plex Mono',monospace;color:var(--faint);">surse → loturi → proces → produs → livrare</div>
+                      <div style="font-size:11px;font-family:'IBM Plex Mono',monospace;color:var(--faint);">surse -> loturi -> proces -> produs -> livrare</div>
                     </div>
                     <div style="padding:14px 0 4px;">{{ certSankey }}</div>
                   </div>
@@ -765,7 +765,7 @@ class Component extends DCLogic {
       {id:'CMD-2045',created:'23 iun, 16:40',client:'Domus Renova SRL',products:'Agregat reciclat ×18 t',delivery:'27 iun 2026',status:'acceptata'},
       {id:'CMD-2043',created:'22 iun, 11:15',client:'Construcții Apex SRL',products:'Pavaj reciclat ×2.400',delivery:'24 iun 2026',status:'livrata'},
       {id:'CMD-2041',created:'21 iun, 08:30',client:'EcoBuild Partener',products:'Cărămidă eco ×6.500',delivery:'23 iun 2026',status:'inchisa'},
-      {id:'CMD-2039',created:'20 iun, 13:55',client:'Verde Habitat SA',products:'Agregat fin ×9 t',delivery:'—',status:'anulata'}
+      {id:'CMD-2039',created:'20 iun, 13:55',client:'Verde Habitat SA',products:'Agregat fin ×9 t',delivery:'-',status:'anulata'}
     ];
     this.lots=[
       {code:'LOT-3391',item:'Cărămidă eco standard',qty:'8.420',um:'buc',source:'productie',date:'24.06.2026',status:'liber'},
@@ -783,7 +783,7 @@ class Component extends DCLogic {
       {id:'pavaj',name:'Pavaj reciclat 20×20',out:'Pavaj reciclat 20×20',outUm:'buc',unitMass:4.2,
         inputs:[{item:'Agregat reciclat 8-16',per:3.0,um:'kg'},{item:'Ciment Portland',per:0.9,um:'kg'},{item:'Apă tehnologică',per:0.4,um:'L'}]}
     ];
-    // FIFO raw stock per item (ordered oldest→newest)
+    // FIFO raw stock per item (ordered oldest->newest)
     this.rawStock={
       'Argilă reciclată':[{code:'LOT-3374',avail:2300,date:'17.06'},{code:'LOT-3388',avail:14200,date:'22.06'}],
       'Ciment Portland':[{code:'LOT-3385',avail:3100,date:'21.06'}],
@@ -820,16 +820,16 @@ class Component extends DCLogic {
       {name:'EcoBuild Partener',cui:'RO19283746',orders:9,active:0,status:'inactiv'}
     ];
     this.recipesList=[
-      {name:'Cărămidă eco standard',type:'fix',out:'Cărămidă eco · buc',inputs:3,yield:'—'},
-      {name:'Pavaj reciclat 20×20',type:'fix',out:'Pavaj · buc',inputs:3,yield:'—'},
+      {name:'Cărămidă eco standard',type:'fix',out:'Cărămidă eco · buc',inputs:3,yield:'-'},
+      {name:'Pavaj reciclat 20×20',type:'fix',out:'Pavaj · buc',inputs:3,yield:'-'},
       {name:'Procesare moloz beton',type:'variabil',out:'5 fracții',inputs:1,yield:'98% valorificat'},
       {name:'Reciclare cărămidă demolare',type:'variabil',out:'3 fracții',inputs:1,yield:'95% valorificat'}
     ];
     this.auditLog=[
       {ts:'24.06 14:22',user:'A. Marin',action:'Intrare lot',ref:'LOT-3391',delta:'+8.420 buc'},
-      {ts:'24.06 11:08',user:'sistem',action:'Consum producție',ref:'P-0820',delta:'−8.400 kg'},
+      {ts:'24.06 11:08',user:'sistem',action:'Consum producție',ref:'P-0820',delta:'-8.400 kg'},
       {ts:'23.06 16:50',user:'A. Marin',action:'Blocare lot',ref:'LOT-3382',delta:'0'},
-      {ts:'22.06 09:30',user:'I. Popescu',action:'Ajustare inventar',ref:'LOT-3388',delta:'−120 kg'},
+      {ts:'22.06 09:30',user:'I. Popescu',action:'Ajustare inventar',ref:'LOT-3388',delta:'-120 kg'},
       {ts:'21.06 08:15',user:'A. Marin',action:'Intrare achiziție',ref:'LOT-3385',delta:'+3.100 kg'}
     ];
   }
@@ -876,7 +876,7 @@ class Component extends DCLogic {
       const x0=s.x+NW, x1=t.x, xm=(x0+x1)/2;
       const d=`M${x0},${sy0} C${xm},${sy0} ${xm},${ty0} ${x1},${ty0} L${x1},${ty1} C${xm},${ty1} ${xm},${sy1} ${x0},${sy1} Z`;
       ribbons.push(h('path',{key:'r'+i,d,fill:lk.color||'var(--accent)',opacity:0.4,
-        onMouseEnter:(e)=>this.showTip(e,lk.label||(s.label+' → '+t.label),[{k:'Cantitate',v:lk.vlabel||(lk.value.toLocaleString('ro-RO'))}]),
+        onMouseEnter:(e)=>this.showTip(e,lk.label||(s.label+' -> '+t.label),[{k:'Cantitate',v:lk.vlabel||(lk.value.toLocaleString('ro-RO'))}]),
         onMouseMove:this.moveTip,onMouseLeave:this.hideTip}));
     });
     const nodeEls=[];
@@ -914,7 +914,7 @@ class Component extends DCLogic {
     const s=this.state;
     const screen=s.screen;
     const role=s.role;
-    const titles={orders:'Comenzi',stock:'Stoc — Loturi',production:'Producție',clients:'Clienți',recipes:'Rețete',audit:'Audit stoc',settings:'Setări organizație',catalog:'Catalog',myorders:'Comenzile mele',docs:'Documente & Certificate',certificate:'Certificat de trasabilitate'};
+    const titles={orders:'Comenzi',stock:'Stoc - Loturi',production:'Producție',clients:'Clienți',recipes:'Rețete',audit:'Audit stoc',settings:'Setări organizație',catalog:'Catalog',myorders:'Comenzile mele',docs:'Documente & Certificate',certificate:'Certificat de trasabilitate'};
     const crumbs={orders:'/ comenzi',stock:'/ stoc',production:'/ producție',clients:'/ clienți',recipes:'/ rețete',audit:'/ audit',settings:'/ setări',catalog:'/ catalog',myorders:'/ comenzi',docs:'/ documente',certificate:'/ certificat'};
 
     const navTo={}; ['orders','stock','production','clients','recipes','audit','settings','catalog','myorders','docs','certificate'].forEach(k=>navTo[k]=()=>this.set({screen:k}));
@@ -956,7 +956,7 @@ class Component extends DCLogic {
     this.lots.forEach(l=>{const n=parseInt(l.qty.replace(/\./g,''))||0;if(!agg[l.item])agg[l.item]={item:l.item,um:l.um,total:0,lots:0,blocked:0,srcs:{}};const a=agg[l.item];a.total+=n;a.lots++;if(l.status==='blocat')a.blocked+=n;a.srcs[l.source]=1;});
     const stockAggV=Object.values(agg).map(a=>({item:a.item,um:a.um,totalL:a.total.toLocaleString('ro-RO'),lots:a.lots,
       blockedL:a.blocked?a.blocked.toLocaleString('ro-RO')+' '+a.um:null,
-      noBlockDash:a.blocked?'':'—',
+      noBlockDash:a.blocked?'':'-',
       sources:Object.keys(a.srcs).map(k=>SOURCES[k].l).join(' · ')}));
     const stockView=s.stockView;
     // lot form validation
@@ -982,7 +982,7 @@ class Component extends DCLogic {
     const fixInputsV=fixInputs.map(i=>({item:i.item,um:i.um,ok:i.ok,totalL:i.total.toLocaleString('ro-RO')+' '+i.um,
       availL:'disponibil '+i.av.toLocaleString('ro-RO')+' '+i.um, shortageL:i.shortage?('lipsă '+i.shortage.toLocaleString('ro-RO')+' '+i.um):null,
       valColor:i.ok?'var(--ink)':'var(--danger)',
-      lotsLabel:i.used.length?i.used.map(u=>u.code+' ('+u.take.toLocaleString('ro-RO')+')').join('  ·  '):'—'}));
+      lotsLabel:i.used.length?i.used.map(u=>u.code+' ('+u.take.toLocaleString('ro-RO')+')').join('  ·  '):'-'}));
     // fix sankey
     const fNodes=[],fLinks=[];
     fixInputs.forEach(i=>i.used.forEach((u,k)=>{const id='f_'+u.code+'_'+i.item;fNodes.push({id,col:0,value:u.take,label:u.code,sub:i.item.split(' ')[0]+' '+u.take.toLocaleString('ro-RO'),color:'var(--brand2)',tip:[{k:'Material',v:i.item},{k:'Consum',v:u.take.toLocaleString('ro-RO')+' '+i.um}]});fLinks.push({source:id,target:'f_proc',value:u.take,color:'var(--brand2)',vlabel:u.take.toLocaleString('ro-RO')+' '+i.um,label:i.item});}));
@@ -1002,8 +1002,8 @@ class Component extends DCLogic {
     const varOutputOver=varTotalReal>s.varQty;
     const varValid=s.varQty>0 && !varInputOver && !varOutputOver;
     const varErrorMsg = s.varQty<=0 ? 'Introdu o cantitate de input mai mare ca zero.'
-      : varInputOver ? ('Inputul depășește stocul disponibil — LOT-3382 are doar '+varInputAvail.toLocaleString('ro-RO')+' kg.')
-      : varOutputOver ? ('Output total '+varTotalReal.toLocaleString('ro-RO')+' kg depășește inputul de '+s.varQty.toLocaleString('ro-RO')+' kg — masa nu poate crește.')
+      : varInputOver ? ('Inputul depășește stocul disponibil - LOT-3382 are doar '+varInputAvail.toLocaleString('ro-RO')+' kg.')
+      : varOutputOver ? ('Output total '+varTotalReal.toLocaleString('ro-RO')+' kg depășește inputul de '+s.varQty.toLocaleString('ro-RO')+' kg - masa nu poate crește.')
       : null;
     const vNodes=[{id:'v_in',col:0,value:s.varQty,label:vr.inputLot,sub:vr.input+' '+s.varQty.toLocaleString('ro-RO'),color:'var(--brand2)',tip:[{k:'Material',v:vr.input},{k:'Cantitate',v:s.varQty.toLocaleString('ro-RO')+' kg'}]},
       {id:'v_proc',col:1,value:Math.max(s.varQty,varTotalReal),label:'Proces P-0821',sub:'reciclare',color:'var(--accent)',tip:[{k:'Tip',v:'Output variabil'}]}];
@@ -1045,8 +1045,8 @@ class Component extends DCLogic {
     ];
     const certSankey=this.buildSankey({nodes:cNodes,links:cLinks},{w:760,h:300,pad:4,gap:14,nodeW:13});
     const certMaterials=[
-      {mat:'Argilă reciclată',origin:'Reciclare — deșeuri ceramice',src:'Ceramheld SRL',pct:'75,0%'},
-      {mat:'Ciment Portland',origin:'Achiziție — material primar',src:'Carmeuse RO',pct:'14,3%'},
+      {mat:'Argilă reciclată',origin:'Reciclare - deșeuri ceramice',src:'Ceramheld SRL',pct:'75,0%'},
+      {mat:'Ciment Portland',origin:'Achiziție - material primar',src:'Carmeuse RO',pct:'14,3%'},
       {mat:'Apă tehnologică',origin:'Rețea internă recirculată',src:'Lateris',pct:'10,7%'}
     ];
 
@@ -1106,7 +1106,7 @@ class Component extends DCLogic {
       varInput:vr.input, varInputLot:vr.inputLot, varQty:s.varQty, varQtyL:s.varQty.toLocaleString('ro-RO'),
       onVarQty:(e)=>{const v=parseInt((e.target.value||'0').replace(/\D/g,''))||0;this.set({varQty:v});},
       varOutputsV, varSankey, varTotalRealL:varTotalReal.toLocaleString('ro-RO'),
-      varBalanceL:(varBalance>=0?'+':'−')+Math.abs(varBalance).toLocaleString('ro-RO')+' kg', varBalanceColor:Math.abs(varBalance)<10?'var(--ok)':'var(--warn)',
+      varBalanceL:(varBalance>=0?'+':'-')+Math.abs(varBalance).toLocaleString('ro-RO')+' kg', varBalanceColor:Math.abs(varBalance)<10?'var(--ok)':'var(--warn)',
       // catalog/client
       productsV, cartV, cartCount:cartCount.toLocaleString('ro-RO'), cartLines:s.cart.length, hasCart:s.cart.length>0,
       goCatalog:()=>this.set({screen:'catalog'}),

@@ -29,7 +29,7 @@ function AddressFormCard({
       {address ? <input type="hidden" name="id" value={address.id} /> : null}
 
       <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
-        <FormField label="Etichetă" hint='Opțional — ex. "Depozit Otopeni".'>
+        <FormField label="Etichetă" hint='Opțional - ex. "Depozit Otopeni".'>
           {(id) => <Input id={id} name="label" defaultValue={address?.label ?? ""} />}
         </FormField>
         <label className="flex items-center gap-2 self-end pb-2 text-sm font-medium">
@@ -123,7 +123,7 @@ export interface AddressSectionProps {
   addresses: ClientAddress[];
 }
 
-/** Sectiunea "Adrese de livrare" din /clienti/[id] — CRUD + o singura adresa implicita. */
+/** Sectiunea "Adrese de livrare" din /clienti/[id] - CRUD + o singura adresa implicita. */
 export function AddressSection({ clientId, addresses }: AddressSectionProps) {
   const [addingNew, setAddingNew] = useState(false);
 

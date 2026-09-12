@@ -8,7 +8,7 @@ import { OrderTable } from "@/features/orders/order-table";
 import { listOrders } from "@/features/orders/queries";
 import type { OrderStatus } from "@/features/orders/types";
 
-export const metadata = { title: "Comenzi — Lateris Trace" };
+export const metadata = { title: "Comenzi - Lateris Trace" };
 
 const selectClassName =
   "flex h-9 w-full rounded-md border border-input bg-card px-3 py-1 text-sm shadow-xs outline-none sm:w-48";
@@ -17,7 +17,7 @@ interface ComenziPageProps {
   searchParams: Promise<{ status?: string; q?: string }>;
 }
 
-/** Ecranul Comenzi — lista comenzilor organizației (doar staff), cu filtre status + căutare. */
+/** Ecranul Comenzi - lista comenzilor organizației (doar staff), cu filtre status + căutare. */
 export default async function ComenziPage({ searchParams }: ComenziPageProps) {
   await requireRole(["admin", "operator"]);
   const params = await searchParams;
@@ -35,7 +35,7 @@ export default async function ComenziPage({ searchParams }: ComenziPageProps) {
     <div className="space-y-6">
       <PageHeader
         title="Comenzi"
-        description="Comenzile clienților — status, produse și acțiuni rapide."
+        description="Comenzile clienților - status, produse și acțiuni rapide."
         actions={
           <Button asChild>
             <Link href="/comenzi/nou">+ Comandă nouă</Link>

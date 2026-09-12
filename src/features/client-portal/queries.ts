@@ -28,10 +28,10 @@ export interface ListCatalogItemsFilters {
 /**
  * Catalogul clientului (ecranul /catalog): itemi `sellable=true` din organizatia
  * lui, FARA pret/stoc. Interogare proprie (nu `items/queries.ts#listItems`, care
- * mai face un query pe `recipes` — informatie de proces, nu vizibila clientului
+ * mai face un query pe `recipes` - informatie de proces, nu vizibila clientului
  * per AGENTS.md §4; si nu `orders/queries.ts#listSellableItemOptions`, care nu
  * selecteaza `description`/`image_url`, necesare cardurilor din catalog).
- * Filtrul `sellable=true` e defensiv — RLS `items_client_catalog` din
+ * Filtrul `sellable=true` e defensiv - RLS `items_client_catalog` din
  * 0001_core_schema.sql restrictioneaza oricum randurile vizibile clientului.
  */
 export async function listCatalogItems(

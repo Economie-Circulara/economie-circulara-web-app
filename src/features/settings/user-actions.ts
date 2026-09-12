@@ -71,7 +71,7 @@ export async function inviteStaffAction(
 /**
  * Invita un utilizator cu rol `client`, legat de o firma-client existenta din
  * organizatie (`profiles.client_id`). Regula de business: **un client = un singur
- * utilizator** — respins daca firma are deja un profil `client` asociat. Trimite
+ * utilizator** - respins daca firma are deja un profil `client` asociat. Trimite
  * email de invitatie (Supabase) si creeaza profilul legat. Doar admin.
  */
 export async function inviteClientAction(
@@ -93,7 +93,7 @@ export async function inviteClientAction(
   if (!EMAIL_RE.test(email)) return { error: "Adresa de email nu este valida.", message: null };
 
   // Firma trebuie sa existe si sa apartina organizatiei adminului (RLS org-scoped
-  // via clientul de sesiune — vezi clients_staff_all in 0001_core_schema.sql).
+  // via clientul de sesiune - vezi clients_staff_all in 0001_core_schema.sql).
   const client = await getClient(clientId);
   if (!client) {
     return { error: "Firma selectata nu exista in organizatia ta.", message: null };
@@ -105,7 +105,7 @@ export async function inviteClientAction(
   // `client` legat. Nota: fara un unique index pe profiles.client_id la nivel de
   // DB (necesita migrare, in afara scope-ului acestui task), verificarea de mai
   // jos are o fereastra teoretica de race condition intre doua invitatii
-  // simultane pentru aceeasi firma — limitare cunoscuta, documentata in
+  // simultane pentru aceeasi firma - limitare cunoscuta, documentata in
   // docs/plans/fix-f7a-invitare-client.md si AGENTS.md §4.1.
   const { data: existingProfile, error: existingError } = await adminClient
     .from("profiles")

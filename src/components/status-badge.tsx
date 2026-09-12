@@ -7,7 +7,7 @@ type StatusDef = { label: string; variant: BadgeVariant };
  * (docs/design/Lateris_Trace.dc.html). Etichetele sunt in romana.
  */
 export const STATUS_REGISTRY = {
-  // Statusuri comanda: draft → trimisa → acceptata → livrata → inchisa / anulata
+  // Statusuri comanda: draft -> trimisa -> acceptata -> livrata -> inchisa / anulata
   order: {
     draft: { label: "Draft", variant: "neutral" },
     trimisa: { label: "Trimisă", variant: "info" },
@@ -32,7 +32,7 @@ export const STATUS_REGISTRY = {
     activ: { label: "Activ", variant: "ok" },
     blocat: { label: "Blocat", variant: "danger" },
   },
-  // Statusuri proces: planificat → in lucru → asteapta confirmare → finalizat / anulat
+  // Statusuri proces: planificat -> in lucru -> asteapta confirmare -> finalizat / anulat
   process: {
     planificat: { label: "Planificat", variant: "neutral" },
     in_lucru: { label: "În lucru", variant: "info" },

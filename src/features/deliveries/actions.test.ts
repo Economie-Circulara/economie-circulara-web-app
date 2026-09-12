@@ -38,7 +38,7 @@ function formData(fields: Record<string, string>): FormData {
   return fd;
 }
 
-describe("planDeliveryAction — gating rol", () => {
+describe("planDeliveryAction - gating rol", () => {
   it("cere rolul admin/operator (NU permite client)", async () => {
     requireRole.mockResolvedValue({ id: "u1", role: "admin" });
     planDelivery.mockResolvedValue({ id: "delivery-1" });
@@ -120,7 +120,7 @@ describe("planDeliveryAction", () => {
   });
 });
 
-describe("declareETransportAction — gating rol", () => {
+describe("declareETransportAction - gating rol", () => {
   it("cere rolul admin/operator", async () => {
     requireRole.mockResolvedValue({ id: "u1", role: "admin" });
     declareETransport.mockResolvedValue({ id: "delivery-1", declarationStatus: "declared" });

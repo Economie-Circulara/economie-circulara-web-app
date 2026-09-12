@@ -17,7 +17,7 @@ function formatDateTime(iso: string): string {
 }
 
 function lotReference(event: StockEvent): string {
-  return event.lotId ? event.lotId.slice(0, 8).toUpperCase() : "—";
+  return event.lotId ? event.lotId.slice(0, 8).toUpperCase() : "-";
 }
 
 const columns: ColumnDef<StockEvent>[] = [
@@ -33,7 +33,7 @@ const columns: ColumnDef<StockEvent>[] = [
   {
     accessorKey: "createdByName",
     header: "Utilizator",
-    cell: ({ row }) => row.original.createdByName ?? "—",
+    cell: ({ row }) => row.original.createdByName ?? "-",
   },
   {
     accessorKey: "eventType",
@@ -65,7 +65,7 @@ const columns: ColumnDef<StockEvent>[] = [
   {
     accessorKey: "reason",
     header: "Motiv",
-    cell: ({ row }) => row.original.reason ?? "—",
+    cell: ({ row }) => row.original.reason ?? "-",
   },
 ];
 

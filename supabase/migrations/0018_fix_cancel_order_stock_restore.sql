@@ -1,5 +1,5 @@
 -- =============================================================================
--- 0018 — FIX: `cancel_order` nu refacea stocul (regula de business incalcata in
+-- 0018 - FIX: `cancel_order` nu refacea stocul (regula de business incalcata in
 --        silentiu)
 -- =============================================================================
 -- BUG (descoperit 2026-09-12, prin `supabase/tests/business_flow.sql`, testul B9):
@@ -20,7 +20,7 @@
 -- Sub RLS, o citire cu clauza de BLOCARE (`FOR UPDATE`/`FOR SHARE`) nu e evaluata
 -- doar cu politicile de SELECT: Postgres cere si politica de **UPDATE** pe tabel,
 -- iar randurile care nu o satisfac sunt **filtrate silentios** (nu eroare).
--- `stock_events` e un audit trail APPEND-ONLY — are doar politici SELECT + INSERT,
+-- `stock_events` e un audit trail APPEND-ONLY - are doar politici SELECT + INSERT,
 -- deliberat nicio politica UPDATE. Deci `select ... for update` returna 0 randuri,
 -- bucla nu se executa niciodata, si functia mergea direct la `status = 'cancelled'`.
 --
@@ -33,13 +33,13 @@
 -- testele de RLS verificau izolarea intre tenanti, nu invariantii de stoc. Acum e
 -- acoperit de B9 in `supabase/tests/business_flow.sql`.
 --
--- IMPACT: „Stocul se scade la acceptarea comenzii; la anulare stocul se reface"
--- (docs/handoff.md, secțiunea Catalog si comenzi; AGENTS.md §4) — a doua jumatate a
+-- IMPACT: "Stocul se scade la acceptarea comenzii; la anulare stocul se reface"
+-- (docs/handoff.md, secțiunea Catalog si comenzi; AGENTS.md §4) - a doua jumatate a
 -- regulii nu functiona. Consecinta: stoc fantoma pierdut la fiecare anulare a unei
 -- comenzi acceptate, plus audit trail incomplet (fara `reversal`).
 --
 -- FIX: se renunta la `FOR UPDATE` pe `stock_events`. Nu e o pierdere de siguranta:
---   * `stock_events` e append-only — randurile citite nu se modifica niciodata,
+--   * `stock_events` e append-only - randurile citite nu se modifica niciodata,
 --     deci nu exista ce sa protejeze o blocare pe ele;
 --   * concurenta reala e serializata deja de `select * from public.orders ...
 --     FOR UPDATE` de la inceputul functiei (pe `orders` exista politica de UPDATE,
@@ -50,7 +50,7 @@
 --     pe lotul atins.
 --
 -- Restul corpului e IDENTIC cu `0007_orders_ops.sql` (migrari aditive: nu se
--- editeaza migrarile existente — AGENTS.md). Semnatura neschimbata.
+-- editeaza migrarile existente - AGENTS.md). Semnatura neschimbata.
 -- =============================================================================
 
 create or replace function public.cancel_order(p_order_id uuid)
@@ -75,7 +75,7 @@ begin
   end if;
 
   if v_order.status = 'accepted' then
-    -- Refacerea stocului e o operatiune interna (miscare de stoc) — rezervata
+    -- Refacerea stocului e o operatiune interna (miscare de stoc) - rezervata
     -- staff-ului, la fel ca restul RPC-urilor din stock service. Clientul poate
     -- anula direct (fara aceasta functie) doar cat comanda e draft/sent, conform
     -- politicilor din 0003_rls_hardening.sql; o comanda `accepted` nu mai e in

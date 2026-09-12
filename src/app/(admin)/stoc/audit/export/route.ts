@@ -15,7 +15,7 @@ const EVENT_TYPES: StockEventType[] = [
 
 /**
  * Export CSV al jurnalului de stoc (`/stoc/audit`), respectand filtrele curente.
- * `requireRole` redirectioneaza (nu arunca 403) — suficient aici: ruta e accesata
+ * `requireRole` redirectioneaza (nu arunca 403) - suficient aici: ruta e accesata
  * doar din link-ul din UI-ul admin, deja protejat de layout.
  */
 export async function GET(request: NextRequest) {

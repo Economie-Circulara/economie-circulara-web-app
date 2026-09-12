@@ -8,7 +8,7 @@ import { renderReportPdf } from "@/features/reports/pdf";
 
 /**
  * Export PDF al unui raport din /rapoarte (antet white-label per organizatie, ca la
- * certificate — vezi `certificates/pdf.tsx`). `?report=<cheie>&from=&to=`, aceleasi
+ * certificate - vezi `certificates/pdf.tsx`). `?report=<cheie>&from=&to=`, aceleasi
  * filtre ca ecranul curent (vezi `rapoarte/page.tsx`).
  */
 export async function GET(request: NextRequest) {

@@ -1,8 +1,8 @@
 -- =============================================================================
--- Task C — Stock service (RPC-uri pentru miscari de stoc atomice)
+-- Task C - Stock service (RPC-uri pentru miscari de stoc atomice)
 -- =============================================================================
 -- Migrare aditiva peste schema inghetata din 0001_core_schema.sql. Nu modifica
--- tabele/enum-uri existente — adauga trei functii RPC folosite de
+-- tabele/enum-uri existente - adauga trei functii RPC folosite de
 -- `src/features/stock/service.ts` (contractul consumat si de Task D si Task E):
 --
 --   public.create_lot(...)     -> creeaza un lot + stock_event 'intake'
@@ -19,7 +19,7 @@
 --     Politicile existente (`lots_staff_all`, `stock_events_staff_insert`) impun deja
 --     exact regula de care avem nevoie (doar staff din organizatia proprie), deci nu
 --     trebuie duplicata logica de autorizare si nu se ocoleste RLS inutil
---     (principiul minimului privilegiu — spre deosebire de `app.*`/`org_branding`,
+--     (principiul minimului privilegiu - spre deosebire de `app.*`/`org_branding`,
 --     care sunt SECURITY DEFINER pentru ca trebuie sa ruleze INAINTE de a avea
 --     context RLS, resp. pentru un apelant anonim).
 --   * Verificarea explicita `app.is_staff_of(v_org)` din functii e doar pentru un
@@ -28,7 +28,7 @@
 -- =============================================================================
 
 -- -----------------------------------------------------------------------------
--- 1. create_lot — intrare in stoc (lot nou) + eveniment 'intake'
+-- 1. create_lot - intrare in stoc (lot nou) + eveniment 'intake'
 -- -----------------------------------------------------------------------------
 create or replace function public.create_lot(
   p_item_id        uuid,
@@ -94,14 +94,14 @@ grant execute on function public.create_lot(
 ) to authenticated, service_role;
 
 -- -----------------------------------------------------------------------------
--- 2. consume_fifo — consum FIFO (implicit) sau selectie manuala de loturi
+-- 2. consume_fifo - consum FIFO (implicit) sau selectie manuala de loturi
 -- -----------------------------------------------------------------------------
 -- Consuma `p_qty` din itemul `p_item_id` din loturile nelocate cu remaining_qty > 0,
 -- in ordinea entry_date (FIFO). Daca `p_manual_lot_ids` e dat, restrange consumul
 -- STRICT la acele loturi (tot nelocate / cu stoc), in ordinea specificata in array
--- (selectie manuala la productie — vezi handoff: "FIFO implicit, cu optiune de
+-- (selectie manuala la productie - vezi handoff: "FIFO implicit, cu optiune de
 -- selectie manuala"). Scrie cate un stock_event per lot consumat (semnat negativ).
--- Arunca eroare (errcode LT001) daca stocul disponibil e insuficient — intreaga
+-- Arunca eroare (errcode LT001) daca stocul disponibil e insuficient - intreaga
 -- functie face rollback (nu se aplica niciun consum partial).
 create or replace function public.consume_fifo(
   p_item_id        uuid,
@@ -196,7 +196,7 @@ grant execute on function public.consume_fifo(
 ) to authenticated, service_role;
 
 -- -----------------------------------------------------------------------------
--- 3. set_lot_block — blocare / deblocare lot cu motiv + eveniment 'block'/'unblock'
+-- 3. set_lot_block - blocare / deblocare lot cu motiv + eveniment 'block'/'unblock'
 -- -----------------------------------------------------------------------------
 create or replace function public.set_lot_block(
   p_lot_id  uuid,

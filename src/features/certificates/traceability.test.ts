@@ -3,7 +3,7 @@ import { buildTraceabilityGraph } from "./traceability";
 import type { TraceabilityRawData } from "./types";
 
 /**
- * Scenariul din mockup (docs/design/Lateris_Trace.dc.html — ecranul Certificat):
+ * Scenariul din mockup (docs/design/Lateris_Trace.dc.html - ecranul Certificat):
  * un singur proces de fabricatie consuma argila reciclata + ciment achizitionat +
  * apa, produce caramida eco, livrata integral pe comanda.
  */

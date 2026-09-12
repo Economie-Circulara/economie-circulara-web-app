@@ -3,7 +3,7 @@ import { currentMonthRange, startOfDayIso } from "./period";
 import type { DashboardKpis } from "./types";
 
 /**
- * KPI-urile de pe dashboard (Task X3 §2) — 4 numarari Supabase in paralel
+ * KPI-urile de pe dashboard (Task X3 §2) - 4 numarari Supabase in paralel
  * (`count: "exact", head: true`, fara sa aduca randurile). Formulele exacte sunt
  * documentate in docs/plans/task-x3-rapoarte.md §2.
  */

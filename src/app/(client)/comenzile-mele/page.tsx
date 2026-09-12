@@ -3,10 +3,10 @@ import { requireRole } from "@/features/auth/session";
 import { OrderList } from "@/features/client-portal/order-list";
 import { listOrders } from "@/features/orders/queries";
 
-export const metadata = { title: "Comenzile mele — Lateris Trace" };
+export const metadata = { title: "Comenzile mele - Lateris Trace" };
 
 /**
- * Ecranul „Comenzile mele": `listOrders()` fara filtru suplimentar — RLS
+ * Ecranul "Comenzile mele": `listOrders()` fara filtru suplimentar - RLS
  * (`orders_client_select`, 0003_rls_hardening.sql) limiteaza deja rezultatul la
  * comenzile firmei clientului curent.
  */

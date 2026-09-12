@@ -3,19 +3,19 @@ import { requireRole } from "@/features/auth/session";
 import { globalSearch } from "@/features/search/service";
 import { SearchResults } from "@/features/search/search-results";
 
-export const metadata = { title: "Căutare — Lateris Trace" };
+export const metadata = { title: "Căutare - Lateris Trace" };
 
 interface CautaPageProps {
   searchParams: Promise<{ q?: string }>;
 }
 
 /**
- * Ecranul de rezultate al căutării globale pentru portalul clientului (fix F7b —
+ * Ecranul de rezultate al căutării globale pentru portalul clientului (fix F7b -
  * `globalSearch` suporta deja rolul `client`, dar nu exista ruta care sa-l
  * foloseasca). Path distinct (`/cauta`, nu `/cautare`): grupurile de rute
  * `(admin)`/`(client)` nu pot defini acelasi path. `globalSearch` respecta deja
  * izolarea multi-tenant (RLS) si limiteaza rezultatele clientului la comenzile/
- * certificatele proprii + catalog — vezi `src/features/search/service.ts`.
+ * certificatele proprii + catalog - vezi `src/features/search/service.ts`.
  */
 export default async function CautaPage({ searchParams }: CautaPageProps) {
   const user = await requireRole(["client"]);
@@ -30,7 +30,7 @@ export default async function CautaPage({ searchParams }: CautaPageProps) {
         title="Căutare"
         description={
           query
-            ? `Rezultate pentru „${query}”`
+            ? `Rezultate pentru "${query}"`
             : "Caută comenzi, certificate sau produse din catalog."
         }
       />

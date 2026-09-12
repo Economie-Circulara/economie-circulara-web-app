@@ -18,7 +18,7 @@ export interface Order {
   updatedAt: string;
 }
 
-/** Rand din lista /comenzi — comanda + rezumatul clientului si al produselor. */
+/** Rand din lista /comenzi - comanda + rezumatul clientului si al produselor. */
 export interface OrderListRow extends Order {
   clientName: string;
   /** Rezumat text al liniilor, ex. "Cărămidă eco ×4.000, Pavaj ×600". */
@@ -35,7 +35,7 @@ export interface OrderItemRow {
   quantity: number;
 }
 
-/** Comanda + date client/livrare + linii — ecranul /comenzi/[id]. */
+/** Comanda + date client/livrare + linii - ecranul /comenzi/[id]. */
 export interface OrderDetail extends Order {
   clientName: string;
   clientCui: string;

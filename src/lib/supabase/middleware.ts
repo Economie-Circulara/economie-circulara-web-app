@@ -13,7 +13,7 @@ import {
 const PUBLIC_PREFIXES = ["/login", "/forgot-password", "/set-password", "/auth", "/showcase"];
 
 /**
- * Pagina dedicata organizatiilor suspendate (T2.1) — trebuie exclusa din verificarea
+ * Pagina dedicata organizatiilor suspendate (T2.1) - trebuie exclusa din verificarea
  * de status ca sa nu se auto-redirecteze la infinit; ramane accesibila oricarui
  * utilizator autentificat (inclusiv ca sa se poata delogheze de acolo).
  */

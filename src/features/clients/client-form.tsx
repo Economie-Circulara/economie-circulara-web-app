@@ -19,9 +19,9 @@ export interface ClientFormProps {
 /**
  * Formular client, refolosit la creare (`/clienti/nou`) si editare
  * (`/clienti/[id]`). La creare: camp CUI + buton "Caută" apeleaza direct
- * `lookupCuiAction` (nu e un submit de formular — e o precompletare) si umple
+ * `lookupCuiAction` (nu e un submit de formular - e o precompletare) si umple
  * denumire/adresă/reg.com/TVA, ramanand complet editabile manual (lookup-ul
- * ANAF poate esua sau poate sa nu gaseasca firma — vezi cui-lookup.ts).
+ * ANAF poate esua sau poate sa nu gaseasca firma - vezi cui-lookup.ts).
  */
 export function ClientForm({ mode, action, initialState, client }: ClientFormProps) {
   const [state, formAction, pending] = useActionState(action, initialState);
@@ -53,7 +53,7 @@ export function ClientForm({ mode, action, initialState, client }: ClientFormPro
         setIsVatPayer(result.isVatPayer);
         setLookupMessage({
           tone: "success",
-          text: "Date precompletate din ANAF — verifică și confirmă.",
+          text: "Date precompletate din ANAF - verifică și confirmă.",
         });
       } else {
         setLookupMessage({
@@ -78,7 +78,7 @@ export function ClientForm({ mode, action, initialState, client }: ClientFormPro
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <FormField label="CUI" required hint='Fără "RO" — se normalizează automat.'>
+          <FormField label="CUI" required hint='Fără "RO" - se normalizează automat.'>
             {(id) => (
               <div className="flex gap-2">
                 <Input

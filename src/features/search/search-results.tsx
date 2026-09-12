@@ -24,7 +24,7 @@ export function SearchResults({ query, groups }: SearchResultsProps) {
     return (
       <EmptyState
         icon={<Search />}
-        title={`Niciun rezultat pentru „${query}”`}
+        title={`Niciun rezultat pentru "${query}"`}
         description="Încearcă alți termeni sau verifică ortografia."
       />
     );

@@ -3,7 +3,7 @@ import type { Database } from "@/lib/database.types";
 export type OrderLinkType = Database["public"]["Enums"]["order_link_type"];
 export type UnitOfMeasure = Database["public"]["Enums"]["unit_of_measure"];
 
-/** Tipul de flux disponibil din UI — "replacement" nu se creeaza direct (efect al "warranty"). */
+/** Tipul de flux disponibil din UI - "replacement" nu se creeaza direct (efect al "warranty"). */
 export type ReturnFlowType = Extract<OrderLinkType, "return" | "warranty">;
 
 /** O linie ceruta la crearea unei comenzi-retur/garanție (cantitati editabile, pot fi partiale). */
@@ -13,7 +13,7 @@ export interface ReturnItemInput {
   quantity: number;
 }
 
-/** Input-ul `createReturnAction` — interfata publica consumata si de Task H (portal client). */
+/** Input-ul `createReturnAction` - interfata publica consumata si de Task H (portal client). */
 export interface CreateReturnInput {
   originalOrderId: string;
   type: ReturnFlowType;
@@ -30,7 +30,7 @@ export type CreateReturnResult =
   | { returnOrderId: string; replacementOrderId: string | null }
   | { error: string };
 
-/** Rezultatul `acceptReturnAction` — FormState-style, ca `OrderTransitionState`. */
+/** Rezultatul `acceptReturnAction` - FormState-style, ca `OrderTransitionState`. */
 export interface AcceptReturnResult {
   error: string | null;
 }
@@ -41,7 +41,7 @@ export interface ReturnableItem {
   itemId: string;
   itemTitle: string;
   unit: UnitOfMeasure;
-  /** Cantitatea din linia originala (livrata — fara livrari partiale, vezi AGENTS.md). */
+  /** Cantitatea din linia originala (livrata - fara livrari partiale, vezi AGENTS.md). */
   orderedQuantity: number;
   /** Suma cantitatilor deja cerute in comenzi-retur/garantie NEANULATE pentru acest item. */
   alreadyReturnedQuantity: number;

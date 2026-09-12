@@ -3,12 +3,12 @@ import type { SankeyData, SankeyLink, SankeyNode } from "@/features/production/s
 import type { DeliveredLotLine, MaterialOriginRow, RawLot, TraceabilityRawData } from "./types";
 
 /**
- * Constructia graf-ului de trasabilitate — Task G, sectiunea 1 din
+ * Constructia graf-ului de trasabilitate - Task G, sectiunea 1 din
  * docs/plans/task-g-certificate.md. Traversare de graf PURA (fara Supabase),
  * testabila cu date mock (traceability.test.ts): pornind de la loturile efectiv
  * livrate (consumate la acceptarea comenzii), mergem INAPOI prin
  * `process_outputs` -> `processes` -> `process_inputs` -> loturi de materie
- * prima, recursiv, pana la loturi fara proces care le-a produs ("surse" —
+ * prima, recursiv, pana la loturi fara proces care le-a produs ("surse" -
  * achizitie/retur/ajustare/reciclare sau recondiționare directa fara lant
  * anterior cunoscut).
  *
@@ -16,16 +16,16 @@ import type { DeliveredLotLine, MaterialOriginRow, RawLot, TraceabilityRawData }
  * "lot" (fiecare lot, la orice nivel) -> "process" (proces de transformare) ->
  * ... -> "delivery" (produsul efectiv livrat pe aceasta comanda). Coloana
  * fiecarui nod se calculeaza dinamic (nu e fixa la 3 ca la Sankey-ul de proces
- * unic — un certificat poate avea lanturi de adancimi diferite, ex.
+ * unic - un certificat poate avea lanturi de adancimi diferite, ex.
  * recondiționare urmata de o noua productie).
  *
- * Alocarea cantitatilor (mass-balance simplificat, fara conversii de UM — vezi
+ * Alocarea cantitatilor (mass-balance simplificat, fara conversii de UM - vezi
  * AGENTS.md §4 "Un UM unic per produs; fara conversii intre unitati"): daca
  * dintr-un lot produs in cantitate `totalOutputQty` de un proces s-a consumat
  * doar `qty` pentru aceasta comanda, presupunem un amestec omogen si atribuim
  * fiecarui input al procesului o cota proportionala `qty / totalOutputQty`.
  * Aceeasi cota se propaga recursiv in adancime. Nu se valideaza randamentul
- * (pierderile de proces raman doar informative — AGENTS.md §4), deci suma
+ * (pierderile de proces raman doar informative - AGENTS.md §4), deci suma
  * cantitatilor atribuite surselor poate sa nu acopere exact 100% din masa
  * initiala a proceselor intermediare; procentele din tabelul "Materiale și
  * origine" insumeaza mereu 100% intre ele (sunt normalizate la finalul livrat).
@@ -70,7 +70,7 @@ function addMaterial(ctx: BuildContext, lot: RawLot, qty: number): void {
   ctx.materials.set(key, {
     material: lot.itemTitle,
     origin: PROVENANCE_LABELS[lot.provenance],
-    source: lot.source ?? "—",
+    source: lot.source ?? "-",
     quantity: qty,
     unit: lot.unit,
     percentage: 0, // completat la final, dupa ce se cunoaste totalul
@@ -80,7 +80,7 @@ function addMaterial(ctx: BuildContext, lot: RawLot, qty: number): void {
 /**
  * Rezolva un lot (recursiv, inapoi in lant) si intoarce nodul terminal ("lot")
  * plus coloana lui. `ancestry` e o garda anti-ciclu (datele ar trebui sa fie
- * mereu un DAG — loturile se creeaza o singura data — dar o bucla in date
+ * mereu un DAG - loturile se creeaza o singura data - dar o bucla in date
  * corupte nu trebuie sa blocheze generarea certificatului).
  */
 function resolveLot(
@@ -93,7 +93,7 @@ function resolveLot(
   const lot = ctx.data.lots[lotId];
   if (!lot) {
     // Lot referit dar nu a fost incarcat (nu ar trebui sa se intample daca
-    // repository.ts si-a facut treaba) — tratam ca sursa necunoscuta, defensiv.
+    // repository.ts si-a facut treaba) - tratam ca sursa necunoscuta, defensiv.
     const nodeId = nextId(ctx, "unknown");
     ctx.nodes.set(nodeId, {
       id: nodeId,
@@ -202,7 +202,7 @@ export interface BuiltTraceabilityGraph {
 /**
  * Construieste graful complet (surse -> loturi -> procese -> ... -> livrare)
  * plus tabelul "Materiale si origine" (procent per sursa/provenienta), pornind
- * de la loturile efectiv livrate pe o comanda. Functie PURA — nicio dependenta
+ * de la loturile efectiv livrate pe o comanda. Functie PURA - nicio dependenta
  * de Supabase; testabila direct cu date mock (vezi traceability.test.ts).
  */
 export function buildTraceabilityGraph(data: TraceabilityRawData): BuiltTraceabilityGraph {

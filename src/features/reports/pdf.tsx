@@ -4,11 +4,11 @@ import { PDF_FONT_FAMILY, registerPdfFonts } from "@/lib/pdf/fonts";
 import { formatRangeLabel, type DateRange } from "./period";
 
 /**
- * PDF generic de raport (Task X3) — acelasi motor ca certificatele
+ * PDF generic de raport (Task X3) - acelasi motor ca certificatele
  * (`certificates/pdf.tsx`): `@react-pdf/renderer`, randare pur JS (fara Chromium,
  * potrivit pt. Vercel serverless). Un singur layout tabelar (antet white-label +
  * titlu + perioada + tabel + rand de total optional) reutilizat de toate cele 6
- * rapoarte — doar datele (coloane/randuri) difera per raport.
+ * rapoarte - doar datele (coloane/randuri) difera per raport.
  */
 
 const DEFAULT_BRAND_COLOR = "#2b3a2f";
@@ -21,7 +21,7 @@ export interface ReportPdfColumn {
   header: string;
   /** `"right"` pt. coloane numerice. Implicit `"left"`. */
   align?: "left" | "right";
-  /** Ponderea relativa a coloanei (flex) — implicit 1. */
+  /** Ponderea relativa a coloanei (flex) - implicit 1. */
   flex?: number;
 }
 
@@ -153,7 +153,7 @@ export function ReportPdfDocument({
                     key={col.key}
                     style={[styles.td, { flex: col.flex ?? 1, textAlign: col.align ?? "left" }]}
                   >
-                    {row[col.key] ?? "—"}
+                    {row[col.key] ?? "-"}
                   </Text>
                 ))}
               </View>
@@ -184,7 +184,7 @@ export function ReportPdfDocument({
   );
 }
 
-/** Randeaza PDF-ul unui raport (buffer) — apelat din rutele de export. */
+/** Randeaza PDF-ul unui raport (buffer) - apelat din rutele de export. */
 export async function renderReportPdf(props: ReportPdfDocumentProps): Promise<Buffer> {
   const element = createElement(ReportPdfDocument, props);
   // Vezi comentariul echivalent din `certificates/service.ts#renderCertificatePdf`:

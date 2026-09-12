@@ -16,7 +16,7 @@ function revalidateIfRequested(formData: FormData): void {
 }
 
 /**
- * Incarca un document nou (formularul `DocumentUpload`). Genericã — folosita de
+ * Incarca un document nou (formularul `DocumentUpload`). Genericã - folosita de
  * orice feature care ataseaza documente unui owner (client/order/item); consumatorul
  * seteaza `owner_type` / `owner_id` / `revalidate_path` ca hidden fields.
  */
@@ -47,7 +47,7 @@ export async function uploadDocumentAction(
   return { error: null };
 }
 
-/** Sterge un document — restrictionat la staff in `deleteDocument` (service.ts). */
+/** Sterge un document - restrictionat la staff in `deleteDocument` (service.ts). */
 export async function deleteDocumentAction(
   _prev: DocumentActionState,
   formData: FormData,

@@ -62,7 +62,7 @@ describe("stockEventsToCsv", () => {
       .trim()
       .split("\r\n");
 
-    expect(row.split(",")[3]).toBe("—");
+    expect(row.split(",")[3]).toBe("-");
   });
 
   it("foloseste eticheta romaneasca pentru tipul evenimentului", () => {

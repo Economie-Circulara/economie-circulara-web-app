@@ -15,7 +15,7 @@ export class SlugTakenError extends Error {
 
 /**
  * Trimiterea invitatiei catre adminul initial a esuat (ex. exista deja un cont
- * Supabase Auth cu acest email). Organizatia RAMANE creata — apelantul trebuie sa
+ * Supabase Auth cu acest email). Organizatia RAMANE creata - apelantul trebuie sa
  * permita re-incercarea, nu sa ascunda starea partiala.
  */
 export class InviteFailedError extends Error {
@@ -27,7 +27,7 @@ export class InviteFailedError extends Error {
 
 /**
  * Invitatia a plecat (cont Auth creat), dar profilul din `profiles` nu a putut fi
- * salvat. Starea e si mai partiala decat `InviteFailedError` — contul Auth exista
+ * salvat. Starea e si mai partiala decat `InviteFailedError` - contul Auth exista
  * deja, deci re-incercarea trebuie tratata separat (in UI: mesaj clar + suport).
  */
 export class ProfileCreateFailedError extends Error {
@@ -40,7 +40,7 @@ export class ProfileCreateFailedError extends Error {
 /**
  * Creeaza randul organizatiei (clientul admin service-role, cerut de Task I: operatie
  * de administrare a platformei, nu tine de sesiunea/RLS-ul unui tenant). Nu invita
- * inca adminul — pasii sunt separati explicit ca sa poata fi re-incercati independent.
+ * inca adminul - pasii sunt separati explicit ca sa poata fi re-incercati independent.
  */
 export async function createOrganizationRow(name: string, slug: string): Promise<string> {
   const admin = createAdminClient();
@@ -94,7 +94,7 @@ export async function inviteOrganizationAdmin(
  * Suspenda/reactiveaza o organizatie. Foloseste clientul de sesiune (nu service-role):
  * RLS (`organizations_update`) permite explicit super-adminului sa modifice orice
  * organizatie (`app.is_admin_of` include `app.is_super_admin()`), deci nu e nevoie sa
- * ocolim RLS aici — pastram operatia auditabila prin identitatea apelantului.
+ * ocolim RLS aici - pastram operatia auditabila prin identitatea apelantului.
  */
 export async function setOrganizationStatus(
   organizationId: string,

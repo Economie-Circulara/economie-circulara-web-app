@@ -24,7 +24,7 @@ export function LotForm({ items }: { items: ItemOption[] }) {
         <CardHeader>
           <CardTitle>Detalii lot</CardTitle>
           <CardDescription>
-            Înregistrează un nou lot cu proveniență — creează automat și evenimentul de intrare în
+            Înregistrează un nou lot cu proveniență - creează automat și evenimentul de intrare în
             audit-ul de stoc.
           </CardDescription>
         </CardHeader>

@@ -48,7 +48,7 @@ export interface CartContextValue {
   addItem: (line: CartLine) => void;
   removeItem: (itemId: string) => void;
   setQuantity: (itemId: string, quantity: number) => void;
-  /** Inlocuieste tot cosul (folosit de „Repetă comanda"). */
+  /** Inlocuieste tot cosul (folosit de "Repetă comanda"). */
   replaceCart: (lines: CartLine[]) => void;
   clearCart: () => void;
   totalLines: number;
@@ -58,9 +58,9 @@ export interface CartContextValue {
 const CartContext = createContext<CartContextValue | null>(null);
 
 /**
- * Cosul clientului: stare client-side (nu persista in DB pana la „Trimite
+ * Cosul clientului: stare client-side (nu persista in DB pana la "Trimite
  * comanda"), sincronizata cu `localStorage` ca sa supravietuiasca navigarii intre
- * `/catalog` si `/comenzile-mele` (necesar pentru „Repetă comanda" — vezi
+ * `/catalog` si `/comenzile-mele` (necesar pentru "Repetă comanda" - vezi
  * `repeat-order-button.tsx`, care apeleaza `replaceCart` apoi navigheaza la
  * `/catalog`). Montat o singura data in `(client)/layout.tsx`.
  */
@@ -71,7 +71,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     try {
       window.localStorage.setItem(STORAGE_KEY, JSON.stringify(lines));
     } catch {
-      // localStorage indisponibil (mod privat/quota) — cosul ramane doar in memorie.
+      // localStorage indisponibil (mod privat/quota) - cosul ramane doar in memorie.
     }
   }, [lines]);
 

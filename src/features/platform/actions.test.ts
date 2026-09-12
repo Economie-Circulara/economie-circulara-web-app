@@ -124,7 +124,7 @@ describe("createOrganizationAction", () => {
     expect(inviteOrganizationAdmin).not.toHaveBeenCalled();
   });
 
-  it("esec partial: organizatia e creata dar invitatia esueaza — starea pastreaza organizationId (nu se ascunde)", async () => {
+  it("esec partial: organizatia e creata dar invitatia esueaza - starea pastreaza organizationId (nu se ascunde)", async () => {
     createOrganizationRow.mockResolvedValue("org-1");
     inviteOrganizationAdmin.mockRejectedValue(new InviteFailedError("cont deja existent"));
 

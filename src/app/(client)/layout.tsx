@@ -30,8 +30,8 @@ export default async function ClientLayout({ children }: { children: React.React
         logoUrl={logoUrl}
         items={items}
       />
-      {/* Cosul (catalog -> comanda) traieste in tot portalul, nu doar pe /catalog —
-          necesar pentru „Repetă comanda" din /comenzile-mele/[id], care populeaza
+      {/* Cosul (catalog -> comanda) traieste in tot portalul, nu doar pe /catalog -
+          necesar pentru "Repetă comanda" din /comenzile-mele/[id], care populeaza
           cosul si navigheaza la /catalog. */}
       <CartProvider>{children}</CartProvider>
     </AppShell>

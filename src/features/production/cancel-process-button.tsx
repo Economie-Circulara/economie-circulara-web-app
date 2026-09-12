@@ -23,7 +23,7 @@ export function CancelProcessButton({ processId }: { processId: string }) {
   return (
     <div className="flex flex-col items-end gap-1">
       <Button variant="outline" onClick={onCancel} disabled={isPending}>
-        {isPending ? "Se anulează…" : "Anulează procesul"}
+        {isPending ? "Se anulează..." : "Anulează procesul"}
       </Button>
       {error ? <p className="text-xs text-danger">{error}</p> : null}
     </div>

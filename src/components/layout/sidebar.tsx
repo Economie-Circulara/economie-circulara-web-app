@@ -32,7 +32,7 @@ import {
 } from "@/components/ui/sheet";
 
 /**
- * Maparea cheie de icon → componenta Lucide. Trebuie sa stea in acest modul
+ * Maparea cheie de icon -> componenta Lucide. Trebuie sa stea in acest modul
  * client: `nav-config.ts` e importat si de layout-urile server, iar o referinta
  * de componenta nu poate traversa granita RSC (vezi comentariul din nav-config.ts).
  */

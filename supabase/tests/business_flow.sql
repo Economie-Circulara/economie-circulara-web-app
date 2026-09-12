@@ -1,5 +1,5 @@
 -- =============================================================================
--- Teste FUNCTIONALE pe regulile de business (nu pe izolarea RLS — aceea e in
+-- Teste FUNCTIONALE pe regulile de business (nu pe izolarea RLS - aceea e in
 -- `rls_isolation.sql`). Verifica INVARIANTII fluxului MVP direct pe RPC-urile
 -- Postgres, acolo unde trăiește logica: scaderea stocului la acceptarea comenzii,
 -- ordinea FIFO, sarirea loturilor blocate, atomicitatea la stoc insuficient,
@@ -10,14 +10,14 @@
 -- de UI le-ar putea masca, iar un test de UI (Playwright) le-ar verifica indirect
 -- si lent. Aici sunt verificate la sursa, deterministic.
 --
--- RULARE (psql nu e instalat local — se ruleaza prin containerul Supabase):
+-- RULARE (psql nu e instalat local - se ruleaza prin containerul Supabase):
 --   docker exec -i supabase_db_<proiect> psql -U postgres -d postgres \
 --     -v ON_ERROR_STOP=1 < supabase/tests/business_flow.sql
 --
 -- PRECONDITIE: `supabase db reset` rulat (migrarile 0000-0016 + `supabase/seed.sql`).
 -- Testele presupun datele demo din seed (organizatia "Lateris Demo").
 --
--- IMPORTANT — fiecare test ruleaza in `begin; ... rollback;` cu
+-- IMPORTANT - fiecare test ruleaza in `begin; ... rollback;` cu
 -- `set local role authenticated` + JWT claims, deci:
 --   (a) RLS se aplica cu identitatea unui user real (nu ca `postgres`);
 --   (b) NU lasa nicio urma in baza de date (spre deosebire de `rls_isolation.sql`,
@@ -218,7 +218,7 @@ begin;
 rollback;
 
 -- ===========================================================================
--- B6: set_lot_block — blocarea cere motiv, scoate lotul din disponibil,
+-- B6: set_lot_block - blocarea cere motiv, scoate lotul din disponibil,
 --     deblocarea il readuce
 -- ===========================================================================
 begin;
@@ -271,7 +271,7 @@ begin;
 rollback;
 
 -- ===========================================================================
--- B7: accept_order — REGULA CENTRALA: stocul se scade la ACCEPTARE
+-- B7: accept_order - REGULA CENTRALA: stocul se scade la ACCEPTARE
 -- CMD-2026-0002 e 'sent' cu 10 Nisip; lotul de nisip are 54 => 44.
 -- ===========================================================================
 begin;
@@ -362,7 +362,7 @@ begin;
 rollback;
 
 -- ===========================================================================
--- B10: confirm_process — consuma inputuri si creeaza loturi de output, cu
+-- B10: confirm_process - consuma inputuri si creeaza loturi de output, cu
 --      trasabilitate (process_inputs / process_outputs)
 -- Reciclare: 20 Moloz => 12 Nisip + 6 Pietris (pierdere 2 doar inregistrata).
 -- ===========================================================================
@@ -414,7 +414,7 @@ begin;
 rollback;
 
 -- ===========================================================================
--- B11: recondiționare — `reconditioning` e o provenienta VALIDA si distincta
+-- B11: recondiționare - `reconditioning` e o provenienta VALIDA si distincta
 --      (cerinta d din Anexa 1: recondiționarea trebuie sa apara distinct)
 -- ===========================================================================
 begin;
@@ -436,7 +436,7 @@ begin;
 rollback;
 
 -- ===========================================================================
--- B12: accept_return_order — materialele returnate REINTRA in stoc ca lot nou
+-- B12: accept_return_order - materialele returnate REINTRA in stoc ca lot nou
 --      cu provenienta `return`, si doar pentru o comanda legata ca retur
 -- ===========================================================================
 begin;

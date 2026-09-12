@@ -30,7 +30,7 @@ function parseQty(value: FormDataEntryValue | null): number | null {
 
 /**
  * Liniile comenzii vin ca perechi de campuri repetate `item_id`/`quantity` (aceeasi
- * pozitie in FormData = aceeasi linie) — vezi `OrderLinesEditor` (client component),
+ * pozitie in FormData = aceeasi linie) - vezi `OrderLinesEditor` (client component),
  * care randeaza cate un input pentru fiecare linie din starea locala. Liniile
  * incomplete (item lipsa sau cantitate invalida) sunt ignorate silentios aici;
  * `createOrderAction` respinge cererea daca nu ramane nicio linie valida.
@@ -48,7 +48,7 @@ function readLines(formData: FormData): OrderLineInput[] {
   return lines;
 }
 
-/** Creeaza o comanda noua in numele unui client (`created_by_admin=true`) — doar staff. */
+/** Creeaza o comanda noua in numele unui client (`created_by_admin=true`) - doar staff. */
 export async function createOrderAction(
   _prev: OrderFormState,
   formData: FormData,
@@ -88,9 +88,9 @@ export async function createOrderAction(
 
 /**
  * Executa o tranzitie de status care NU are efecte de stoc (send/deliver/close):
- * verifica masina de stari fata de statusul curent (citit direct din DB — staff-ul
+ * verifica masina de stari fata de statusul curent (citit direct din DB - staff-ul
  * are RLS `FOR ALL`, deci fara garda de tranzitie la nivel de DB pentru el, spre
- * deosebire de client — vezi 0003_client_write_hardening.sql), aplica schimbarea,
+ * deosebire de client - vezi 0003_client_write_hardening.sql), aplica schimbarea,
  * apoi emite `onOrderStatusChanged`.
  */
 async function runPlainTransition(
@@ -138,7 +138,7 @@ export async function sendOrderAction(
 
 /**
  * Accepta o comanda `sent`: scade stocul FIFO pentru fiecare linie (RPC
- * `accept_order`, atomic — stoc insuficient face rollback complet, comanda ramane
+ * `accept_order`, atomic - stoc insuficient face rollback complet, comanda ramane
  * `sent`). Masina de stari e validata si aici (client-side/TS), dar sursa de
  * adevar a atomicitatii e RPC-ul din 0007_orders_ops.sql.
  */
@@ -223,7 +223,7 @@ export async function deliverOrderAction(
 
 /**
  * Inchide o comanda livrata. Punct de intrare pentru Task G (certificat de
- * trasabilitate, generat automat la inchiderea comenzii — AGENTS.md §4):
+ * trasabilitate, generat automat la inchiderea comenzii - AGENTS.md §4):
  * `onOrderStatusChanged` primeste evenimentul cu `toStatus: 'closed'`, Task G
  * branseaza acolo generarea certificatului (snapshot trasabilitate + PDF +
  * Storage) fara sa mai modifice acest fisier.

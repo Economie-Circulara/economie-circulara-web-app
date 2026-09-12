@@ -8,14 +8,14 @@ Acest folder contine toate documentele de analiza, cerinte si design pentru plat
 
 | Fisier                                                 | Descriere                                                                                                                                                           |
 | ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [handoff-sesiune-2026-09-12.md](handoff-sesiune-2026-09-12.md) | **Starea tehnica si ce urmeaza — punct de start pentru oricine preia lucrul.** Ce era stricat si s-a reparat (4 bug-uri invizibile pentru build), plasele de siguranta noi, capcanele Postgres/RSC, prioritatile clientului si deciziile care il asteapta. |
+| [handoff-sesiune-2026-09-12.md](handoff-sesiune-2026-09-12.md) | **Starea tehnica si ce urmeaza - punct de start pentru oricine preia lucrul.** Ce era stricat si s-a reparat (4 bug-uri invizibile pentru build), plasele de siguranta noi, capcanele Postgres/RSC, prioritatile clientului si deciziile care il asteapta. |
 | [handoff.md](handoff.md)                               | **Punct de start recomandat.** Rezumat complet al tuturor deciziilor luate: stack, roluri, multi-tenant, stoc, productie, certificate, MVP.                         |
-| [anexa-1-specificatii-tehnice.md](anexa-1-specificatii-tehnice.md) | **Anexa 1 — specificatiile tehnice depuse pentru finantarea europeana.** Document de referinta contractual: platforma trebuie sa le respecte.          |
+| [anexa-1-specificatii-tehnice.md](anexa-1-specificatii-tehnice.md) | **Anexa 1 - specificatiile tehnice depuse pentru finantarea europeana.** Document de referinta contractual: platforma trebuie sa le respecte.          |
 | [analiza-conformitate-anexa.md](analiza-conformitate-anexa.md)     | Gap analysis Anexa 1 vs. plan: ce e acoperit / partial / lipsa, plus requirements noi (e-Transport, GPS v2).                                           |
-| [anexa-1-modificari-propuse.md](anexa-1-modificari-propuse.md)     | Modificarile aplicate pe draftul Anexei 1, cu motivatia fiecareia — de validat cu echipa de proiect inainte de depunere (include intrebarea despre contracte). |
-| [cerere-finantare-client-paas.pdf](cerere-finantare-client-paas.pdf) | Extras din cererea de fonduri nerambursabile a unui viitor client (depusa, in evaluare): modelul PaaS „beton ca serviciu" promis finantatorului sau.  |
-| [analiza-cerere-finantare-client-paas.md](analiza-cerere-finantare-client-paas.md) | Analiza cererii clientului: diferentele fata de platforma („timp real", CO2 „automat"), maparea acum/v2 si strategia (contract de licenta + fisa tehnica). |
-| [analiza-standarde-certificat.md](analiza-standarde-certificat.md) | **Spike S2 — standarde legale RO/EU pentru certificatul de trasabilitate.** Ce e obligatoriu (DoP/marcaj CE, evidenta deseurilor, e-Transport) vs. voluntar, continutul minim recomandat pe campuri, delta fata de certificatul implementat si textul de disclaimer propus. |
+| [anexa-1-modificari-propuse.md](anexa-1-modificari-propuse.md)     | Modificarile aplicate pe draftul Anexei 1, cu motivatia fiecareia - de validat cu echipa de proiect inainte de depunere (include intrebarea despre contracte). |
+| [cerere-finantare-client-paas.pdf](cerere-finantare-client-paas.pdf) | Extras din cererea de fonduri nerambursabile a unui viitor client (depusa, in evaluare): modelul PaaS "beton ca serviciu" promis finantatorului sau.  |
+| [analiza-cerere-finantare-client-paas.md](analiza-cerere-finantare-client-paas.md) | Analiza cererii clientului: diferentele fata de platforma ("timp real", CO2 "automat"), maparea acum/v2 si strategia (contract de licenta + fisa tehnica). |
+| [analiza-standarde-certificat.md](analiza-standarde-certificat.md) | **Spike S2 - standarde legale RO/EU pentru certificatul de trasabilitate.** Ce e obligatoriu (DoP/marcaj CE, evidenta deseurilor, e-Transport) vs. voluntar, continutul minim recomandat pe campuri, delta fata de certificatul implementat si textul de disclaimer propus. |
 | [cerinte-clarificari.md](cerinte-clarificari.md)       | Document de lucru cu toate intrebarile de clarificare si raspunsurile lor, sectiune cu sectiune.                                                                    |
 | [review-cerinte.md](review-cerinte.md)                 | Sumar al deciziilor si intrebarilor deschise (A-J), cu raspunsuri.                                                                                                  |
 | [brain-dump.md](brain-dump.md)                         | Brain dump-ul initial al clientului - ideile brute de la care s-a pornit analiza.                                                                                   |
@@ -24,14 +24,14 @@ Acest folder contine toate documentele de analiza, cerinte si design pentru plat
 ## Manual
 
 Folderul [`manual/`](manual/) contine documentatia de utilizare si administrare a
-platformei (Task X6 — livrabil obligatoriu Anexa 1: manual de utilizare, ghid de
+platformei (Task X6 - livrabil obligatoriu Anexa 1: manual de utilizare, ghid de
 administrare, plan de instruire). Punct de start: [`manual/README.md`](manual/README.md).
 
 | Fisier                                                     | Descriere                                                                                          |
 | ----------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| [manual/README.md](manual/README.md)                       | Cuprins — pentru cine e fiecare document, nota despre capturi de ecran (de adaugat ulterior).      |
-| [manual/utilizare-admin-operator.md](manual/utilizare-admin-operator.md) | Manual pas-cu-pas pentru rolurile Administrator/Operator — tot fluxul de business (ecrane reale). |
-| [manual/utilizare-client.md](manual/utilizare-client.md)   | Manual pas-cu-pas pentru rolul Client — portalul de catalog/comenzi/documente.                     |
+| [manual/README.md](manual/README.md)                       | Cuprins - pentru cine e fiecare document, nota despre capturi de ecran (de adaugat ulterior).      |
+| [manual/utilizare-admin-operator.md](manual/utilizare-admin-operator.md) | Manual pas-cu-pas pentru rolurile Administrator/Operator - tot fluxul de business (ecrane reale). |
+| [manual/utilizare-client.md](manual/utilizare-client.md)   | Manual pas-cu-pas pentru rolul Client - portalul de catalog/comenzi/documente.                     |
 | [manual/ghid-administrare.md](manual/ghid-administrare.md) | Setari organizatie, useri, super-admin, operare tehnica (Supabase/Vercel/migrari/backup).           |
 | [manual/instruire.md](manual/instruire.md)                 | Plan de sesiuni de instruire a utilizatorilor desemnati, pe rol.                                    |
 
@@ -59,13 +59,13 @@ Folderul [`design/`](design/) contine exportul din Claude Design:
 ## Flux complet MVP (rezumat)
 
 1. Creare organizatie + useri
-2. Creare client (lookup CUI → precompletare → confirmare)
+2. Creare client (lookup CUI -> precompletare -> confirmare)
 3. Definire itemi cu retete
 4. Intrare stoc cu lot si documente
-5. Proces reciclare (input → confirmare output manual → loturi noi)
-6. Productie (cantitate output → consum FIFO automat → loturi noi)
+5. Proces reciclare (input -> confirmare output manual -> loturi noi)
+6. Productie (cantitate output -> consum FIFO automat -> loturi noi)
 7. Comanda (client sau admin)
-8. Acceptare comanda → scadere stoc
-9. Livrare → inchidere → generare certificat PDF automat
+8. Acceptare comanda -> scadere stoc
+9. Livrare -> inchidere -> generare certificat PDF automat
 
 **Termen MVP:** august 2026

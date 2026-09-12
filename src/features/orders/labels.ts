@@ -22,7 +22,7 @@ export const ORDER_STATUS_OPTIONS: OrderStatus[] = [
 /**
  * Cheia din `STATUS_REGISTRY.order` (src/components/status-badge.tsx) pentru fiecare
  * valoare din enum-ul DB `order_status`. Registrul de statusuri e definit cu chei
- * din mockup (romana) si nu poate fi modificat din acest task (fisier partajat) —
+ * din mockup (romana) si nu poate fi modificat din acest task (fisier partajat) -
  * toate cele 6 statusuri de comanda au deja o cheie acolo, doar denumite diferit
  * fata de enum (`sent` -> `trimisa`, `accepted` -> `acceptata` etc.), acelasi
  * pattern ca `PROVENANCE_BADGE_STATUS` in src/features/stock/labels.ts.

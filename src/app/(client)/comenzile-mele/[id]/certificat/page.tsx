@@ -7,14 +7,14 @@ import { getCertificateByOrderId } from "@/features/certificates/service";
 import { listDocuments } from "@/features/documents/service";
 import { getOrderDetail } from "@/features/orders/queries";
 
-export const metadata = { title: "Certificat de trasabilitate — Lateris Trace" };
+export const metadata = { title: "Certificat de trasabilitate - Lateris Trace" };
 
 interface CertificatePageProps {
   params: Promise<{ id: string }>;
 }
 
 /**
- * Certificatul unei comenzi proprii — acelasi `CertificateView` folosit si de
+ * Certificatul unei comenzi proprii - acelasi `CertificateView` folosit si de
  * staff (`src/app/(admin)/comenzi/[id]/certificat/page.tsx`, Task G): componenta
  * randeaza doar din snapshot-ul inghetat, fara acces la stoc/procese live.
  * `getOrderDetail`/`getCertificateByOrderId`/`listDocuments` sunt toate RLS-scoped

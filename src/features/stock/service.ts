@@ -62,7 +62,7 @@ export interface CreateLotInput {
 }
 
 /**
- * Creeaza un lot nou + scrie `stock_events` (tip `intake`) — atomic, prin RPC-ul
+ * Creeaza un lot nou + scrie `stock_events` (tip `intake`) - atomic, prin RPC-ul
  * Postgres `create_lot` (vezi migrarea 0004 pentru justificarea SECURITY INVOKER).
  */
 export async function createLot(input: CreateLotInput): Promise<Lot> {
@@ -101,7 +101,7 @@ export interface ConsumedLot {
 
 /**
  * Consuma dintr-un item cantitatea `qty`, FIFO implicit (ordinea `entry_date`) sau
- * din loturile date explicit prin `manualLotIds` — sare loturile blocate. Atomic
+ * din loturile date explicit prin `manualLotIds` - sare loturile blocate. Atomic
  * prin RPC-ul Postgres `consume_fifo`: fie se consuma toata cantitatea ceruta, fie
  * nimic (rollback pe stoc insuficient), niciodata consum partial.
  */
@@ -144,7 +144,7 @@ export interface RecordStockEventInput {
 
 /**
  * Inregistreaza manual un eveniment de stoc (ex. ajustare / stornare) care nu
- * trece prin `createLot`/`consumeFIFO`. NU modifica `lots.remaining_qty` — daca
+ * trece prin `createLot`/`consumeFIFO`. NU modifica `lots.remaining_qty` - daca
  * evenimentul trebuie sa schimbe cantitatea ramasa a unui lot, foloseste
  * `createLot`/`consumeFIFO` (atomicitate lot+eveniment garantata de RPC).
  * Un singur INSERT -> atomic implicit; organizatia se deduce din item (nu se are
@@ -227,14 +227,14 @@ export async function unblockLot(lotId: string): Promise<Lot> {
 }
 
 // -----------------------------------------------------------------------------
-// Planificare FIFO (pura, fara efecte secundare) — pt. preview in UI (ex. ecranul
+// Planificare FIFO (pura, fara efecte secundare) - pt. preview in UI (ex. ecranul
 // de productie, Task D: "Consum calculat (FIFO)") INAINTE de a apela `consumeFIFO`.
 // Oglindeste exact algoritmul din RPC-ul `consume_fifo`; sursa de adevar la scriere
-// ramane RPC-ul (atomic, pe server) — aceasta functie nu muta stoc.
+// ramane RPC-ul (atomic, pe server) - aceasta functie nu muta stoc.
 // -----------------------------------------------------------------------------
 export interface FifoCandidateLot {
   lotId: string;
-  /** ISO date (yyyy-mm-dd) — se compara lexicografic, la fel ca `order by entry_date`. */
+  /** ISO date (yyyy-mm-dd) - se compara lexicografic, la fel ca `order by entry_date`. */
   entryDate: string;
   remainingQty: number;
   isBlocked: boolean;

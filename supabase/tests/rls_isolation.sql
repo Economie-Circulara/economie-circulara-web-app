@@ -37,7 +37,7 @@ insert into public.items (id, organization_id, title, unit, sellable) values
 insert into public.orders (id, organization_id, client_id, status) values
   ('0d0d0d0d-0000-0000-0000-00000000000a','aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa','c1c1c1c1-c1c1-c1c1-c1c1-c1c1c1c1c1c1','sent'),
   ('0d0d0d0d-0000-0000-0000-00000000000b','bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb','c2c2c2c2-c2c2-c2c2-c2c2-c2c2c2c2c2c2','sent'),
-  -- comanda ACCEPTATA a clientului A (stoc deja scazut) — clientul nu o mai poate
+  -- comanda ACCEPTATA a clientului A (stoc deja scazut) - clientul nu o mai poate
   -- modifica/sterge (testele T7).
   ('0d0d0d0d-0000-0000-0000-00000000000c','aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa','c1c1c1c1-c1c1-c1c1-c1c1-c1c1c1c1c1c1','accepted');
 
@@ -200,9 +200,9 @@ begin;
 rollback;
 
 -- =============================================================================
--- Guard organizatie suspendata (Task T2.1, migrarea 0012) — a treia organizatie,
+-- Guard organizatie suspendata (Task T2.1, migrarea 0012) - a treia organizatie,
 -- SUSPENDATA de la inceput. Adaugata DUPA testele existente (id-uri noi, `cccc...`/
--- `6666...`) ca sa nu deranjeze numerotarea/assert-urile de mai sus — in special T9,
+-- `6666...`) ca sa nu deranjeze numerotarea/assert-urile de mai sus - in special T9,
 -- care numara organizatiile de test explicit prin id (`aaaa...`/`bbbb...`), deci
 -- ramane neschimbat.
 -- =============================================================================
@@ -215,7 +215,7 @@ insert into auth.users (id, instance_id, aud, role, email) values
 insert into public.profiles (id, organization_id, role, client_id) values
   ('66666666-6666-6666-6666-666666666666','cccccccc-cccc-cccc-cccc-cccccccccccc','admin',null);
 
--- item preexistent in Org C (inserat ca postgres, bypass RLS) — tinta pentru T12.
+-- item preexistent in Org C (inserat ca postgres, bypass RLS) - tinta pentru T12.
 insert into public.items (id, organization_id, title, unit, sellable) values
   ('66666666-0000-0000-0000-000000000001','cccccccc-cccc-cccc-cccc-cccccccccccc','Item Org C','bucata',true);
 
@@ -256,7 +256,7 @@ begin;
     from public.items where organization_id = 'cccccccc-cccc-cccc-cccc-cccccccccccc';
 rollback;
 
--- ===== Reactivare Org C (ca postgres, bypass RLS) — pregateste TEST 14 ==============
+-- ===== Reactivare Org C (ca postgres, bypass RLS) - pregateste TEST 14 ==============
 update public.organizations set status = 'active'
   where id = 'cccccccc-cccc-cccc-cccc-cccccccccccc';
 
@@ -279,7 +279,7 @@ begin;
 rollback;
 
 -- =============================================================================
--- Guard organizatie suspendata — completare (migrarea 0014): client_addresses
+-- Guard organizatie suspendata - completare (migrarea 0014): client_addresses
 -- (F1a) si SELECT-urile clientului (F1b). Refolosim Org C (deja ACTIVA la acest
 -- punct, dupa reactivarea din TEST 14). Adaugam un client nou in Org C (id-uri
 -- noi, `7777.../d1d1...`) ca sa nu deranjam testele 1-14 de mai sus, apoi
@@ -294,7 +294,7 @@ insert into auth.users (id, instance_id, aud, role, email) values
 insert into public.profiles (id, organization_id, role, client_id) values
   ('77777777-7777-7777-7777-777777777777','cccccccc-cccc-cccc-cccc-cccccccccccc','client','d1d1d1d1-d1d1-d1d1-d1d1-d1d1d1d1d1d1');
 
--- Comanda + adresa preexistente ale Client C1 (inserate ca postgres, bypass RLS) —
+-- Comanda + adresa preexistente ale Client C1 (inserate ca postgres, bypass RLS) -
 -- tinta pentru testele de SELECT (F1b) si UPDATE (F1a) de mai jos.
 insert into public.orders (id, organization_id, client_id, status) values
   ('0d0d0d0d-0000-0000-0000-00000000000d','cccccccc-cccc-cccc-cccc-cccccccccccc','d1d1d1d1-d1d1-d1d1-d1d1-d1d1d1d1d1d1','sent');
@@ -314,7 +314,7 @@ begin;
     from public.client_addresses where address = 'Depozit C2 (control)';
 rollback;
 
--- ===== Suspendare Org C (ca postgres) — pregateste TESTELE 16-18 (0014) ===========
+-- ===== Suspendare Org C (ca postgres) - pregateste TESTELE 16-18 (0014) ===========
 update public.organizations set status = 'suspended'
   where id = 'cccccccc-cccc-cccc-cccc-cccccccccccc';
 
@@ -357,7 +357,7 @@ begin;
     from public.client_addresses where id = 'a1a1a1a1-a1a1-a1a1-a1a1-a1a1a1a1a1a1';
 rollback;
 
--- ===== Reactivare Org C (ca postgres) — pregateste TEST 19 =========================
+-- ===== Reactivare Org C (ca postgres) - pregateste TEST 19 =========================
 update public.organizations set status = 'active'
   where id = 'cccccccc-cccc-cccc-cccc-cccccccccccc';
 

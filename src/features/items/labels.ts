@@ -10,7 +10,7 @@ export const KIND_OPTIONS: ItemKind[] = ["physical", "service"];
 
 /**
  * Culoarea badge-ului de tip. Nu folosim `STATUS_REGISTRY`
- * (src/components/status-badge.tsx) — e un registru partajat cu chei fixe pentru
+ * (src/components/status-badge.tsx) - e un registru partajat cu chei fixe pentru
  * alte featuri; itemii au propriul badge, construit direct pe `Badge`.
  */
 export const KIND_BADGE_VARIANT: Record<ItemKind, BadgeVariant> = {

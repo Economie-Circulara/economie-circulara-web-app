@@ -9,7 +9,12 @@ export interface BrandTheme {
 
 /**
  * White labeling per organizatie: suprascrie tokenii --brand / --accent in runtime.
- * Toti tokenii semantici (--primary, --ring, ...) deriva din ei, deci se reculoreaza tot.
+ *
+ * --primary si --ring sunt declarati o singura data in globals.css, la nivel de :root,
+ * ca `var(--brand)`. Valoarea calculata a unei proprietati CSS custom se fixeaza pe
+ * elementul unde e declarata (aici :root), asa ca suprascrierea lui --brand pe un div
+ * descendent nu se propaga inapoi la --primary/--ring (ele raman "inghetate" la
+ * valoarea din :root). De aceea trebuie suprascrise explicit si tokenii derivati.
  */
 export function BrandProvider({
   theme,
@@ -19,7 +24,11 @@ export function BrandProvider({
   children: React.ReactNode;
 }) {
   const style: Record<string, string> = {};
-  if (theme?.brand) style["--brand"] = theme.brand;
+  if (theme?.brand) {
+    style["--brand"] = theme.brand;
+    style["--primary"] = theme.brand;
+    style["--ring"] = theme.brand;
+  }
   if (theme?.accent) style["--accent"] = theme.accent;
 
   return (

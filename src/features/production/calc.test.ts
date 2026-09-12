@@ -70,7 +70,7 @@ describe("sumQty", () => {
   });
 });
 
-describe("computeLoss (randament/pierderi — informativ, nevalidat)", () => {
+describe("computeLoss (randament/pierderi - informativ, nevalidat)", () => {
   it("calculeaza diferenta input - output (pierdere pozitiva la reciclare)", () => {
     expect(computeLoss(500, 470)).toBe(30);
   });

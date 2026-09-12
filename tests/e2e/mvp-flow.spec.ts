@@ -1,31 +1,31 @@
 import { expect, test, type Page } from "@playwright/test";
 
 /**
- * Task X4 — E2E pe fluxul complet MVP (docs/handoff.md "MVP - termen si flux",
+ * Task X4 - E2E pe fluxul complet MVP (docs/handoff.md "MVP - termen si flux",
  * pasii 1-9): organizatie+useri -> client -> itemi/retete -> intrare stoc (lot)
  * -> proces reciclare (input fix/output variabil) -> proces productie (output
  * fix) -> comanda -> acceptare (scade stocul) -> livrare -> inchidere (genereaza
  * automat certificatul) -> vizualizare certificat.
  *
  * NOTA MEDIU (important): acest test are nevoie de un Supabase LOCAL pornit
- * (`pnpm db:start` + `pnpm db:reset` — reseteaza schema si ruleaza
+ * (`pnpm db:start` + `pnpm db:reset` - reseteaza schema si ruleaza
  * `supabase/seed.sql`, care creeaza organizatia demo "Lateris Demo" cu conturile
  * admin/operator/client/super@demo.local, parola `password123`) si de serverul
  * Next.js (pornit automat de `webServer` din playwright.config.ts). Mediul de
  * agent Claude Code in care a fost scris acest test NU are Docker/Supabase local
- * disponibil, deci testul NU a putut fi RULAT efectiv aici — a fost verificat
+ * disponibil, deci testul NU a putut fi RULAT efectiv aici - a fost verificat
  * doar static:
  *   - `pnpm typecheck` si `pnpm lint` trec pe acest fisier;
  *   - `pnpm exec playwright test --list` il listeaza (compileaza, selectorii
  *     sunt sintactic valizi).
  * Ruleaza-l complet cu `pnpm test:e2e` intr-un mediu cu Supabase local pornit
- * sau in CI dedicat cu acces la imaginile `ghcr.io/supabase/*` — vezi
+ * sau in CI dedicat cu acces la imaginile `ghcr.io/supabase/*` - vezi
  * docs/plans/task-x4-seed-e2e.md pentru detalii.
  *
  * Pasul 1 din handoff ("Creare organizatie + useri") e acoperit de
  * `supabase/seed.sql`, NU de UI: crearea unei organizatii noi de la zero ar
  * necesita fluxul super-admin -> invitatie email -> setare parola (Supabase
- * Auth), care depinde de livrare reala de email — in afara scope-ului unui
+ * Auth), care depinde de livrare reala de email - in afara scope-ului unui
  * test E2E fara provider de email configurat in CI. Testul porneste deci direct
  * cu login ca admin al organizatiei demo deja provizionate.
  */
@@ -36,14 +36,14 @@ const ADMIN_EMAIL = "admin@demo.local";
 const ADMIN_PASSWORD = "password123";
 
 // Sufix unic per rulare (timestamp), ca testul sa poata rula repetat pe aceeasi
-// baza de date fara coliziuni de unicitate (CUI client, titluri itemi) — nu
+// baza de date fara coliziuni de unicitate (CUI client, titluri itemi) - nu
 // exista curatenie/rollback intre rulari, seed-ul fiind aplicat o singura data
 // la `db reset`.
 const RUN_STAMP = Date.now();
 const RUN_ID = RUN_STAMP.toString(36);
 
 const CLIENT_NAME = `E2E Construct ${RUN_ID} SRL`;
-// CUI pur numeric (fara validare stricta de format la creare manuala — doar
+// CUI pur numeric (fara validare stricta de format la creare manuala - doar
 // lookup-ul ANAF opțional valideaza formatul, neutilizat in acest test).
 const CLIENT_CUI = String(RUN_STAMP);
 
@@ -52,9 +52,9 @@ const ITEM_RECYCLED_TITLE = `Agregat reciclat E2E ${RUN_ID}`;
 const ITEM_PRODUCT_TITLE = `Produs finit E2E ${RUN_ID}`;
 
 /**
- * Locator dupa eticheta unui camp de formular, tolerant la asteriscul „*”
+ * Locator dupa eticheta unui camp de formular, tolerant la asteriscul "*"
  * adaugat de `FormField` (src/components/form-field.tsx) campurilor
- * obligatorii — accesible-name-ul devine ex. "CUI*", fara spatiu inainte de
+ * obligatorii - accesible-name-ul devine ex. "CUI*", fara spatiu inainte de
  * asterisc, deci o potrivire exacta ar fi fragila.
  */
 function label(page: Page, text: string) {
@@ -110,7 +110,7 @@ test.describe("Flux complet MVP (handoff.md, pasii 1-9)", () => {
       await page.getByRole("button", { name: "Creează itemul" }).click();
       await expect(page).toHaveURL(/\/itemi$/);
 
-      // Lista /itemi e paginata (10/pagina) si sortata alfabetic — cu suficienti
+      // Lista /itemi e paginata (10/pagina) si sortata alfabetic - cu suficienti
       // itemi demo + cei 3 noi, un item poate cadea pe pagina 2. Filtram dupa
       // RUN_ID (comun celor 3 titluri noi) ca sa le vedem pe toate pe o singura
       // pagina, indiferent de sortare/paginare.
@@ -122,7 +122,7 @@ test.describe("Flux complet MVP (handoff.md, pasii 1-9)", () => {
 
     await test.step("Pasul 3b: rețete (descompunere reciclare + compoziție produs finit)", async () => {
       // Rețeta itemului de intrare: descompunere 100% în agregatul reciclat
-      // (interpretata de 4b — VariableOutputForm — ca fracții de output ideal).
+      // (interpretata de 4b - VariableOutputForm - ca fracții de output ideal).
       await page.goto("/retete/nou");
       await label(page, "Item").selectOption({ label: `${ITEM_INPUT_TITLE} (kg)` });
       await page.getByRole("button", { name: "Creează rețeta" }).click();
@@ -134,7 +134,7 @@ test.describe("Flux complet MVP (handoff.md, pasii 1-9)", () => {
       await expect(page.getByText(ITEM_RECYCLED_TITLE, { exact: true })).toBeVisible();
 
       // Rețeta produsului finit: compoziție 100% din agregatul reciclat
-      // (interpretata de 4a — FixedOutputForm — ca și consum calculat FIFO).
+      // (interpretata de 4a - FixedOutputForm - ca și consum calculat FIFO).
       await page.goto("/retete/nou");
       await label(page, "Item").selectOption({ label: `${ITEM_PRODUCT_TITLE} (bucata)` });
       await page.getByRole("button", { name: "Creează rețeta" }).click();
@@ -146,7 +146,7 @@ test.describe("Flux complet MVP (handoff.md, pasii 1-9)", () => {
       await expect(page.getByText(ITEM_RECYCLED_TITLE, { exact: true })).toBeVisible();
     });
 
-    await test.step("Pasul 4: intrare stoc — lot nou pentru materia primă", async () => {
+    await test.step("Pasul 4: intrare stoc - lot nou pentru materia primă", async () => {
       await page.goto("/stoc/nou");
       await label(page, "Item").selectOption({ label: `${ITEM_INPUT_TITLE} (kg)` });
       await label(page, "Cantitate").fill("100");
@@ -156,7 +156,7 @@ test.describe("Flux complet MVP (handoff.md, pasii 1-9)", () => {
       await expect(page).toHaveURL(/\/stoc$/);
       // Scopeaza la tabel (nu la intreaga pagina): filtrul "Item" de deasupra
       // tabelului randeaza optiuni cu titlul PUR (fara sufix UM), acelasi text
-      // exact ca celula din tabel — fara scopare, `getByText(exact)` ar gasi
+      // exact ca celula din tabel - fara scopare, `getByText(exact)` ar gasi
       // ambele elemente (violare de "strict mode").
       await expect(
         page.getByRole("table").getByText(ITEM_INPUT_TITLE, { exact: true }),
@@ -180,9 +180,9 @@ test.describe("Flux complet MVP (handoff.md, pasii 1-9)", () => {
       ).toBeVisible();
     });
 
-    await test.step("Pasul 6: proces de producție (output fix) — produsul finit", async () => {
+    await test.step("Pasul 6: proces de producție (output fix) - produsul finit", async () => {
       await page.goto("/productie/nou");
-      // Tab implicit "Output fix — Fabricație" — nu mai trebuie schimbat.
+      // Tab implicit "Output fix - Fabricație" - nu mai trebuie schimbat.
       await label(page, "Rețetă / produs").selectOption({ label: ITEM_PRODUCT_TITLE });
       await label(page, "Cantitate output dorită").fill("20");
 

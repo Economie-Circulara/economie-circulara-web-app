@@ -3,7 +3,7 @@ import type { OrderStatus } from "./types";
 /**
  * Masina de stari a comenzii (AGENTS.md §4 + mockup): draft -> sent -> accepted ->
  * delivered -> closed, plus anulare (-> cancelled) din draft/sent/accepted. Fara
- * livrari partiale — o comanda trece intreaga dintr-un status in altul, niciodata
+ * livrari partiale - o comanda trece intreaga dintr-un status in altul, niciodata
  * pe bucati. `delivered`/`closed` sunt stari terminale pentru anulare (o comanda
  * livrata/inchisa nu se mai poate anula).
  */
@@ -39,7 +39,7 @@ export function assertOrderTransition(from: OrderStatus, to: OrderStatus): void 
   }
 }
 
-/** Statusurile in care se poate afla o comanda anulabila (buton „Anulează”). */
+/** Statusurile in care se poate afla o comanda anulabila (buton "Anulează"). */
 export function isCancellable(status: OrderStatus): boolean {
   return canTransitionOrder(status, "cancelled");
 }

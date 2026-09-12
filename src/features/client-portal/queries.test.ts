@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-// Mocks (nu spies — vezi AGENTS.md §2.2): inlocuim complet clientul Supabase server.
+// Mocks (nu spies - vezi AGENTS.md §2.2): inlocuim complet clientul Supabase server.
 const { createClient } = vi.hoisted(() => ({ createClient: vi.fn() }));
 vi.mock("@/lib/supabase/server", () => ({ createClient }));
 
@@ -37,7 +37,7 @@ function itemRow(overrides: Record<string, unknown> = {}) {
 }
 
 describe("listCatalogItems", () => {
-  it("filtreaza mereu dupa sellable=true (gating pret/stoc — catalogul clientului)", async () => {
+  it("filtreaza mereu dupa sellable=true (gating pret/stoc - catalogul clientului)", async () => {
     const builder = makeQueryBuilder({ data: [itemRow()], error: null });
     const from = vi.fn().mockReturnValue(builder);
     createClient.mockResolvedValue({ from });

@@ -54,7 +54,7 @@ describe("renderOrderStatusEmail", () => {
     expect(rendered.html).not.toContain("<script>");
   });
 
-  it("arunca pentru statusul 'draft' (nu are template — nu ar trebui apelat niciodata)", () => {
+  it("arunca pentru statusul 'draft' (nu are template - nu ar trebui apelat niciodata)", () => {
     expect(() => renderOrderStatusEmail(DATA, "draft")).toThrow();
   });
 });

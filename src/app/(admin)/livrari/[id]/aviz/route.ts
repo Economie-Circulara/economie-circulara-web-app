@@ -9,10 +9,10 @@ interface RouteParams {
 }
 
 /**
- * Ruta de descarcare a avizului PDF (Task X5) — randat ON-DEMAND din datele
+ * Ruta de descarcare a avizului PDF (Task X5) - randat ON-DEMAND din datele
  * curente ale livrarii (nu stocat in Storage, vezi comentariul din
  * 0013_deliveries.sql), ca sa reflecte mereu UIT-ul/statusul cel mai recent,
- * inclusiv dupa o re-incercare de declarare. Doar staff (`requireRole` — un
+ * inclusiv dupa o re-incercare de declarare. Doar staff (`requireRole` - un
  * `redirect()` in interiorul unui Route Handler produce un raspuns 307 catre
  * ruta de login/dashboard, comportament acceptabil pt. un link deschis direct).
  */

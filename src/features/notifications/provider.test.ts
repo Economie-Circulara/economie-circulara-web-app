@@ -10,7 +10,7 @@ const MESSAGE = {
 };
 
 describe("ConsoleEmailProvider", () => {
-  it("nu trimite nimic (mock) — doar jurnalizeaza, nu depinde de un SMTP real", async () => {
+  it("nu trimite nimic (mock) - doar jurnalizeaza, nu depinde de un SMTP real", async () => {
     const info = vi.spyOn(console, "info").mockImplementation(() => {});
     const provider = new ConsoleEmailProvider();
 

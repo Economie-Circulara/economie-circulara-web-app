@@ -48,7 +48,7 @@ function TransitionButton({
 
 /**
  * Butoane de tranzitie rapida (Trimite/Acceptă/Livrează/Închide/Anulează), pe baza
- * masinii de stari (`state-machine.ts`) — afiseaza doar tranzitiile valide din
+ * masinii de stari (`state-machine.ts`) - afiseaza doar tranzitiile valide din
  * statusul curent. Folosit atat in randul din tabel (`OrderTable`), cat si in
  * ecranul de detaliu.
  */
@@ -60,7 +60,7 @@ export function OrderStatusActions({ orderId, status }: { orderId: string; statu
   const canCancel = canTransitionOrder(status, "cancelled");
 
   if (!canSend && !canAccept && !canDeliver && !canClose && !canCancel) {
-    return <span className="text-xs text-muted-foreground">—</span>;
+    return <span className="text-xs text-muted-foreground">-</span>;
   }
 
   return (

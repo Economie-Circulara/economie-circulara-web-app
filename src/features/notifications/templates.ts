@@ -16,7 +16,7 @@ export interface RenderedEmail {
 
 /**
  * Statusurile care declanseaza o notificare (toate in afara de `draft`, care e
- * intern — nicio actiune din src/features/orders/actions.ts nu emite
+ * intern - nicio actiune din src/features/orders/actions.ts nu emite
  * `onOrderStatusChanged` cu `toStatus: 'draft'`).
  */
 type NotifiableOrderStatus = Exclude<OrderStatus, "draft">;
@@ -65,7 +65,7 @@ const TEMPLATES: Record<NotifiableOrderStatus, (data: OrderEmailData) => Templat
     intro: `Comanda dumneavoastră ${orderLabel(data.orderNumber)} a fost livrată.`,
   }),
   closed: (data) => ({
-    subject: `Comanda ${orderLabel(data.orderNumber)} a fost închisă — certificat disponibil`,
+    subject: `Comanda ${orderLabel(data.orderNumber)} a fost închisă - certificat disponibil`,
     intro:
       `Comanda dumneavoastră ${orderLabel(data.orderNumber)} a fost închisă. Certificatul de ` +
       `trasabilitate a fost generat și este disponibil în portalul clienților.`,
@@ -105,7 +105,7 @@ function renderText(orgName: string, clientName: string, intro: string): string 
 /**
  * Randare PURA (fara I/O, testabila direct) a emailului pt. o tranzitie de
  * status comanda. Arunca daca `toStatus` nu are template (doar `draft`, care nu
- * ar trebui sa ajunga niciodata aici — vezi `notificationTypeForOrderStatus`,
+ * ar trebui sa ajunga niciodata aici - vezi `notificationTypeForOrderStatus`,
  * folosit de service.ts ca sa evite exact acest apel).
  */
 export function renderOrderStatusEmail(data: OrderEmailData, toStatus: OrderStatus): RenderedEmail {

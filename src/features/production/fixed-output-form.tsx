@@ -34,7 +34,7 @@ interface FifoResult {
 }
 
 /**
- * 4a — Output fix (fabricație): alegi rețeta/produsul + cantitatea de output
+ * 4a - Output fix (fabricație): alegi rețeta/produsul + cantitatea de output
  * dorită, sistemul calculează automat consumul FIFO pe fiecare componentă.
  */
 export function FixedOutputForm({ recipes }: { recipes: RecipeListRow[] }) {
@@ -43,9 +43,9 @@ export function FixedOutputForm({ recipes }: { recipes: RecipeListRow[] }) {
   const [kind, setKind] = useState<ProductionKind>("productie");
   const [components, setComponents] = useState<RecipeDetail | null>(null);
   const [fifoResults, setFifoResults] = useState<Record<string, FifoResult>>({});
-  // Cheia `requiredLinesKey` pentru care `fifoResults` e valid — cat timp difera
+  // Cheia `requiredLinesKey` pentru care `fifoResults` e valid - cat timp difera
   // de cheia curenta, preview-ul e "in curs de calcul" (derivat, fara state
-  // separat setat sincron in efect — vezi nota de mai jos).
+  // separat setat sincron in efect - vezi nota de mai jos).
   const [fifoResultsKey, setFifoResultsKey] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -70,10 +70,10 @@ export function FixedOutputForm({ recipes }: { recipes: RecipeListRow[] }) {
   const requiredLinesKey = useMemo(() => JSON.stringify(requiredLines), [requiredLines]);
 
   // Preview-ul FIFO se calculeaza server-side (planFifoConsumption ruleaza in
-  // stock/service.ts, cu acces la loturile din DB) — aici doar il combinam cu
+  // stock/service.ts, cu acces la loturile din DB) - aici doar il combinam cu
   // `requiredLines` (derivat sincron din reteta + cantitate, vezi mai sus), fara
   // sa mai tinem un state separat "preview" care ar trebui resetat manual la
-  // fiecare schimbare (evitam setState sincron in corpul efectului — singurele
+  // fiecare schimbare (evitam setState sincron in corpul efectului - singurele
   // apeluri de setState de mai jos sunt in interiorul `.then()`, dupa fetch).
   useEffect(() => {
     if (requiredLines.length === 0) return;
@@ -240,7 +240,7 @@ export function FixedOutputForm({ recipes }: { recipes: RecipeListRow[] }) {
             Consum calculat (FIFO)
           </div>
           {loadingPreview ? (
-            <p className="text-sm text-muted-foreground">Se calculează…</p>
+            <p className="text-sm text-muted-foreground">Se calculează...</p>
           ) : preview.length === 0 ? (
             <p className="text-sm text-muted-foreground">
               Alege o rețetă și o cantitate pentru a vedea consumul.
@@ -282,7 +282,7 @@ export function FixedOutputForm({ recipes }: { recipes: RecipeListRow[] }) {
         <div className="mb-2 flex items-center justify-between">
           <span className="text-sm font-semibold">Flux materiale</span>
           <span className="font-mono text-[11px] text-muted-foreground">
-            loturi → proces → output
+            {"loturi -> proces -> output"}
           </span>
         </div>
         <div className="flex min-h-[240px] flex-1 items-center">
@@ -291,14 +291,14 @@ export function FixedOutputForm({ recipes }: { recipes: RecipeListRow[] }) {
         <div className="flex items-center justify-between gap-4 border-t pt-4">
           <p className="text-sm text-muted-foreground">
             Total intrare{" "}
-            <span className="font-medium tabular-nums text-foreground">{totalIn}</span> →{" "}
+            <span className="font-medium tabular-nums text-foreground">{totalIn}</span> {"->"}{" "}
             <span className="font-medium text-foreground">
               {desiredQty > 0 ? desiredQty : 0} {selectedRecipe?.unit}
             </span>{" "}
             {selectedRecipe?.itemTitle}
           </p>
           <Button onClick={onConfirm} disabled={!canConfirm || isPending}>
-            {isPending ? "Se confirmă…" : "Confirmă și pornește →"}
+            {isPending ? "Se confirmă..." : "Confirmă și pornește ->"}
           </Button>
         </div>
       </div>

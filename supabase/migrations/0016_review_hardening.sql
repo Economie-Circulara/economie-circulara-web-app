@@ -1,14 +1,14 @@
 -- =============================================================================
--- 0016 — Hardening din review-ul tehnic (orchestrator, 2026-07-19)
+-- 0016 - Hardening din review-ul tehnic (orchestrator, 2026-07-19)
 -- =============================================================================
 -- Inchide doua gap-uri semnalate de subagentii care au rezolvat findings-urile
 -- de review (F1 si F7a), pe zone care nu incapeau in scope-ul lor:
 --
 --   1. `order_links_client_insert` (introdusa in 0010_returns.sql, DUPA guard-ul
---      0012) nu cere `app.org_is_active` — un client al unei organizatii
+--      0012) nu cere `app.org_is_active` - un client al unei organizatii
 --      SUSPENDATE putea inca crea legaturi de retur/garantie prin Data API.
 --      Completeaza guard-ul de organizatie suspendata (T2.1 / 0012 / 0014).
---   2. `profiles.client_id` nu avea unicitate la nivel de DB — regula de business
+--   2. `profiles.client_id` nu avea unicitate la nivel de DB - regula de business
 --      "un client = un singur utilizator" (AGENTS.md §4) era impusa doar in
 --      aplicatie (`inviteClientAction`, cu o fereastra teoretica de race la doua
 --      invitatii simultane). Adaugam un index unic PARTIAL.
@@ -43,7 +43,7 @@ create policy order_links_client_insert on public.order_links
 -- 0014 a guardat INSERT/UPDATE/DELETE pe `client_addresses` si toate celelalte
 -- SELECT-uri de client (orders, certificates, etc.) cu `app.org_is_active`, dar a
 -- lasat `client_addresses_client_select` neguardat. Il aliniem la restul (clientul
--- unei org suspendate nu-si mai vede adresele nici prin Data API) — inchide
+-- unei org suspendate nu-si mai vede adresele nici prin Data API) - inchide
 -- inconsistenta dintre implementare si testul RLS T18.
 drop policy client_addresses_client_select on public.client_addresses;
 create policy client_addresses_client_select on public.client_addresses

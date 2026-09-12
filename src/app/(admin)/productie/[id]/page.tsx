@@ -11,7 +11,7 @@ import { computeLoss } from "@/features/production/calc";
 import { CancelProcessButton } from "@/features/production/cancel-process-button";
 import { PROVENANCE_LABELS } from "@/features/stock/labels";
 
-export const metadata = { title: "Detaliu proces — Lateris Trace" };
+export const metadata = { title: "Detaliu proces - Lateris Trace" };
 
 interface ProcessDetailPageProps {
   params: Promise<{ id: string }>;
@@ -20,12 +20,12 @@ interface ProcessDetailPageProps {
 const dateFormatter = new Intl.DateTimeFormat("ro-RO", { dateStyle: "medium", timeStyle: "short" });
 
 function formatDate(iso: string | null): string {
-  return iso ? dateFormatter.format(new Date(iso)) : "—";
+  return iso ? dateFormatter.format(new Date(iso)) : "-";
 }
 
 const NON_TERMINAL_STATUSES = new Set(["planned", "in_progress", "awaiting_confirmation"]);
 
-/** Detaliul unui proces — Sankey (loturi input → proces → loturi output) + trasabilitate. */
+/** Detaliul unui proces - Sankey (loturi input -> proces -> loturi output) + trasabilitate. */
 export default async function ProcessDetailPage({ params }: ProcessDetailPageProps) {
   await requireRole(["admin", "operator"]);
   const { id } = await params;
@@ -40,7 +40,7 @@ export default async function ProcessDetailPage({ params }: ProcessDetailPagePro
   return (
     <div className="space-y-6">
       <PageHeader
-        title={`Proces — ${process.outputItemTitle}`}
+        title={`Proces - ${process.outputItemTitle}`}
         breadcrumbs={[
           { label: "Producție", href: "/productie" },
           { label: process.outputItemTitle },
@@ -132,7 +132,7 @@ export default async function ProcessDetailPage({ params }: ProcessDetailPagePro
         </CardHeader>
         <CardContent className="space-y-1 text-sm">
           <p className="text-muted-foreground">
-            Diferența input − output este informativă (se înregistrează, nu se validează).
+            Diferența input - output este informativă (se înregistrează, nu se validează).
           </p>
           <p>
             Pierdere (masă): <span className="font-mono font-semibold tabular-nums">{loss}</span>

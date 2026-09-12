@@ -19,7 +19,7 @@ function isStaffRole(role: UserRole): boolean {
 /**
  * Scapa `%`/`_` (metacaractere `ilike`) dintr-un input de utilizator, apoi il
  * incadreaza in `%...%` pentru un substring match case-insensitive. Acelasi
- * pattern ca `listClients` (`src/features/clients/queries.ts`) — extras aici
+ * pattern ca `listClients` (`src/features/clients/queries.ts`) - extras aici
  * pentru reutilizare in interogarile proprii (lots/certificates) + testabil
  * separat ("escaparea inputului", cerinta X2).
  */
@@ -32,7 +32,7 @@ function emptyGroup(type: SearchResultType): SearchResultGroup {
   return { type, label: SEARCH_GROUP_LABELS[type], results: [] };
 }
 
-/** Comenzi — reutilizeaza `listOrders({ search })` (order_number SAU numele clientului). */
+/** Comenzi - reutilizeaza `listOrders({ search })` (order_number SAU numele clientului). */
 async function searchOrders(
   query: string,
   limit: number,
@@ -54,7 +54,7 @@ async function searchOrders(
   };
 }
 
-/** Clienti (doar staff) — reutilizeaza `listClients({ search })` (name SAU cui). */
+/** Clienti (doar staff) - reutilizeaza `listClients({ search })` (name SAU cui). */
 async function searchClients(query: string, limit: number): Promise<SearchResultGroup> {
   const rows = await listClients({ search: query });
 
@@ -71,7 +71,7 @@ async function searchClients(query: string, limit: number): Promise<SearchResult
   };
 }
 
-/** Itemi (staff) — reutilizeaza `listItems({ search })` (titlu). */
+/** Itemi (staff) - reutilizeaza `listItems({ search })` (titlu). */
 async function searchItems(query: string, limit: number): Promise<SearchResultGroup> {
   const rows = await listItems({ search: query });
 
@@ -89,9 +89,9 @@ async function searchItems(query: string, limit: number): Promise<SearchResultGr
 }
 
 /**
- * Itemi (client, catalog) — reutilizeaza `listCatalogItems({ search })`, care
+ * Itemi (client, catalog) - reutilizeaza `listCatalogItems({ search })`, care
  * aplica deja `sellable=true` + RLS `items_client_catalog`. Catalogul clientului
- * (`/catalog`) nu are ecran de detaliu per item — link-ul duce la lista.
+ * (`/catalog`) nu are ecran de detaliu per item - link-ul duce la lista.
  */
 async function searchCatalogItems(query: string, limit: number): Promise<SearchResultGroup> {
   const rows = await listCatalogItems({ search: query });
@@ -110,10 +110,10 @@ async function searchCatalogItems(query: string, limit: number): Promise<SearchR
 }
 
 /**
- * Loturi (doar staff, "via item" — lots nu are un camp text propriu de cautat,
+ * Loturi (doar staff, "via item" - lots nu are un camp text propriu de cautat,
  * doar `source`/`entry_date`). In doi pasi (ca `orders/queries.ts#summarizeOrderItems`):
  * gaseste itemii al caror titlu se potriveste, apoi loturile lor. Ecranul /stoc
- * nu are pagina de detaliu per lot — link-ul filtreaza lista dupa item.
+ * nu are pagina de detaliu per lot - link-ul filtreaza lista dupa item.
  */
 async function searchLots(query: string, limit: number): Promise<SearchResultGroup> {
   const supabase = await createClient();
@@ -145,7 +145,7 @@ async function searchLots(query: string, limit: number): Promise<SearchResultGro
       return {
         type: "lot" as const,
         id: row.id,
-        label: row.items?.title ?? "—",
+        label: row.items?.title ?? "-",
         sublabel: row.source ? `${row.source} · ${entryDate}` : entryDate,
         href: `/stoc?item_id=${row.item_id}`,
       };
@@ -153,7 +153,7 @@ async function searchLots(query: string, limit: number): Promise<SearchResultGro
   };
 }
 
-/** Certificate — cautare directa dupa `number`, RLS izoleaza automat pe rol. */
+/** Certificate - cautare directa dupa `number`, RLS izoleaza automat pe rol. */
 async function searchCertificates(
   query: string,
   limit: number,
@@ -194,15 +194,15 @@ function orderAndFilterGroups(groups: SearchResultGroup[]): SearchResultGroup[] 
 
 /**
  * Cautare globala cross-entitate, respectand rolul apelantului:
- * - **staff** (admin/operator): comenzi, clienti, loturi, itemi, certificate —
+ * - **staff** (admin/operator): comenzi, clienti, loturi, itemi, certificate -
  *   toate din organizatia curenta (RLS `*_staff_all`).
  * - **client**: DOAR comenzile proprii, certificatele proprii si catalogul
- *   (`sellable=true`) — NICIODATA `clients`/`lots` (nici macar interogate: apararea
+ *   (`sellable=true`) - NICIODATA `clients`/`lots` (nici macar interogate: apararea
  *   in profunzime nu se bazeaza doar pe RLS, desi RLS oricum ar bloca `lots`).
- * - alt rol (ex. `super_admin`, fara organizatie) → fara rezultate.
+ * - alt rol (ex. `super_admin`, fara organizatie) -> fara rezultate.
  *
  * Toate interogarile folosesc clientul UTILIZATORULUI curent (`createClient()`,
- * legat de cookie-urile cererii) — izolarea multi-tenant vine din RLS, ca in
+ * legat de cookie-urile cererii) - izolarea multi-tenant vine din RLS, ca in
  * restul `features/*​/queries.ts`.
  */
 export async function globalSearch(

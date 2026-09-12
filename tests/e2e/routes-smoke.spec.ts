@@ -2,12 +2,12 @@ import { expect, test, type Page } from "@playwright/test";
 import { CLIENT_NAV, STAFF_NAV } from "@/components/layout/nav-config";
 
 /**
- * Smoke test de rute — plasa de siguranta pentru erorile de RANDARE care NU sunt
+ * Smoke test de rute - plasa de siguranta pentru erorile de RANDARE care NU sunt
  * prinse de `typecheck` / `lint` / testele unitare / `pnpm build`.
  *
  * De ce exista: in 2026-09 toate ecranele pentru admin/operator/client au dat 500
  * fiindca `NavItem.icon` ducea o componenta Lucide din layout-ul SERVER in
- * `Sidebar` (`"use client"`) — eroare de serializare RSC, invizibila la build si
+ * `Sidebar` (`"use client"`) - eroare de serializare RSC, invizibila la build si
  * la testele unitare (vezi comentariul din `src/components/layout/nav-config.ts`).
  * Orice eroare de acelasi tip (prop neserializabil, hook in server component,
  * query rupt) cade aici, ieftin: un GET per ruta, fara interactiune.
@@ -22,7 +22,7 @@ import { CLIENT_NAV, STAFF_NAV } from "@/components/layout/nav-config";
 
 const PASSWORD = "password123";
 
-/** Rutele din sidebar-ul rolului — sursa unica de adevar, `nav-config.ts`. */
+/** Rutele din sidebar-ul rolului - sursa unica de adevar, `nav-config.ts`. */
 const staffNavRoutes = STAFF_NAV.map((item) => item.href);
 const clientNavRoutes = CLIENT_NAV.map((item) => item.href);
 
@@ -30,7 +30,7 @@ const clientNavRoutes = CLIENT_NAV.map((item) => item.href);
 const STAFF_EXTRA_ROUTES = [
   "/comenzi/nou",
   // `/livrari/nou` NU e in lista: cere `?orderId=` (altfel `notFound()`, prin
-  // design) — e acoperit de fluxul din `mvp-flow.spec.ts`.
+  // design) - e acoperit de fluxul din `mvp-flow.spec.ts`.
   "/stoc/nou",
   "/productie/nou",
   "/clienti/nou",
@@ -44,7 +44,7 @@ const SUPER_ADMIN_ROUTES = ["/platform", "/platform/nou"];
 const PUBLIC_ROUTES = ["/login", "/forgot-password"];
 
 /** Text afisat de error boundary-ul Next cand randarea eseuaza. */
-const RENDER_ERROR_MARKERS = ["This page couldn’t load", "This page couldn't load"];
+const RENDER_ERROR_MARKERS = ["This page couldn't load", "This page couldn't load"];
 
 async function login(page: Page, email: string): Promise<void> {
   await page.goto("/login");

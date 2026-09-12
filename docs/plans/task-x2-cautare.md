@@ -1,11 +1,11 @@
-# Task X2 — Cautare globala
+# Task X2 - Cautare globala
 
 Plan scurt (AGENTS.md §1.1), scris inainte de codare.
 
 ## Scop
 
 Bara de cautare din topbar (mockup: `docs/design/Lateris_Trace.dc.html`, header
-`⌕ Caută comenzi, loturi, clienți…`) trebuie sa navigheze la o pagina de rezultate
+`⌕ Caută comenzi, loturi, clienți...`) trebuie sa navigheze la o pagina de rezultate
 cross-entitate (`/cautare`), grupate pe tip, respectand RLS/izolarea multi-tenant
 si regula "clientul nu vede stocul si procesele interne" (AGENTS.md §4).
 
@@ -18,22 +18,22 @@ RPC) ar adauga complexitate (migrare noua, `database.types.ts` manual, sincroniz
 cu CI care nu poate rula `db:reset` local in acest mediu) fara beneficiu clar la
 aceasta scara. Ramane o optiune de rescris ulterior daca volumul de date creste.
 
-## Reutilizare (AGENTS.md — "foloseste, NU reinventa")
+## Reutilizare (AGENTS.md - "foloseste, NU reinventa")
 
 `globalSearch` NU reimplementeaza cautarea per entitate acolo unde exista deja:
 
-- **orders** → `listOrders({ search })` din `src/features/orders/queries.ts`
-  (cauta deja dupa `order_number` SAU numele clientului — acopera "orders
+- **orders** -> `listOrders({ search })` din `src/features/orders/queries.ts`
+  (cauta deja dupa `order_number` SAU numele clientului - acopera "orders
   (order_number, prin client)").
-- **clients** (doar staff) → `listClients({ search })` din
+- **clients** (doar staff) -> `listClients({ search })` din
   `src/features/clients/queries.ts` (name SAU cui, escapare deja implementata).
-- **items** (staff) → `listItems({ search })` din `src/features/items/queries.ts`
+- **items** (staff) -> `listItems({ search })` din `src/features/items/queries.ts`
   (title).
-- **items/catalog** (client) → `listCatalogItems({ search })` din
+- **items/catalog** (client) -> `listCatalogItems({ search })` din
   `src/features/client-portal/queries.ts` (title, RLS `items_client_catalog`
   limiteaza deja la `sellable=true` din organizatia clientului).
 - **lots** (doar staff, "via item") si **certificates** (number) nu au o functie
-  de listare cu cautare text existenta — interogari noi, minime, in
+  de listare cu cautare text existenta - interogari noi, minime, in
   `src/features/search/service.ts`, in stilul `queries.ts` deja folosit
   (`ilike`, escapare manuala, `createClient()` per interogare).
 
@@ -42,7 +42,7 @@ Fiecare rezultat e limitat la `limit` (implicit 5) per entitate.
 ## Respectarea RLS pe rol
 
 Toate interogarile trec prin `createClient()` (clientul UTILIZATORULUI, cookie-based)
-— RLS izoleaza automat pe `organization_id`/`client_id`, ca in restul codebase-ului
+- RLS izoleaza automat pe `organization_id`/`client_id`, ca in restul codebase-ului
 (niciun filtru manual pe organizatie in query-uri, la fel ca `items/queries.ts`,
 `clients/queries.ts` etc.).
 
@@ -53,24 +53,24 @@ per rol (aparare in profunzime, nu doar RLS):
 - **client**: DOAR orders (proprii, via `orders_client_all`), certificates
   (proprii, via `certificates_client_select`), items/catalog (`sellable=true`,
   via `items_client_catalog`). NU se interogheaza deloc `clients`/`lots` pentru
-  rolul client — nici macar RLS nu ar permite lots (`lots_staff_all` e singura
+  rolul client - nici macar RLS nu ar permite lots (`lots_staff_all` e singura
   policy, fara `client_select`), dar clients ARE o policy `clients_self_select`
-  pt. client (el insusi) — irelevanta pt. cautare globala, deci omisa explicit.
-- alte roluri (`super_admin`, fara organizatie) → `[]` (fara context de tenant).
+  pt. client (el insusi) - irelevanta pt. cautare globala, deci omisa explicit.
+- alte roluri (`super_admin`, fara organizatie) -> `[]` (fara context de tenant).
 
 ## Fisiere noi
 
-- `src/features/search/types.ts` — `SearchResultType`, `SearchResultItem`,
+- `src/features/search/types.ts` - `SearchResultType`, `SearchResultItem`,
   `SearchResultGroup`, `GlobalSearchOptions`.
-- `src/features/search/labels.ts` — etichete RO per tip de rezultat (grupare).
-- `src/features/search/service.ts` — `globalSearch(query, { role, limit? })` +
+- `src/features/search/labels.ts` - etichete RO per tip de rezultat (grupare).
+- `src/features/search/service.ts` - `globalSearch(query, { role, limit? })` +
   `toIlikePattern` (escapare `%`/`_`, exportata pt. teste) + interogarile proprii
   pt. lots/certificates.
-- `src/features/search/service.test.ts` — mocks (nu spies): query-uri per rol,
+- `src/features/search/service.test.ts` - mocks (nu spies): query-uri per rol,
   agregare/grupare, client NU cauta stoc/procese, escapare input.
-- `src/features/search/search-results.tsx` — componenta de prezentare (grupuri +
+- `src/features/search/search-results.tsx` - componenta de prezentare (grupuri +
   linkuri), `EmptyState` cand nu-s rezultate.
-- `src/app/(admin)/cautare/page.tsx` — pagina de rezultate (staff), citeste
+- `src/app/(admin)/cautare/page.tsx` - pagina de rezultate (staff), citeste
   `?q=`.
 
 ## UI topbar
@@ -80,8 +80,8 @@ per rol (aparare in profunzime, nu doar RLS):
 bara nu e cablata la o pagina agregata: scope-ul declarat al acestui task listeaza
 explicit doar `src/app/(admin)/cautare/**` (nicio ruta noua in `(client)`), iar
 layout-ul `(admin)` blocheaza oricum accesul clientului la orice ruta din acel
-grup (`requireRole(["admin", "operator"])` in `src/app/(admin)/layout.tsx`) —
-vezi sectiunea „Incertitudini" din raportul final pt. urmarire.
+grup (`requireRole(["admin", "operator"])` in `src/app/(admin)/layout.tsx`) -
+vezi sectiunea "Incertitudini" din raportul final pt. urmarire.
 
 ## Teste
 

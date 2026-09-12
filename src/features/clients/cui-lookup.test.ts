@@ -32,7 +32,7 @@ describe("normalizeCui", () => {
 
 describe("isValidCuiFormat", () => {
   it("accepta un CUI cu cifra de control corecta", () => {
-    // 4183300: CUI de test folosit uzual in exemple RO — verificat manual cu
+    // 4183300: CUI de test folosit uzual in exemple RO - verificat manual cu
     // algoritmul oficial (ponderi 7,5,3,2,1,7,5,3,2, mod 11).
     expect(isValidCuiFormat("4183300")).toBe(true);
   });
@@ -107,7 +107,7 @@ describe("parseAnafResponse (fixture JSON)", () => {
   });
 });
 
-describe("AnafCuiLookupProvider (fetch mock — fara apeluri reale la ANAF)", () => {
+describe("AnafCuiLookupProvider (fetch mock - fara apeluri reale la ANAF)", () => {
   it("respinge un CUI cu format invalid fara sa apeleze fetch", async () => {
     const fetchImpl = vi.fn();
     const provider = new AnafCuiLookupProvider(fetchImpl);
@@ -149,7 +149,7 @@ describe("AnafCuiLookupProvider (fetch mock — fara apeluri reale la ANAF)", ()
     await expect(provider.lookup("4183300")).rejects.toBeInstanceOf(CuiLookupError);
   });
 
-  it("degradeaza gratios la timeout (AbortError) — formularul ramane completabil manual", async () => {
+  it("degradeaza gratios la timeout (AbortError) - formularul ramane completabil manual", async () => {
     const fetchImpl = vi.fn().mockImplementation((_url: string, init?: RequestInit) => {
       return new Promise((_resolve, reject) => {
         init?.signal?.addEventListener("abort", () => {

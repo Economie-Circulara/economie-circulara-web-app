@@ -8,10 +8,10 @@ import { linesFromOrder } from "./cart-logic";
 import { useCart } from "./cart-context";
 
 /**
- * Buton „Repetă comanda" (ecranul de detaliu /comenzile-mele/[id]): precompleteaza
+ * Buton "Repetă comanda" (ecranul de detaliu /comenzile-mele/[id]): precompleteaza
  * cosul clientului cu aceiasi itemi/cantitati dintr-o comanda veche, apoi
  * navigheaza la /catalog ca sa treaca prin formularul normal de trimitere
- * (adresa/data/observatii se aleg din nou — nu se copiaza automat).
+ * (adresa/data/observatii se aleg din nou - nu se copiaza automat).
  */
 export function RepeatOrderButton({ items }: { items: OrderItemRow[] }) {
   const { replaceCart } = useCart();
