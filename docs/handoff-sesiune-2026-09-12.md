@@ -85,7 +85,8 @@ Organizația demo: **Lateris Demo** (`a0000000-0000-0000-0000-0000000000a1`, slu
 
 | Ce | URL | Stare |
 | --- | --- | --- |
-| **Producție (public)** | `https://economie-circulara-web-app.vercel.app` | **200 OK** - folosește-l pe acesta |
+| **Producție (public)** | `https://economie-circulara-web-app-rho.vercel.app` | **200 OK** - acesta e URL-ul corect |
+| ⚠️ `https://economie-circulara-web-app.vercel.app` (FĂRĂ `-rho`) | răspunde 200 dar servește un build VECHI | **nu-l folosi** - vezi avertismentul de mai jos |
 | URL-ul unic al deployment-ului | `...-ewwm8qidn-....vercel.app` | 302 -> Vercel SSO (Deployment Protection) |
 
 Proiect Vercel: `economie-circulara-web-app` (`prj_Y75Lr6khth2jSnKw08pdslCQVBej`, scope
@@ -98,7 +99,15 @@ cere `docs/handoff.md`).
 funcționează în prod**.
 
 **Deployment Protection** e activ pe URL-urile unice de deployment (Vercel SSO), dar
-domeniul de producție e public. Dacă dai linkul cuiva din afară (auditor, client),
+domeniul de producție e public.
+
+> **⚠️ Capcană de demonstrație — `economie-circulara-web-app.vercel.app` (fără `-rho`)
+> servește un build VECHI.** Răspunde 200 și arată aplicația, dar cu numele vechi
+> („Lateris Trace") și fără fix-urile recente. NU apare în lista de aliasuri a proiectului
+> (`vercel alias ls`), deci nu poate fi redirecționat din CLI, și nu e clar de ce mai
+> rezolvă — de verificat în dashboard-ul Vercel și de șters. Sursa de adevăr pentru URL-ul
+> curent: `vercel projects ls`, coloana „Latest Production URL". Riscul concret: cineva
+> deschide linkul greșit la recepție și vede aplicația veche. Dacă dai linkul cuiva din afară (auditor, client),
 asigură-te că e domeniul de producție, nu URL-ul unic al deployment-ului.
 
 ### Variabile de mediu pe Vercel
@@ -146,7 +155,7 @@ Două blocaje concrete pentru a testa logat:
    Google.
 2. **Dacă folosești magic link sau Google**, verifică în Supabase Dashboard ->
    Authentication -> URL Configuration că **Site URL** și **Redirect URLs** includ
-   `https://economie-circulara-web-app.vercel.app` - altfel linkul din email te trimite
+   `https://economie-circulara-web-app-rho.vercel.app` - altfel linkul din email te trimite
    înapoi la `localhost:3000`.
 
 Mai departe: fără `super_admin`, ruta `/platform` (creare de organizații) nu e accesibilă

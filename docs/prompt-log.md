@@ -13,6 +13,25 @@ Format intrare:
 
 ---
 
+## 2026-09-12 — Claude Opus 5 — Corectie: URL-ul de productie era greșit in handoff
+
+- **Constatat la verificarea deploy-ului cu numele nou:** URL-ul pe care il raportasem ca
+  producție, `economie-circulara-web-app.vercel.app`, servea in continuare build-ul VECHI
+  (`<title>Lateris Trace</title>`), desi deployment-ul nou era `● Ready / Production`.
+- **Cauza:** aliasurile reale ale proiectului (`vercel alias ls`) sunt
+  `economie-circulara-web-app-rho.vercel.app` si
+  `economie-circulara-web-app-gions-projects-cb2e6eea.vercel.app`, ambele pe deployment-ul
+  curent. URL-ul fara `-rho` **nu apare** in lista de aliasuri a proiectului si nu poate fi
+  redirecționat din CLI. `vercel projects ls` confirma „Latest Production URL" =
+  varianta cu `-rho`.
+- **URL corect de productie: https://economie-circulara-web-app-rho.vercel.app** —
+  verificat: `<title>Provenio</title>`, h1 = „Trasabilitatea materialelor în economia
+  circulară" (deci entry point neutru fata de tenant, fara nume de organizatie), CTA
+  „Intră în platformă". Varianta cu `-gions-projects-` e 302 (Vercel SSO).
+- **Corectat in `docs/handoff-sesiune-2026-09-12.md`** §1b, cu avertisment explicit: URL-ul
+  vechi rămâne o capcana de demonstratie (raspunde 200 cu aplicatia veche) si trebuie
+  verificat/sters din dashboard.
+
 ## 2026-09-12 — Claude Opus 5 — Redenumire produs: Lateris Trace -> Provenio
 
 - **Cerut:** userul a ales „Provenio" din opțiunile propuse in `docs/plans/denumire-produs.md`.
