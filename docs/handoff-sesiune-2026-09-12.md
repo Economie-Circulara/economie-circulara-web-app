@@ -290,18 +290,133 @@ comita **separat de §3.1**.
 
 ---
 
-## 6. Muncă în curs la momentul predării
+## 6. Arborele necommitat conține TREI seturi de muncă suprapuse
 
-Un agent lucra în paralel la verificarea funcțională + capturi de ecran și a fost rugat
-să încheie curat. Modificările lui sunt cele din §3.2. **Raportul lui final, cu lista
-completă de bug-uri găsite și nereparate, e rezumat mai jos** — dacă secțiunea e goală
-sau marcată incompletă, caută în `docs/prompt-log.md` și `docs/plans/` intrările cu data
-2026-09-12, acolo și-a documentat munca livrată.
+> **Citește asta înainte de `git add`.** La predare, `git status` amestecă munca a trei
+> autori diferiți, dintre care unul **era încă în lucru**. Nu face `git add -A`.
 
-<!-- DE COMPLETAT cu raportul final al agentului: bug-uri nereparate, acoperirea
-     fluxului 1→9, câte capturi rămân. -->
+Starea verificărilor pe arborele combinat, rulate la predare:
+`pnpm typecheck` ✅ · `pnpm lint` ✅ · `pnpm test` ✅ **584/584**.
+Deci arborele e coerent ca tipuri și teste — dar vezi setul C, care poate fi incomplet
+**funcțional**.
+
+### Set A — WIP-ul clientului (vezi §3.1)
+
+`src/features/platform/*`, `supabase/config.toml`, ștergerile din `.claude/`.
+**Nu-l atinge fără să întrebi.**
+
+### Set B — fix-urile P0 + capturile (gata de commit, verificate)
+
+Livrat și raportat complet; `typecheck`/`lint`/`test`/`routes-smoke` treceau pe el.
+
+- **Fix P0 #1 (randare):** `src/components/layout/nav-config.ts` (`NavItem.icon` →
+  `NavIconName`, union strict de 13 nume, importurile Lucide scoase din modul) +
+  `src/components/layout/sidebar.tsx` (`NAV_ICONS: Record<NavIconName, LucideIcon>`).
+- **Fix P0 #2 (scrieri):** noi `src/features/{items,recipes,stock,settings}/action-state.ts`;
+  modificate `{items,recipes,stock,settings}/actions.ts`, `settings/user-actions.ts`, plus
+  consumatorii (`items/item-form.tsx`,
+  `recipes/{create-recipe-button,recipe-new-form,recipe-editor}.tsx`,
+  `stock/{lot-block-controls,lot-form}.tsx`,
+  `settings/{settings-form,invite-staff-form,invite-client-form}.tsx`) și testele
+  (`items/actions.test.ts`, `recipes/actions.test.ts`, `settings/user-actions.test.ts`).
+- **A11y:** `stock/lot-block-controls.tsx` — `aria-label="Motivul blocării"` pe inputul de
+  motiv (avea doar `placeholder`, deci niciun nume accesibil).
+- **Seed reparat:** `supabase/seed.sql` — `CMD-2026-0001` era `closed` cu
+  `accepted_at`/`delivered_at`/`closed_at` NULL. Acum cronologic: creată −6z → acceptată
+  −5z → livrată −3z (= `delivery_date`) → închisă −2z; `issued_at` al certificatului
+  coincide cu `closed_at`.
+- **Teste noi:** `tests/e2e/routes-smoke.spec.ts`, `tests/e2e/manual-screenshots.spec.ts`.
+- **Capturi:** `docs/manual/img/` — **28 PNG**, 1440×900 @2x, luate după `pnpm db:reset`
+  pe date demo curate. **23 din 26 de placeholder-e reale înlocuite** în
+  `docs/manual/{utilizare-admin-operator,utilizare-client,ghid-administrare}.md`; toate
+  referințele rezolvă.
+- `docs/plans/task-manual-screenshots.md`, intrare în `docs/prompt-log.md`.
+
+### Set C — refactor responsive/mobil, de la o SESIUNE CONCURENTĂ, posibil NETERMINAT
+
+O altă sesiune lucra în paralel pe același arbore, pe layout-ul de mobil (plan în
+**`docs/plans/mobile-responsive-layout.md`** — citește-l, explică motivația: shell-ul nu
+avea nicio adaptare pentru mobil, iar `docs/analiza-conformitate-anexa.md` marca
+„Interfață intuitivă, echipamente uzuale" ca ✅ motivat prin „responsive").
+
+Fișiere care par să-i aparțină:
+`src/components/layout/{app-shell,topbar,sidebar,nav-config}.tsx`,
+`src/components/{page-header,data-table}.tsx`,
+`src/app/(admin)/layout.tsx`, `src/app/(client)/layout.tsx`, `src/app/platform/layout.tsx`,
+`src/app/(admin)/{clienti,comenzi,itemi,rapoarte,stoc,stoc/audit}/page.tsx`,
+`src/features/client-portal/catalog-view.tsx`, `src/features/orders/order-form.tsx`,
+**nou** `src/components/ui/sheet.tsx`, plus `playwright.config.ts`, `package.json`,
+`pnpm-lock.yaml`, `docs/analiza-conformitate-anexa.md`.
+
+**Atenție la trei lucruri:**
+
+1. **`nav-config.ts` și `sidebar.tsx` sunt atinse de AMBELE seturi (B și C).** Fix-ul P0
+   #1 trăiește exact în ele, deci nu poți comita B fără o parte din C. Verifică diff-ul
+   pe aceste două fișiere înainte de commit și asigură-te că `NavIconName`/`NAV_ICONS`
+   au supraviețuit refactorului.
+2. **`.pnpm-store/` a apărut în arbore și NU e în `.gitignore`.** Nu-l comita —
+   adaugă-l în `.gitignore`.
+3. Sesiunea concurentă a reparat singură un bug pe care îl semnalase revizia: `Sidebar`
+   folosea `position-sticky`, care nu e clasă Tailwind validă (acum `sticky`).
+
+**Recomandare:** confirmă cu clientul dacă sesiunea de responsive s-a încheiat, înainte
+de a comita orice din `src/components/layout/` sau `src/app/**/layout.tsx`.
 
 ---
+
+## 6b. Bug-uri găsite și NEREPARATE (de la verificarea funcțională)
+
+Ordonate după severitate. Acestea sunt cele mai valoroase pentru tine — sunt confirmate,
+cu cauză identificată.
+
+| Sev. | Ce | Unde / cauză |
+| --- | --- | --- |
+| MEDIU | **Bara de căutare din `/catalog` e strivită la ~60px** — se vede în `docs/manual/img/client-catalog.png`, deci ar fi ajuns așa în manualul de recepție | `client-portal/catalog-view.tsx:220`: `` className={`${selectClassName} w-56`} ``, iar `selectClassName` conține deja `w-full` → conflict Tailwind nerezolvat, `w-full` câștigă. Fix: `cn(selectClassName, "w-56")` (tailwind-merge e deja în proiect). Nereparat pentru a nu intra în conflict cu setul C. |
+| MEDIU | **`tests/e2e/mvp-flow.spec.ts` cade la login** | `getByLabel("Email")` prinde 2 elemente (câmpul de login + `#magic-email`) → strict mode violation. E la un selector distanță: folosește `#email` / `#password`. |
+| MIC | **Rândurile din `/clienti` nu sunt link-uri** | `ClientTable` navighează prin `onRowClick` (`router.push`) pe `<tr>`: inaccesibil din tastatură, fără „deschide în tab nou", fără URL la hover. |
+| MIC | **Badge-ul dev-tools Next apare în capturi** (cercul „N", stânga-jos) | Pentru livrabilul de recepție: `devIndicators: false` sau capturi pe build de producție. |
+| MIC | **Diacritice lipsă pe dashboard** | „Privire de ansamblu asupra activitatii." |
+| INFO | **Manualul are text depășit** | `utilizare-admin-operator.md` §9 spune că „nu există încă o rută `/livrari`" — există. `manual/README.md` §„Notă importantă" spune că manualul nu conține capturi — acum e fals. |
+| INFO | `/livrari/nou` dă 404 fără `?orderId=` | Prin design (`notFound()` explicit). Nu e bug; de aceea nu e în `routes-smoke`. |
+
+### Cele 3 capturi rămase
+
+Toate din lipsă de date în seed, nu din bug: formularul de **Retur/Garanție** (admin și
+client) și **detaliul comenzii client cu „Repetă comanda"** — firma `Client Demo SRL`
+n-are nicio comandă finalizată. Cea mai simplă rezolvare: adaugă în `supabase/seed.sql` o
+comandă `closed` pentru `Client Demo SRL` (`c0000000-0000-0000-0000-0000000000c1`), apoi
+rerulează `tests/e2e/manual-screenshots.spec.ts`.
+
+---
+
+## 6c. Fluxul 1→9 — ce e verificat efectiv prin UI
+
+**Confirmat, cu efectul verificat în baza de date:**
+
+- **Pas 2 — client nou:** lookup ANAF pe CUI real (`14399840`) a precompletat „DANTE
+  INTERNATIONAL SA"; clientul s-a creat, redirect corect. *Integrarea externă e vie.*
+- **Pas 3 — itemi:** creare item OK după fix (8 → 9 itemi în DB).
+- **Pas 4 — intrare stoc:** lot nou (`Moloz` 120t) + `stock_event` de tip `intake`.
+- **Blocare/deblocare lot** (migrarea 0017): evenimente `block` și `unblock` scrise.
+- **Pas 7–8 — comandă → trimite → acceptă:** `consumption −7.000` pe `Cărămizi eco`.
+- **Anulare comandă** (migrarea 0018): `reversal +7.000`, `remaining_qty` revenit la
+  100.000, status `cancelled` — confirmat pe calea reală din UI, nu doar în SQL.
+- **Export CSV audit stoc:** download real.
+- **Guard-uri:** clientul redirectat de pe toate ecranele staff și de pe `/platform`;
+  nelogat → `/login`; comanda altui client → 404.
+
+**Atins superficial** (ecranul randează, acțiunea neverificată în date): rapoarte, setări
+organizație, utilizatori, `/platform`, portalul client (catalog/comenzi/documente).
+
+**NEATINS deloc — aici începe munca ta:**
+
+- **pașii 5–6: reciclare + producție cu consum FIFO** (verificate doar la nivel de RPC,
+  prin `business_flow.sql` B10, nu prin UI)
+- **pasul 9: livrare → închidere → generare certificat, prin UI**
+- livrare planificată + aviz + declarare e-Transport
+- retur / garanție și acceptarea returului
+- export PDF/CSV pe rapoarte
+- invitare utilizator; creare organizație; suspendare/reactivare organizație
 
 ## 7. Reguli de proces — obligatorii în acest repo
 
