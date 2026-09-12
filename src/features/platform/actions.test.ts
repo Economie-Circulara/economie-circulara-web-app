@@ -37,11 +37,10 @@ vi.mock("next/headers", () => ({ headers }));
 
 import {
   createOrganizationAction,
-  initialCreateOrganizationState,
-  initialOrgStatusState,
   reactivateOrganizationAction,
   suspendOrganizationAction,
 } from "./actions";
+import { initialCreateOrganizationState, initialOrgStatusState } from "./form-state";
 import { InviteFailedError, ProfileCreateFailedError, SlugTakenError } from "./service";
 
 function formData(fields: Record<string, string>): FormData {

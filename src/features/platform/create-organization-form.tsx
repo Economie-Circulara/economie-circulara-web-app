@@ -4,7 +4,8 @@ import { useActionState, useState } from "react";
 import { FormField } from "@/components/form-field";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { createOrganizationAction, initialCreateOrganizationState } from "./actions";
+import { createOrganizationAction } from "./actions";
+import { initialCreateOrganizationState } from "./form-state";
 import { slugify } from "./slug";
 
 /**
@@ -20,7 +21,7 @@ export function CreateOrganizationForm() {
   );
   const orgExists = Boolean(state.organizationId);
 
-  const [slug, setSlug] = useState(state.orgSlug);
+  const [slug, setSlug] = useState(state.orgSlug ?? "");
   const [slugTouched, setSlugTouched] = useState(false);
 
   return (
