@@ -15,6 +15,16 @@ acceptare verificabile.
 > T2.1 guard suspendare, X4 seed+E2E) ✅. **Milestone 3 COMPLET** (X5 livrari/avize/
 > e-Transport — adapter mock, real depinde de S4 Socrate.io; X6 documentatie/instruire) ✅.
 > **TOT PLANUL LIVRAT IN COD.** Ramas non-cod: cablare reala Socrate.io (S4), screenshot-uri manual.
+>
+> **Update (2026-09-12) — reluare dupa pauza, recepție iminenta:** fix-urile de review
+> (F1-F7: migrarile 0014-0016, invitare client, `/cauta`, CI e2e) erau pe un branch
+> **nemerge** — acum sunt pe `main`. Tipurile generate au fost **regenerate canonic** pe
+> toate cele 17 migrari (commitul anterior le regenerase contra unei baze incomplete si
+> spargea `typecheck`). Verificat efectiv: typecheck, lint, 584 teste, build, **suita RLS
+> pe Postgres real (T1-T19)**. **Deschis:** (1) `mvp-flow.spec.ts` esueaza pe selectori la
+> prima rulare reala; (2) Supabase **hosted** e la migrarea 0010 — lipsesc 0011-0016;
+> (3) nu exista deploy (`.vercel/` absent); (4) 27 capturi de ecran in `docs/manual/`;
+> (5) S2 + S4 tot deschise; (6) SMTP real.
 
 ---
 

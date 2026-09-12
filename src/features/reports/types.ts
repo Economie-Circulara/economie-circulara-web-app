@@ -44,6 +44,12 @@ export interface DeliveredOrderInput {
   status: OrderStatus;
   clientId: string;
   clientName: string;
+  /**
+   * Momentul REAL al tranzitiei -> delivered (Fix F3, 0015_order_status_timestamps.sql).
+   * Null pentru comenzile livrate/inchise INAINTE de migrare (istoric fara timestamp) —
+   * `resolveDeliveryReferenceDate` cade pe vechea aproximare pentru acele randuri.
+   */
+  deliveredAt: string | null;
   /** Data planificata de livrare (optionala, introdusa la creare) — vezi limitarea din plan. */
   deliveryDate: string | null;
   updatedAt: string;

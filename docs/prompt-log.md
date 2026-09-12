@@ -13,6 +13,62 @@ Format intrare:
 
 ---
 
+## 2026-09-12 — Claude Opus 5 — Reluare proiect: main verde + merge review fixes
+
+- **Cerut:** analiza starii proiectului dupa ~8 saptamani de pauza (docs + branch-uri + cod),
+  apoi repararea `main` si pregatirea muncii in paralel (recepție iminenta).
+- **Constatat:** `main` NU trecea `typecheck` (CI rosu). Commitul `20705a7` „chore: generated
+  types" regenerase `src/lib/database.types.ts` contra unei baze cu doar migrarile 0000-0002
+  aplicate: fisierul pierduse `deliveries`, valoarea `reconditioning` si toate RPC-urile in
+  afara de `org_branding` (917 inserari / 1178 stergeri = pierdere neta, 14 erori TS).
+  Separat, branch-ul `origin/claude/app-plan-review-w3cr7a` (fix-urile F1-F7 din review,
+  migrarile 0014-0016, invitare client, `/cauta`, CI e2e) ramasese **nemerge**.
+- **Facut:** merge `origin/claude/app-plan-review-w3cr7a` in `main` (singurul conflict:
+  `database.types.ts`). **Regenerare canonica a tipurilor** (`pnpm gen:types`) pe un Supabase
+  local cu TOATE cele 17 migrari aplicate (0000-0016 aplicate curat pe Postgres real) + seed.
+- **Drift real rezolvat (nu de format):** CLI-ul actual (v2.108) genereaza argumentele RPC cu
+  default in SQL ca **opționale fara `| null`** (`p_reason?: string`), in timp ce fisierul
+  intretinut manual avea `| null`. Codul trimitea explicit `null` → 13 erori TS. Fix: apelurile
+  trimit acum `undefined` (cheia se omite → PostgREST aplica `default null` din SQL, comportament
+  identic), in `src/features/stock/service.ts` (create_lot, consume_fifo, set_lot_block) si
+  `src/features/production/service.ts` (confirm_process) + asertiunile de payload din
+  `src/features/stock/service.test.ts`. Tipurile generate rămân **exact** output-ul CLI-ului,
+  deci drift-check-ul din `db.yml` poate deveni blocant.
+- **Verificat efectiv (nu pe hartie):** `typecheck` ✅, `lint` ✅, **584 teste unitare** ✅,
+  `pnpm build` ✅, **suita RLS rulata pe Postgres real** (`rls_isolation.sql`, T1-T19 inclusiv
+  0014-0016) ✅ — rulata prin `docker exec` in containerul `supabase_db_*` (psql nu e instalat local).
+- **E2E — prima rulare reala** (Docker disponibil acum, spre deosebire de iulie): `home.spec.ts`
+  trece; `mvp-flow.spec.ts` **esueaza pe selectori**, exact cum anticipa nota din `e2e.yml`.
+  Primul blocaj: `getByLabel("Email")` e ambiguu pe `/login` (formularul are si un input
+  `#magic-email` pentru magic link). Rămâne de reparat iterativ — task separat.
+- **Nota:** WIP-ul necommitat al userului (`src/features/platform/form-state.ts` +
+  `supabase/config.toml`, `.claude/`) a fost lasat INTACT, in afara acestui commit.
+
+## 2026-07-19 — Claude (orchestrator, 5 subagenti Sonnet paraleli) — Review fixes
+
+- **Cerut:** rezolvarea prin subagenti a findings-urilor din review-ul tehnic (ce se poate
+  fara acces manual/extern).
+- **Facut F1+F6:** migrarea `0014_suspended_guard_completion.sql` — guard org suspendata
+  completat pe scrierile clientului (`client_addresses` spart in politici per-operatie) +
+  toate SELECT-urile client (defense-in-depth) + index `organizations(id,status)`.
+  `rls_isolation.sql` TEST 15-19.
+- **Facut F3:** migrarea `0015_order_status_timestamps.sql` — `accepted_at`/`delivered_at`/
+  `closed_at` pe orders; `accept_order` recreat byte-identic + `accepted_at=now()`;
+  tranzitiile delivered/closed seteaza timestamp in server action; rapoartele folosesc
+  `deliveredAt ?? deliveryDate ?? updatedAt` (mai exact).
+- **Facut F7a:** invitare **client** in `/setari/utilizatori` (`inviteClientAction`;
+  „un client = un user" impus in aplicatie + coloana Firma in lista).
+- **Facut F7b:** cautare pentru portalul clientului — ruta `/cauta` (distinct de `/cautare`
+  staff), bara topbar cablata pe rol, href-uri corecte per rol.
+- **Facut F2+F4:** drift-check tipuri normalizat prin prettier (prinde doar drift real de
+  schema) + workflow nou `e2e.yml` (ruleaza testul E2E pe Supabase live in CI).
+- **Facut (orchestrator, hardening):** migrarea `0016_review_hardening.sql` — inchide doua
+  gap-uri semnalate de agenti: `order_links_client_insert` primeste `app.org_is_active`
+  (guard suspendare complet) + index unic partial `profiles_client_id_unique`
+  („un client = un user" acum si la nivel de DB). AGENTS.md §4.1 actualizat.
+- **Integrare:** verificat pe arborele unificat: typecheck, lint, **584 teste** — verzi.
+  F5 (SMTP/Socrate.io real) + regenerarea canonica a tipurilor = partea manuala a userului.
+
 ## 2026-07-19 — Claude (orchestrator, subagenti Sonnet paraleli) — Milestone 3
 
 - **Cerut:** X5 (livrari + avize/e-Transport) + X6 (documentatie/instruire), in paralel — ultimul milestone.

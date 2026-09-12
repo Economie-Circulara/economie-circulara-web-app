@@ -53,15 +53,17 @@ export function aggregateOrdersByStatus(orders: { status: string }[]): OrderStat
 // -----------------------------------------------------------------------------
 
 /**
- * Data de referinta pentru "livrat in perioada": `delivery_date` (planificata, introdusa
- * manual la creare) daca exista, altfel `updated_at` (ultima tranzitie de status) —
- * schema `orders` nu are un timestamp dedicat "livrat la" (fara istoric de status),
- * aproximare documentata (docs/plans/task-x3-rapoarte.md §2).
+ * Data de referinta pentru "livrat in perioada": prioritate `delivered_at` (momentul REAL
+ * al tranzitiei -> delivered, Fix F3, 0015_order_status_timestamps.sql) daca exista, altfel
+ * fallback pe vechea aproximare — `delivery_date` (planificata, introdusa manual la creare)
+ * daca exista, apoi `updated_at` (ultima tranzitie de status). Fallback-ul ramane necesar
+ * pentru comenzile livrate/inchise INAINTE de migrarea 0015 (istoric fara `delivered_at`,
+ * vezi docs/plans/task-x3-rapoarte.md §2 si docs/plans/fix-f3-status-timestamps.md).
  */
 export function resolveDeliveryReferenceDate(
-  order: Pick<DeliveredOrderInput, "deliveryDate" | "updatedAt">,
+  order: Pick<DeliveredOrderInput, "deliveredAt" | "deliveryDate" | "updatedAt">,
 ): string {
-  return order.deliveryDate ?? order.updatedAt;
+  return order.deliveredAt ?? order.deliveryDate ?? order.updatedAt;
 }
 
 /** Comenzile livrate/inchise (deja fetch-uite, fara filtru de data) care cad in perioada. */

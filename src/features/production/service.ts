@@ -33,8 +33,8 @@ export async function confirmProcess(input: ConfirmProcessInput): Promise<Proces
   const { data, error } = await supabase.rpc("confirm_process", {
     p_type: input.type,
     p_output_item_id: input.outputItemId,
-    p_recipe_id: input.recipeId ?? null,
-    p_notes: input.notes ?? null,
+    p_recipe_id: input.recipeId ?? undefined,
+    p_notes: input.notes ?? undefined,
     p_inputs: input.inputs.map((line) => ({
       item_id: line.itemId,
       lot_ids: line.lotIds,

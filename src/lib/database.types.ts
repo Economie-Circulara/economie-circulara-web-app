@@ -34,6 +34,35 @@ export type Database = {
   }
   public: {
     Tables: {
+      certificate_counters: {
+        Row: {
+          organization_id: string
+          seq: number
+          updated_at: string
+          year: number
+        }
+        Insert: {
+          organization_id: string
+          seq?: number
+          updated_at?: string
+          year: number
+        }
+        Update: {
+          organization_id?: string
+          seq?: number
+          updated_at?: string
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "certificate_counters_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       certificates: {
         Row: {
           created_at: string
@@ -192,6 +221,82 @@ export type Database = {
           },
         ]
       }
+      deliveries: {
+        Row: {
+          carrier_name: string
+          created_at: string
+          created_by: string | null
+          declaration_error: string | null
+          declaration_status: Database["public"]["Enums"]["delivery_declaration_status"]
+          driver_name: string
+          id: string
+          order_id: string
+          organization_id: string
+          route_destination: string
+          route_origin: string
+          scheduled_date: string
+          uit_code: string | null
+          updated_at: string
+          vehicle_plate: string
+        }
+        Insert: {
+          carrier_name: string
+          created_at?: string
+          created_by?: string | null
+          declaration_error?: string | null
+          declaration_status?: Database["public"]["Enums"]["delivery_declaration_status"]
+          driver_name: string
+          id?: string
+          order_id: string
+          organization_id: string
+          route_destination: string
+          route_origin: string
+          scheduled_date: string
+          uit_code?: string | null
+          updated_at?: string
+          vehicle_plate: string
+        }
+        Update: {
+          carrier_name?: string
+          created_at?: string
+          created_by?: string | null
+          declaration_error?: string | null
+          declaration_status?: Database["public"]["Enums"]["delivery_declaration_status"]
+          driver_name?: string
+          id?: string
+          order_id?: string
+          organization_id?: string
+          route_destination?: string
+          route_origin?: string
+          scheduled_date?: string
+          uit_code?: string | null
+          updated_at?: string
+          vehicle_plate?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deliveries_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deliveries_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: true
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deliveries_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       documents: {
         Row: {
           created_at: string
@@ -255,6 +360,7 @@ export type Database = {
           description: string | null
           id: string
           image_url: string | null
+          kind: Database["public"]["Enums"]["item_kind"]
           organization_id: string
           sellable: boolean
           title: string
@@ -266,6 +372,7 @@ export type Database = {
           description?: string | null
           id?: string
           image_url?: string | null
+          kind?: Database["public"]["Enums"]["item_kind"]
           organization_id: string
           sellable?: boolean
           title: string
@@ -277,6 +384,7 @@ export type Database = {
           description?: string | null
           id?: string
           image_url?: string | null
+          kind?: Database["public"]["Enums"]["item_kind"]
           organization_id?: string
           sellable?: boolean
           title?: string
@@ -352,6 +460,92 @@ export type Database = {
           },
           {
             foreignKeyName: "lots_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notifications: {
+        Row: {
+          body: string
+          created_at: string
+          error: string | null
+          id: string
+          organization_id: string
+          recipient_email: string
+          related_order_id: string | null
+          sent_at: string | null
+          status: Database["public"]["Enums"]["notification_status"]
+          subject: string
+          type: Database["public"]["Enums"]["notification_type"]
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          error?: string | null
+          id?: string
+          organization_id: string
+          recipient_email: string
+          related_order_id?: string | null
+          sent_at?: string | null
+          status?: Database["public"]["Enums"]["notification_status"]
+          subject: string
+          type: Database["public"]["Enums"]["notification_type"]
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          error?: string | null
+          id?: string
+          organization_id?: string
+          recipient_email?: string
+          related_order_id?: string | null
+          sent_at?: string | null
+          status?: Database["public"]["Enums"]["notification_status"]
+          subject?: string
+          type?: Database["public"]["Enums"]["notification_type"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_related_order_id_fkey"
+            columns: ["related_order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      order_counters: {
+        Row: {
+          organization_id: string
+          seq: number
+          updated_at: string
+          year: number
+        }
+        Insert: {
+          organization_id: string
+          seq?: number
+          updated_at?: string
+          year: number
+        }
+        Update: {
+          organization_id?: string
+          seq?: number
+          updated_at?: string
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_counters_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
@@ -462,10 +656,13 @@ export type Database = {
       }
       orders: {
         Row: {
+          accepted_at: string | null
           client_id: string
+          closed_at: string | null
           created_at: string
           created_by: string | null
           created_by_admin: boolean
+          delivered_at: string | null
           delivery_address_id: string | null
           delivery_date: string | null
           expected_return_date: string | null
@@ -477,10 +674,13 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          accepted_at?: string | null
           client_id: string
+          closed_at?: string | null
           created_at?: string
           created_by?: string | null
           created_by_admin?: boolean
+          delivered_at?: string | null
           delivery_address_id?: string | null
           delivery_date?: string | null
           expected_return_date?: string | null
@@ -492,10 +692,13 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          accepted_at?: string | null
           client_id?: string
+          closed_at?: string | null
           created_at?: string
           created_by?: string | null
           created_by_admin?: boolean
+          delivered_at?: string | null
           delivery_address_id?: string | null
           delivery_date?: string | null
           expected_return_date?: string | null
@@ -1006,6 +1209,191 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      accept_order: {
+        Args: { p_order_id: string }
+        Returns: {
+          accepted_at: string | null
+          client_id: string
+          closed_at: string | null
+          created_at: string
+          created_by: string | null
+          created_by_admin: boolean
+          delivered_at: string | null
+          delivery_address_id: string | null
+          delivery_date: string | null
+          expected_return_date: string | null
+          id: string
+          notes: string | null
+          order_number: string | null
+          organization_id: string
+          status: Database["public"]["Enums"]["order_status"]
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "orders"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      accept_return_order: {
+        Args: { p_return_order_id: string }
+        Returns: {
+          accepted_at: string | null
+          client_id: string
+          closed_at: string | null
+          created_at: string
+          created_by: string | null
+          created_by_admin: boolean
+          delivered_at: string | null
+          delivery_address_id: string | null
+          delivery_date: string | null
+          expected_return_date: string | null
+          id: string
+          notes: string | null
+          order_number: string | null
+          organization_id: string
+          status: Database["public"]["Enums"]["order_status"]
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "orders"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      cancel_order: {
+        Args: { p_order_id: string }
+        Returns: {
+          accepted_at: string | null
+          client_id: string
+          closed_at: string | null
+          created_at: string
+          created_by: string | null
+          created_by_admin: boolean
+          delivered_at: string | null
+          delivery_address_id: string | null
+          delivery_date: string | null
+          expected_return_date: string | null
+          id: string
+          notes: string | null
+          order_number: string | null
+          organization_id: string
+          status: Database["public"]["Enums"]["order_status"]
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "orders"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      cancel_process: {
+        Args: { p_process_id: string }
+        Returns: {
+          completed_at: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          notes: string | null
+          organization_id: string
+          output_item_id: string | null
+          recipe_id: string | null
+          started_at: string | null
+          status: Database["public"]["Enums"]["process_status"]
+          type: Database["public"]["Enums"]["process_type"]
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "processes"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      confirm_process: {
+        Args: {
+          p_inputs?: Json
+          p_notes?: string
+          p_output_item_id: string
+          p_outputs?: Json
+          p_recipe_id?: string
+          p_type: Database["public"]["Enums"]["process_type"]
+        }
+        Returns: {
+          completed_at: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          notes: string | null
+          organization_id: string
+          output_item_id: string | null
+          recipe_id: string | null
+          started_at: string | null
+          status: Database["public"]["Enums"]["process_status"]
+          type: Database["public"]["Enums"]["process_type"]
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "processes"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      consume_fifo: {
+        Args: {
+          p_event_type?: Database["public"]["Enums"]["stock_event_type"]
+          p_item_id: string
+          p_manual_lot_ids?: string[]
+          p_order_id?: string
+          p_process_id?: string
+          p_qty: number
+          p_reason?: string
+        }
+        Returns: {
+          lot_id: string
+          qty: number
+        }[]
+      }
+      create_lot: {
+        Args: {
+          p_entry_date?: string
+          p_item_id: string
+          p_location?: string
+          p_provenance: Database["public"]["Enums"]["lot_provenance"]
+          p_quality_status?: Database["public"]["Enums"]["quality_status"]
+          p_quantity: number
+          p_reason?: string
+          p_source?: string
+        }
+        Returns: {
+          block_reason: string | null
+          created_at: string
+          entry_date: string
+          id: string
+          initial_qty: number
+          is_blocked: boolean
+          item_id: string
+          location: string | null
+          organization_id: string
+          provenance: Database["public"]["Enums"]["lot_provenance"]
+          quality_status: Database["public"]["Enums"]["quality_status"]
+          remaining_qty: number
+          source: string | null
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "lots"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      generate_certificate_number: { Args: { p_org: string }; Returns: string }
+      generate_order_number: { Args: { p_org: string }; Returns: string }
       org_branding: {
         Args: { p_domain?: string; p_slug?: string }
         Returns: {
@@ -1018,15 +1406,51 @@ export type Database = {
           slug: string
         }[]
       }
+      set_lot_block: {
+        Args: { p_blocked: boolean; p_lot_id: string; p_reason?: string }
+        Returns: {
+          block_reason: string | null
+          created_at: string
+          entry_date: string
+          id: string
+          initial_qty: number
+          is_blocked: boolean
+          item_id: string
+          location: string | null
+          organization_id: string
+          provenance: Database["public"]["Enums"]["lot_provenance"]
+          quality_status: Database["public"]["Enums"]["quality_status"]
+          remaining_qty: number
+          source: string | null
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "lots"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
     }
     Enums: {
+      delivery_declaration_status: "not_declared" | "declared" | "failed"
       document_owner_type: "client" | "order" | "item"
+      item_kind: "physical" | "service"
       lot_provenance:
         | "purchase"
         | "internal_production"
         | "recycling"
         | "return"
         | "inventory_adjustment"
+        | "reconditioning"
+      notification_status: "queued" | "sent" | "failed"
+      notification_type:
+        | "order_sent"
+        | "order_accepted"
+        | "order_delivered"
+        | "order_closed"
+        | "order_cancelled"
+        | "staff_invite"
       order_link_type: "return" | "warranty" | "replacement"
       order_status:
         | "draft"
@@ -1190,13 +1614,25 @@ export const Constants = {
   },
   public: {
     Enums: {
+      delivery_declaration_status: ["not_declared", "declared", "failed"],
       document_owner_type: ["client", "order", "item"],
+      item_kind: ["physical", "service"],
       lot_provenance: [
         "purchase",
         "internal_production",
         "recycling",
         "return",
         "inventory_adjustment",
+        "reconditioning",
+      ],
+      notification_status: ["queued", "sent", "failed"],
+      notification_type: [
+        "order_sent",
+        "order_accepted",
+        "order_delivered",
+        "order_closed",
+        "order_cancelled",
+        "staff_invite",
       ],
       order_link_type: ["return", "warranty", "replacement"],
       order_status: [

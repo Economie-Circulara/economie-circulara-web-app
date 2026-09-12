@@ -37,18 +37,36 @@ jobs:
       - name: Regenereaza tipurile din schema
         run: supabase gen types typescript --local > src/lib/database.types.generated.ts
 
-      # NOTA (2026-07-18): verificare INFORMATIVA (non-blocanta). Match-ul byte-cu-byte
-      # cu `supabase gen types --local` cere stack-ul Docker (indisponibil in unele medii
-      # de dezvoltare) si depinde de versiunea CLI (`latest`), care schimba formatarea
-      # (fara `;`, enum-uri pe mai multe randuri) fata de fisierul intretinut manual.
-      # Tipurile sunt validate FUNCTIONAL de `pnpm typecheck` + testele unitare (workflow-ul
-      # CI). Cand regenerezi cu `pnpm gen:types` (cu Docker), commit-uieste rezultatul brut;
-      # `database.types.ts` e in `.prettierignore` ca sa nu fie reformatat la commit.
-      - name: Verifica drift fata de tipurile commit-uite (informativ)
+      # NOTA (2026-07-19, F2): verificare INFORMATIVA (non-blocanta), dar comparatia se
+      # face acum pe fisiere NORMALIZATE prin prettier (acelasi formatter/config ca restul
+      # repo-ului), nu byte-cu-byte pe output-ul brut al CLI-ului. Inainte, diff-ul byte-cu-
+      # byte semnala mereu drift (fals-pozitiv) din cauza formatarii CLI-ului `supabase gen
+      # types` (fara `;`, enum-uri/union-uri wrapate diferit) fata de `database.types.ts`
+      # intretinut manual - desi schema era identica. Normalizand AMBELE fisiere prin
+      # `prettier` inainte de diff, mesajul de avertisment apare DOAR cand exista drift REAL
+      # de schema (tabele/coloane/tipuri lipsa sau diferite), nu doar de format.
+      #
+      # `database.types.ts` e in `.prettierignore` (ca sa nu fie reformatat la commit -
+      # ramane identic cu output-ul brut al CLI-ului), dar il putem rula prin `prettier`
+      # punctual, ad-hoc, doar pentru comparatie, fara sa scriem rezultatul inapoi in repo.
+      #
+      # Ramane INFORMATIV (non-blocant, `|| true` / fara `exit 1`) deocamdata: nu avem inca
+      # o rulare canonica `pnpm gen:types` (cu Docker) confirmata drift-free pe acest fisier.
+      # Dupa o regenerare canonica si commit, acest pas poate deveni BLOCANT (elimina
+      # `|| true` de la `diff` si `continue-on-error`, foloseste `exit 1` in loc de
+      # `::warning::`).
+      - name: Verifica drift fata de tipurile commit-uite (informativ, normalizat prin prettier)
         run: |
-          if ! diff -q src/lib/database.types.ts src/lib/database.types.generated.ts >/dev/null 2>&1; then
-            echo "::warning::database.types.ts difera (de format) de schema generata. Ruleaza 'pnpm gen:types' cu Docker si commit-uieste pentru match exact."
-            diff src/lib/database.types.ts src/lib/database.types.generated.ts || true
+          # `npx prettier@3` (fara pas separat de `pnpm install` in acest job) - prinde
+          # automat `.prettierrc`/config-ul din repo (prettier cauta config-ul in sus de la
+          # fisierul procesat), doar major version-ul e fixat (3.x, ca in package.json) ca
+          # sa nu difere formatarea intre rulari din cauza unei versiuni `latest` schimbatoare.
+          npx --yes prettier@3 --parser typescript src/lib/database.types.generated.ts > /tmp/gen.fmt.ts
+          npx --yes prettier@3 --parser typescript src/lib/database.types.ts > /tmp/committed.fmt.ts
+
+          if ! diff -q /tmp/committed.fmt.ts /tmp/gen.fmt.ts >/dev/null 2>&1; then
+            echo "::warning::database.types.ts difera de schema generata (dupa normalizare prin prettier - drift REAL de schema, nu de format). Ruleaza 'pnpm gen:types' cu Docker si commit-uieste."
+            diff /tmp/committed.fmt.ts /tmp/gen.fmt.ts || true
           fi
 
       - name: Stop Supabase

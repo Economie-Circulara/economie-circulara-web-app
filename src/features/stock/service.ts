@@ -71,11 +71,11 @@ export async function createLot(input: CreateLotInput): Promise<Lot> {
     p_item_id: input.itemId,
     p_quantity: input.quantity,
     p_provenance: input.provenance,
-    p_source: input.source ?? null,
-    p_entry_date: input.entryDate ?? null,
-    p_location: input.location ?? null,
-    p_quality_status: input.qualityStatus ?? null,
-    p_reason: input.reason ?? null,
+    p_source: input.source ?? undefined,
+    p_entry_date: input.entryDate ?? undefined,
+    p_location: input.location ?? undefined,
+    p_quality_status: input.qualityStatus ?? undefined,
+    p_reason: input.reason ?? undefined,
   });
 
   if (error || !data) {
@@ -114,11 +114,11 @@ export async function consumeFIFO(
   const { data, error } = await supabase.rpc("consume_fifo", {
     p_item_id: itemId,
     p_qty: qty,
-    p_manual_lot_ids: options.manualLotIds ?? null,
-    p_event_type: options.eventType ?? null,
-    p_order_id: options.orderId ?? null,
-    p_process_id: options.processId ?? null,
-    p_reason: options.reason ?? null,
+    p_manual_lot_ids: options.manualLotIds ?? undefined,
+    p_event_type: options.eventType ?? undefined,
+    p_order_id: options.orderId ?? undefined,
+    p_process_id: options.processId ?? undefined,
+    p_reason: options.reason ?? undefined,
   });
 
   if (error) {
@@ -216,7 +216,7 @@ export async function unblockLot(lotId: string): Promise<Lot> {
   const { data, error } = await supabase.rpc("set_lot_block", {
     p_lot_id: lotId,
     p_blocked: false,
-    p_reason: null,
+    p_reason: undefined,
   });
 
   if (error || !data) {

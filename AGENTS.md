@@ -178,3 +178,9 @@ Testele unitare sunt **colocate** langa cod (`*.test.ts` / `*.test.tsx`).
   enumerarea slugurilor/domeniilor organizatiilor este un trade-off acceptat.
 - **`profiles.email` duplicat**: se poate desincroniza de la `auth.users.email`; sursa de adevar
   pentru autentificare este `auth.users`, `profiles.email` e copie de afisare.
+- **„Un client = un singur user" (invitare client, F7a)**: impus pe DOUA nivele —
+  aplicatie (`inviteClientAction` in `src/features/settings/user-actions.ts`
+  verifica inainte de insert ca firma nu are deja un profil `client`) SI DB (index
+  unic partial `profiles_client_id_unique` pe `client_id where client_id is not null`,
+  migrarea `0016_review_hardening.sql`, care elimina fereastra de race la invitatii
+  simultane).

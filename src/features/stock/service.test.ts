@@ -57,10 +57,10 @@ describe("createLot", () => {
       p_quantity: 100,
       p_provenance: "purchase",
       p_source: "Furnizor X",
-      p_entry_date: null,
-      p_location: null,
-      p_quality_status: null,
-      p_reason: null,
+      p_entry_date: undefined,
+      p_location: undefined,
+      p_quality_status: undefined,
+      p_reason: undefined,
     });
     expect(result).toEqual({
       id: "lot-1",
@@ -104,10 +104,10 @@ describe("consumeFIFO", () => {
     expect(rpc).toHaveBeenCalledWith("consume_fifo", {
       p_item_id: "item-1",
       p_qty: 50,
-      p_manual_lot_ids: null,
-      p_event_type: null,
-      p_order_id: null,
-      p_process_id: null,
+      p_manual_lot_ids: undefined,
+      p_event_type: undefined,
+      p_order_id: undefined,
+      p_process_id: undefined,
       p_reason: "productie",
     });
     expect(result).toEqual([
@@ -255,7 +255,7 @@ describe("blockLot / unblockLot", () => {
     expect(rpc).toHaveBeenCalledWith("set_lot_block", {
       p_lot_id: "lot-1",
       p_blocked: false,
-      p_reason: null,
+      p_reason: undefined,
     });
     expect(lot.isBlocked).toBe(false);
   });
