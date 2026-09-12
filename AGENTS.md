@@ -184,3 +184,46 @@ Testele unitare sunt **colocate** langa cod (`*.test.ts` / `*.test.tsx`).
   unic partial `profiles_client_id_unique` pe `client_id where client_id is not null`,
   migrarea `0016_review_hardening.sql`, care elimina fereastra de race la invitatii
   simultane).
+
+### 4.2 Capcane Postgres/RLS invatate pe bug-uri reale (2026-09-12)
+
+Trei lecții din bug-uri care au trecut de typecheck, lint, 584 teste unitare si `build`,
+pentru ca **niciunul dintre ele nu executa SQL pe un Postgres real si nu randeaza o pagina**.
+Daca scrii plpgsql sau treci date peste granita server/client, citeste asta.
+
+- **Enum + expresie = cast obligatoriu.** Intr-un `INSERT` catre o coloana enum, un
+  literal simplu (`'reversal'`) e coercitat automat, dar o **expresie**
+  (`case ... end`, `coalesce(...)`) rezolva literalii la `text` INAINTE de atribuire,
+  iar Postgres nu face cast implicit `text -> enum`. Scrie mereu
+  `(case ... end)::public.tipul_enum`. A spart complet blocarea loturilor
+  (migrarea de fix: `0017_fix_set_lot_block_enum_cast.sql`).
+- **`SELECT ... FOR UPDATE` sub RLS cere politica de UPDATE.** O citire cu clauza de
+  blocare nu e evaluata doar cu politicile de SELECT: randurile care nu satisfac
+  politica de **UPDATE** sunt **filtrate in silentiu** (nu eroare). Pe tabele
+  append-only ca `stock_events` (doar SELECT + INSERT, deliberat) orice
+  `select ... for update` returneaza **0 randuri**, deci bucla care le parcurge nu
+  ruleaza niciodata. A facut ca anularea unei comenzi acceptate sa nu refaca stocul
+  (migrarea de fix: `0018_fix_cancel_order_stock_restore.sql`). Inainte de a pune
+  `for update`, verifica ce politici are tabelul — si lock-uieste entitatea care chiar
+  are nevoie (aici: `orders`, nu auditul).
+- **Corpul unei functii plpgsql NU e verificat la tip la creare, doar la executie.**
+  O migrare se poate aplica impecabil si functia sa cada la primul apel. O migrare
+  aplicata cu succes **nu** e dovada ca RPC-ul functioneaza.
+
+De aceea exista `supabase/tests/business_flow.sql` (`pnpm db:test:business`): verifica
+**invariantii de business** direct pe RPC-uri, pe un Postgres real — scaderea stocului
+la acceptare, FIFO, sarirea loturilor blocate, atomicitatea la stoc insuficient,
+refacerea stocului la anulare, loturile de output la procese, reintrarea in stoc la
+retur. Fiecare test ruleaza in `begin; ... rollback;`, deci **nu lasa urme** (spre
+deosebire de `rls_isolation.sql`, care isi insereaza fixture-urile in autocommit — de
+aceea in CI testele functionale ruleaza PRIMELE). **Orice regula de business noua sau
+modificata primeste un test aici**, nu doar un test unitar cu RPC-ul mock-uit.
+
+- **Granita RSC transporta doar date simple.** Nu pasa referinte de componente (ex.
+  iconite Lucide) din Server Components catre Client Components: Next/React arunca la
+  RUNTIME („Functions cannot be passed directly to Client Components"), iar `build`
+  trece. Pasa un **identificator** (string tipat) si rezolva-l in componenta client
+  (vezi `NavIconName` in `src/components/layout/nav-config.ts` +
+  `NAV_ICONS` in `sidebar.tsx`). Plasa de siguranta:
+  `tests/e2e/routes-smoke.spec.ts` — orice ruta noua adaugata in sidebar intra automat
+  in smoke test.

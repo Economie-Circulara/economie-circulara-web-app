@@ -13,6 +13,46 @@ Format intrare:
 
 ---
 
+## 2026-09-12 — Claude Opus 5 — Verificare functionala pe Postgres real: 2 bug-uri de business reparate
+
+- **Cerut:** prioritate pe FUNCTIONALITATE (inaintea deployment/documentatie/E2E).
+- **Abordare:** verificarea invariantilor de business direct pe RPC-urile Postgres, pe
+  un Supabase local cu toate migrarile + seed — stratul pe care typecheck, lint, 584
+  teste unitare (care mock-uiesc RPC-urile) si `pnpm build` NU il executa niciodata.
+  Suita noua `supabase/tests/business_flow.sql` (12 teste, `pnpm db:test:business`),
+  fiecare test in `begin; ... rollback;` deci fara urme in baza.
+- **BUG 1 (migrarea `0017_fix_set_lot_block_enum_cast.sql`):** `set_lot_block` esua la
+  FIECARE apel — blocarea/deblocarea loturilor nu a functionat niciodata. Cauza:
+  `case when p_blocked then 'block' else 'unblock' end` rezolva literalii la `text`
+  inainte de atribuire, iar Postgres nu face cast implicit `text -> enum`. Fix: cast
+  explicit `::public.stock_event_type`.
+- **BUG 2 (migrarea `0018_fix_cancel_order_stock_restore.sql`):** `cancel_order` NU
+  refacea stocul si nu scria evenimentul `reversal` la anularea unei comenzi acceptate
+  — regula „la anulare stocul se reface" era incalcata in silentiu, cu stoc pierdut
+  definitiv la fiecare anulare. Cauza, subtila: bucla de refacere citea evenimentele cu
+  `select ... for update`, iar sub RLS o citire cu clauza de BLOCARE cere si politica de
+  **UPDATE**; `stock_events` e append-only (doar SELECT+INSERT, deliberat), deci
+  returna **0 randuri** si bucla nu se executa niciodata — fara nicio eroare. Verificat
+  empiric: acelasi select da 1 rand fara `for update` si 0 randuri cu. Fix: fara
+  `for update` pe auditul append-only (concurenta e deja serializata de lock-ul pe
+  `orders` de la inceputul functiei).
+- **Audit de vecinatate:** verificate toate celelalte `for update` din migrari — restul
+  sunt pe `orders`/`order_items`/`lots`/`processes`, care au politici de UPDATE/ALL,
+  deci neafectate. Si toate expresiile enum din insert-uri: `0004` linia 237 era singura.
+- **Acoperire si CI:** `supabase/tests/business_flow.sql` ruleaza acum in `db.yml`
+  INAINTEA `rls_isolation.sql` (aceea isi insereaza fixture-urile in autocommit si
+  lasa urme; a mea nu). Script nou `pnpm db:test:business`.
+- **AGENTS.md §4.2 (nou):** lecțiile, ca sa nu fie reinvatate — cast obligatoriu la enum
+  in expresii, `for update` sub RLS cere politica de UPDATE, corpul plpgsql nu e
+  verificat la tip la creare (o migrare aplicata cu succes NU dovedeste ca RPC-ul
+  merge), si granita RSC transporta doar date simple.
+- **Rezultat:** 12/12 teste functionale trec. Invarianti confirmati pe Postgres real:
+  FIFO pe `entry_date`, sarirea loturilor blocate, atomicitate totala la stoc
+  insuficient (fara consum partial), ordinea respectata la selectie manuala de loturi,
+  scaderea stocului la ACCEPTARE + `accepted_at`, refacerea la anulare, loturi de output
+  cu provenienta corecta la procese, `reconditioning` ca provenienta distincta,
+  reintrarea in stoc la acceptarea returului (doar pentru comenzi legate ca retur).
+
 ## 2026-09-12 — Claude Opus 5 — Spike S2: standarde legale pentru certificatul de trasabilitate
 
 - **Cerut:** rezolvarea spike-ului de research **S2** (`plans/implementation-plan.md` §8) —

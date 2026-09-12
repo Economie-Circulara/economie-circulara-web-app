@@ -28,6 +28,16 @@ jobs:
       - name: Reaplica migrarile de la zero (idempotenta)
         run: supabase db reset
 
+      # ORDINEA CONTEAZA: testele functionale ruleaza PRIMELE, pe datele de seed
+      # curate. `rls_isolation.sql` isi insereaza fixture-urile in AUTOCOMMIT (org-uri
+      # si useri de test care rămân in baza), in timp ce `business_flow.sql` ruleaza
+      # totul in `begin; ... rollback;` si nu lasa urme.
+      - name: Ruleaza testele functionale de business (invariantii de stoc/comenzi)
+        run: |
+          psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" \
+            -v ON_ERROR_STOP=1 \
+            -f supabase/tests/business_flow.sql
+
       - name: Ruleaza testele de izolare RLS (acceptance)
         run: |
           psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" \
