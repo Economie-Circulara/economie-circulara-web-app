@@ -23,9 +23,9 @@ vi.mock("next/cache", () => ({ revalidatePath }));
 import {
   addComponentAction,
   createRecipeAction,
-  initialRecipeFormState,
   removeComponentAction,
 } from "./actions";
+import { initialRecipeFormState } from "./action-state";
 
 afterEach(() => {
   vi.clearAllMocks();

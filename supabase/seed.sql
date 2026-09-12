@@ -432,12 +432,21 @@ begin
   -- ---------------------------------------------------------------------------
 
   -- 5.1 Comanda 1 (Bravo Construct SRL): flux COMPLET, INCHISA + certificat.
+  -- Timestamp-urile de tranzitie (accepted_at/delivered_at/closed_at, adaugate de
+  -- migrarea 0013) trebuie scrise EXPLICIT: seed-ul insereaza direct in tabela, nu
+  -- prin RPC-urile care le pun. Fara ele, o comanda `closed` arata cu "—" la toate
+  -- datele pe ecranul de detaliu si pe certificat. Ordine cronologica stricta:
+  -- creata acum 6 zile -> acceptata acum 5 -> livrata acum 3 (= delivery_date)
+  -- -> inchisa acum 2, toate in trecut.
   insert into public.orders (
     organization_id, client_id, order_number, status, created_by_admin,
-    delivery_address_id, delivery_date, created_by
+    delivery_address_id, delivery_date, created_by,
+    created_at, updated_at, accepted_at, delivered_at, closed_at
   ) values (
     v_org, v_client_bravo, 'CMD-2026-0001', 'closed', true,
-    v_addr_bravo, current_date - 3, v_admin
+    v_addr_bravo, current_date - 3, v_admin,
+    now() - interval '6 days', now() - interval '2 days',
+    now() - interval '5 days', now() - interval '3 days', now() - interval '2 days'
   ) returning id into v_order1;
 
   insert into public.order_items (organization_id, order_id, item_id, quantity) values
@@ -458,10 +467,13 @@ begin
   -- sa il poata reda fara erori.
   insert into public.certificates (organization_id, order_id, number, issued_at, traceability_snapshot)
   values (
-    v_org, v_order1, 'CRT-2026-0001', now() - interval '1 day',
+    -- Certificatul se genereaza AUTOMAT la inchiderea comenzii, deci `issued_at`
+    -- trebuie sa coincida cu `closed_at` al comenzii (acum 2 zile), nu sa fie
+    -- ulterior ei.
+    v_org, v_order1, 'CRT-2026-0001', now() - interval '2 days',
     jsonb_build_object(
       'version', 1,
-      'generatedAt', (now() - interval '1 day')::text,
+      'generatedAt', (now() - interval '2 days')::text,
       'order', jsonb_build_object(
         'id', v_order1, 'number', 'CMD-2026-0001',
         'clientName', 'Bravo Construct SRL', 'clientCui', 'RO23456789'
@@ -482,10 +494,15 @@ begin
   );
 
   -- 5.2 Comanda 2 (Client Demo SRL): doar TRIMISA, in asteptarea acceptarii.
+  -- Comanda trimisa: fara accepted_at/delivered_at/closed_at (corect — nu a trecut
+  -- inca prin tranzitiile respective), dar cu `created_at` in trecut, ca lista de
+  -- comenzi sa nu arate toate comenzile demo create "acum".
   insert into public.orders (
-    organization_id, client_id, order_number, status, created_by_admin, created_by
+    organization_id, client_id, order_number, status, created_by_admin, created_by,
+    created_at, updated_at
   ) values (
-    v_org, v_client_demo, 'CMD-2026-0002', 'sent', false, v_client_user
+    v_org, v_client_demo, 'CMD-2026-0002', 'sent', false, v_client_user,
+    now() - interval '1 day', now() - interval '1 day'
   ) returning id into v_order2;
 
   insert into public.order_items (organization_id, order_id, item_id, quantity)

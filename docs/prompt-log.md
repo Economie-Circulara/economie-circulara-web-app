@@ -13,6 +13,58 @@ Format intrare:
 
 ---
 
+## 2026-09-12 — Codex GPT-5 — Layout responsive mobil
+
+- **Cerut:** implementarea planului din `docs/plans/mobile-responsive-layout.md`.
+- **Facut:** adaugat drawer mobil accesibil pe baza Radix Dialog (`Sheet`), navigatie
+  reutilizata intre sidebar desktop si meniul hamburger din topbar, padding/container
+  ajustate pentru 375px, filtre si catalog client facute responsive, tabelele izolate
+  in scroll intern si Playwright extins cu proiect mobil + assertie fara overflow
+  orizontal. Actualizata nota de conformitate din `docs/analiza-conformitate-anexa.md`.
+
+## 2026-09-12 — Claude Opus 5 — Verificare functionala pre-recepție + 2 fix-uri P0 de randare/scriere
+
+- **Cerut:** initial, inlocuirea celor 27 de placeholder-e de capturi din `docs/manual/`
+  cu capturi reale din aplicatia rulanta. Prioritatile s-au schimbat pe parcurs:
+  verificarea functionala a fiecarui ecran si flux, cu toate cele 4 roluri, a devenit
+  prioritatea 1 (recepție de finantare europeana in sub 2 saptamani), capturile au
+  coborat la prioritatea 3.
+- **Facut (P0 #1 — toata aplicatia dadea 500):** sweep-ul Playwright pe 56 de rute a
+  aratat ca TOATE ecranele pentru admin, operator si client raspundeau 500; doar
+  super_admin si paginile de auth mergeau. Cauza: `NavItem.icon` din
+  `src/components/layout/nav-config.ts` ducea o componenta Lucide din layout-urile
+  SERVER catre `Sidebar` (`"use client"`) — referintele de componenta nu sunt
+  serializabile peste granita RSC in Next 16 / React 19. `icon` e acum un union strict
+  de nume (`NavIconName`), iar maparea nume → componenta traieste in `sidebar.tsx`
+  (modul client). Peste granita trec doar date simple.
+- **Facut (P0 #2 — toate scrierile din 5 zone dadeau 500):** cinci module cu directiva
+  `"use server"` exportau si o constanta (starea initiala pt. `useActionState`), ceea ce
+  arunca la RUNTIME, la primul submit: „A 'use server' file can only export async
+  functions". Ecrane afectate: creare/editare item, creare reteta + adaugare componenta,
+  inregistrare lot, blocare/deblocare lot, salvare setari organizatie, invitare
+  utilizator — adica pasii 3 si 4 din fluxul MVP erau inoperanti prin UI. Constantele au
+  fost mutate in `action-state.ts` per feature, dupa conventia deja existenta si
+  documentata in `src/features/orders/action-state.ts` (7 feature-uri o respectau, 5
+  fusesera omise).
+- **Facut (plasa de siguranta):** `tests/e2e/routes-smoke.spec.ts` — 7 teste, ~15s, care
+  pentru fiecare rol afirma pe fiecare ruta: HTTP < 400, absenta error boundary-ului
+  Next, existenta unui `<h1>`, zero `pageerror`; plus guard-urile de rol. Lista de rute
+  se citeste din `STAFF_NAV`/`CLIENT_NAV`, deci nu se invecheste. Ambele P0 erau
+  invizibile pentru `typecheck`, `lint`, cele 584 de teste unitare si `pnpm build`.
+- **Facut (seed coerent):** `supabase/seed.sql` scria `CMD-2026-0001` cu status `closed`
+  dar cu `accepted_at`/`delivered_at`/`closed_at` NULL (insertie directa, nu prin RPC),
+  deci demo-ul arata „—" la toate datele. Acum: creata acum 6 zile → acceptata acum 5 →
+  livrata acum 3 (= `delivery_date`) → inchisa acum 2, iar `issued_at` al certificatului
+  coincide cu `closed_at`.
+- **Facut (capturi):** `tests/e2e/manual-screenshots.spec.ts` — walkthrough pe roluri cu
+  capturi ca produs secundar; 28 de imagini in `docs/manual/img/`, 23 din cele 26 de
+  placeholder-e reale inlocuite (cel din `README.md` e doar exemplul de format si a
+  ramas neatins, corect).
+- **Nu s-a facut:** smoke test pe SUBMIT-ul formularelor (gaura ramasa in plasa de
+  siguranta — ambele P0 au fost la scriere, iar `routes-smoke` verifica doar GET-uri).
+
+---
+
 ## 2026-09-12 — Claude Opus 5 — Fix certificat + handoff de sesiune
 
 - **Cerut:** repararea bug-ului de certificat gasit de spike-ul S2, apoi un document de

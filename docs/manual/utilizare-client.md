@@ -13,7 +13,7 @@ al relației cu organizația).
 Meniul din stânga are trei secțiuni: **Catalog**, **Comenzile mele**,
 **Documente & Certificate**.
 
-> 📷 **[Captură de adăugat: meniul portalului client — Catalog, Comenzile mele, Documente & Certificate]**
+![meniul portalului client — Catalog, Comenzile mele, Documente & Certificate](img/client-sidebar.png)
 
 ---
 
@@ -38,7 +38,7 @@ Dacă ai uitat parola: apasă **„Ai uitat parola?"** de lângă câmpul Parol�
 introduci emailul pe ecranul **„Resetare parolă"** → **„Trimite link-ul"** →
 urmezi linkul primit pe email pentru a seta o parolă nouă.
 
-> 📷 **[Captură de adăugat: ecranul de Autentificare al portalului client]**
+![ecranul de Autentificare al portalului client](img/client-login.png)
 
 ---
 
@@ -73,7 +73,7 @@ Apasă **„Trimite comanda"** — comanda pleacă spre organizație cu statusul
 **„Trimisă"** și ești redirecționat la ecranul ei de detaliu. Organizația
 primește o notificare și urmează să o **accepte** sau să o **anuleze**.
 
-> 📷 **[Captură de adăugat: ecranul „Catalog" cu grila de produse și panoul de coș din dreapta]**
+![ecranul „Catalog" cu grila de produse și panoul de coș din dreapta](img/client-catalog.png)
 
 **Poți modifica sau anula comanda** cât timp nu a fost încă acceptată de
 organizație — contactează organizația (telefon/email) pentru orice modificare
@@ -162,7 +162,7 @@ conține:
 Din ecranul certificatului poți apăsa **„Tipărește"** (printare directă din
 browser) sau **„Descarcă PDF"** (descarcă fișierul PDF al certificatului).
 
-> 📷 **[Captură de adăugat: ecranul „Documente & Certificate" + certificatul deschis, cu diagrama de trasabilitate]**
+![ecranul „Documente & Certificate" + certificatul deschis, cu diagrama de trasabilitate](img/client-documents.png)
 
 ---
 

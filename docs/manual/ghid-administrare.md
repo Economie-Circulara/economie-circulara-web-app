@@ -45,7 +45,7 @@ deschide ecranul **„Setări organizație"**, cu formularul de configurare:
 
 Apasă **„Salvează setările"** pentru a confirma modificările.
 
-> 📷 **[Captură de adăugat: ecranul „Setări organizație" complet]**
+![ecranul „Setări organizație" complet](img/admin-settings.png)
 
 ---
 
@@ -67,7 +67,7 @@ Formularul **„Invită un membru"**:
 Lista de mai jos arată toți membrii organizației, cu **Nume**, **Email**, **Rol**
 și **Status** (Activ/Suspendat).
 
-> 📷 **[Captură de adăugat: ecranul „Utilizatori" cu formularul de invitare]**
+![ecranul „Utilizatori" cu formularul de invitare](img/admin-users.png)
 
 ### 2.2 Gap cunoscut: invitarea unui client {#gap-cunoscut-invitarea-unui-client}
 
@@ -120,7 +120,7 @@ comută automat în mod „re-încercare": numele și slug-ul devin needitabile
 (organizația există deja), doar emailul poate fi corectat înainte de a apăsa
 **„Retrimite invitația"**.
 
-> 📷 **[Captură de adăugat: ecranul „Organizație nouă"]**
+![ecranul „Organizație nouă"](img/superadmin-org-new.png)
 
 ### 3.3 Suspendarea și reactivarea unei organizații
 
@@ -138,7 +138,7 @@ niveluri**: în aplicație (middleware) și în baza de date (politici de acces)
 deci nu poate fi ocolită direct prin API. **Doar super-adminul poate reactiva**
 o organizație suspendată.
 
-> 📷 **[Captură de adăugat: lista de organizații cu butonul Suspendă/Reactivează]**
+![lista de organizații cu butonul Suspendă/Reactivează](img/superadmin-orgs.png)
 
 ---
 

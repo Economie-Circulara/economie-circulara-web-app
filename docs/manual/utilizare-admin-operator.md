@@ -10,7 +10,7 @@ managementul utilizatorilor — detaliate în [`ghid-administrare.md`](ghid-admi
 Interfața este aceeași pentru ambele roluri (un singur meniu, în stânga ecranului),
 cu excepția „Setări", vizibilă doar pentru Administrator.
 
-> 📷 **[Captură de adăugat: meniul lateral cu toate secțiunile — Dashboard, Comenzi, Stoc, Producție, Clienți, Itemi, Rețete, Audit stoc, Rapoarte, Setări]**
+![meniul lateral cu toate secțiunile — Dashboard, Comenzi, Stoc, Producție, Clienți, Itemi, Rețete, Audit stoc, Rapoarte, Setări](img/admin-sidebar.png)
 
 ---
 
@@ -33,7 +33,7 @@ organizației (secțiunea „Setări → Utilizatori").
    ecranul **„Resetare parolă"** → introduci emailul → **„Trimite link-ul"** → primești
    un email cu link către ecranul de setare a parolei noi.
 
-> 📷 **[Captură de adăugat: ecranul de Autentificare cu logo-ul organizației]**
+![ecranul de Autentificare cu logo-ul organizației](img/login-admin.png)
 
 ---
 
@@ -49,7 +49,7 @@ Ecranul **„Dashboard"** (prima pagină după logare) oferă o privire de ansam
 Sub cele patru cifre, cardul **„Rapoarte operaționale"** face trimitere directă la
 pagina „Rapoarte" (link **„Vezi rapoarte"**).
 
-> 📷 **[Captură de adăugat: Dashboard cu cele 4 carduri KPI]**
+![Dashboard cu cele 4 carduri KPI](img/admin-dashboard.png)
 
 ---
 
@@ -77,7 +77,7 @@ Ecranul **„Clienți"** listează firmele existente, cu o casetă **„Căutare
    aduce și materiale la reciclare.
 4. Apasă **„Creează clientul"**.
 
-> 📷 **[Captură de adăugat: formularul „Adaugă client" cu butonul „Caută" lângă CUI]**
+![formularul „Adaugă client" cu butonul „Caută" lângă CUI](img/admin-client-new.png)
 
 ### 3.3 Detaliul unui client
 
@@ -100,7 +100,7 @@ Din listă, click pe o firmă deschide ecranul de detaliu, cu secțiunile:
   al clientului se consultă din ecranul **„Comenzi"** (filtrare după client) sau
   din **„Căutare"**.
 
-> 📷 **[Captură de adăugat: ecranul de detaliu client, secțiunea Documente]**
+![ecranul de detaliu client, secțiunea Documente](img/admin-client-documents.png)
 
 ---
 
@@ -131,7 +131,7 @@ Pentru a adăuga un item, apasă **„+ Adaugă item"** și completează:
 
 Apasă **„Creează itemul"**.
 
-> 📷 **[Captură de adăugat: ecranul „Itemi" cu lista și filtrele]**
+![ecranul „Itemi" cu lista și filtrele](img/admin-items.png)
 
 ### 4.2 Rețete
 
@@ -146,7 +146,7 @@ creare; altfel, editorul de rețetă permite adăugarea/editarea componentelor �
 procentelor lor. Rețetele se pot defini **doar pentru itemi de tip Fizic**
 (pentru servicii, ecranul afișează un mesaj informativ).
 
-> 📷 **[Captură de adăugat: editorul de rețetă cu componentele în procente]**
+![editorul de rețetă cu componentele în procente](img/admin-recipe-editor.png)
 
 ---
 
@@ -173,7 +173,7 @@ distinctă de reciclare în trasabilitate și rapoarte — cerință de conformi
 3. Apasă **„Înregistrează lotul"** — se creează automat și evenimentul de intrare
    în auditul de stoc.
 
-> 📷 **[Captură de adăugat: formularul „Adaugă lot"]**
+![formularul „Adaugă lot"](img/admin-stock-new.png)
 
 ### 5.3 Blocarea/deblocarea unui lot
 
@@ -198,7 +198,7 @@ Consum, Ajustare, Blocare, Deblocare, Stornare — cu filtrare pe **Item** și
 **Tip eveniment**. Butonul **„⤓ Exportă CSV"** (în antetul paginii) descarcă
 lista filtrată curentă ca fișier CSV.
 
-> 📷 **[Captură de adăugat: ecranul „Audit stoc" cu butonul de export CSV]**
+![ecranul „Audit stoc" cu butonul de export CSV](img/admin-stock-audit.png)
 
 ---
 
@@ -236,7 +236,7 @@ alese din tab-uri:
 **Notă:** pierderile/randamentul se **înregistrează**, nu se validează — sistemul
 nu blochează un proces cu randament sub cel ideal.
 
-> 📷 **[Captură de adăugat: wizard-ul „Pornește proces" cu cele două tab-uri Output fix / Output variabil]**
+![wizard-ul „Pornește proces" cu cele două tab-uri Output fix / Output variabil](img/admin-process-wizard.png)
 
 ### 6.2 Detaliul unui proces
 
@@ -249,7 +249,7 @@ Click pe un proces din listă deschide ecranul de detaliu, cu:
 - Buton **„Anulează procesul"**, disponibil doar cât procesul e într-un status
   netermin (Planificat/În lucru/Așteaptă confirmare).
 
-> 📷 **[Captură de adăugat: detaliul unui proces cu diagrama Sankey]**
+![detaliul unui proces cu diagrama Sankey](img/admin-process-detail.png)
 
 ---
 
@@ -292,7 +292,7 @@ telefon/WhatsApp și înregistrate în platformă):
 Notificările prin email se trimit identic indiferent dacă e comandă creată de
 client sau de organizație.
 
-> 📷 **[Captură de adăugat: ecranul „Comandă nouă" cu selectorul de client și liniile de comandă]**
+![ecranul „Comandă nouă" cu selectorul de client și liniile de comandă](img/admin-order-new.png)
 
 ### 7.3 Detaliul unei comenzi
 
@@ -306,7 +306,7 @@ Dacă o comandă a fost livrată/închisă, pot apărea butoanele **„Retur"** 
 **„Garanție"** (secțiunea 8). Dacă certificatul există deja, apare butonul
 **„Vezi certificat"**.
 
-> 📷 **[Captură de adăugat: ecranul de detaliu comandă, cu traseul de status]**
+![ecranul de detaliu comandă, cu traseul de status](img/admin-order-detail.png)
 
 ---
 
@@ -386,7 +386,7 @@ Un card suplimentar, **„CO₂ economisit — în pregătire (v2)"**, este afi�
 informativ — **nu este încă un raport funcțional** (necesită factori de emisie
 configurabili per organizație, planificat ulterior).
 
-> 📷 **[Captură de adăugat: ecranul „Rapoarte" cu selectorul de perioadă și un raport expandat]**
+![ecranul „Rapoarte" cu selectorul de perioadă și un raport expandat](img/admin-reports.png)
 
 ---
 
@@ -397,7 +397,7 @@ Administrator/Operator) caută global în: **comenzi, clienți, loturi, produse 
 certificate**. Se introduce un termen și se apasă Enter (sau se navighează direct
 la pagina **„Căutare"**), rezultatele apar grupate pe tip.
 
-> 📷 **[Captură de adăugat: bara de căutare din antet + pagina de rezultate grupate]**
+![bara de căutare din antet + pagina de rezultate grupate](img/admin-search-results.png)
 
 ---
 

@@ -3,7 +3,8 @@
 import { useActionState, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { blockLotAction, initialBlockFormState, unblockLotAction } from "./actions";
+import { blockLotAction, unblockLotAction } from "./actions";
+import { initialBlockFormState } from "./action-state";
 import type { LotWithItem } from "./types";
 
 /**
@@ -46,7 +47,16 @@ export function LotBlockControls({ lot }: { lot: LotWithItem }) {
   return (
     <form action={blockAction} className="flex flex-col items-end gap-2">
       <input type="hidden" name="lot_id" value={lot.id} />
-      <Input name="reason" placeholder="Motivul blocării" required className="h-8 w-48 text-xs" />
+      {/* `aria-label`: inputul nu are <label> vizibil (formular inline, compact), deci
+          fara el n-ar avea nume accesibil — nici pentru cititoarele de ecran, nici
+          pentru testele care il caută după etichetă. */}
+      <Input
+        name="reason"
+        aria-label="Motivul blocării"
+        placeholder="Motivul blocării"
+        required
+        className="h-8 w-48 text-xs"
+      />
       <div className="flex gap-2">
         <Button type="button" size="sm" variant="ghost" onClick={() => setOpen(false)}>
           Anulează
