@@ -13,6 +13,38 @@ Format intrare:
 
 ---
 
+## 2026-09-12 — Claude Opus 5 — Entry point neutru fata de tenant + analiza de denumire
+
+- **Cerut:** „homepage-ul nu trebuie sa zica lateris... e un entry point in platforma, nu
+  pentru un client anume, decat daca avem un path name, sau un subdomeniu special pentru
+  un client" + bonus: cum ar trebui sa se numeasca produsul, eventual si domeniu.
+- **Constatat:** „Lateris Trace" NU e un nume decis — a aparut in faza de mockup
+  (`docs/design/Lateris_Trace.dc.html`) si s-a propagat ca nume de produs. Nu vine de la
+  client: nu apare nici in `docs/brain-dump.md`, nici in `docs/design-prompt.md`.
+- **Fix arhitectural (nu doar de copy):** `src/app/page.tsx` rezolva acum tenantul
+  (`resolveTenant`: custom domain -> subdomeniu -> segment de path) si:
+  * pe **domeniul platformei** (fara tenant) nu afiseaza niciun nume de organizatie si
+    niciun brand inventat — titlul e functia platformei;
+  * pe **intrarea unui client** (tenant rezolvat) afiseaza brandul acelei organizatii
+    (denumire + logo), ca ecranul de login.
+  Exact distincția ceruta. Pagina a devenit dinamica (citeste `headers`), compromis
+  acceptat pentru corectitudinea white-label.
+- **`src/lib/brand.ts` (nou):** `PLATFORM_NAME` + `PLATFORM_DESCRIPTION`, singurul loc din
+  care se schimba numele. Pana la decizie valoarea e un DESCRIPTOR, nu un brand inventat.
+- **Teste:** 5 teste pe ambele moduri — inclusiv o regresie care verifica explicit ca
+  „Lateris" nu mai apare pe entry point-ul platformei, si una care verifica ca toate
+  linkurile duc la `/login` (nu la `/showcase`, care e 404 in productie).
+- **`docs/plans/denumire-produs.md` (nou):** de ce „Lateris" e slab (citeste ca nume de
+  client; *later* = caramida, prea ingust pentru o platforma generica), criteriile, si
+  4 opțiuni cu disponibilitate de domenii verificata. Recomandare: **Provenio**
+  (proveniența = exact ce dovedeste certificatul; rădăcina latina, lizibila in UE;
+  `provenio.ro` + `.io` + `.eu` toate libere — combinatie neobisnuita). Alternative:
+  Recircula (doar `.app` liber), Circularis, sau amanarea deciziei pe un subdomeniu al
+  lui `nvxapp.ro`, deja deținut.
+- **Semnalat:** Vercel cere **$110.99/an** pentru `.ro`, fata de ~10-15 EUR/an la un
+  registrar acreditat ROTLD — de 7-10x. Recomandat sa ia `.ro` de la registrar romanesc
+  si sa indrepte DNS-ul catre Vercel.
+
 ## 2026-09-12 — Claude Opus 5 — Homepage real + diagnostic email
 
 - **Cerut:** „ce ar mai fi de facut next?" + doua observatii: homepage-ul e varza, si

@@ -1,20 +1,29 @@
+import { headers } from "next/headers";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { getOrgBranding } from "@/features/auth/queries";
+import { resolveTenant } from "@/features/auth/tenant";
+import { PLATFORM_DESCRIPTION, PLATFORM_NAME } from "@/lib/brand";
 
 export const metadata = {
-  title: "Lateris Trace - trasabilitatea materialelor in economia circulara",
-  description:
-    "Platforma care documenteaza drumul materialelor reciclate: loturi, procese, certificat de trasabilitate, avize si e-Transport.",
+  title: PLATFORM_NAME,
+  description: PLATFORM_DESCRIPTION,
 };
 
 /**
- * Pagina publica de intrare. Inainte era schela Wave 0 ("Schela initiala...") cu un
- * buton catre `/showcase` — care e `notFound()` in productie, deci linkul era rupt
- * exact in mediul in care il vedea un vizitator.
+ * Pagina publica de intrare.
  *
- * Deliberat STATICA (fara `getCurrentUser`): CTA-ul duce la `/login`, care redirecteaza
- * singur un utilizator deja autentificat catre dashboard-ul rolului lui. Asa pagina
- * publica rămâne prerandata, fara interogari in baza la fiecare vizita.
+ * Doua moduri, dupa cum se rezolva tenantul din cerere (`resolveTenant`: custom domain ->
+ * subdomeniu -> segment de path):
+ *
+ *  - **pe domeniul platformei** (fara tenant): entry point generic. NU afiseaza numele
+ *    niciunei organizatii si nici un brand inventat - descrie ce face platforma.
+ *  - **pe domeniul/subdomeniul unui client** (tenant rezolvat): afiseaza brandul acelei
+ *    organizatii (denumire + logo), ca ecranul de login. Asa intrarea per client e
+ *    white-label, iar rădăcina platformei rămâne neutra.
+ *
+ * Inainte pagina era schela Wave 0, cu un brand hardcodat si un buton catre `/showcase`,
+ * care e `notFound()` in productie - deci singurul CTA era rupt exact in productie.
  */
 
 const CAPABILITIES = [
@@ -44,11 +53,29 @@ const CAPABILITIES = [
   },
 ];
 
-export default function Home() {
+export default async function Home() {
+  const h = await headers();
+  const hint = resolveTenant(h.get("host"), "/", process.env.NEXT_PUBLIC_ROOT_DOMAIN);
+  const branding = await getOrgBranding(hint);
+
+  // Pe intrarea unui client, titlul e denumirea organizatiei; pe domeniul platformei,
+  // nu inventam un brand - spunem ce face platforma.
+  const heading = branding?.name ?? "Trasabilitatea materialelor în economia circulară";
+
   return (
     <div className="bg-pattern flex min-h-svh flex-col">
       <header className="flex items-center justify-between gap-4 px-6 py-5 sm:px-10">
-        <span className="text-lg font-semibold tracking-tight">Lateris Trace</span>
+        <div className="flex min-w-0 items-center gap-3">
+          {branding?.logoUrl ? (
+            // Logo-ul de tenant vine din Supabase Storage, cu domenii variabile per
+            // proiect - <img> simplu, fara next/image (fara allowlist de domenii).
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={branding.logoUrl} alt="" className="h-8 w-auto shrink-0" />
+          ) : null}
+          <span className="truncate text-lg font-semibold tracking-tight">
+            {branding?.name ?? PLATFORM_NAME}
+          </span>
+        </div>
         <Button asChild size="sm" variant="outline">
           <Link href="/login">Autentificare</Link>
         </Button>
@@ -58,11 +85,10 @@ export default function Home() {
         <p className="text-accent text-sm font-medium tracking-wide uppercase">
           Economie circulară
         </p>
-        <h1 className="mt-3 text-4xl font-bold tracking-tight sm:text-5xl">Lateris Trace</h1>
+        <h1 className="mt-3 text-4xl font-bold tracking-tight sm:text-5xl">{heading}</h1>
         <p className="text-muted-foreground mt-5 max-w-2xl text-lg">
-          Platformă pentru trasabilitatea materialelor în economia circulară. Urmărește drumul
-          materialului de la deșeul intrat în curte până la produsul livrat clientului — și
-          dovedește-l cu documente.
+          Urmărește drumul materialului de la deșeul intrat în curte până la produsul livrat
+          clientului — și dovedește-l cu documente.
         </p>
 
         <div className="mt-8 flex flex-wrap gap-3">
@@ -87,7 +113,7 @@ export default function Home() {
       </main>
 
       <footer className="text-muted-foreground px-6 py-6 text-xs sm:px-10">
-        Accesul se face pe invitație. Dacă organizația ta folosește Lateris Trace, cere un cont
+        Accesul se face pe invitație. Dacă organizația ta folosește platforma, cere un cont
         administratorului ei.
       </footer>
     </div>
