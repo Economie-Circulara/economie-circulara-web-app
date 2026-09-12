@@ -19,6 +19,14 @@ const DEFAULT_ACCENT_COLOR = "#4d6b53";
 
 export interface CertificatePdfProps {
   snapshot: TraceabilitySnapshot;
+  /**
+   * Numarul CERTIFICATULUI (`certificates.number`, format `CRT-<an>-<seq>`), nu al
+   * comenzii. Obligatoriu: inainte exista doar `snapshot.order.number`, iar PDF-ul
+   * afisa numarul comenzii etichetat drept numar de certificat — incoerent cu
+   * ecranul (`certificate-view.tsx`, care folosea numarul corect) si cu randul din
+   * `certificates`. Tip non-optional ca omisiunea sa cada la `typecheck`.
+   */
+  certificateNumber: string;
   orgName: string;
   brandColor?: string;
   accentColor?: string;
@@ -179,12 +187,13 @@ function TraceabilityGraphSvg({
 
 export function CertificatePdfDocument({
   snapshot,
+  certificateNumber,
   orgName,
   brandColor = DEFAULT_BRAND_COLOR,
   accentColor = DEFAULT_ACCENT_COLOR,
 }: CertificatePdfProps) {
   return (
-    <Document title={`Certificat ${snapshot.order.number ?? snapshot.order.id}`}>
+    <Document title={`Certificat ${certificateNumber}`}>
       <Page size="A4" style={styles.page}>
         <View style={[styles.topBar, { backgroundColor: accentColor }]} fixed />
         <View style={styles.body}>
@@ -195,7 +204,7 @@ export function CertificatePdfDocument({
             </View>
             <View>
               <Text style={styles.certTitle}>Certificat de trasabilitate</Text>
-              <Text style={styles.certMeta}>Nr. {snapshot.order.number ?? "—"} · CRT</Text>
+              <Text style={styles.certMeta}>Nr. {certificateNumber}</Text>
               <Text style={styles.certMeta}>
                 Emis: {dateFormatter.format(new Date(snapshot.generatedAt))}
               </Text>
@@ -265,8 +274,13 @@ export function CertificatePdfDocument({
             </View>
             <View style={styles.signatureBox}>
               <Text style={styles.signatureLine}>{orgName}</Text>
+              {/*
+                NU „semnătură electronică": PDF-ul nu e semnat eIDAS (nici avansat,
+                nici calificat) — vezi docs/analiza-standarde-certificat.md. Formularea
+                descrie exact ce este documentul.
+              */}
               <Text style={{ fontSize: 8, color: "#6b7a70" }}>
-                Semnătură &amp; ștampilă electronică
+                Emis electronic, fără semnătură olografă
               </Text>
             </View>
           </View>

@@ -159,12 +159,14 @@ export async function buildOrderTraceabilitySnapshot(
 /** Randeaza PDF-ul certificatului (buffer) — vezi decizia S3/PDF in pdf.tsx. */
 async function renderCertificatePdf(
   snapshot: TraceabilitySnapshot,
+  certificateNumber: string,
   orgName: string,
   brandColor?: string | null,
   accentColor?: string | null,
 ): Promise<Buffer> {
   const element = createElement(CertificatePdfDocument, {
     snapshot,
+    certificateNumber,
     orgName,
     brandColor: brandColor ?? undefined,
     accentColor: accentColor ?? undefined,
@@ -222,6 +224,7 @@ export async function generateCertificateForOrder(
   const number = await generateCertificateNumber(organizationId);
   const pdfBuffer = await renderCertificatePdf(
     snapshot,
+    number,
     org?.name ?? "Lateris Trace",
     org?.primary_color,
     org?.secondary_color,
