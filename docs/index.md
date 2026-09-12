@@ -8,6 +8,7 @@ Acest folder contine toate documentele de analiza, cerinte si design pentru plat
 
 | Fisier                                                 | Descriere                                                                                                                                                           |
 | ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [handoff-sesiune-2026-09-12.md](handoff-sesiune-2026-09-12.md) | **Starea tehnica si ce urmeaza — punct de start pentru oricine preia lucrul.** Ce era stricat si s-a reparat (4 bug-uri invizibile pentru build), plasele de siguranta noi, capcanele Postgres/RSC, prioritatile clientului si deciziile care il asteapta. |
 | [handoff.md](handoff.md)                               | **Punct de start recomandat.** Rezumat complet al tuturor deciziilor luate: stack, roluri, multi-tenant, stoc, productie, certificate, MVP.                         |
 | [anexa-1-specificatii-tehnice.md](anexa-1-specificatii-tehnice.md) | **Anexa 1 — specificatiile tehnice depuse pentru finantarea europeana.** Document de referinta contractual: platforma trebuie sa le respecte.          |
 | [analiza-conformitate-anexa.md](analiza-conformitate-anexa.md)     | Gap analysis Anexa 1 vs. plan: ce e acoperit / partial / lipsa, plus requirements noi (e-Transport, GPS v2).                                           |

@@ -13,6 +13,31 @@ Format intrare:
 
 ---
 
+## 2026-09-12 — Claude Opus 5 — Fix certificat + handoff de sesiune
+
+- **Cerut:** repararea bug-ului de certificat gasit de spike-ul S2, apoi un document de
+  handoff pentru continuarea lucrului in alta sesiune (Codex), cu revenire ulterioara.
+- **Facut (fix certificat):** `certificates.number` (`CRT-<an>-<seq>`) se genera in
+  `service.ts` dar nu ajungea niciodata in `CertificatePdfProps` — PDF-ul afisa
+  `snapshot.order.number` etichetat „Nr. … · CRT", adica numarul COMENZII. Ecranul
+  (`certificate-view.tsx`) folosea deja numarul corect, deci PDF-ul descarcat si pagina
+  din aplicatie se contraziceau, iar numarul din PDF nu corespundea nici randului din
+  `certificates`, nici numelui fisierului din Storage (`<number>.pdf`).
+  `certificateNumber` e acum prop OBLIGATORIU (omisiunea cade la typecheck), folosit si
+  in titlul documentului PDF. Corectata si caseta de semnatura: spunea „Semnatura &
+  stampila electronica", desi PDF-ul nu e semnat eIDAS — acum „Emis electronic, fara
+  semnatura olografa" (vezi `docs/analiza-standarde-certificat.md`).
+- **Facut (handoff):** `docs/handoff-sesiune-2026-09-12.md` — stare tehnica, cum se
+  porneste mediul (inclusiv capcanele reale: `psql` lipsa local, browserul Playwright,
+  `rls_isolation.sql` care lasa fixture-uri in autocommit), cele 4 bug-uri reparate cu
+  cauza fiecaruia, plasele de siguranta noi, separarea clara a WIP-ului userului de
+  restul modificarilor necommitate, prioritatile clientului (functionalitate >
+  deployment > documentatie > E2E), deciziile care ii rămân lui, regulile de proces si
+  capcanele Postgres/RSC. Adaugat in `docs/index.md`.
+- **Neaplicat deliberat:** disclaimer-ul legal pe certificat (text cu consecinte
+  juridice — decizia clientului) si completarile de certificat care cer migrare
+  (`organizations` nu are `cui`/`reg_com`/`address`).
+
 ## 2026-09-12 — Claude Opus 5 — Verificare functionala pe Postgres real: 2 bug-uri de business reparate
 
 - **Cerut:** prioritate pe FUNCTIONALITATE (inaintea deployment/documentatie/E2E).
