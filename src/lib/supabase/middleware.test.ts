@@ -63,7 +63,7 @@ describe("updateSession - propagare tenant pe request headers", () => {
 
   it("seteaza x-tenant-domain pentru un custom domain", async () => {
     getUser.mockResolvedValue({ data: { user: { id: "u1" } } });
-    process.env.NEXT_PUBLIC_ROOT_DOMAIN = "provenio.app";
+    process.env.NEXT_PUBLIC_ROOT_DOMAIN = "lotculot.eu";
     const request = makeRequest("https://trace.acme.ro/comenzi", { host: "trace.acme.ro" });
 
     const response = await updateSession(request);

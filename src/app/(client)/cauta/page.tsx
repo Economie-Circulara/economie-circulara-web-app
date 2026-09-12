@@ -3,7 +3,7 @@ import { requireRole } from "@/features/auth/session";
 import { globalSearch } from "@/features/search/service";
 import { SearchResults } from "@/features/search/search-results";
 
-export const metadata = { title: "Căutare - Provenio" };
+export const metadata = { title: "Căutare - Lot cu Lot" };
 
 interface CautaPageProps {
   searchParams: Promise<{ q?: string }>;

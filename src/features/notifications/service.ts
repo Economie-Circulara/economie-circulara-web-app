@@ -9,8 +9,8 @@ type NotificationRow = Database["public"]["Tables"]["notifications"]["Row"];
 type AdminClient = ReturnType<typeof createAdminClient>;
 
 /** Sender implicit cand organizatia nu are configurat email_from_name/email_from_address (T1.3 white-label). */
-const DEFAULT_FROM_NAME = "Provenio";
-const DEFAULT_FROM_ADDRESS = "notificari@provenio.ro";
+const DEFAULT_FROM_NAME = "Lot cu Lot";
+const DEFAULT_FROM_ADDRESS = "notificari@lotculot.eu";
 
 /** Evenimentul minim necesar trimiterii unei notificari de tranzitie de status. */
 export interface OrderStatusNotificationEvent {

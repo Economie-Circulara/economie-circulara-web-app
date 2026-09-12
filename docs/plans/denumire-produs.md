@@ -1,7 +1,11 @@
 # Denumirea produsului — analiză și decizie
 
-> **DECIS (2026-09-12): produsul se numește „Provenio".** Redenumirea e aplicată în cod,
-> teste și documentație. Restul documentului păstrează analiza care a dus la decizie.
+> **DECIS (2026-09-12): produsul se numește „Lot cu Lot", pe domeniul `lotculot.eu`.**
+> Redenumirea e aplicată în cod, teste și documentație.
+>
+> Restul documentului păstrează, intenționat, analiza în forma în care a fost făcută —
+> inclusiv recomandarea intermediară pentru „Provenio", care a fost numele ales pentru
+> câteva ore. E istoricul deciziei, nu o eroare de corectat.
 
 **Context (2026-09-12):** „Provenio" **nu e un nume decis**. A apărut în faza de
 mockup (`docs/design/Lateris_Trace.dc.html`) și s-a propagat ca nume de produs prin
@@ -44,7 +48,7 @@ Decizia devine urgentă acum, pentru că numele apare în locuri cu consecințe:
 
 ## Opțiuni, cu disponibilitate verificată (2026-09-12, prin Vercel)
 
-### 1. Provenio — **ALES**
+### 1. Provenio — *recomandarea intermediară (nealeasă)*
 
 *Proveniența* e exact ce dovedește certificatul: din ce loturi vine materialul livrat. Un
 profesionist român înțelege cuvântul fără explicație („proveniența materialului"), iar
@@ -152,3 +156,53 @@ un `sed` peste el i-ar fi putut pierde munca necommitată. De schimbat la prima 
    atunci funcționează pe segment de path.
 5. Verifică domeniul la providerul de email, ca notificările să plece de pe
    `notificari@provenio.ro`.
+
+---
+
+## Decizia finală: „Lot cu Lot" (`lotculot.eu`)
+
+Numele a venit de la client, după analiza de mai sus, și e mai bun decât toate opțiunile
+evaluate aici. Motivele, pe criteriile din tabelul de la început:
+
+- **Descrie mecanismul, nu o abstracție.** Trasabilitatea se construiește literal *lot cu
+  lot*: `lots` → `process_inputs`/`process_outputs` → consum FIFO → lotul livrat. „Lot" e
+  deja termenul de domeniu al aplicației, nu un cuvânt de marketing.
+- **Autoexplicativ pentru utilizatorul real.** Un operator sau administrator român înțelege
+  numele fără nicio explicație. Opțiunile latine (Provenio, Evidentia, Vestigia) cereau un
+  pas de traducere mentală.
+- **Nu pretinde autoritate.** Aici e avantajul cel mai important, și motivul pentru care
+  respinsesem „Atesta": `docs/analiza-standarde-certificat.md` stabilește că certificatul e
+  o declarație **voluntară**, care nu atestă conformitatea și nu înlocuiește declarația de
+  performanță. Un nume descriptiv-mecanic nu intră în conflict cu disclaimerul; unul care
+  sugerează atestare oficială, da.
+- **Neutru față de material.** Se aplică la agregate, beton, balast, deșeuri de umplutură —
+  fără îngustimea lui „Lateris" (cărămidă) sau „Agrega" (agregate).
+- **Memorabil.** Ritmul repetiției îl face ușor de reținut și de dictat la telefon, ceea ce
+  contează pentru o piață care lucrează telefonic.
+
+**Compromisul asumat:** e un joc de limbă română și nu traversează granița — un
+vorbitor non-român nu îl parsează. Acceptabil, fiindcă piața e RO-first; de reevaluat doar
+dacă apare expansiune în afara RO.
+
+### Domenii
+
+Deținut: **`lotculot.eu`**.
+
+Toate celelalte TLD-uri erau libere la verificare (2026-09-12), deci namespace-ul e curat:
+
+| Domeniu | Stare | Notă |
+| --- | --- | --- |
+| `lotculot.eu` | **cumpărat** | domeniul platformei |
+| `lotculot.ro` | liber | **merită luat** — `.ro` e TLD-ul natural al pieței; de la un registrar ROTLD (~10-15 €/an), **nu** prin Vercel ($110.99) |
+| `lotculot.com` | liber, $11.25/an | înregistrare defensivă ieftină |
+| `lotculot.app` | liber, $9.99/an | opțional |
+| `lotculot.io` | liber, $30/an | opțional |
+
+### Pașii rămași pentru domeniu
+
+1. Adaugă `lotculot.eu` pe proiectul Vercel și configurează DNS-ul.
+2. Setează **`NEXT_PUBLIC_ROOT_DOMAIN=lotculot.eu`** în variabilele de producție —
+   **abia după** ce domeniul e atașat. Atunci se activează rezolvarea tenantului din
+   subdomeniu (`<client>.lotculot.eu`); până atunci funcționează pe segment de path.
+3. Verifică domeniul la providerul de email: adresa implicită de expediere a notificărilor
+   este acum `notificari@lotculot.eu` (`src/features/notifications/service.ts`).

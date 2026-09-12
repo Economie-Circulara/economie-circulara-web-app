@@ -19,7 +19,7 @@ describe("renderReportPdf", () => {
       reportTitle: "Comenzi pe perioadă",
       reportDescription: "Descriere",
       range: { from: "2026-07-01", to: "2026-07-18" },
-      orgName: "Provenio Demo",
+      orgName: "Lot cu Lot Demo",
       brandColor: "#123456",
       accentColor: "#654321",
       columns: [{ key: "label", header: "Status" }],

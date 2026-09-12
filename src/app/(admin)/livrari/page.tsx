@@ -3,7 +3,7 @@ import { requireRole } from "@/features/auth/session";
 import { DeliveryTable } from "@/features/deliveries/delivery-table";
 import { listDeliveries } from "@/features/deliveries/queries";
 
-export const metadata = { title: "Livrări - Provenio" };
+export const metadata = { title: "Livrări - Lot cu Lot" };
 
 /**
  * Ecranul "Livrări" (Task X5) - lista livrarilor planificate (toate comenzile

@@ -8,7 +8,7 @@ import { listItems } from "@/features/items/queries";
 import { ItemsTable } from "@/features/items/items-table";
 import type { ItemKind } from "@/features/items/types";
 
-export const metadata = { title: "Itemi - Provenio" };
+export const metadata = { title: "Itemi - Lot cu Lot" };
 
 const selectClassName =
   "flex h-9 w-full rounded-md border border-input bg-card px-3 py-1 text-sm shadow-xs outline-none sm:w-48";

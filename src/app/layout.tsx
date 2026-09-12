@@ -24,7 +24,7 @@ const spectral = Spectral({
 });
 
 export const metadata: Metadata = {
-  title: "Provenio",
+  title: "Lot cu Lot",
   description: "Platforma de trasabilitate a materialelor in economia circulara",
 };
 

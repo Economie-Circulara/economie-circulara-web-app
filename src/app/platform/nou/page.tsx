@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { requireRole } from "@/features/auth/session";
 import { CreateOrganizationForm } from "@/features/platform/create-organization-form";
 
-export const metadata = { title: "Organizatie noua - Platforma Provenio" };
+export const metadata = { title: "Organizatie noua - Platforma Lot cu Lot" };
 
 /** Creare organizatie + admin initial (invitatie prin email). */
 export default async function NewOrganizationPage() {

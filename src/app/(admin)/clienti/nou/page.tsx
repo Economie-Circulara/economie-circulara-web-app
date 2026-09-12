@@ -4,7 +4,7 @@ import { initialClientFormState } from "@/features/clients/action-state";
 import { createClientAction } from "@/features/clients/actions";
 import { ClientForm } from "@/features/clients/client-form";
 
-export const metadata = { title: "Adaugă client - Provenio" };
+export const metadata = { title: "Adaugă client - Lot cu Lot" };
 
 /** Formular creare client nou (doar staff) - CUI lookup opțional pentru precompletare. */
 export default async function ClientNouPage() {

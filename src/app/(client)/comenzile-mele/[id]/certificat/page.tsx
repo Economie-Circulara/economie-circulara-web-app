@@ -8,7 +8,7 @@ import { getCertificateByOrderId } from "@/features/certificates/service";
 import { listDocuments } from "@/features/documents/service";
 import { getOrderDetail } from "@/features/orders/queries";
 
-export const metadata = { title: "Certificat de trasabilitate - Provenio" };
+export const metadata = { title: "Certificat de trasabilitate - Lot cu Lot" };
 
 interface CertificatePageProps {
   params: Promise<{ id: string }>;

@@ -5,7 +5,7 @@ import { requireRole } from "@/features/auth/session";
 import { listOrganizations } from "@/features/platform/queries";
 import { OrganizationsTable } from "@/features/platform/organizations-table";
 
-export const metadata = { title: "Organizatii - Platforma Provenio" };
+export const metadata = { title: "Organizatii - Platforma Lot cu Lot" };
 
 /** Lista organizatiilor platformei (management super-admin). */
 export default async function PlatformPage() {

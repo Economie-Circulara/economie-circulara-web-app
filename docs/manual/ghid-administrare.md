@@ -1,4 +1,4 @@
-# Ghid de administrare - Provenio
+# Ghid de administrare - Lot cu Lot
 
 Acest ghid este destinat:
 
@@ -6,7 +6,7 @@ Acest ghid este destinat:
   (white-label), domeniului, emailului și managementul utilizatorilor organizației
   (secțiunile 1-2).
 - **Super-adminului platformei** - administrarea organizațiilor (secțiunea 3),
-  rol distinct, folosit de echipa care operează platforma Provenio (nu de
+  rol distinct, folosit de echipa care operează platforma Lot cu Lot (nu de
   clienții platitori).
 - **Echipei tehnice** - operarea infrastructurii (Supabase, Vercel, migrări,
   backup) - secțiunea 4.
@@ -96,7 +96,7 @@ necesar, până la livrarea acestei funcționalități în UI.
 ## 3. Super-admin - administrarea organizațiilor platformei
 
 Rolul **super-admin** nu aparține niciunei organizații - este rolul echipei care
-operează platforma Provenio pentru toți clienții ei (organizațiile). Ecranul
+operează platforma Lot cu Lot pentru toți clienții ei (organizațiile). Ecranul
 **"Organizații"** (`/platform`) este disponibil doar acestui rol.
 
 ### 3.1 Lista organizațiilor

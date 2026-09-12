@@ -3,7 +3,7 @@ import { requireRole } from "@/features/auth/session";
 import { OrderList } from "@/features/client-portal/order-list";
 import { listOrders } from "@/features/orders/queries";
 
-export const metadata = { title: "Comenzile mele - Provenio" };
+export const metadata = { title: "Comenzile mele - Lot cu Lot" };
 
 /**
  * Ecranul "Comenzile mele": `listOrders()` fara filtru suplimentar - RLS

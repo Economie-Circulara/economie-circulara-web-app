@@ -59,7 +59,7 @@ Continut actual al PDF-ului:
 | Banda info (3 coloane)     | `snapshot.order.clientName`, `snapshot.order.clientCui`, `snapshot.order.number`, `snapshot.deliveredItems[]` (`itemTitle`, `quantity`, `unit`) |
 | "Lanț de trasabilitate"    | `snapshot.graph` (Sankey SVG, noduri `source`/`lot`/`process`/`delivery`)                  |
 | "Materiale și origine"     | `snapshot.materials[]` -> `material`, `origin` (`PROVENANCE_LABELS`), `source`, `percentage` |
-| Footer                     | "Certificat generat automat", "Graful reflectă trasabilitatea inregistrată în platformă la data emiterii.", caseta de semnatura cu `orgName` + "Semnătură & ștampilă electronică", banda "{orgName} · trasabilitate emisă de Provenio" |
+| Footer                     | "Certificat generat automat", "Graful reflectă trasabilitatea inregistrată în platformă la data emiterii.", caseta de semnatura cu `orgName` + "Semnătură & ștampilă electronică", banda "{orgName} · trasabilitate emisă de Lot cu Lot" |
 
 Numerotarea: `certificates.number` in format `CRT-<an>-<seq>`, unic per organizatie
 (`public.generate_certificate_number`, migrarea
@@ -467,7 +467,7 @@ retro-compatibila a v1, pentru certificatele deja emise - mecanismul e deja anti
 >
 > Prezentul document este o **declarație voluntară de trasabilitate**, emisă de
 > **{DENUMIRE_EMITENT}, CUI {CUI_EMITENT}**, pe propria răspundere, pe baza datelor
-> înregistrate de emitent în platforma Provenio. Descrie lanțul de loturi de materiale
+> înregistrate de emitent în platforma Lot cu Lot. Descrie lanțul de loturi de materiale
 > înregistrat pentru comanda {NUMAR_COMANDA}, la data emiterii.
 >
 > Acest document **NU este declarație de performanță** și **NU însoțește marcajul CE** în
@@ -488,7 +488,7 @@ retro-compatibila a v1, pentru certificatele deja emise - mecanismul e deja anti
 > o parte terță** (de exemplu conform ISO 14021 sau EN 45557).
 >
 > Responsabilitatea pentru exactitatea, completitudinea și actualitatea datelor aparține
-> integral emitentului. Provenio este furnizorul platformei software; **nu verifică, nu
+> integral emitentului. Lot cu Lot este furnizorul platformei software; **nu verifică, nu
 > validează și nu garantează** datele introduse de emitent și nu are calitatea de organism
 > de certificare, de evaluare a conformității sau de laborator de încercări.
 

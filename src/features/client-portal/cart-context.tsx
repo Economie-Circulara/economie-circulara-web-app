@@ -5,7 +5,7 @@ import type * as React from "react";
 import * as cartLogic from "./cart-logic";
 import type { CartLine } from "./types";
 
-const STORAGE_KEY = "provenio:cart:v1";
+const STORAGE_KEY = "lotculot:cart:v1";
 
 type CartAction =
   | { type: "add"; line: CartLine }

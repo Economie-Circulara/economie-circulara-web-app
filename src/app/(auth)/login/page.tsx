@@ -6,7 +6,7 @@ import { getCurrentUser, homePathForRole } from "@/features/auth/session";
 import { getOrgBranding } from "@/features/auth/queries";
 import { resolveTenant } from "@/features/auth/tenant";
 
-export const metadata = { title: "Autentificare - Provenio" };
+export const metadata = { title: "Autentificare - Lot cu Lot" };
 
 interface LoginPageProps {
   searchParams: Promise<{ error?: string }>;

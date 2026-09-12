@@ -290,7 +290,7 @@ export function CertificatePdfDocument({
         </View>
 
         <View style={styles.pageFooter} fixed>
-          <Text>{orgName} · trasabilitate emisă de Provenio</Text>
+          <Text>{orgName} · trasabilitate emisă de Lot cu Lot</Text>
           <Text render={({ pageNumber, totalPages }) => `pagina ${pageNumber}/${totalPages}`} />
         </View>
       </Page>

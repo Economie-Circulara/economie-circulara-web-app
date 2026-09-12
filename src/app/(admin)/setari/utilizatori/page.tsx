@@ -17,7 +17,7 @@ import { listAvailableClientsForInvite, listOrgUsers } from "@/features/settings
 import { InviteStaffForm } from "@/features/settings/invite-staff-form";
 import { InviteClientForm } from "@/features/settings/invite-client-form";
 
-export const metadata = { title: "Utilizatori - Provenio" };
+export const metadata = { title: "Utilizatori - Lot cu Lot" };
 
 export default async function UsersPage() {
   await requireRole(["admin"]);

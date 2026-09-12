@@ -5,7 +5,7 @@ import { requireRole } from "@/features/auth/session";
 import { listRecipes } from "@/features/recipes/queries";
 import { RecipesTable } from "@/features/recipes/recipes-table";
 
-export const metadata = { title: "Rețete - Provenio" };
+export const metadata = { title: "Rețete - Lot cu Lot" };
 
 /** Ecranul Rețete - lista retetelor definite (doar staff). */
 export default async function RetetePage() {

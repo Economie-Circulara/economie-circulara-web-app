@@ -53,7 +53,7 @@ beforeEach(() => {
   headers.mockResolvedValue(
     new Map([
       ["x-forwarded-proto", "https"],
-      ["host", "app.provenio.ro"],
+      ["host", "app.lotculot.eu"],
     ]),
   );
   requireRole.mockResolvedValue({ id: "super-1", role: "super_admin" });
@@ -106,7 +106,7 @@ describe("createOrganizationAction", () => {
     expect(inviteOrganizationAdmin).toHaveBeenCalledWith(
       "org-1",
       "admin@acme.ro",
-      "https://app.provenio.ro/auth/callback?next=/set-password",
+      "https://app.lotculot.eu/auth/callback?next=/set-password",
     );
     expect(revalidatePath).toHaveBeenCalledWith("/platform");
   });

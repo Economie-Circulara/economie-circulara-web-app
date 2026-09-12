@@ -1,4 +1,4 @@
-# Plan de implementare - Provenio (Economie Circulara)
+# Plan de implementare - Lot cu Lot (Economie Circulara)
 
 Acest document transforma cerintele din [`handoff.md`](handoff.md) si designul din
 [`design/Lateris_Trace.dc.html`](design/) intr-un plan de implementare impartit in

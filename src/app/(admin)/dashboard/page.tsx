@@ -6,7 +6,7 @@ import { PageHeader } from "@/components/page-header";
 import { requireRole } from "@/features/auth/session";
 import { getDashboardKpis } from "@/features/reports/dashboard-queries";
 
-export const metadata = { title: "Dashboard - Provenio" };
+export const metadata = { title: "Dashboard - Lot cu Lot" };
 
 const numberFormatter = new Intl.NumberFormat("ro-RO");
 

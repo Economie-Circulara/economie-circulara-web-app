@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { normalizeHost, resolveTenant } from "./tenant";
 
-const ROOT = "provenio.app";
+const ROOT = "lotculot.eu";
 
 describe("normalizeHost", () => {
   it("elimina portul si forteaza lowercase", () => {
-    expect(normalizeHost("ACME.Provenio.App:3000")).toBe("acme.provenio.app");
+    expect(normalizeHost("ACME.LotCuLot.EU:3000")).toBe("acme.lotculot.eu");
   });
   it("trateaza null/undefined ca string gol", () => {
     expect(normalizeHost(null)).toBe("");
@@ -22,15 +22,15 @@ describe("resolveTenant - custom domain", () => {
 
 describe("resolveTenant - subdomeniu", () => {
   it("<slug>.<root> => subdomain", () => {
-    const t = resolveTenant("acme.provenio.app", "/", ROOT);
+    const t = resolveTenant("acme.lotculot.eu", "/", ROOT);
     expect(t).toEqual({ slug: "acme", customDomain: null, source: "subdomain" });
   });
   it("subdomenii rezervate (www/app) cad pe path", () => {
-    expect(resolveTenant("www.provenio.app", "/beta/comenzi", ROOT).source).toBe("path");
-    expect(resolveTenant("app.provenio.app", "/", ROOT).source).toBe("none");
+    expect(resolveTenant("www.lotculot.eu", "/beta/comenzi", ROOT).source).toBe("path");
+    expect(resolveTenant("app.lotculot.eu", "/", ROOT).source).toBe("none");
   });
   it("root domain gol => fara tenant din host", () => {
-    expect(resolveTenant("provenio.app", "/", ROOT)).toEqual({
+    expect(resolveTenant("lotculot.eu", "/", ROOT)).toEqual({
       slug: null,
       customDomain: null,
       source: "none",

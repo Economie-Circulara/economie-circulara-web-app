@@ -11,7 +11,7 @@ import { getOrderDetail } from "@/features/orders/queries";
 import { ReturnActions } from "@/features/returns/return-actions";
 import { getReturnableItems } from "@/features/returns/queries";
 
-export const metadata = { title: "Detalii comandă - Lateris Trace" };
+export const metadata = { title: "Detalii comandă - Lot cu Lot" };
 
 interface OrderDetailPageProps {
   params: Promise<{ id: string }>;

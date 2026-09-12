@@ -7,7 +7,7 @@ import { STOCK_EVENT_LABELS } from "@/features/stock/labels";
 import { listItemOptions, listStockEvents } from "@/features/stock/queries";
 import type { StockEventType } from "@/features/stock/types";
 
-export const metadata = { title: "Audit stoc - Provenio" };
+export const metadata = { title: "Audit stoc - Lot cu Lot" };
 
 const selectClassName =
   "flex h-9 w-full rounded-md border border-input bg-card px-3 py-1 text-sm shadow-xs outline-none sm:w-56";

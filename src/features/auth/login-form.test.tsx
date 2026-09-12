@@ -13,12 +13,12 @@ import { LoginForm } from "./login-form";
 
 describe("LoginForm - mesaje de eroare din `?error=`", () => {
   it("nu afiseaza niciun mesaj cand nu exista `errorCode`", () => {
-    render(<LoginForm orgName="Provenio" />);
+    render(<LoginForm orgName="Lot cu Lot" />);
     expect(screen.queryByText(/Contul tau nu este inca provizionat/i)).not.toBeInTheDocument();
   });
 
   it("afiseaza mesajul pentru utilizator neprovizionat (`error=unprovisioned`)", () => {
-    render(<LoginForm orgName="Provenio" errorCode="unprovisioned" />);
+    render(<LoginForm orgName="Lot cu Lot" errorCode="unprovisioned" />);
     expect(
       screen.getByText(
         "Contul tau nu este inca provizionat. Cere o invitatie administratorului organizatiei tale.",
@@ -27,17 +27,17 @@ describe("LoginForm - mesaje de eroare din `?error=`", () => {
   });
 
   it("afiseaza mesajul pentru sesiune expirata/invalida (`error=auth`)", () => {
-    render(<LoginForm orgName="Provenio" errorCode="auth" />);
+    render(<LoginForm orgName="Lot cu Lot" errorCode="auth" />);
     expect(screen.getByText(/Link expirat sau invalid/i)).toBeInTheDocument();
   });
 
   it("afiseaza mesajul pentru esec OAuth (`error=oauth`)", () => {
-    render(<LoginForm orgName="Provenio" errorCode="oauth" />);
+    render(<LoginForm orgName="Lot cu Lot" errorCode="oauth" />);
     expect(screen.getByText(/Nu am putut porni autentificarea cu Google/i)).toBeInTheDocument();
   });
 
   it("ignora coduri de eroare necunoscute", () => {
-    render(<LoginForm orgName="Provenio" errorCode="ceva-necunoscut" />);
+    render(<LoginForm orgName="Lot cu Lot" errorCode="ceva-necunoscut" />);
     expect(screen.queryByText(/Link expirat/i)).not.toBeInTheDocument();
   });
 });

@@ -1,7 +1,7 @@
-# Manual Provenio - cuprins
+# Manual Lot cu Lot - cuprins
 
 Acest folder conține documentația de utilizare și administrare a platformei
-**Provenio**, livrată ca parte a Task X6 (documentație obligatorie pentru
+**Lot cu Lot**, livrată ca parte a Task X6 (documentație obligatorie pentru
 conformitatea cu Anexa 1 - finanțare europeană). Documentele descriu ecranele
 și fluxurile **reale** ale aplicației, verificate în cod la data redactării
 (2026-07-19).

@@ -6,7 +6,7 @@ import { requireRole } from "@/features/auth/session";
 import { getItemById } from "@/features/items/queries";
 import { ItemForm } from "@/features/items/item-form";
 
-export const metadata = { title: "Editează item - Provenio" };
+export const metadata = { title: "Editează item - Lot cu Lot" };
 
 interface ItemDetailPageProps {
   params: Promise<{ id: string }>;

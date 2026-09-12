@@ -1,7 +1,7 @@
 # Manual de utilizare - Administrator / Operator
 
 Acest manual este destinat utilizatorilor cu rol **Administrator** sau **Operator**
-ai unei organizații din Provenio (firma producătoare/reciclatoare - clientul
+ai unei organizații din Lot cu Lot (firma producătoare/reciclatoare - clientul
 platitor al platformei). Rolul **Operator** are acces la operațiunile zilnice
 (stoc, producție, comenzi, clienți, livrări). Rolul **Administrator** are, în plus,
 configurarea produselor/rețetelor, personalizarea organizației (white-label) și

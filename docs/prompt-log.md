@@ -13,6 +13,41 @@ Format intrare:
 
 ---
 
+## 2026-09-12 — Claude Opus 5 — Numele final: „Lot cu Lot" (lotculot.eu)
+
+- **Cerut:** mai multe sugestii de nume; apoi userul a cumparat **lotculot.eu** si a ales
+  „Lot cu Lot".
+- **Explorat inainte** (unghiuri diferite, nu variatii pe „proveniență"): Evidentia, Filiera,
+  Agrega, Cirqa, Vestigia, Traseo, Atesta — cu disponibilitate verificata. Constatare
+  structurala: **niciunul** nu avea TLD internațional liber, doar `.ro`.
+  **Atesta respins explicit** (desi `atesta.ro` era liber): ar fi intrat in conflict cu
+  concluzia spike-ului S2 — certificatul e o declaratie VOLUNTARA, care NU atesta
+  conformitatea; un produs numit „Atesta" care emite documente insotite de „nu atesta..."
+  e o contradictie exploatabila juridic.
+- **De ce „Lot cu Lot" e mai bun decat tot ce evaluasem:** descrie mecanismul real
+  (trasabilitatea se construieste lot cu lot, iar `lot` e deja termenul de domeniu al
+  aplicatiei), e autoexplicativ pentru operatorul roman fara pas de traducere, si — cel mai
+  important — **nu pretinde autoritate oficiala**, deci nu intra in conflict cu disclaimerul
+  din `docs/analiza-standarde-certificat.md`. Compromis asumat: joc de limba romana, nu
+  traverseaza granita.
+- **Aplicat:** 67 de fisiere. `PLATFORM_NAME = "Lot cu Lot"` in `src/lib/brand.ts`;
+  identificatorii au devenit `lotculot` (pachet npm, cheia de localStorage a cosului
+  `lotculot:cart:v1`, fixture-uri de test); adresa implicita de expediere
+  `notificari@lotculot.eu`. Inchisa si ultima apariție rămasa a numelui vechi (titlul din
+  `comenzile-mele/[id]/page.tsx`, fisier care nu mai era in lucru la Codex).
+- **Capcana prinsa de teste:** inlocuirea mecanica a stricat un fixture de host
+  (`ACME.Provenio.App:3000` -> `ACME.Lot cu Lot.App:3000`, host invalid cu spatii).
+  Corectat la `ACME.LotCuLot.EU:3000`. Restul identificatorilor verificati pentru acelasi
+  tip de problema.
+- **Pastrat intenționat:** `docs/prompt-log.md` si `docs/plans/denumire-produs.md` NU au fost
+  rescrise mecanic — prima e jurnal, a doua contine analiza care EVALUEAZA Provenio ca
+  candidat; rescrierea lor ar falsifica istoricul deciziei. In documentul de denumire e
+  adaugata secțiunea cu decizia finala.
+- **Verificat:** typecheck, lint, **594 teste** — toate verzi.
+- **Domenii:** `lotculot.ro`, `.com`, `.app`, `.io` erau TOATE libere — namespace curat.
+  Recomandat `.ro` de la registrar romanesc (piata naturala), `.com` ca inregistrare
+  defensiva ieftina.
+
 ## 2026-09-12 — Claude Opus 5 — Corectie: URL-ul de productie era greșit in handoff
 
 - **Constatat la verificarea deploy-ului cu numele nou:** URL-ul pe care il raportasem ca

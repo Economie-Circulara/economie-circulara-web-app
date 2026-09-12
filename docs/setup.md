@@ -1,4 +1,4 @@
-# Setup - Provenio (repo web app)
+# Setup - Lot cu Lot (repo web app)
 
 Ghid de configurare pentru noul repo `Economie-Circulara/economie-circulara-web-app`:
 dezvoltare locala, conectare la **Supabase** si **Vercel**, si configurarea unui

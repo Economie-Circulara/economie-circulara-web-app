@@ -4,7 +4,7 @@ import { listClientAddresses } from "@/features/clients/queries";
 import { CatalogView } from "@/features/client-portal/catalog-view";
 import { listCatalogItems } from "@/features/client-portal/queries";
 
-export const metadata = { title: "Catalog - Provenio" };
+export const metadata = { title: "Catalog - Lot cu Lot" };
 
 /** Ecranul "Catalog" (Task H): produse vandabile, cos, formular de comanda - fara preturi. */
 export default async function CatalogPage() {
