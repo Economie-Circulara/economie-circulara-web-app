@@ -13,6 +13,36 @@ Format intrare:
 
 ---
 
+## 2026-09-12 — Claude Opus 5 — Spike S2: standarde legale pentru certificatul de trasabilitate
+
+- **Cerut:** rezolvarea spike-ului de research **S2** (`plans/implementation-plan.md` §8) —
+  standarde legale RO/EU pentru certificatul de trasabilitate materiale reciclate, cu output
+  „continut minim obligatoriu". Fara modificari de cod de aplicatie.
+- **Facut:** document nou [`analiza-standarde-certificat.md`](analiza-standarde-certificat.md)
+  (research din surse publice, cu link per afirmatie): cadrul RO (O.U.G. 92/2021 art. 5/6/27
+  end-of-waste + trasabilitate, H.G. 856/2002, H.G. 1061/2008 formular incarcare-descarcare,
+  H.G. 668/2017, NE 012/1-2022, O.P.A.N.A.F. 802/2022 e-Transport), cadrul UE (**noul CPR —
+  Reg. (UE) 2024/3110**, aplicabil din 8 ian. 2026, cu DPP la art. 67-68; criterii EoW UE
+  doar pentru metale/sticla/cupru, **nu pentru agregate**), standardele de produs
+  (EN 12620 / EN 13242 → DoP + CE obligatoriu; **SR EN 206 nu e armonizat → betonul nu are
+  marcaj CE**; EN 933-11 pentru constituentii agregatului reciclat) si schemele voluntare
+  (ISO 14021, EN 45557, EPD EN 15804, CSC modulul R, Protocolul UE DCD 2024).
+- **Verdict:** certificatul nostru **nu are temei legal obligatoriu** — e document voluntar,
+  auto-declarat; documentele obligatorii (DoP/CE, evidenta deseurilor, bon de livrare beton,
+  aviz/UIT) sunt emise de organizatie/organism notificat, nu de platforma.
+- **Livrabile in document:** continutul minim pe **grupe de campuri A-G**, **tabel de DELTA**
+  fata de codul real (`src/features/certificates/`, migrarea `0009`), **text de disclaimer**
+  propus (bloc + footer + nota de metoda + reguli de comunicare), **8 intrebari pentru
+  jurist** si prioritizare pentru recepție.
+- **Defecte descoperite (nereparate — task separat, de cod):** (1) PDF-ul afiseaza „Nr.
+  `{snapshot.order.number}` · CRT" = **numarul comenzii**, nu `certificates.number`
+  (numarul certificatului nu e pasat in `CertificatePdfProps`); (2) caseta „Semnătură &
+  ștampilă electronică" desi PDF-ul nu e semnat eIDAS; (3) `materials[].percentage` poate
+  insuma cantitati in **UM diferite**; (4) `organizations` **nu are CUI/adresa**; (5)
+  `RawProcess.type`/`completedAt` si `RawLot.entryDate` sunt incarcate si nefolosite.
+- **Nota:** nu s-a atins cod de aplicatie, Supabase local sau portul 3000 (alt agent le
+  foloseste). Doar `docs/`.
+
 ## 2026-09-12 — Claude Opus 5 — Reluare proiect: main verde + merge review fixes
 
 - **Cerut:** analiza starii proiectului dupa ~8 saptamani de pauza (docs + branch-uri + cod),

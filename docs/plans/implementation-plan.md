@@ -470,7 +470,7 @@ stub tipat (mock) cu aceeasi semnatura.
 | ID  | Subiect                                                                           | Deblocheaza | Output asteptat            |
 | --- | --------------------------------------------------------------------------------- | ----------- | -------------------------- |
 | S1 ✅ | API public lookup CUI Romania — **rezolvat: ANAF v9** (webservicesp.anaf.ro), adapter in `src/features/clients/cui-lookup.ts` | Task A | alegere sursa + adapter |
-| S2  | Standarde legale RO/EU pt. certificat trasabilitate materiale reciclate           | Task G      | continut minim obligatoriu |
+| S2 ✅ | Standarde legale RO/EU pt. certificat trasabilitate materiale reciclate — **rezolvat: nu exista obligatie legala pentru acest certificat** (e document voluntar); obligatorii sunt DoP+marcaj CE (EN 12620/EN 13242), evidenta deseurilor, bonul de livrare beton (NE 012/1-2022) si e-Transport. Continut minim recomandat, delta pe cod si disclaimer in [`../analiza-standarde-certificat.md`](../analiza-standarde-certificat.md) | Task G      | continut minim obligatoriu |
 | S3 (Sankey) ✅ | Sankey — **decizie: SVG custom** (fara librarie; risc peer-deps React 19/Next 16, portat din mockup) in `src/features/production/sankey-*`. Abordarea PDF ramane de decis la Task G. | Task D, G | decizie + POC mic |
 | S4  | Validare **Socrate.io** ca furnizor RO e-Transport (decis 2026-07, platit): acces API/sandbox, costuri, contract | Task X5 | POC adapter Socrate.io |
 
