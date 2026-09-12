@@ -330,7 +330,7 @@ max_frequency = "5s"
 # (plus un OAuth client in Google Cloud cu redirect <project>.supabase.co/auth/v1/callback).
 # Lasat dezactivat by default ca `supabase start` sa nu ceara credentiale inexistente.
 [auth.external.google]
-enabled = false
+enabled = true
 client_id = "env(SUPABASE_AUTH_GOOGLE_CLIENT_ID)"
 secret = "env(SUPABASE_AUTH_GOOGLE_SECRET)"
 # Necesar pentru sign-in cu Google pe stack-ul local.
