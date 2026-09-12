@@ -79,16 +79,20 @@ Organizația demo: **Lateris Demo** (`a0000000-0000-0000-0000-0000000000a1`, slu
 
 ---
 
-## 2. Ce s-a făcut în această sesiune (4 commit-uri pe `main`)
+## 2. Ce s-a făcut în această sesiune (6 commit-uri pe `main`)
 
-`main` **NU e pushat** — toate cele 4 commit-uri sunt doar locale. Vezi §5.
+`main` **NU e pushat** — toate commit-urile sunt doar locale, deci CI nu a rulat pe ele.
+Vezi §5. Fix-urile P0 de randare și de scrieri **nu sunt încă în niciun commit** — sunt
+în arborele de lucru, vezi §6.
 
 | Commit | Ce |
 | --- | --- |
 | `e942a8a` | Merge `origin/claude/app-plan-review-w3cr7a` (rămăsese nemerge) + regenerare canonică a tipurilor |
 | `20f1e80` | Spike **S2** rezolvat — `docs/analiza-standarde-certificat.md` |
-| `d12a942` | **Fix 2 bug-uri de DB** + suita `supabase/tests/business_flow.sql` |
+| `d12a942` | **Fix 2 bug-uri de DB** (0017, 0018) + suita `supabase/tests/business_flow.sql` |
 | `75e5c36` | **Fix certificat**: PDF-ul afișa numărul comenzii în loc de al certificatului |
+| `960fd02` | Acest document (versiunea inițială) |
+| `c10cf40` | Acest document — secțiunea 6 completată cu raportul verificării funcționale |
 
 ### 2.1 `main` era roșu la typecheck — reparat
 
