@@ -13,14 +13,14 @@ export default async function PlatformLayout({ children }: { children: React.Rea
 
   return (
     <div className="bg-pattern min-h-svh">
-      <div className="mx-auto max-w-6xl space-y-6 p-6">
-        <header className="flex items-center justify-between border-b pb-4">
+      <div className="mx-auto max-w-6xl space-y-6 p-4 sm:p-6">
+        <header className="flex flex-col gap-3 border-b pb-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-sm font-semibold tracking-tight">Lateris Trace — Platforma</p>
             <p className="text-xs text-muted-foreground">Administrare organizatii (super-admin)</p>
           </div>
-          <div className="flex items-center gap-3">
-            <span className="text-sm font-medium">{user.email}</span>
+          <div className="flex min-w-0 items-center gap-3">
+            <span className="min-w-0 truncate text-sm font-medium">{user.email}</span>
             <SignOutButton />
           </div>
         </header>

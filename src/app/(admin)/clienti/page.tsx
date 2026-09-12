@@ -32,8 +32,8 @@ export default async function ClientiPage({ searchParams }: ClientiPageProps) {
         }
       />
 
-      <form method="get" className="flex flex-wrap items-end gap-3">
-        <div className="space-y-1.5">
+      <form method="get" className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
+        <div className="space-y-1.5 sm:w-64">
           <label htmlFor="q" className="text-sm font-medium">
             Căutare
           </label>
@@ -42,7 +42,6 @@ export default async function ClientiPage({ searchParams }: ClientiPageProps) {
             name="q"
             defaultValue={search ?? ""}
             placeholder="Denumire sau CUI..."
-            className="w-64"
           />
         </div>
         <Button type="submit" variant="outline">

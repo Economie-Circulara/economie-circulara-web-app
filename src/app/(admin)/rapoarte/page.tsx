@@ -98,18 +98,18 @@ export default async function RapoartePage({ searchParams }: RapoartePageProps) 
         description={`Rapoarte operaționale pe perioadă (${formatRangeLabel(range)}).`}
       />
 
-      <form method="get" className="flex flex-wrap items-end gap-3">
-        <div className="space-y-1.5">
+      <form method="get" className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
+        <div className="space-y-1.5 sm:w-44">
           <label htmlFor="from" className="text-sm font-medium">
             De la
           </label>
-          <Input id="from" name="from" type="date" defaultValue={range.from} className="w-44" />
+          <Input id="from" name="from" type="date" defaultValue={range.from} />
         </div>
-        <div className="space-y-1.5">
+        <div className="space-y-1.5 sm:w-44">
           <label htmlFor="to" className="text-sm font-medium">
             Până la
           </label>
-          <Input id="to" name="to" type="date" defaultValue={range.to} className="w-44" />
+          <Input id="to" name="to" type="date" defaultValue={range.to} />
         </div>
         <Button type="submit" variant="outline">
           Aplică perioada

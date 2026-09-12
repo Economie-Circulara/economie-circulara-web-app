@@ -203,9 +203,9 @@ export function CatalogView({ items, addresses }: CatalogViewProps) {
   }, [items, search, kind]);
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[1fr_330px]">
+    <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_330px]">
       <div>
-        <div className="mb-5 flex gap-2.5">
+        <div className="mb-5 flex flex-col gap-2.5 sm:flex-row">
           <div className="flex flex-1 items-center gap-2 rounded-md border bg-card px-3 py-2">
             <Search className="size-4 text-muted-foreground" />
             <input
@@ -218,7 +218,7 @@ export function CatalogView({ items, addresses }: CatalogViewProps) {
           <select
             value={kind}
             onChange={(e) => setKind(e.target.value as ItemKind | "")}
-            className={`${selectClassName} w-56`}
+            className={`${selectClassName} sm:w-56`}
           >
             <option value="">Toate categoriile</option>
             {KIND_FILTER_OPTIONS.map((option) => (

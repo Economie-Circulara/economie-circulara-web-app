@@ -11,7 +11,7 @@ import type { OrderStatus } from "@/features/orders/types";
 export const metadata = { title: "Comenzi — Lateris Trace" };
 
 const selectClassName =
-  "flex h-9 w-48 rounded-md border border-input bg-card px-3 py-1 text-sm shadow-xs outline-none";
+  "flex h-9 w-full rounded-md border border-input bg-card px-3 py-1 text-sm shadow-xs outline-none sm:w-48";
 
 interface ComenziPageProps {
   searchParams: Promise<{ status?: string; q?: string }>;
@@ -43,8 +43,8 @@ export default async function ComenziPage({ searchParams }: ComenziPageProps) {
         }
       />
 
-      <form method="get" className="flex flex-wrap items-end gap-3">
-        <div className="space-y-1.5">
+      <form method="get" className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
+        <div className="space-y-1.5 sm:w-64">
           <label htmlFor="q" className="text-sm font-medium">
             Căutare
           </label>
@@ -53,10 +53,9 @@ export default async function ComenziPage({ searchParams }: ComenziPageProps) {
             name="q"
             defaultValue={search ?? ""}
             placeholder="Client sau număr comandă..."
-            className="w-64"
           />
         </div>
-        <div className="space-y-1.5">
+        <div className="space-y-1.5 sm:w-48">
           <label htmlFor="status" className="text-sm font-medium">
             Status
           </label>

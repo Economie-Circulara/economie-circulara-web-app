@@ -174,8 +174,8 @@ export function OrderForm({ clients, addressesByClient, itemOptions }: OrderForm
             </ul>
           )}
 
-          <div className="flex flex-wrap items-end gap-3">
-            <FormField label="Item" className="w-56">
+          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
+            <FormField label="Item" className="sm:w-56">
               {(id) => (
                 <select
                   id={id}
@@ -194,7 +194,7 @@ export function OrderForm({ clients, addressesByClient, itemOptions }: OrderForm
                 </select>
               )}
             </FormField>
-            <FormField label="Cantitate" className="w-28">
+            <FormField label="Cantitate" className="sm:w-28">
               {(id) => (
                 <Input
                   id={id}

@@ -11,7 +11,7 @@ import type { ItemKind } from "@/features/items/types";
 export const metadata = { title: "Itemi — Lateris Trace" };
 
 const selectClassName =
-  "flex h-9 w-48 rounded-md border border-input bg-card px-3 py-1 text-sm shadow-xs outline-none";
+  "flex h-9 w-full rounded-md border border-input bg-card px-3 py-1 text-sm shadow-xs outline-none sm:w-48";
 
 interface ItemiPageProps {
   searchParams: Promise<{ kind?: string; sellable?: string; q?: string }>;
@@ -43,8 +43,8 @@ export default async function ItemiPage({ searchParams }: ItemiPageProps) {
         }
       />
 
-      <form method="get" className="flex flex-wrap items-end gap-3">
-        <div className="space-y-1.5">
+      <form method="get" className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
+        <div className="space-y-1.5 sm:w-56">
           <label htmlFor="q" className="text-sm font-medium">
             Căutare
           </label>
@@ -53,10 +53,9 @@ export default async function ItemiPage({ searchParams }: ItemiPageProps) {
             name="q"
             defaultValue={search ?? ""}
             placeholder="Titlu..."
-            className="w-56"
           />
         </div>
-        <div className="space-y-1.5">
+        <div className="space-y-1.5 sm:w-48">
           <label htmlFor="kind" className="text-sm font-medium">
             Tip
           </label>
@@ -69,7 +68,7 @@ export default async function ItemiPage({ searchParams }: ItemiPageProps) {
             ))}
           </select>
         </div>
-        <div className="space-y-1.5">
+        <div className="space-y-1.5 sm:w-48">
           <label htmlFor="sellable" className="text-sm font-medium">
             Vandabil
           </label>

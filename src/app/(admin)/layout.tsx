@@ -13,15 +13,25 @@ import { requireRole } from "@/features/auth/session";
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const user = await requireRole(["admin", "operator"]);
   const org = await getCurrentOrg();
+  const orgName = org?.name ?? "Lateris Trace";
+  const logoUrl = org?.logoUrl ?? undefined;
+  const items = navForRole(user.role);
 
   return (
     <AppShell
-      orgName={org?.name ?? "Lateris Trace"}
-      logoUrl={org?.logoUrl ?? undefined}
+      orgName={orgName}
+      logoUrl={logoUrl}
       theme={{ brand: org?.primaryColor ?? undefined, accent: org?.secondaryColor ?? undefined }}
-      items={navForRole(user.role)}
+      items={items}
     >
-      <Topbar email={user.email} roleLabel={ROLE_LABELS[user.role]} role={user.role} />
+      <Topbar
+        email={user.email}
+        roleLabel={ROLE_LABELS[user.role]}
+        role={user.role}
+        orgName={orgName}
+        logoUrl={logoUrl}
+        items={items}
+      />
       {children}
     </AppShell>
   );

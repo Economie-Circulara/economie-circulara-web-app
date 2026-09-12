@@ -25,6 +25,13 @@ export default defineConfig({
         ...(chromiumExecutable ? { launchOptions: { executablePath: chromiumExecutable } } : {}),
       },
     },
+    {
+      name: "mobile-chromium",
+      use: {
+        ...devices["iPhone 13"],
+        ...(chromiumExecutable ? { launchOptions: { executablePath: chromiumExecutable } } : {}),
+      },
+    },
   ],
   webServer: {
     command: "pnpm dev",

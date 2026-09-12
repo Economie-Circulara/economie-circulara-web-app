@@ -11,15 +11,25 @@ import { CartProvider } from "@/features/client-portal/cart-context";
 export default async function ClientLayout({ children }: { children: React.ReactNode }) {
   const user = await requireRole(["client"]);
   const org = await getCurrentOrg();
+  const orgName = org?.name ?? "Lateris Trace";
+  const logoUrl = org?.logoUrl ?? undefined;
+  const items = navForRole(user.role);
 
   return (
     <AppShell
-      orgName={org?.name ?? "Lateris Trace"}
-      logoUrl={org?.logoUrl ?? undefined}
+      orgName={orgName}
+      logoUrl={logoUrl}
       theme={{ brand: org?.primaryColor ?? undefined, accent: org?.secondaryColor ?? undefined }}
-      items={navForRole(user.role)}
+      items={items}
     >
-      <Topbar email={user.email} roleLabel={ROLE_LABELS[user.role]} role={user.role} />
+      <Topbar
+        email={user.email}
+        roleLabel={ROLE_LABELS[user.role]}
+        role={user.role}
+        orgName={orgName}
+        logoUrl={logoUrl}
+        items={items}
+      />
       {/* Cosul (catalog -> comanda) traieste in tot portalul, nu doar pe /catalog —
           necesar pentru „Repetă comanda" din /comenzile-mele/[id], care populeaza
           cosul si navigheaza la /catalog. */}

@@ -108,7 +108,7 @@ anexei, și nu necesită modul în aplicație.
 | --- | --- | --- |
 | Transmiterea de notificări și informări | ✅ | X1 — notificări email la schimbări de status + invitații |
 | Integrare/interoperabilitate cu alte sisteme | 🟡 | Nimic planificat până acum. Se închide prin lookup CUI (S1) + **integrarea e-Transport** (§3); GPS în v2 o întărește |
-| Interfață intuitivă, echipamente uzuale | ✅ | Next.js + shadcn/ui, design system (T0.2), responsive |
+| Interfață intuitivă, echipamente uzuale | ✅ | Next.js + shadcn/ui, design system (T0.2), shell responsive cu drawer mobil și smoke test pentru overflow orizontal |
 | Caracter modular și extensibil | ✅ | Arhitectura pe feature-uri (`src/features/<feature>/`), migrări aditive |
 
 ### Livrabile (secțiunea 5 din anexă) — obligații de proiect, nu de cod

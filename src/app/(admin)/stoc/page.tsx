@@ -10,7 +10,7 @@ import type { LotProvenance } from "@/features/stock/types";
 export const metadata = { title: "Stoc — Lateris Trace" };
 
 const selectClassName =
-  "flex h-9 w-56 rounded-md border border-input bg-card px-3 py-1 text-sm shadow-xs outline-none";
+  "flex h-9 w-full rounded-md border border-input bg-card px-3 py-1 text-sm shadow-xs outline-none sm:w-56";
 
 interface StocPageProps {
   searchParams: Promise<{ item_id?: string; provenance?: string }>;
@@ -43,8 +43,8 @@ export default async function StocPage({ searchParams }: StocPageProps) {
         }
       />
 
-      <form method="get" className="flex flex-wrap items-end gap-3">
-        <div className="space-y-1.5">
+      <form method="get" className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
+        <div className="space-y-1.5 sm:w-56">
           <label htmlFor="item_id" className="text-sm font-medium">
             Item
           </label>
@@ -62,7 +62,7 @@ export default async function StocPage({ searchParams }: StocPageProps) {
             ))}
           </select>
         </div>
-        <div className="space-y-1.5">
+        <div className="space-y-1.5 sm:w-56">
           <label htmlFor="provenance" className="text-sm font-medium">
             Proveniență
           </label>
