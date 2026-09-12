@@ -13,6 +13,42 @@ Format intrare:
 
 ---
 
+## 2026-09-12 — Claude Opus 5 — Commit integral + deploy in productie
+
+- **Cerut:** „aplica tot, comite tot (inclusiv modificarile de responsive), apoi aplica ce
+  poti sa mai aplici tu automat. as vrea sa pot testa pe vercel in prod".
+- **Comis** (arborele era un amestec de trei autori, separat in commit-uri logice):
+  fix-urile celor 2 bug-uri P0 + smoke test de rute + seed + 28 capturi (`eb97b3d`);
+  layout responsive mobil, lucrare Codex GPT-5 (`5f6cdd1`); fix `platform` —
+  starea formularelor scoasa din modulul `"use server"`, WIP-ul userului dus la capat
+  (`941b21a`); Google OAuth pe stack-ul local (`05fbb47`, cu avertisment de CI in mesaj);
+  eliminarea hook-ului SessionStart (`d6ea013`).
+- **Supabase hosted:** `supabase db push` a aplicat 0011-0018 (era la 0010). Verificat
+  independent prin API: 19/19 migrari inregistrate pe `nnmsqefeennxgilnlcjx` (eu-central-1).
+- **Vercel:** proiect legat (`economie-circulara-web-app`), `NEXT_PUBLIC_SUPABASE_URL` +
+  `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` setate pe production, deploy de productie reusit.
+  **https://economie-circulara-web-app.vercel.app** — `/` si `/login` 200, login-ul
+  randeaza formularul real, `/dashboard`/`/portal`/`/platform` dau 307 catre login pentru
+  vizitator neautentificat (guard-urile functioneaza in prod). URL-ul unic al
+  deployment-ului rămâne in spatele Vercel Deployment Protection; domeniul de productie e public.
+- **Blocat, NU ocolit:** `git push origin main` (politica de permisiuni) si citirea cheii
+  secrete Supabase de producție (materializare de credentiale). Ambele predate userului,
+  cu comenzile exacte, in `docs/handoff-sesiune-2026-09-12.md` §1b si §5.
+- **Constatat pe hosted:** baza are schema completa dar date minime (2 organizatii, 2
+  profiluri admin, 0 itemi, 0 clienti, niciun `super_admin`), si **niciun cont nu are
+  parola setata** — deci login cu email+parola nu merge; magic link/Google cer Site URL +
+  Redirect URLs actualizate pe proiectul hosted. Documentat in handoff.
+- **Verificat inainte de commit:** typecheck, lint, 584 teste, `pnpm build` — toate verzi
+  pe arborele combinat (inclusiv refactorul responsive).
+
+## 2026-09-12 — Codex GPT-5 — Font PDF cu diacritice românești
+
+- **Cerut:** folosirea unui font sigur pentru diacritice în PDF-uri, după probleme
+  observate pe avizul de însoțire a mărfii.
+- **Facut:** adăugat Noto Sans ca asset local pentru PDF-uri, helper comun de
+  înregistrare font pentru `@react-pdf/renderer`, înlocuite fonturile standard din
+  aviz, certificat și rapoarte, plus test unitar pentru înregistrarea fontului.
+
 ## 2026-09-12 — Codex GPT-5 — Layout responsive mobil
 
 - **Cerut:** implementarea planului din `docs/plans/mobile-responsive-layout.md`.
