@@ -3,6 +3,26 @@
 > Continuarea naturala a task-ului `manual-in-app.md` (`/ajutor`). Aici asistentul nu
 > doar raspunde din manual, ci si **face treaba**: "adauga clientul X si fa-i o comanda".
 
+## Stadiu (2026-09-13)
+
+**Fazele 1-3 sunt implementate** pe branch-ul `claude/asistent-ai`: chat peste manual,
+tool-uri de citire si tool-uri de scriere cu confirmare, plus quota, audit si ecranul
+de consum. Ce s-a schimbat fata de planul initial, dupa ce s-a scris codul:
+
+- quota numara **mesaje** (lunar per organizatie + plafon zilnic per utilizator), nu
+  tokeni - tokenii se contorizeaza separat, doar pentru costul intern;
+- limitele stau pe `organizations.ai_*` si pot fi schimbate **doar de super-admin**
+  (trigger `app.enforce_ai_limits`): altfel adminul organizatiei si-ar fi putut ridica
+  singur plafonul prin `organizations_update` din 0001;
+- conversatiile sunt **personale** (nici adminul organizatiei nu le vede); auditul
+  actiunilor ramane in `assistant_tool_calls` si in datele reale;
+- istoricul trimis modelului contine doar mesajele user/assistant, nu si rezultatele
+  tool-urilor (context marginit = cost marginit);
+- tipurile tabelelor noi sunt scrise de mana in `src/features/assistant/db.ts` pana
+  cand cineva ruleaza `pnpm db:reset && pnpm gen:types` cu Docker local.
+
+**Faza 4 (server MCP) ramane nefacuta** - `tools/registry.ts` e deja pregatit pentru ea.
+
 ## De ce
 
 Manualul din aplicatie rezolva jumatate din problema ("unde scrie cum se face?"), dar

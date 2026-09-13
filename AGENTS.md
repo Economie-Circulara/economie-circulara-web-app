@@ -170,6 +170,19 @@ Testele unitare sunt **colocate** langa cod (`*.test.ts` / `*.test.tsx`).
   nou `app.org_is_active`). Super-adminul (fara organizatie) trece peste, neafectat -
   el e singurul care poate reactiva o organizatie suspendata.
 
+- **Asistentul AI nu are privilegii proprii si nu scrie fara confirmare umana**
+  (migrarea `0020_assistant.sql`, `src/features/assistant/`): tool-urile ruleaza pe
+  clientul Supabase al sesiunii utilizatorului (deci RLS-ul multi-tenant se aplica
+  neschimbat) si apeleaza SERVICIILE existente, nu SQL. Orice tool de scriere e
+  intai o PROPUNERE (`assistant_tool_calls.status = 'proposed'`), executata doar dupa
+  confirmarea utilizatorului pe argumentele afisate - asta acopera si greselile
+  modelului, si prompt injection-ul din date.
+- **Quota de asistent e o limita comerciala, nu una tehnica**: se numara MESAJE
+  (lunar per organizatie + plafon zilnic per utilizator; `0` = nelimitat), iar
+  coloanele `organizations.ai_*` pot fi schimbate DOAR de super-admin - adminul
+  organizatiei nu isi poate ridica singur plafonul (trigger
+  `app.enforce_ai_limits`, altfel `organizations_update` din 0001 i-ar permite-o).
+
 ### 4.1 Limitari cunoscute / trade-off-uri acceptate
 
 - **`stock_events` audit trail**: pentru acum, nicio reconciliere automata cu `lots.remaining_qty`;
