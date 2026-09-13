@@ -8,6 +8,7 @@ import { DocumentList } from "@/features/documents/document-list";
 import type { DocumentRecord } from "@/features/documents/types";
 import { SankeyDiagram } from "@/features/production/sankey-diagram";
 import { getCertificateDownloadUrlAction } from "./actions";
+import { formatIssuerLine } from "./issuer";
 import type { TraceabilitySnapshot } from "./types";
 
 const dateFormatter = new Intl.DateTimeFormat("ro-RO", { dateStyle: "medium" });
@@ -18,6 +19,10 @@ export interface CertificateViewProps {
   number: string;
   issuedAt: string;
   orgName: string;
+  /** Date de identificare fiscala ale emitentului (migrarea 0023) - opționale. */
+  orgCui?: string | null;
+  orgRegCom?: string | null;
+  orgAddress?: string | null;
   snapshot: TraceabilitySnapshot;
   documents: DocumentRecord[];
 }
@@ -35,11 +40,15 @@ export function CertificateView({
   number,
   issuedAt,
   orgName,
+  orgCui,
+  orgRegCom,
+  orgAddress,
   snapshot,
   documents,
 }: CertificateViewProps) {
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const issuerLine = formatIssuerLine(orgCui, orgRegCom, orgAddress);
 
   function handleDownload() {
     setError(null);
@@ -74,6 +83,7 @@ export function CertificateView({
             <div>
               <p className="text-xl font-extrabold tracking-tight">{orgName}</p>
               <p className="text-xs text-muted-foreground">Materiale de construcții circulare</p>
+              {issuerLine ? <p className="text-xs text-muted-foreground">{issuerLine}</p> : null}
             </div>
             <div className="text-right">
               <p className="font-serif text-lg font-semibold">Certificat de trasabilitate</p>

@@ -388,8 +388,8 @@ recomandat, **O** = opțional / v2.
 | A3 data emiterii                         | ⚠️ foloseste `snapshot.generatedAt`, nu `certificates.issued_at`     | paseaza `issuedAt` explicit (practic identice, dar sursa de adevar e randul DB)                        |
 | A4 versiune template/snapshot            | ❌ nu apare in PDF (exista in date)                                  | afiseaza discret in footer: `v{snapshot.version}`                                                      |
 | A6 verificare QR/hash                    | ❌                                                                   | post-MVP (deja marcat "nice to have" in `handoff.md`)                                                  |
-| B2 CUI emitent                           | ❌ **`organizations` nu are coloana `cui`**                           | migrare noua: `organizations.cui`, `reg_com`, `address`, `contact_email`, `contact_phone`               |
-| B4 adresa emitent / instalatie           | ❌ idem                                                              | idem + eventual `facility_address`                                                                      |
+| B2 CUI emitent                           | ✅ **rezolvat** (migrarea `0023_organization_legal_fields.sql`) - `organizations.cui` + `reg_com`, editabile din Setari, afisate pe certificat (web + PDF) via `formatIssuerLine` | - |
+| B4 adresa emitent / instalatie           | ✅ **partial rezolvat** (aceeasi migrare) - `organizations.address` (sediu). Adresa de INSTALATIE (daca difera de sediu), `contact_email`, `contact_phone` raman ❌ - nu erau in scope-ul acestui fix | coloane suplimentare, daca se cer separat de sediu               |
 | B6 autorizatie de mediu                  | ❌                                                                   | `organizations.environmental_permit_no` + `environmental_permit_issuer` + `environmental_permit_valid_until` |
 | B7 emis de (persoana)                    | ❌ nu exista `orders.closed_by`                                       | opțional: coloana `closed_by` pe `orders` sau `issued_by` pe `certificates`                             |
 | C4 data livrarii                         | ❌ nu e in `TraceabilitySnapshotOrder`                                | extinde snapshot: `deliveredAt`                                                                         |
@@ -576,7 +576,8 @@ Daca timpul e scurt (recepție sub 2 saptamani), ordinea de prioritate este:
 2. **Bug-ul A2** (numarul certificatului in PDF) - defect functional vizibil, efort mic.
 3. **F1 + F3** (procentul de materii prime secundare + metoda) - selling point, reutilizeaza
    logica din `reports/calculations.ts`.
-4. **B2-B4** (CUI/adresa emitent) - cere migrare; fara ele documentul nu e complet ca
-   document comercial.
+4. ✅ **B2-B4** (CUI/adresa emitent) - **rezolvat 2026-09-14**, migrarea
+   `0023_organization_legal_fields.sql` + Setari + certificat (web/PDF). Vezi tabelul de
+   delta de mai sus pentru ce ramane in afara scope-ului (adresa de instalatie, contacte).
 5. Restul (C4-C6, D3, E3-E5) - imbunatatiri de completitudine, pot merge in v1.x.
 6. E6 (cod de deseu), F5, F6, A6 (QR) - v2.

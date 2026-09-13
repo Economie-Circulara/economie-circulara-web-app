@@ -45,6 +45,26 @@ Format intrare:
 - **Verificat:** testul complet rulat REAL (Supabase local + `pnpm dev`, nu doar
   static) - trece integral, pașii 1-9.
 
+## 2026-09-14 — Claude Sonnet 5 — CUI, Reg. Com. și adresă pe certificatul de trasabilitate
+
+- **Cerut:** certificatul de trasabilitate nu avea datele fiscale ale emitentului
+  (spike S2, `docs/analiza-standarde-certificat.md` §7.1, rândurile B2/B4 - fără CUI,
+  documentul nu poate fi folosit comercial).
+- **Facut:** migrarea `0023_organization_legal_fields.sql`
+  (`organizations.cui`/`reg_com`/`address`, nullable, fără validare de format).
+  `getCurrentOrg()` extins; card nou "Date firmă" în ecranul Setări
+  (`updateOrganizationAction`). Certificatul (web `certificate-view.tsx` + PDF
+  `pdf.tsx`) afișează linia `CUI ... · Reg. Com. · Adresă` prin funcția pură
+  partajată `src/features/certificates/issuer.ts`. `pnpm gen:types` rulat (Docker
+  disponibil în acest mediu) - a recuperat și tipurile `assistant_*`/`item_images`
+  care lipseau din `database.types.ts` de la migrările 0020/0021 (comise fără
+  regenerare, semnalat explicit în prompt-log-ul sesiunii anterioare).
+  `docs/analiza-standarde-certificat.md` actualizat (B2/B4 ✅).
+- **Verificat:** `pnpm typecheck`, `pnpm lint`, `pnpm test` (694 teste, inclusiv noi:
+  `issuer.test.ts`, `settings/actions.test.ts`, extensie `certificates/service.test.ts`);
+  verificare manuală completă în UI local (completare Setări -> flux comandă nou
+  -> certificat web + PDF descărcat din Storage, ambele arată linia).
+
 ## 2026-09-13 — Codex GPT-5 — Rezolvare conflict PR #25
 
 - **Cerut:** rezolvarea conflictului de merge pentru PR #25, branchul

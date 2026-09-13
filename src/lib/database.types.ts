@@ -34,6 +34,176 @@ export type Database = {
   }
   public: {
     Tables: {
+      assistant_conversations: {
+        Row: {
+          created_at: string
+          id: string
+          organization_id: string | null
+          title: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          organization_id?: string | null
+          title?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          organization_id?: string | null
+          title?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assistant_conversations_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assistant_conversations_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      assistant_messages: {
+        Row: {
+          content: string
+          conversation_id: string
+          created_at: string
+          id: string
+          role: string
+        }
+        Insert: {
+          content: string
+          conversation_id: string
+          created_at?: string
+          id?: string
+          role: string
+        }
+        Update: {
+          content?: string
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          role?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assistant_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "assistant_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      assistant_tool_calls: {
+        Row: {
+          arguments: Json
+          confirmed_by: string | null
+          conversation_id: string
+          created_at: string
+          error: string | null
+          id: string
+          resolved_at: string | null
+          result: Json | null
+          status: string
+          tool: string
+        }
+        Insert: {
+          arguments?: Json
+          confirmed_by?: string | null
+          conversation_id: string
+          created_at?: string
+          error?: string | null
+          id?: string
+          resolved_at?: string | null
+          result?: Json | null
+          status?: string
+          tool: string
+        }
+        Update: {
+          arguments?: Json
+          confirmed_by?: string | null
+          conversation_id?: string
+          created_at?: string
+          error?: string | null
+          id?: string
+          resolved_at?: string | null
+          result?: Json | null
+          status?: string
+          tool?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assistant_tool_calls_confirmed_by_fkey"
+            columns: ["confirmed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assistant_tool_calls_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "assistant_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      assistant_usage: {
+        Row: {
+          day: string
+          input_tokens: number
+          messages: number
+          organization_id: string
+          output_tokens: number
+          user_id: string
+        }
+        Insert: {
+          day?: string
+          input_tokens?: number
+          messages?: number
+          organization_id: string
+          output_tokens?: number
+          user_id: string
+        }
+        Update: {
+          day?: string
+          input_tokens?: number
+          messages?: number
+          organization_id?: string
+          output_tokens?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assistant_usage_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assistant_usage_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       certificate_counters: {
         Row: {
           organization_id: string
@@ -742,7 +912,12 @@ export type Database = {
       }
       organizations: {
         Row: {
+          address: string | null
+          ai_daily_user_message_limit: number
+          ai_enabled: boolean
+          ai_monthly_message_limit: number
           created_at: string
+          cui: string | null
           custom_domain: string | null
           email_from_address: string | null
           email_from_name: string | null
@@ -750,13 +925,19 @@ export type Database = {
           logo_url: string | null
           name: string
           primary_color: string | null
+          reg_com: string | null
           secondary_color: string | null
           slug: string
           status: Database["public"]["Enums"]["org_status"]
           updated_at: string
         }
         Insert: {
+          address?: string | null
+          ai_daily_user_message_limit?: number
+          ai_enabled?: boolean
+          ai_monthly_message_limit?: number
           created_at?: string
+          cui?: string | null
           custom_domain?: string | null
           email_from_address?: string | null
           email_from_name?: string | null
@@ -764,13 +945,19 @@ export type Database = {
           logo_url?: string | null
           name: string
           primary_color?: string | null
+          reg_com?: string | null
           secondary_color?: string | null
           slug: string
           status?: Database["public"]["Enums"]["org_status"]
           updated_at?: string
         }
         Update: {
+          address?: string | null
+          ai_daily_user_message_limit?: number
+          ai_enabled?: boolean
+          ai_monthly_message_limit?: number
           created_at?: string
+          cui?: string | null
           custom_domain?: string | null
           email_from_address?: string | null
           email_from_name?: string | null
@@ -778,6 +965,7 @@ export type Database = {
           logo_url?: string | null
           name?: string
           primary_color?: string | null
+          reg_com?: string | null
           secondary_color?: string | null
           slug?: string
           status?: Database["public"]["Enums"]["org_status"]
@@ -1262,6 +1450,14 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      assistant_track_usage: {
+        Args: {
+          p_input_tokens?: number
+          p_messages?: number
+          p_output_tokens?: number
+        }
+        Returns: undefined
       }
       cancel_order: {
         Args: { p_order_id: string }
