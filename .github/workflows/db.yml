@@ -44,6 +44,17 @@ jobs:
             -v ON_ERROR_STOP=1 \
             -f supabase/tests/rls_isolation.sql
 
+      # Adaugat de migrarea 0020 (asistent AI), dar niciodata cablat aici -
+      # `pnpm db:test:assistant` exista in package.json, dar acest job nu-l rula
+      # nicaieri, deci fisierul nu era verificat de CI (2 bug-uri de sintaxa
+      # PL/pgSQL - `begin/exception` si `perform` fara `do $$ ... $$` - au trecut
+      # nedetectate pana acum).
+      - name: Ruleaza testele de izolare RLS pentru asistentul AI
+        run: |
+          psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" \
+            -v ON_ERROR_STOP=1 \
+            -f supabase/tests/assistant_rls.sql
+
       - name: Regenereaza tipurile din schema
         run: supabase gen types typescript --local > src/lib/database.types.generated.ts
 

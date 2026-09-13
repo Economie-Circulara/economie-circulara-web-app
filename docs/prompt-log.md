@@ -13,6 +13,27 @@ Format intrare:
 
 ---
 
+## 2026-09-14 — Claude Sonnet 5 — Fix accept_order pentru itemi service + teste SQL stricate
+
+- **Cerut:** o comandă cu un item `kind = 'service'` (abonament) nu putea fi acceptată
+  ("Stoc insuficient" chiar la cantitatea 1).
+- **Facut:** migrarea `0022_accept_order_skip_service_items.sql` - `accept_order` sare
+  peste liniile cu itemi de tip serviciu (fără `consume_fifo`); `cancel_order` rămâne
+  neschimbat (nu are ce reface). Pe drum, verificarea a scos la iveală că
+  `supabase/tests/business_flow.sql` era complet stricat structural de la introducerea
+  lui (toate UUID-urile de item/lot/comandă erau hardcodate, deși `seed.sql` le
+  generează cu `gen_random_uuid()` - nu putea trece decât o dată, întâmplător, în CI
+  `db.yml` fiind mereu roșu de atunci) - rescris să caute entitățile dinamic
+  (`\gset` + subquery-uri pe câmpuri stabile). Test nou B13 pentru fix-ul de mai sus.
+  Similar, `supabase/tests/assistant_rls.sql` (migrarea 0020) avea 2 blocuri
+  `begin/exception` + un `perform` scrise "bare" (sintaxă PL/pgSQL invalidă fără
+  `do $$ ... $$`) și nu era cablat deloc în `db.yml` - reparat + adăugat pasul lipsă.
+  Plan: `docs/plans/fix-service-orders-cert-issuer-e2e.md`.
+- **Verificat:** `business_flow.sql`, `rls_isolation.sql`, `assistant_rls.sql` - toate
+  trei, în ordinea din `db.yml`, pe un `supabase db reset` complet; verificare directă
+  prin RPC-uri (comandă doar-serviciu și comandă mixtă) înainte de a găsi locul
+  potrivit în suită.
+
 ## 2026-09-13 — Codex GPT-5 — Rezolvare conflict PR #25
 
 - **Cerut:** rezolvarea conflictului de merge pentru PR #25, branchul
