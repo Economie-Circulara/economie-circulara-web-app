@@ -26,9 +26,14 @@ export default defineConfig({
       },
     },
     {
+      // `devices["iPhone 13"]` are `defaultBrowserType: "webkit"` - fara override,
+      // proiectul asta ar lansa Safari, nu Chrome mobil. CI instaleaza doar Chromium
+      // (`playwright install chromium`), deci fara `browserName` explicit orice test
+      // rulat aici pica cu "Executable doesn't exist" (webkit nu e instalat).
       name: "mobile-chromium",
       use: {
         ...devices["iPhone 13"],
+        browserName: "chromium",
         ...(chromiumExecutable ? { launchOptions: { executablePath: chromiumExecutable } } : {}),
       },
     },
