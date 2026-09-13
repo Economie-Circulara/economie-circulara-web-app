@@ -1,11 +1,12 @@
 import { NextResponse, type NextRequest } from "next/server";
 import type { EmailOtpType } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
+import { homePathForRole } from "@/features/auth/session";
 
 /**
  * Endpoint comun de callback pentru OAuth (Google), magic link si resetare parola.
- * Schimba `code`-ul PKCE sau `token_hash`-ul emailului pe o sesiune (cookie) si
- * redirecteaza la `next` (sau radacina).
+ * Schimba `code`-ul PKCE sau `token_hash`-ul emailului pe o sesiune (cookie). Daca
+ * `next` lipseste, redirecteaza la pagina principala a rolului autentificat.
  *
  * Provizionare: un cont valid trebuie sa aiba un rand in `public.profiles`, creat de
  * admin la invitatie. Magic link-ul foloseste `shouldCreateUser: false`, deci e sigur -
@@ -32,7 +33,7 @@ export async function GET(request: NextRequest) {
   if (!error && data.user) {
     const { data: profile } = await supabase
       .from("profiles")
-      .select("id")
+      .select("id, role")
       .eq("id", data.user.id)
       .maybeSingle();
 
@@ -45,7 +46,10 @@ export async function GET(request: NextRequest) {
     }
 
     // `next` e mereu o cale relativa controlata de noi (nu input liber al userului).
-    return NextResponse.redirect(`${origin}${next.startsWith("/") ? next : `/${next}`}`);
+    const redirectPath = next === "/" ? homePathForRole(profile.role) : next;
+    return NextResponse.redirect(
+      `${origin}${redirectPath.startsWith("/") ? redirectPath : `/${redirectPath}`}`,
+    );
   }
 
   return NextResponse.redirect(`${origin}/login?error=auth`);

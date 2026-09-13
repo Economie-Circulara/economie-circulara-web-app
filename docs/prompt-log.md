@@ -13,6 +13,17 @@ Format intrare:
 
 ---
 
+## 2026-09-13 — Codex GPT-5 — Redirect magic link catre dashboard-ul rolului
+
+- **Cerut:** magic link-ul nu mai dadea eroare, dar dupa autentificare trimitea la pagina
+  principala; userul nu poate testa local si a cerut push pentru verificare pe Vercel.
+- **Facut:** callback-ul Auth citeste rolul din `profiles` si, cand linkul nu are `next`,
+  redirecteaza implicit prin `homePathForRole`: admin/operator -> `/dashboard`, client ->
+  `/portal`, super-admin -> `/platform`. Fluxurile cu `next` explicit (ex. setare parola)
+  raman neschimbate.
+- **Verificat:** `pnpm vitest run src/app/auth/callback/route.test.ts`, `pnpm typecheck`,
+  `pnpm lint`.
+
 ## 2026-09-13 — Codex GPT-5 — Fix magic link Supabase SSR
 
 - **Cerut:** dupa configurarea Resend + domeniul `lotculot.eu`, login-ul prin magic link
