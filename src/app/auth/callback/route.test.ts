@@ -6,20 +6,27 @@ vi.mock("@/lib/supabase/server", () => ({ createClient }));
 
 import { GET } from "./route";
 
-/** Construieste un client Supabase fals: schimb cod -> user, plus lookup `profiles`. */
+/** Construieste un client Supabase fals: schimb code/token_hash -> user, plus lookup `profiles`. */
 function mockSupabase(options: {
   exchangeError?: { message: string } | null;
+  verifyError?: { message: string } | null;
   user?: { id: string } | null;
   profile?: { id: string } | null;
 }) {
-  const { exchangeError = null, user = { id: "u1" }, profile = null } = options;
+  const { exchangeError = null, verifyError = null, user = { id: "u1" }, profile = null } = options;
   const signOut = vi.fn().mockResolvedValue({ error: null });
+  const exchangeCodeForSession = vi.fn().mockResolvedValue({
+    data: { user: exchangeError ? null : user },
+    error: exchangeError,
+  });
+  const verifyOtp = vi.fn().mockResolvedValue({
+    data: { user: verifyError ? null : user },
+    error: verifyError,
+  });
   createClient.mockResolvedValue({
     auth: {
-      exchangeCodeForSession: vi.fn().mockResolvedValue({
-        data: { user: exchangeError ? null : user },
-        error: exchangeError,
-      }),
+      exchangeCodeForSession,
+      verifyOtp,
       signOut,
     },
     from: vi.fn().mockReturnValue({
@@ -30,7 +37,7 @@ function mockSupabase(options: {
       }),
     }),
   });
-  return { signOut };
+  return { exchangeCodeForSession, signOut, verifyOtp };
 }
 
 afterEach(() => {
@@ -39,6 +46,7 @@ afterEach(() => {
 
 describe("GET /auth/callback", () => {
   it("redirecteaza la /login?error=auth cand nu exista `code`", async () => {
+    mockSupabase({});
     const request = new NextRequest("http://localhost:3000/auth/callback");
     const response = await GET(request);
     expect(response.headers.get("location")).toBe("http://localhost:3000/login?error=auth");
@@ -66,6 +74,30 @@ describe("GET /auth/callback", () => {
     const request = new NextRequest("http://localhost:3000/auth/callback?code=abc&next=/dashboard");
     const response = await GET(request);
     expect(response.headers.get("location")).toBe("http://localhost:3000/dashboard");
+  });
+
+  it("verifica magic link-urile SSR cu `token_hash` si redirecteaza la `next`", async () => {
+    const { exchangeCodeForSession, verifyOtp } = mockSupabase({
+      user: { id: "u1" },
+      profile: { id: "u1" },
+    });
+    const request = new NextRequest(
+      "http://localhost:3000/auth/callback?token_hash=hash&type=magiclink&next=/portal",
+    );
+    const response = await GET(request);
+
+    expect(verifyOtp).toHaveBeenCalledWith({ token_hash: "hash", type: "magiclink" });
+    expect(exchangeCodeForSession).not.toHaveBeenCalled();
+    expect(response.headers.get("location")).toBe("http://localhost:3000/portal");
+  });
+
+  it("redirecteaza la /login?error=auth cand verificarea token_hash esueaza", async () => {
+    mockSupabase({ verifyError: { message: "invalid token" } });
+    const request = new NextRequest(
+      "http://localhost:3000/auth/callback?token_hash=hash&type=magiclink",
+    );
+    const response = await GET(request);
+    expect(response.headers.get("location")).toBe("http://localhost:3000/login?error=auth");
   });
 
   it("redirecteaza catre radacina cand nu exista `next` si userul are profil", async () => {

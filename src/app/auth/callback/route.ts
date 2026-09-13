@@ -1,9 +1,11 @@
 import { NextResponse, type NextRequest } from "next/server";
+import type { EmailOtpType } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 
 /**
  * Endpoint comun de callback pentru OAuth (Google), magic link si resetare parola.
- * Schimba `code`-ul pe o sesiune (cookie) si redirecteaza la `next` (sau radacina).
+ * Schimba `code`-ul PKCE sau `token_hash`-ul emailului pe o sesiune (cookie) si
+ * redirecteaza la `next` (sau radacina).
  *
  * Provizionare: un cont valid trebuie sa aiba un rand in `public.profiles`, creat de
  * admin la invitatie. Magic link-ul foloseste `shouldCreateUser: false`, deci e sigur -
@@ -15,29 +17,35 @@ import { createClient } from "@/lib/supabase/server";
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
+  const tokenHash = searchParams.get("token_hash");
+  const type = searchParams.get("type") as EmailOtpType | null;
   const next = searchParams.get("next") ?? "/";
 
-  if (code) {
-    const supabase = await createClient();
-    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
-    if (!error && data.user) {
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("id")
-        .eq("id", data.user.id)
-        .maybeSingle();
+  const supabase = await createClient();
+  const { data, error } =
+    tokenHash && type
+      ? await supabase.auth.verifyOtp({ token_hash: tokenHash, type })
+      : code
+        ? await supabase.auth.exchangeCodeForSession(code)
+        : { data: { user: null }, error: new Error("Missing auth code") };
 
-      if (!profile) {
-        // Autentificat la nivel de Supabase Auth, dar fara profil provizionat -> nu are
-        // acces. Delogam ca sa nu ramana un cookie de sesiune orfan si trimitem un mesaj
-        // clar la login.
-        await supabase.auth.signOut();
-        return NextResponse.redirect(`${origin}/login?error=unprovisioned`);
-      }
+  if (!error && data.user) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("id", data.user.id)
+      .maybeSingle();
 
-      // `next` e mereu o cale relativa controlata de noi (nu input liber al userului).
-      return NextResponse.redirect(`${origin}${next.startsWith("/") ? next : `/${next}`}`);
+    if (!profile) {
+      // Autentificat la nivel de Supabase Auth, dar fara profil provizionat -> nu are
+      // acces. Delogam ca sa nu ramana un cookie de sesiune orfan si trimitem un mesaj
+      // clar la login.
+      await supabase.auth.signOut();
+      return NextResponse.redirect(`${origin}/login?error=unprovisioned`);
     }
+
+    // `next` e mereu o cale relativa controlata de noi (nu input liber al userului).
+    return NextResponse.redirect(`${origin}${next.startsWith("/") ? next : `/${next}`}`);
   }
 
   return NextResponse.redirect(`${origin}/login?error=auth`);

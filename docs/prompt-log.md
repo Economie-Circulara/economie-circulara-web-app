@@ -13,6 +13,19 @@ Format intrare:
 
 ---
 
+## 2026-09-13 — Codex GPT-5 — Fix magic link Supabase SSR
+
+- **Cerut:** dupa configurarea Resend + domeniul `lotculot.eu`, login-ul prin magic link
+  ajungea la `/login?error=auth`; userul a cerut repararea, apoi commit + push.
+- **Facut:** `/auth/callback` accepta acum si linkuri SSR cu `token_hash` + `type` si le
+  verifica prin `supabase.auth.verifyOtp`, pastrand fluxul vechi cu `code` pentru OAuth,
+  invite si reset parola. Testele de callback acopera succesul si esecul pe `token_hash`.
+- **Verificat:** `pnpm vitest run src/app/auth/callback/route.test.ts`, `pnpm typecheck`,
+  `pnpm lint`.
+- **Nota operationala:** template-ul Supabase **Magic Link** trebuie sa foloseasca linkul
+  catre `{{ .RedirectTo }}?token_hash={{ .TokenHash }}&type=magiclink`; linkurile vechi
+  generate inainte de schimbarea template-ului pot ramane invalide.
+
 ## 2026-09-12 — Claude Opus 5 — Numele final: „Lot cu Lot" (lotculot.eu)
 
 - **Cerut:** mai multe sugestii de nume; apoi userul a cumparat **lotculot.eu** si a ales
