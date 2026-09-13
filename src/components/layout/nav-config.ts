@@ -23,7 +23,8 @@ export type NavIconName =
   | "settings"
   | "catalog"
   | "documents"
-  | "help";
+  | "help"
+  | "assistant";
 
 export interface NavItem {
   label: string;
@@ -71,7 +72,16 @@ export const HELP_NAV_ITEM: NavItem = {
   roles: ["super_admin", "admin", "operator", "client"],
 };
 
+/** Asistentul AI - la fel ca ajutorul, vizibil tuturor rolurilor si tinut separat. */
+export const ASSISTANT_NAV_ITEM: NavItem = {
+  label: "Asistent AI",
+  href: "/asistent",
+  icon: "assistant",
+  roles: ["super_admin", "admin", "operator", "client"],
+};
+
 export function navForRole(role: AppRole): NavItem[] {
-  if (role === "client") return [...CLIENT_NAV, HELP_NAV_ITEM];
-  return [...STAFF_NAV.filter((item) => item.roles.includes(role)), HELP_NAV_ITEM];
+  const shared = [ASSISTANT_NAV_ITEM, HELP_NAV_ITEM];
+  if (role === "client") return [...CLIENT_NAV, ...shared];
+  return [...STAFF_NAV.filter((item) => item.roles.includes(role)), ...shared];
 }

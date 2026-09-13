@@ -37,6 +37,34 @@ Format intrare:
   `src/lib/pdf/render.test.tsx` (pică fără fix).
 - **Verificat:** `pnpm typecheck`, `pnpm lint`, `pnpm test`; certificate reale inspectate vizual.
 
+
+## 2026-09-13 — Claude Opus 5 — Asistent AI cu acțiuni și quota (`/asistent`)
+
+- **Cerut:** branch nou cu asistentul AI; fiecare user/organizatie sa aiba quota, iar
+  interfata sa arate ca feature-ul e inclus limitat si ca extinderea poate fi platita.
+- **Facut:** `src/features/assistant/` + ruta `/asistent` (in grupul `(help)`, guard
+  `requireUser`). Furnizor LLM abstractizat OpenAI-compatibil (Mistral/Groq/OpenRouter/
+  OpenAI) cu mock implicit fara chei. Registry de tool-uri filtrat pe rol: citire
+  (manual, cautare globala, CUI ANAF, clienti, itemi vandabili, stoc) si scriere
+  (`creeaza_client`, `creeaza_comanda`, `trimite_comanda`). Scrierile nu se executa
+  niciodata direct: se salveaza ca propunere, iar UI-ul cere confirmare pe argumente
+  editabile, re-validate pe server. Cautarea in manual refoloseste `extractToc` din
+  feature-ul `/ajutor` (sectiuni h2/h3 scorate lexical, cu link la ancora).
+  Migrarea `0020_assistant.sql`: conversatii/mesaje/propuneri (RLS personal), consum
+  zilnic + RPC atomic de contorizare, coloane `organizations.ai_*` si trigger
+  `app.enforce_ai_limits` (adminul organizatiei NU isi poate ridica singur quota).
+  Quota: mesaje/luna per organizatie + plafon zilnic per user, afisate intr-un card cu
+  mesajul comercial; la depasire nu se mai apeleaza deloc furnizorul.
+- **Verificat:** `pnpm typecheck`, `pnpm lint`, `pnpm test` (671 teste, 38 noi: registry
+  si roluri, validarea argumentelor, bucla de conversatie cu furnizor scriptat -
+  inclusiv un fixture de prompt injection -, quota, cautarea in manual pe documentele
+  reale, formatul cererii catre furnizor), `pnpm build`.
+- **Nerulat aici** (mediul nu are Docker, deci nici Supabase local): migrarea
+  `0020`, `supabase/tests/assistant_rls.sql` (`pnpm db:test:assistant`),
+  `tests/e2e/asistent.spec.ts` si `pnpm gen:types` - de rulat local inainte de merge.
+  Pana la `gen:types`, tipurile tabelelor noi sunt scrise de mana in
+  `src/features/assistant/db.ts`.
+
 ## 2026-09-13 — Codex GPT-5 — Root callback bridge pentru magic link
 
 - **Cerut:** magic link-ul Resend/Supabase redirectiona catre
