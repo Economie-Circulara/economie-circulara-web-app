@@ -34,6 +34,17 @@ Format intrare:
   prin RPC-uri (comandă doar-serviciu și comandă mixtă) înainte de a găsi locul
   potrivit în suită.
 
+## 2026-09-14 — Claude Sonnet 5 — Fix selector login ambiguu în mvp-flow.spec.ts
+
+- **Cerut:** `tests/e2e/mvp-flow.spec.ts` pica la login (semnalat în sesiunea
+  anterioară, nereparat).
+- **Facut:** `loginAsAdmin` trece pe `#email`/`#password` (ca în
+  `routes-smoke.spec.ts`) - `getByLabel("Email", { exact: false })` era ambiguu
+  (formularul are și `#magic-email`, cu eticheta "Sau primește un link pe email",
+  care conține substringul "email").
+- **Verificat:** testul complet rulat REAL (Supabase local + `pnpm dev`, nu doar
+  static) - trece integral, pașii 1-9.
+
 ## 2026-09-13 — Codex GPT-5 — Rezolvare conflict PR #25
 
 - **Cerut:** rezolvarea conflictului de merge pentru PR #25, branchul
