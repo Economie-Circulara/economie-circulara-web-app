@@ -39,6 +39,21 @@ Format intrare:
   (chat/RAG peste manual, agent pe datele proprii, server MCP) - vezi
   [`plans/manual-in-app.md`](plans/manual-in-app.md).
 
+## 2026-09-13 — Claude Opus 5 — Plan: asistent AI cu actiuni (`docs/plans/task-asistent-ai.md`)
+
+- **Cerut:** planul pentru asistentul AI peste manual, dar **cu functionalitate** ("adauga
+  clientul X si fa-i o comanda"), plus intrebarea daca exista un chatbot gratuit utilizabil.
+- **Facut:** plan in 4 faze (chat peste manual -> tool-uri de citire -> tool-uri de scriere
+  cu confirmare -> server MCP). Principii: tool-urile ruleaza pe sesiunea utilizatorului
+  (RLS neschimbat, fara `SUPABASE_SECRET_KEY`), apeleaza serviciile existente in loc de SQL,
+  iar orice scriere cere confirmare umana pe argumentele propuse - ceea ce acopera si
+  prompt injection, si greselile modelelor mici. Furnizorul LLM e abstractizat OpenAI-compatibil,
+  cu mock implicit, ca la providerul de email.
+- **Despre free tier:** exista (Groq, Google AI Studio, Mistral Experiment, Cerebras,
+  OpenRouter `:free`), dar la aproape toate datele intra in antrenare - acceptabil doar
+  pentru Faza 1 (manual, continut public) si pentru dezvoltare. Pentru date reale de tenant:
+  tier platit, recomandat Mistral EU (~0,20 $/1M input), adica fractiuni de cent per conversatie.
+
 ## 2026-09-13 — Codex GPT-5 — Fix magic link Supabase SSR
 
 - **Cerut:** dupa configurarea Resend + domeniul `lotculot.eu`, login-ul prin magic link
