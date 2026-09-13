@@ -113,7 +113,27 @@ const styles = StyleSheet.create({
 });
 
 const GRAPH_WIDTH = 520;
-const GRAPH_HEIGHT = 190;
+const GRAPH_MIN_HEIGHT = 190;
+/** Cat incape pe prima pagina sub antet - peste, caseta grafului sare pe pagina 2 si lasa pagina 1 goala. */
+const GRAPH_MAX_HEIGHT = 430;
+/** Spatiu vertical minim per nod - incape eticheta (7,5pt) + subeticheta (6,5pt). */
+const GRAPH_ROW_HEIGHT = 26;
+const GRAPH_NODE_GAP = 12;
+const GRAPH_NODE_WIDTH = 10;
+const GRAPH_PAD = 6;
+const LABEL_FONT_SIZE = 7.5;
+const SUBLABEL_FONT_SIZE = 6.5;
+
+/**
+ * Taie textul ca sa incapa in latimea unei coloane a grafului. Lanturile reale (FIFO pe
+ * multe loturi, mai multe procese) produc zeci de noduri cu etichete lungi (ex. sursa
+ * "Aviz DR-1143 - Demolări Rapid SRL (...)") care altfel se suprapun peste coloana vecina.
+ * Latimea unui caracter e aproximata la ~0,5 × marimea fontului (Noto Sans).
+ */
+function fitLabel(text: string, maxWidth: number, fontSize: number): string {
+  const maxChars = Math.max(6, Math.floor(maxWidth / (fontSize * 0.5)));
+  return text.length <= maxChars ? text : `${text.slice(0, maxChars - 1).trimEnd()}…`;
+}
 
 function TraceabilityGraphSvg({
   snapshot,
@@ -128,18 +148,37 @@ function TraceabilityGraphSvg({
     return <Text style={{ fontSize: 9, color: "#8a978f" }}>Fără date de trasabilitate.</Text>;
   }
 
+  // Inaltimea creste cu numarul maxim de noduri dintr-o coloana, ca nodurile mici sa nu
+  // se stranga unele peste altele (cu etichetele lor).
+  const nodesPerColumn = new Map<number, number>();
+  snapshot.graph.nodes.forEach((node) =>
+    nodesPerColumn.set(node.column, (nodesPerColumn.get(node.column) ?? 0) + 1),
+  );
+  const maxNodesInColumn = Math.max(1, ...nodesPerColumn.values());
+  const graphHeight = Math.min(
+    GRAPH_MAX_HEIGHT,
+    Math.max(GRAPH_MIN_HEIGHT, maxNodesInColumn * GRAPH_ROW_HEIGHT),
+  );
+  // Toate etichetele stau la DREAPTA nodului (in spatiul pana la coloana urmatoare), deci
+  // layout-ul lasa o coloana de etichete libera dupa ultima coloana de noduri - altfel
+  // etichetele aliniate la stanga ale ultimelor coloane se suprapun cu cele vecine.
+  const columnGaps = Math.max(1, nodesPerColumn.size - 1);
+  const columnWidth = (GRAPH_WIDTH - 2 * GRAPH_PAD - GRAPH_NODE_WIDTH) / (columnGaps + 1);
+  const labelWidth = columnWidth - GRAPH_NODE_WIDTH - 6;
+
   const { positioned, ribbons, nodeWidth } = layoutSankey(snapshot.graph, {
-    width: GRAPH_WIDTH,
-    height: GRAPH_HEIGHT,
-    nodeWidth: 10,
+    width: GRAPH_WIDTH - columnWidth,
+    height: graphHeight,
+    nodeWidth: GRAPH_NODE_WIDTH,
+    pad: GRAPH_PAD,
+    gap: GRAPH_NODE_GAP,
   });
 
   // Aceeasi conventie ca `SankeyDiagram` (browser): nodul de proces foloseste
   // culoarea de brand, restul (sursa/lot/livrare) culoarea de accent.
-  const maxColumn = Math.max(...positioned.map((n) => n.column));
 
   return (
-    <Svg width={GRAPH_WIDTH} height={GRAPH_HEIGHT} viewBox={`0 0 ${GRAPH_WIDTH} ${GRAPH_HEIGHT}`}>
+    <Svg width={GRAPH_WIDTH} height={graphHeight} viewBox={`0 0 ${GRAPH_WIDTH} ${graphHeight}`}>
       {ribbons.map((ribbon) => (
         <Path key={ribbon.id} d={ribbon.d} fill={accentColor} fillOpacity={0.28} />
       ))}
@@ -154,36 +193,28 @@ function TraceabilityGraphSvg({
           fill={node.kind === "process" ? brandColor : accentColor}
         />
       ))}
-      {positioned.map((node) => {
-        const rightAligned = node.column >= maxColumn - 1;
-        const textX = rightAligned ? node.x - 4 : node.x + nodeWidth + 4;
-        return (
-          <Text
-            key={`${node.id}-label`}
-            x={textX}
-            y={node.y + node.h / 2 - (node.sublabel ? 3 : 0)}
-            style={{ fontSize: 7.5, textAnchor: rightAligned ? "end" : "start" }}
-          >
-            {node.label}
-          </Text>
-        );
-      })}
+      {positioned.map((node) => (
+        <Text
+          key={`${node.id}-label`}
+          x={node.x + nodeWidth + 4}
+          y={node.y + node.h / 2 - (node.sublabel ? 3 : 0)}
+          style={{ fontFamily: PDF_FONT_FAMILY, fontSize: LABEL_FONT_SIZE }}
+        >
+          {fitLabel(node.label, labelWidth, LABEL_FONT_SIZE)}
+        </Text>
+      ))}
       {positioned
         .filter((node) => node.sublabel)
-        .map((node) => {
-          const rightAligned = node.column >= maxColumn - 1;
-          const textX = rightAligned ? node.x - 4 : node.x + nodeWidth + 4;
-          return (
-            <Text
-              key={`${node.id}-sub`}
-              x={textX}
-              y={node.y + node.h / 2 + 7}
-              style={{ fontSize: 6.5, fill: "#6b7a70", textAnchor: rightAligned ? "end" : "start" }}
-            >
-              {node.sublabel}
-            </Text>
-          );
-        })}
+        .map((node) => (
+          <Text
+            key={`${node.id}-sub`}
+            x={node.x + nodeWidth + 4}
+            y={node.y + node.h / 2 + 7}
+            style={{ fontFamily: PDF_FONT_FAMILY, fontSize: SUBLABEL_FONT_SIZE, fill: "#6b7a70" }}
+          >
+            {fitLabel(node.sublabel ?? "", labelWidth, SUBLABEL_FONT_SIZE)}
+          </Text>
+        ))}
     </Svg>
   );
 }

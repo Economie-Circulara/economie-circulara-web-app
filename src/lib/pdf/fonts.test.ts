@@ -24,6 +24,16 @@ describe("registerPdfFonts", () => {
           src: path.join(process.cwd(), "src/assets/fonts/NotoSans-Bold.ttf"),
           fontWeight: 700,
         },
+        {
+          src: path.join(process.cwd(), "src/assets/fonts/NotoSans-Regular.ttf"),
+          fontWeight: 400,
+          fontStyle: "italic",
+        },
+        {
+          src: path.join(process.cwd(), "src/assets/fonts/NotoSans-Bold.ttf"),
+          fontWeight: 700,
+          fontStyle: "italic",
+        },
       ],
     });
   });
