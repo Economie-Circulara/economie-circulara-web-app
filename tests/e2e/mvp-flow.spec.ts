@@ -7,20 +7,15 @@ import { expect, test, type Page } from "@playwright/test";
  * fix) -> comanda -> acceptare (scade stocul) -> livrare -> inchidere (genereaza
  * automat certificatul) -> vizualizare certificat.
  *
- * NOTA MEDIU (important): acest test are nevoie de un Supabase LOCAL pornit
- * (`pnpm db:start` + `pnpm db:reset` - reseteaza schema si ruleaza
- * `supabase/seed.sql`, care creeaza organizatia demo "Lateris Demo" cu conturile
- * admin/operator/client/super@demo.local, parola `password123`) si de serverul
- * Next.js (pornit automat de `webServer` din playwright.config.ts). Mediul de
- * agent Claude Code in care a fost scris acest test NU are Docker/Supabase local
- * disponibil, deci testul NU a putut fi RULAT efectiv aici - a fost verificat
- * doar static:
- *   - `pnpm typecheck` si `pnpm lint` trec pe acest fisier;
- *   - `pnpm exec playwright test --list` il listeaza (compileaza, selectorii
- *     sunt sintactic valizi).
- * Ruleaza-l complet cu `pnpm test:e2e` intr-un mediu cu Supabase local pornit
- * sau in CI dedicat cu acces la imaginile `ghcr.io/supabase/*` - vezi
+ * NOTA MEDIU: acest test are nevoie de un Supabase LOCAL pornit (`pnpm db:start`
+ * + `pnpm db:reset` - reseteaza schema si ruleaza `supabase/seed.sql`, care
+ * creeaza organizatia demo "Lateris Demo" cu conturile admin/operator/client/
+ * super@demo.local, parola `password123`) si de serverul Next.js (pornit automat
+ * de `webServer` din playwright.config.ts). Ruleaza-l cu `pnpm test:e2e` - vezi
  * docs/plans/task-x4-seed-e2e.md pentru detalii.
+ *
+ * RULAT efectiv (nu doar static) pe 2026-09-14, dupa fix-ul selectorului de
+ * login (vezi `loginAsAdmin`): trece integral, 1-9.
  *
  * Pasul 1 din handoff ("Creare organizatie + useri") e acoperit de
  * `supabase/seed.sql`, NU de UI: crearea unei organizatii noi de la zero ar
@@ -63,8 +58,13 @@ function label(page: Page, text: string) {
 
 async function loginAsAdmin(page: Page): Promise<void> {
   await page.goto("/login");
-  await label(page, "Email").fill(ADMIN_EMAIL);
-  await label(page, "Parola").fill(ADMIN_PASSWORD);
+  // NU `label(page, "Email")`: formularul de login are DOUA campuri de email -
+  // `#email` (parola) si `#magic-email` (link) - eticheta magic link-ului
+  // ("Sau primeste un link pe email") contine substringul "email", deci
+  // `getByLabel("Email", { exact: false })` e ambiguu (strict mode violation).
+  // Selector pe id, ca in routes-smoke.spec.ts.
+  await page.locator("#email").fill(ADMIN_EMAIL);
+  await page.locator("#password").fill(ADMIN_PASSWORD);
   await page.getByRole("button", { name: "Conectare" }).click();
   await expect(page).toHaveURL(/\/dashboard/);
   await expect(page.getByRole("heading", { name: "Dashboard", level: 1 })).toBeVisible();

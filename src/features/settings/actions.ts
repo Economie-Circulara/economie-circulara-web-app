@@ -42,6 +42,9 @@ export async function updateOrganizationAction(
       custom_domain: clean(formData.get("custom_domain")),
       email_from_name: clean(formData.get("email_from_name")),
       email_from_address: clean(formData.get("email_from_address")),
+      cui: clean(formData.get("cui")),
+      reg_com: clean(formData.get("reg_com")),
+      address: clean(formData.get("address")),
     })
     .eq("id", user.organizationId);
 

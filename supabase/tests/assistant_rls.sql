@@ -84,20 +84,27 @@ begin;
     from public.assistant_usage;
 
   -- Incercare de a scrie consum in numele altui utilizator: respinsa de `with check`.
+  -- `begin ... exception ... end` e sintaxa PL/pgSQL - are nevoie de `do $$ ... $$`
+  -- (nu poate fi scrisa "bare" la nivel de psql, ca `begin;`/`rollback;` de mai sus).
+  do $$
   begin
-    insert into public.assistant_usage (organization_id, user_id, day, messages)
-      values ('a0000000-0000-0000-0000-00000000000a','a2222222-2222-2222-2222-222222222222',current_date + 1, 99);
-    raise exception 'FAIL: T4 a permis scrierea consumului altui utilizator';
-  exception when insufficient_privilege then
-    raise notice 'PASS: T4 scrierea consumului altui utilizator e respinsa';
-  end;
+    begin
+      insert into public.assistant_usage (organization_id, user_id, day, messages)
+        values ('a0000000-0000-0000-0000-00000000000a','a2222222-2222-2222-2222-222222222222',current_date + 1, 99);
+      raise exception 'FAIL: T4 a permis scrierea consumului altui utilizator';
+    exception when insufficient_privilege then
+      raise notice 'PASS: T4 scrierea consumului altui utilizator e respinsa';
+    end;
+  end $$;
 rollback;
 
 -- ===== TEST 5: RPC-ul de contorizare scrie doar pe utilizatorul curent =====
 begin;
   set local role authenticated;
   set local request.jwt.claims = '{"sub":"a2222222-2222-2222-2222-222222222222"}';
-  perform public.assistant_track_usage(1, 120, 30);
+  -- `perform` e tot PL/pgSQL-only (ca `begin/exception` de mai sus) - la nivel de
+  -- psql, apelul RPC-ului se face cu `select`, ignorand rezultatul.
+  select public.assistant_track_usage(1, 120, 30);
   select pg_temp.assert('T5 contorul propriu a crescut', messages, 8)
     from public.assistant_usage
     where user_id = 'a2222222-2222-2222-2222-222222222222' and day = current_date;
@@ -115,13 +122,16 @@ begin;
     from public.organizations
     where id = 'a0000000-0000-0000-0000-00000000000a' and name = 'AI Org A (redenumit)';
 
+  do $$
   begin
-    update public.organizations set ai_monthly_message_limit = 100000
-      where id = 'a0000000-0000-0000-0000-00000000000a';
-    raise exception 'FAIL: T6 adminul si-a ridicat singur quota';
-  exception when insufficient_privilege then
-    raise notice 'PASS: T6 ridicarea quotei de catre admin e blocata';
-  end;
+    begin
+      update public.organizations set ai_monthly_message_limit = 100000
+        where id = 'a0000000-0000-0000-0000-00000000000a';
+      raise exception 'FAIL: T6 adminul si-a ridicat singur quota';
+    exception when insufficient_privilege then
+      raise notice 'PASS: T6 ridicarea quotei de catre admin e blocata';
+    end;
+  end $$;
 rollback;
 
 select '*** TOATE TESTELE RLS DE ASISTENT AU TRECUT ***' as result;

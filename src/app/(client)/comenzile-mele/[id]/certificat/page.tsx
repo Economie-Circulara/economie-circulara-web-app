@@ -51,6 +51,9 @@ export default async function ClientCertificatePage({ params }: CertificatePageP
         number={certificate.number}
         issuedAt={certificate.issuedAt}
         orgName={org?.name ?? PLATFORM_NAME}
+        orgCui={org?.cui}
+        orgRegCom={org?.regCom}
+        orgAddress={org?.address}
         snapshot={certificate.snapshot}
         documents={documents}
       />

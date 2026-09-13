@@ -14,7 +14,7 @@
 --   docker exec -i supabase_db_<proiect> psql -U postgres -d postgres \
 --     -v ON_ERROR_STOP=1 < supabase/tests/business_flow.sql
 --
--- PRECONDITIE: `supabase db reset` rulat (migrarile 0000-0016 + `supabase/seed.sql`).
+-- PRECONDITIE: `supabase db reset` rulat (toate migrarile + `supabase/seed.sql`).
 -- Testele presupun datele demo din seed (organizatia "Lateris Demo").
 --
 -- IMPORTANT - fiecare test ruleaza in `begin; ... rollback;` cu
@@ -30,31 +30,50 @@ set client_min_messages = notice;
 \set admin_user    '''b0000000-0000-0000-0000-0000000000b1'''
 \set org           '''a0000000-0000-0000-0000-0000000000a1'''
 
--- Itemi din seed.
-\set item_moloz    '''23c1eadf-a57e-4e33-b369-c2143b57f686'''
-\set item_pietris  '''dcf1b592-d06b-4d87-8a1a-43f2722e91ea'''
-\set item_beton    '''afd7c237-5416-45c7-9400-22b48f5f55d0'''
-\set item_nisip    '''4dad3bea-84b8-49ed-976e-1335dfe4855c'''
-\set item_caramizi '''545b7ec8-d79b-4b97-b1c6-24ce4534275a'''
+-- Itemi din seed - CAUTATI DINAMIC (nu hardcodati): `items.id` e generat cu
+-- `gen_random_uuid()` in seed.sql, deci un UUID literal in acest fisier ar fi
+-- corect DOAR intamplator, o singura data (la reset-ul din care a fost copiat),
+-- si ar rupe testul la fiecare `db reset` ulterior - exact ce se intampla aici
+-- pana la acest fix (era mereu rosu in CI, niciodata prins pentru ca `db.yml`
+-- ruleaza doar pe PR-uri care ating `supabase/**`). `quote_literal()` produce
+-- direct un literal SQL gata cotat (ex. `'a1b2...'`), la fel cum `\set` de mai
+-- jos il scria de mana - restul fisierului foloseste `:item_moloz` neschimbat.
+select quote_literal(id) as item_moloz    from public.items where organization_id = :org and title = 'Moloz'            \gset
+select quote_literal(id) as item_pietris  from public.items where organization_id = :org and title = 'Pietriș reciclat' \gset
+select quote_literal(id) as item_beton    from public.items where organization_id = :org and title = 'Beton reciclat'  \gset
+select quote_literal(id) as item_nisip    from public.items where organization_id = :org and title = 'Nisip reciclat'  \gset
+select quote_literal(id) as item_caramizi from public.items where organization_id = :org and title = 'Cărămizi eco'    \gset
+select quote_literal(id) as item_abonament from public.items
+  where organization_id = :org and kind = 'service' \gset
 
--- Loturi din seed. ATENTIE: psql include comentariul de la capatul liniei IN
--- valoarea variabilei, asa ca descrierile stau deasupra, nu pe linia `\set`.
---   lot_pietris_old: 5 ramase,  entry 2026-08-25
---   lot_pietris_new: 38 ramase, entry 2026-08-28
---   lot_beton_ok:    15 ramase, NEblocat
---   lot_beton_blk:   3 ramase,  BLOCAT
---   lot_nisip:       54 ramase (singurul lot de nisip)
-\set lot_pietris_old '''cd9f90fd-1cbe-4c1c-a978-3c821dbc229f'''
-\set lot_pietris_new '''64bb0317-811d-4cbd-ab44-568f2cecc7bc'''
-\set lot_beton_ok    '''d684d698-7ab2-4c88-a17b-0eb5a9dbbddb'''
-\set lot_beton_blk   '''d7ce4eeb-d42f-4a16-97e4-5579c42c7a91'''
-\set lot_nisip       '''21d93f11-3c4b-46df-b784-85574a276a72'''
+-- Loturi din seed - cautate dupa (item, provenienta/stare), nu dupa UUID, din
+-- acelasi motiv ca mai sus. Fiecare combinatie e unica in seed.sql:
+--   lot_pietris_old: lotul initial de reciclare (5 ramase dupa recondiționare +
+--     2 productii - vezi seed.sql comentariile liniilor 298-332/348/377)
+--   lot_pietris_new: outputul recondiționarii (38 ramase, neconsumat)
+--   lot_beton_ok:    output de productie, NEblocat (15 ramase)
+--   lot_beton_blk:   lot de test, BLOCAT (3 ramase)
+--   lot_nisip:       singurul lot de nisip (54 ramase)
+select quote_literal(id) as lot_pietris_old from public.lots
+  where organization_id = :org and item_id = :item_pietris and provenance = 'recycling'      \gset
+select quote_literal(id) as lot_pietris_new from public.lots
+  where organization_id = :org and item_id = :item_pietris and provenance = 'reconditioning'  \gset
+select quote_literal(id) as lot_beton_ok    from public.lots
+  where organization_id = :org and item_id = :item_beton and is_blocked = false               \gset
+select quote_literal(id) as lot_beton_blk   from public.lots
+  where organization_id = :org and item_id = :item_beton and is_blocked = true                \gset
+select quote_literal(id) as lot_nisip       from public.lots
+  where organization_id = :org and item_id = :item_nisip                                      \gset
+select quote_literal(id) as lot_moloz       from public.lots
+  where organization_id = :org and item_id = :item_moloz                                      \gset
 
--- Comenzi din seed:
+-- Comenzi din seed - cautate dupa `order_number` (stabil), nu dupa UUID.
 --   order_sent   = CMD-2026-0002, status 'sent', o linie de 10 Nisip reciclat
 --   order_closed = CMD-2026-0001, status 'closed' (are certificat)
-\set order_sent      '''13fc52d1-c2d3-4921-9994-5d2c6a4488c8'''
-\set order_closed    '''07b390b3-8a04-46f0-bca1-fc1a9834b233'''
+select quote_literal(id) as order_sent   from public.orders
+  where organization_id = :org and order_number = 'CMD-2026-0002' \gset
+select quote_literal(id) as order_closed from public.orders
+  where organization_id = :org and order_number = 'CMD-2026-0001' \gset
 \set client_demo     '''c0000000-0000-0000-0000-0000000000c1'''
 
 -- assert pe text (acopera si numeric: comparam reprezentarea normalizata).
@@ -140,11 +159,14 @@ begin;
   set local request.jwt.claims = '{"sub":"b0000000-0000-0000-0000-0000000000b1"}';
 
   do $$
-  declare v_code text;
+  declare
+    v_item_beton uuid;
   begin
+    select id into v_item_beton from public.items
+      where organization_id = 'a0000000-0000-0000-0000-0000000000a1' and title = 'Beton reciclat';
     begin
       perform public.consume_fifo(
-        p_item_id => 'afd7c237-5416-45c7-9400-22b48f5f55d0'::uuid, p_qty => 16,
+        p_item_id => v_item_beton, p_qty => 16,
         p_manual_lot_ids => null, p_event_type => 'consumption',
         p_order_id => null, p_process_id => null, p_reason => 'test B3 insuficient'
       );
@@ -194,10 +216,14 @@ begin;
   set local request.jwt.claims = '{"sub":"b0000000-0000-0000-0000-0000000000b1"}';
 
   do $$
-  declare v_lot public.lots;
+  declare
+    v_lot public.lots;
+    v_item_moloz uuid;
   begin
+    select id into v_item_moloz from public.items
+      where organization_id = 'a0000000-0000-0000-0000-0000000000a1' and title = 'Moloz';
     v_lot := public.create_lot(
-      p_item_id => '23c1eadf-a57e-4e33-b369-c2143b57f686'::uuid,
+      p_item_id => v_item_moloz,
       p_quantity => 75, p_provenance => 'purchase'::public.lot_provenance,
       p_source => 'Test B5', p_entry_date => null, p_location => null,
       p_quality_status => null, p_reason => 'test B5 intake'
@@ -227,10 +253,15 @@ begin;
 
   -- Blocare fara motiv => respinsa.
   do $$
+  declare
+    v_lot_nisip uuid;
   begin
+    select l.id into v_lot_nisip from public.lots l
+      join public.items i on i.id = l.item_id
+      where l.organization_id = 'a0000000-0000-0000-0000-0000000000a1' and i.title = 'Nisip reciclat';
     begin
       perform public.set_lot_block(
-        p_lot_id => '21d93f11-3c4b-46df-b784-85574a276a72'::uuid,
+        p_lot_id => v_lot_nisip,
         p_blocked => true, p_reason => null);
       raise exception 'FAIL: B6 blocarea fara motiv ar fi trebuit respinsa';
     exception
@@ -247,10 +278,14 @@ begin;
 
   -- Nisip are UN singur lot (54). Blocat => orice consum cade, chiar si de 1.
   do $$
+  declare
+    v_item_nisip uuid;
   begin
+    select id into v_item_nisip from public.items
+      where organization_id = 'a0000000-0000-0000-0000-0000000000a1' and title = 'Nisip reciclat';
     begin
       perform public.consume_fifo(
-        p_item_id => '4dad3bea-84b8-49ed-976e-1335dfe4855c'::uuid, p_qty => 1,
+        p_item_id => v_item_nisip, p_qty => 1,
         p_manual_lot_ids => null, p_event_type => 'consumption',
         p_order_id => null, p_process_id => null, p_reason => 'test B6 consum blocat');
       raise exception 'FAIL: B6 consumul dintr-un lot blocat ar fi trebuit sa cada';
@@ -297,9 +332,13 @@ begin;
 
   -- A doua acceptare e respinsa (masina de stari, nu doar UI).
   do $$
+  declare
+    v_order_sent uuid;
   begin
+    select id into v_order_sent from public.orders
+      where organization_id = 'a0000000-0000-0000-0000-0000000000a1' and order_number = 'CMD-2026-0002';
     begin
-      perform public.accept_order('13fc52d1-c2d3-4921-9994-5d2c6a4488c8'::uuid);
+      perform public.accept_order(v_order_sent);
       raise exception 'FAIL: B7 a doua acceptare ar fi trebuit respinsa';
     exception
       when sqlstate 'OR001' then raise notice 'PASS: B7 acceptarea repetata respinsa (OR001)';
@@ -375,20 +414,33 @@ begin;
     v_proc public.processes;
     v_in_qty numeric;
     v_out_count int;
+    v_item_nisip uuid;
+    v_item_moloz uuid;
+    v_item_pietris uuid;
+    v_lot_moloz uuid;
   begin
+    select id into v_item_nisip from public.items
+      where organization_id = 'a0000000-0000-0000-0000-0000000000a1' and title = 'Nisip reciclat';
+    select id into v_item_moloz from public.items
+      where organization_id = 'a0000000-0000-0000-0000-0000000000a1' and title = 'Moloz';
+    select id into v_item_pietris from public.items
+      where organization_id = 'a0000000-0000-0000-0000-0000000000a1' and title = 'Pietriș reciclat';
+    select id into v_lot_moloz from public.lots
+      where organization_id = 'a0000000-0000-0000-0000-0000000000a1' and item_id = v_item_moloz;
+
     v_proc := public.confirm_process(
       p_type => 'input_fixed'::public.process_type,
-      p_output_item_id => '4dad3bea-84b8-49ed-976e-1335dfe4855c'::uuid,  -- Nisip reciclat
+      p_output_item_id => v_item_nisip,  -- Nisip reciclat
       p_recipe_id => null,
       p_notes => 'test B10 reciclare',
       p_inputs => jsonb_build_array(jsonb_build_object(
-        'item_id', '23c1eadf-a57e-4e33-b369-c2143b57f686',               -- Moloz
-        'lot_ids', jsonb_build_array('6e281d0b-6cf4-4e88-8aae-6a9ff1959797'),
+        'item_id', v_item_moloz,               -- Moloz
+        'lot_ids', jsonb_build_array(v_lot_moloz),
         'qty', 20)),
       p_outputs => jsonb_build_array(
-        jsonb_build_object('item_id','4dad3bea-84b8-49ed-976e-1335dfe4855c',
+        jsonb_build_object('item_id',v_item_nisip,
                            'qty',12,'provenance','recycling'),
-        jsonb_build_object('item_id','dcf1b592-d06b-4d87-8a1a-43f2722e91ea',
+        jsonb_build_object('item_id',v_item_pietris,
                            'qty',6,'provenance','recycling'))
     );
 
@@ -396,7 +448,7 @@ begin;
 
     -- Inputul: Moloz avea 200 => 180.
     select remaining_qty into v_in_qty from public.lots
-    where id = '6e281d0b-6cf4-4e88-8aae-6a9ff1959797';
+    where id = v_lot_moloz;
     perform pg_temp.assert_num('B10 lotul de input consumat (200-20)', v_in_qty, 180);
 
     -- Doua loturi noi de output, ambele cu provenienta `recycling`.
@@ -422,10 +474,14 @@ begin;
   set local request.jwt.claims = '{"sub":"b0000000-0000-0000-0000-0000000000b1"}';
 
   do $$
-  declare v_lot public.lots;
+  declare
+    v_lot public.lots;
+    v_item_pietris uuid;
   begin
+    select id into v_item_pietris from public.items
+      where organization_id = 'a0000000-0000-0000-0000-0000000000a1' and title = 'Pietriș reciclat';
     v_lot := public.create_lot(
-      p_item_id => 'dcf1b592-d06b-4d87-8a1a-43f2722e91ea'::uuid,
+      p_item_id => v_item_pietris,
       p_quantity => 10, p_provenance => 'reconditioning'::public.lot_provenance,
       p_source => 'Test B11', p_entry_date => null, p_location => null,
       p_quality_status => null, p_reason => 'test B11 recondiționare'
@@ -446,7 +502,7 @@ begin;
   -- Comanda-retur (draft) legata de comanda inchisa CMD-2026-0001.
   insert into public.orders (id, organization_id, client_id, status, created_by)
   values ('eeee0000-0000-0000-0000-00000000ee02', :org,
-          'd74894e3-1b54-4678-8eab-4dcf24867896', 'draft',
+          :client_demo, 'draft',
           'b0000000-0000-0000-0000-0000000000b1');
   insert into public.order_items (organization_id, order_id, item_id, quantity)
   values (:org, 'eeee0000-0000-0000-0000-00000000ee02', :item_caramizi, 7);
@@ -478,6 +534,30 @@ begin;
     quality_status::text, 'passed')
   from public.lots
   where item_id = :item_caramizi and provenance = 'return' and initial_qty = 7;
+rollback;
+
+-- ===========================================================================
+-- B13: accept_order NU consuma stoc pentru itemi `kind = 'service'` (fix
+--      migrarea 0022) - o comanda doar cu un abonament trebuie sa poata fi
+--      acceptata, fara "stoc insuficient" (serviciile nu au loturi).
+-- ===========================================================================
+begin;
+  set local role authenticated;
+  set local request.jwt.claims = '{"sub":"b0000000-0000-0000-0000-0000000000b1"}';
+
+  insert into public.orders (id, organization_id, client_id, status, created_by)
+  values ('eeee0000-0000-0000-0000-00000000ee03', :org, :client_demo, 'sent',
+          'b0000000-0000-0000-0000-0000000000b1');
+  insert into public.order_items (organization_id, order_id, item_id, quantity)
+  values (:org, 'eeee0000-0000-0000-0000-00000000ee03', :item_abonament, 2);
+
+  select id from public.accept_order('eeee0000-0000-0000-0000-00000000ee03');
+
+  select pg_temp.assert_eq('B13 comanda cu serviciu devine accepted', status::text, 'accepted')
+  from public.orders where id = 'eeee0000-0000-0000-0000-00000000ee03';
+
+  select pg_temp.assert_num('B13 niciun eveniment de stoc pentru serviciu', count(*), 0)
+  from public.stock_events where order_id = 'eeee0000-0000-0000-0000-00000000ee03';
 rollback;
 
 select '*** TOATE TESTELE FUNCTIONALE DE BUSINESS AU TRECUT ***' as result;

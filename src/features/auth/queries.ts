@@ -14,6 +14,10 @@ export interface OrgBranding {
 export interface CurrentOrg extends OrgBranding {
   emailFromName: string | null;
   emailFromAddress: string | null;
+  /** Date de identificare fiscala (migrarea 0023) - afisate pe certificatul de trasabilitate. */
+  cui: string | null;
+  regCom: string | null;
+  address: string | null;
 }
 
 /**
@@ -38,7 +42,7 @@ export async function getCurrentOrg(): Promise<CurrentOrg | null> {
   const { data: org } = await supabase
     .from("organizations")
     .select(
-      "id, name, slug, custom_domain, logo_url, primary_color, secondary_color, email_from_name, email_from_address",
+      "id, name, slug, custom_domain, logo_url, primary_color, secondary_color, email_from_name, email_from_address, cui, reg_com, address",
     )
     .eq("id", profile.organization_id)
     .single();
@@ -54,6 +58,9 @@ export async function getCurrentOrg(): Promise<CurrentOrg | null> {
     secondaryColor: org.secondary_color,
     emailFromName: org.email_from_name,
     emailFromAddress: org.email_from_address,
+    cui: org.cui,
+    regCom: org.reg_com,
+    address: org.address,
   };
 }
 
