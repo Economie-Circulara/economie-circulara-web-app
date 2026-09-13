@@ -13,6 +13,20 @@ Format intrare:
 
 ---
 
+## 2026-09-13 — Claude Opus 5 — Date demo pentru recepție (producție)
+
+- **Cerut:** migrarea la zi pe producție și conturi/date demo valide și complexe.
+- **Facut:** migrarea 0019 aplicată pe proiectul hosted. `supabase/demo/seed-demo.sql`
+  (organizația izolată `beton-circular`, 7 conturi, ~6 luni de istoric prin RPC-urile
+  reale, verificare de consistență a stocului), `teardown-demo.sql`, `README.md`;
+  `scripts/demo/export-demo-data.sql` + `build-demo-artifacts.tsx` (certificate PDF și
+  documente cu codul aplicației, urcate cu `supabase storage cp`). Rulat în producție:
+  47 comenzi, 75 loturi, 33 procese, 34 livrări, 27 certificate, 15 documente. Plan:
+  `docs/plans/demo-data-productie.md`.
+- **Verificat:** seed + teardown pe Supabase local; smoke Playwright local pe 22 de ecrane
+  (admin, client, super-admin) cu datele demo; în producție, verificări SQL (statusuri,
+  fișiere existente în Storage pentru fiecare certificat/document).
+
 ## 2026-09-13 — Claude Opus 5 — Fix randare PDF certificat și aviz
 
 - **Cerut:** (descoperit la generarea certificatelor demo) PDF-urile nu se randau.
