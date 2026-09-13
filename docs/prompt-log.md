@@ -13,6 +13,16 @@ Format intrare:
 
 ---
 
+## 2026-09-13 — Claude Opus 5 — Fix randare PDF certificat și aviz
+
+- **Cerut:** (descoperit la generarea certificatelor demo) PDF-urile nu se randau.
+- **Facut:** `src/lib/pdf/fonts.ts` înregistrează și variante italic (mapate pe fișierele
+  drepte) - lipsa lor făcea certificatul și avizul să arunce la randare din commit-ul
+  `41e5476`. Graful din certificatul PDF: font cu diacritice pe textele SVG, înălțime după
+  numărul de noduri, etichete trunchiate la lățimea coloanei. Test nou de randare reală
+  `src/lib/pdf/render.test.tsx` (pică fără fix).
+- **Verificat:** `pnpm typecheck`, `pnpm lint`, `pnpm test`; certificate reale inspectate vizual.
+
 ## 2026-09-13 — Codex GPT-5 — Root callback bridge pentru magic link
 
 - **Cerut:** magic link-ul Resend/Supabase redirectiona catre
