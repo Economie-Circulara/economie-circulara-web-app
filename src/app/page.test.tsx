@@ -22,6 +22,10 @@ async function renderHome() {
   render(await Home());
 }
 
+function searchParams(params: Record<string, string>) {
+  return Promise.resolve(params);
+}
+
 describe("Home", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -35,6 +39,20 @@ describe("Home", () => {
     await Home();
 
     expect(redirect).toHaveBeenCalledWith("/dashboard");
+  });
+
+  it("paseaza codul Supabase primit la root catre callback-ul Auth", async () => {
+    await Home({ searchParams: searchParams({ code: "abc" }) });
+
+    expect(redirect).toHaveBeenCalledWith("/auth/callback?code=abc");
+  });
+
+  it("paseaza token_hash-ul primit la root catre callback-ul Auth", async () => {
+    await Home({
+      searchParams: searchParams({ token_hash: "hash", type: "magiclink" }),
+    });
+
+    expect(redirect).toHaveBeenCalledWith("/auth/callback?token_hash=hash&type=magiclink");
   });
 
   describe("pe domeniul platformei (fara tenant)", () => {

@@ -13,6 +13,17 @@ Format intrare:
 
 ---
 
+## 2026-09-13 — Codex GPT-5 — Root callback bridge pentru magic link
+
+- **Cerut:** magic link-ul Resend/Supabase redirectiona catre
+  `https://www.lotculot.eu/?code=...`, nu catre `/auth/callback`, iar userul ramanea
+  nelogat pe pagina principala.
+- **Facut:** pagina `/` detecteaza parametrii Supabase Auth (`code` sau `token_hash`) si
+  redirectioneaza imediat catre `/auth/callback`, pastrand query string-ul. Callback-ul
+  existent face apoi schimbul codului pe sesiune si redirectul pe rol.
+- **Verificat:** `pnpm vitest run src/app/page.test.tsx src/app/auth/callback/route.test.ts`,
+  `pnpm typecheck`, `pnpm lint`.
+
 ## 2026-09-13 — Codex GPT-5 — Redirect de siguranta de pe pagina principala
 
 - **Cerut:** magic link-ul tot ajungea pe pagina principala dupa deploy, nu in dashboard.
