@@ -100,10 +100,19 @@ export default async function Home({ searchParams }: HomeProps = {}) {
             // proiect - <img> simplu, fara next/image (fara allowlist de domenii).
             // eslint-disable-next-line @next/next/no-img-element
             <img src={branding.logoUrl} alt="" className="h-8 w-auto shrink-0" />
+          ) : (
+            // SVG-ul include wordmark-ul complet; il folosim doar pe domeniul platformei,
+            // fara sa concuram cu identitatea vizuala a unui tenant.
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src="/lot-cu-lot-logo.svg"
+              alt={PLATFORM_NAME}
+              className="h-9 w-auto shrink-0 sm:h-10"
+            />
+          )}
+          {branding ? (
+            <span className="truncate text-lg font-semibold tracking-tight">{branding.name}</span>
           ) : null}
-          <span className="truncate text-lg font-semibold tracking-tight">
-            {branding?.name ?? PLATFORM_NAME}
-          </span>
         </div>
         <Button asChild size="sm" variant="outline">
           <Link href="/login">Autentificare</Link>

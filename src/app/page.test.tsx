@@ -68,7 +68,10 @@ describe("Home", () => {
           name: "Trasabilitatea materialelor în economia circulară",
         }),
       ).toBeInTheDocument();
-      expect(screen.getByText(PLATFORM_NAME)).toBeInTheDocument();
+      expect(screen.getByRole("img", { name: PLATFORM_NAME })).toHaveAttribute(
+        "src",
+        "/lot-cu-lot-logo.svg",
+      );
     });
 
     it("nu mai pomeneste brandul provizoriu aparut in mockup", async () => {
@@ -113,7 +116,8 @@ describe("Home", () => {
       expect(
         screen.getByRole("heading", { level: 1, name: "Beton Construct SRL" }),
       ).toBeInTheDocument();
-      expect(screen.queryByText(PLATFORM_NAME)).not.toBeInTheDocument();
+      expect(screen.queryByRole("img", { name: PLATFORM_NAME })).not.toBeInTheDocument();
+      expect(screen.getByText("Beton Construct SRL", { selector: "span" })).toBeInTheDocument();
     });
   });
 });

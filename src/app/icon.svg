@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="icon-title">
+  <title id="icon-title">Lot cu Lot</title>
+  <rect width="64" height="64" rx="15" fill="#0b4f4a" />
+  <path d="M17 28V20a6 6 0 0 1 6-6h18a6 6 0 0 1 6 6v3" fill="none" stroke="#b7e33d" stroke-width="5" stroke-linecap="round" />
+  <path d="m42 20 5 6 5-6Z" fill="#b7e33d" />
+  <path d="M47 36v8a6 6 0 0 1-6 6H23a6 6 0 0 1-6-6v-3" fill="none" stroke="#b7e33d" stroke-width="5" stroke-linecap="round" />
+  <path d="m22 44-5-6-5 6Z" fill="#b7e33d" />
+  <circle cx="17" cy="32" r="8" fill="#0b4f4a" stroke="#f4f8f6" stroke-width="4" />
+  <circle cx="17" cy="32" r="2.5" fill="#b7e33d" />
+  <circle cx="47" cy="32" r="8" fill="#0b4f4a" stroke="#f4f8f6" stroke-width="4" />
+  <circle cx="47" cy="32" r="2.5" fill="#b7e33d" />
+</svg>

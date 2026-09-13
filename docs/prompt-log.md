@@ -13,6 +13,19 @@ Format intrare:
 
 ---
 
+## 2026-09-13 — Codex GPT-5 — Logo Lot cu Lot pe homepage si favicon
+
+- **Cerut:** integrarea logo-ului SVG „Lot cu Lot” pe homepage si folosirea identitatii
+  vizuale si pentru iconita site-ului.
+- **Facut:** wordmark SVG public, adaptat pentru contrast in tema dark si afisat in
+  header-ul intrarii generice; brandingul white-label al tenantilor ramane neschimbat.
+  Favicon SVG nou, simplificat pentru dimensiuni mici, derivat din cele doua loturi si
+  traseul circular. Testele homepage-ului verifica separat brandingul platformei si al
+  tenantului. Plan: `docs/plans/logo-homepage-favicon.md`.
+- **Verificat:** inspectie vizuala desktop + mobil (390 px) in tema dark, favicon randat,
+  `pnpm test` (673 teste), `pnpm typecheck`, `pnpm lint`, `pnpm build` (cu valori locale
+  fictive pentru variabilele Supabase cerute la prerandare).
+
 ## 2026-09-13 — Claude Opus 5 — Date demo pentru recepție (producție)
 
 - **Cerut:** migrarea la zi pe producție și conturi/date demo valide și complexe.
