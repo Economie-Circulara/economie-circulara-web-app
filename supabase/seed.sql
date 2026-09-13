@@ -38,6 +38,11 @@ begin
   insert into public.organizations (id, name, slug, primary_color, secondary_color, email_from_name)
   values (v_org, 'Lateris Demo', 'demo', '#1f5e3a', '#c8862b', 'Lateris Demo');
 
+  -- Punct de plecare demo (Task X7 - planificarea rutelor) - fara el, ecranul
+  -- /livrari/nou nu poate propune "Calculează rute" (are nevoie de o origine).
+  insert into public.organization_sites (organization_id, name, address, is_default)
+  values (v_org, 'Stație centrală Iași', 'Șos. Moara de Foc nr. 12, Iași', true);
+
   -- Firma-client demo.
   insert into public.clients (id, organization_id, cui, name, email, is_vat_payer)
   values (v_client, v_org, 'RO12345678', 'Client Demo SRL', 'client@demo.local', true);

@@ -13,6 +13,38 @@ Format intrare:
 
 ---
 
+## 2026-09-14 — Claude Sonnet 5 — UI rute + confirmarea recepției (Etapa 4+5/X7)
+
+- **Cerut:** continuarea planului de planificare optimizată a rutelor - integrarea
+  in UI (planificare livrare + detaliu livrare) + confirmarea recepției de client
+  (caracteristica #4 din clarificarea AM).
+- **Facut:**
+  - `src/features/routing/route-service.ts` (compute pur, fara DB) + `route-actions.ts`
+    (`previewDeliveryRouteAction`) + `route-preview.tsx` (client component: buton
+    "Calculează rute", listă variante cu radio-selecție, hartă ca data-URI base64 -
+    cheia Google nu ajunge niciodată în browser).
+  - `polyline.ts`: adăugat `decodePolyline` (inversul encoderului) - permite
+    re-randarea hărții unei rute STOCATE fără să mai păstrăm coordonatele
+    originii/destinației separat (primul/ultimul punct al poliliniei decodate).
+  - `deliveries/types.ts|queries.ts|service.ts|actions.ts`: `DeliveryRecord` extins
+    cu `route`/`receipt`; `planDelivery` persistă alegerea de rută (opțională - un
+    câmp ascuns JSON `route_choice`, planificarea manuală rămâne posibilă
+    neschimbată); `recalculateDeliveryRoute` (auto-selecție) + `confirmDeliveryReceipt`.
+  - UI: `/livrari/nou` (selector punct de plecare + preview rute), `/livrari/[id]`
+    (`RoutePanel` cu hartă/distanță/"Recalculează", `ReceiptForm`), coloană "Rută"
+    în `/livrari`.
+  - `supabase/seed.sql`: adăugat un punct de plecare demo (altfel ecranul de
+    planificare nu poate propune calculul de rută în demo).
+- **Verificat manual, end-to-end, în browser** (`ROUTING_PROVIDER=mock`): acceptat
+  o comandă → planificat livrarea cu 2 rute calculate → selectat manual alternativa
+  (23,7 km, non-recomandată) → persistat corect pe ecranul de detaliu → "Recalculează"
+  a suprascris cu varianta automată (20,6 km) → "Confirmă recepția" a salvat numele +
+  data. Coloana "Rută" din listă arată "Calculată"/"Manuală" corect.
+- **Verificat automat:** 749 teste (toate), `pnpm typecheck`, `pnpm lint`.
+- **Scop redus asumat** (documentat în plan): fără card de rută pe `/comenzi/[id]`;
+  fără reselecție manuală la "Recalculează" (alege automat cea mai rapidă); fără
+  formular de adresă structurată în UI (geocodare doar pe `address` text liber).
+
 ## 2026-09-14 — Claude Sonnet 5 — Puncte de plecare (organization_sites) - Etapa 3/X7
 
 - **Cerut:** continuarea planului de planificare optimizată a rutelor - Etapa 3:

@@ -35,3 +35,42 @@ export function encodePolyline(points: readonly LatLng[]): string {
 
   return encoded;
 }
+
+/**
+ * Inversul `encodePolyline` - folosit pt. a recupera punctele de origine/destinatie
+ * ale unei rute STOCATE (`deliveries.route_polyline`), fara sa mai pastram separat
+ * coordonatele originii/destinatiei pe livrare (vezi 0024_route_planning.sql,
+ * comentariul de la `route_alternatives`: instantaneul e suficient - primul/ultimul
+ * punct al oricarei variante decodate sunt aceleasi origine/destinatie).
+ */
+export function decodePolyline(encoded: string): LatLng[] {
+  const points: LatLng[] = [];
+  let index = 0;
+  let lat = 0;
+  let lng = 0;
+
+  while (index < encoded.length) {
+    let result = 0;
+    let shift = 0;
+    let byte: number;
+    do {
+      byte = encoded.charCodeAt(index++) - 63;
+      result |= (byte & 0x1f) << shift;
+      shift += 5;
+    } while (byte >= 0x20);
+    lat += result & 1 ? ~(result >> 1) : result >> 1;
+
+    result = 0;
+    shift = 0;
+    do {
+      byte = encoded.charCodeAt(index++) - 63;
+      result |= (byte & 0x1f) << shift;
+      shift += 5;
+    } while (byte >= 0x20);
+    lng += result & 1 ? ~(result >> 1) : result >> 1;
+
+    points.push({ lat: lat / 1e5, lng: lng / 1e5 });
+  }
+
+  return points;
+}

@@ -163,6 +163,24 @@ activitate. Optimizarea multi-stop pe zi/vehicul e o etapă opțională (Etapa 6
 
 - ✅ Etapa 1 (model de date): migrare `0024_route_planning.sql` + `database.types.ts`
   regenerat cu `pnpm gen:types` (stack local Supabase disponibil în acest mediu).
-- Etapa 5 (confirmarea recepției) e bundle-uită în aceeași migrare (coloane mici pe
-  `deliveries`), dar UI-ul se implementează separat, la fel ca restul etapelor.
+- ✅ Etapa 2 (adapter de rutare): `src/features/routing/` - provider Google/mock,
+  clasificare rute, URL hartă statică, encoder/decoder polilinie.
+- ✅ Etapa 3 (puncte de plecare): CRUD `organization_sites` + ecran `/setari/statii`.
+- ✅ Etapa 4 (UI rute) + ✅ Etapa 5 (confirmarea recepției) - implementate ÎMPREUNĂ
+  (ambele mici, aceeași zonă de ecran): `/livrari/nou` (selector punct de plecare +
+  "Calculează rute" + selecție variantă), `/livrari/[id]` (hartă + distanță/durată +
+  "Recalculează" + confirmare recepție), coloană "Rută" în `/livrari`. Verificat
+  manual în browser, end-to-end, cu `ROUTING_PROVIDER=mock` (planificare cu selecție
+  manuală a alternativei + recalculare cu auto-selecție + confirmare recepție -
+  toate persistă corect).
+  **Simplificare asumată:** cardul "Rută estimată" read-only pe `/comenzi/[id]`
+  (menționat inițial la Etapa 4) NU a fost construit - planificarea/afișarea rutei
+  rămâne la nivelul livrării (unde există deja transportul), nu al comenzii;
+  recalcularea de pe `/livrari/[id]` nu oferă un pas de reselecție manuală (alege
+  automat cea mai rapidă variantă) - dacă se dorește alt transportator/rută dupa
+  recalculare, se poate replanifica manual câmpurile text.
 - Etapa 6 (planificarea zilei pe vehicul) rămâne opțională/follow-up, neinclusă în acest pas.
+- Adresele structurate (decizia 6) NU au fost expuse în UI (nici la `client_addresses`,
+  nici la `organization_sites`) - geocodarea folosește exclusiv câmpul `address` (text
+  liber) în acest pas; coloanele structurate rămân pregătite (nullable) pt. o viitoare
+  nevoie reală (formular structurat sau cerință exactă de la Socrate.io/S4).

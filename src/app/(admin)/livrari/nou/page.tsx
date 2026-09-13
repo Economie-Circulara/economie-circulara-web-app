@@ -5,6 +5,7 @@ import { requireRole } from "@/features/auth/session";
 import { DeliveryForm } from "@/features/deliveries/delivery-form";
 import { getDeliveryByOrderId } from "@/features/deliveries/queries";
 import { getOrderDetail } from "@/features/orders/queries";
+import { listSites } from "@/features/routing/site-queries";
 
 export const metadata = { title: "Planifică livrare - Lot cu Lot" };
 
@@ -29,6 +30,8 @@ export default async function LivrareNouaPage({ searchParams }: LivrareNouaPageP
 
   const existing = await getDeliveryByOrderId(orderId);
   if (existing) redirect(`/livrari/${existing.id}`);
+
+  const sites = await listSites();
 
   return (
     <div className="space-y-6">
@@ -56,6 +59,8 @@ export default async function LivrareNouaPage({ searchParams }: LivrareNouaPageP
           orderId={order.id}
           orderNumber={order.orderNumber}
           clientName={order.clientName}
+          sites={sites}
+          destinationAddress={order.deliveryAddress}
         />
       )}
     </div>
