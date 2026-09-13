@@ -180,6 +180,12 @@ activitate. Optimizarea multi-stop pe zi/vehicul e o etapă opțională (Etapa 6
   automat cea mai rapidă variantă) - dacă se dorește alt transportator/rută dupa
   recalculare, se poate replanifica manual câmpurile text.
 - Etapa 6 (planificarea zilei pe vehicul) rămâne opțională/follow-up, neinclusă în acest pas.
+- ✅ Etapa 7 (documentație): `docs/analiza-conformitate-anexa.md` (secțiune nouă §4 -
+  maparea celor 5 caracteristici), `docs/manual/utilizare-admin-operator.md` (secțiunea
+  9 rescrisă cu pașii reali din UI, înlocuind avertismentul "în curs de implementare"
+  rămas de la Task X5), `AGENTS.md` (regula Google Maps: rezultate afișate doar pe
+  hartă Google, cheia nu ajunge în browser), `.env.example` (deja la Etapa 2),
+  `docs/plans/implementation-plan.md` (rând nou X7 în tabelul de tracking).
 - Adresele structurate (decizia 6) NU au fost expuse în UI (nici la `client_addresses`,
   nici la `organization_sites`) - geocodarea folosește exclusiv câmpul `address` (text
   liber) în acest pas; coloanele structurate rămân pregătite (nullable) pt. o viitoare

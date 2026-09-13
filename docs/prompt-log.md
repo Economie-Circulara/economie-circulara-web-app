@@ -13,6 +13,23 @@ Format intrare:
 
 ---
 
+## 2026-09-14 — Claude Sonnet 5 — Documentație de conformitate (Etapa 7/X7, final)
+
+- **Cerut:** ultima etapă a planului de planificare optimizată a rutelor -
+  documentația care demonstrează, la o verificare ulterioară, cum sunt acoperite
+  cele 5 caracteristici din clarificarea AM.
+- **Facut:** `docs/analiza-conformitate-anexa.md` - secțiune nouă §4 cu tabelul de
+  mapare (caracteristică → modul/ecran); `docs/manual/utilizare-admin-operator.md`
+  - secțiunea 9 rescrisă complet cu pașii reali din UI (planificare rută, puncte de
+  plecare, confirmare recepție, declarare e-Transport), înlocuind avertismentul
+  "în curs de implementare" rămas netăiat de la Task X5; `AGENTS.md` - regula de
+  business "rezultatele Google Routes se afișează doar pe hartă Google, cheia nu
+  ajunge în browser"; `docs/plans/implementation-plan.md` - rând nou X7 în tabelul
+  de tracking al task-urilor.
+- **Verificat:** `pnpm typecheck`, `pnpm lint` (fără modificări de cod în acest commit).
+- **Task X7 complet** (Etapele 1-5 + 7 din plan; Etapa 6 - planificare multi-stop
+  pe vehicul - rămâne follow-up opțional, documentat ca atare).
+
 ## 2026-09-14 — Claude Sonnet 5 — UI rute + confirmarea recepției (Etapa 4+5/X7)
 
 - **Cerut:** continuarea planului de planificare optimizată a rutelor - integrarea

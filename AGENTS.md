@@ -183,6 +183,16 @@ Testele unitare sunt **colocate** langa cod (`*.test.ts` / `*.test.tsx`).
   organizatiei nu isi poate ridica singur plafonul (trigger
   `app.enforce_ai_limits`, altfel `organizations_update` din 0001 i-ar permite-o).
 
+- **Planificarea rutelor (Task X7, `src/features/routing/`) foloseste Google Maps
+  Platform, in spatele unui adapter (`RoutingProvider`, ca la e-Transport)** - implicit
+  `MockRoutingProvider` (fara `GOOGLE_MAPS_API_KEY`). Doua reguli de business/legale
+  invatate aici, valabile daca providerul Google e activat vreodata:
+  - **Rezultatele Google Routes API se afiseaza DOAR pe o harta Google** (Maps Static
+    API in acest task) - niciodata suprapuse pe Leaflet/OpenStreetMap sau alt furnizor
+    de harta (termenii Google Maps Platform).
+  - Cheia Google **nu ajunge niciodata in browser**: harta se randeaza server-side ca
+    imagine (data-URI base64), nu ca URL trimis catre client (`route-service.ts`).
+
 ### 4.1 Limitari cunoscute / trade-off-uri acceptate
 
 - **`stock_events` audit trail**: pentru acum, nicio reconciliere automata cu `lots.remaining_qty`;

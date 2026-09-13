@@ -191,7 +191,32 @@ să susțină fluxul de **aviz de însoțire a mărfii + declarare e-Transport (
 
 ---
 
-## 4. Poziționare față de terminologia anexei
+## 4. Clarificări AM - cele 5 caracteristici funcționale minime (2026-09)
+
+Scrisoarea de clarificări nr. 1/31905/AM/07.09.2026 (Cererea de plată 1, SMIS 350456,
+beneficiar MACON XCX SRL) a cerut justificarea a 5 caracteristici funcționale minime din
+Planul de afaceri. Răspunsul SKETON (prestator) le-a legat de Anexa nr. 1 și a amânat
+detalierea în etapele de dezvoltare - tabelul de mai jos e maparea reală, la nivel de
+modul/ecran, folosită ca dovadă la o verificare ulterioară. Plan complet:
+[rute-optimizate-livrari.md](plans/rute-optimizate-livrari.md).
+
+| # | Caracteristică cerută | Status | Acoperire |
+| --- | --- | --- | --- |
+| 1 | Monitorizarea fluxului tehnologic de producție a betonului din deșeuri | ✅ | Monitorizare **manuală**: `/productie` (procese de transformare pe loturi, intrări/ieșiri, rețete) - operatorul înregistrează etapele de producție pe măsură ce au loc |
+| 2 | Monitorizarea colectării deșeurilor | ✅ | Monitorizare **manuală**: loturi de intrare cu `source` (furnizor/proces), clienți marcați `is_supplier`, certificate de trasabilitate care leagă produsul livrat de loturile de materie primă |
+| 3 | Monitorizarea procesării deșeurilor (sortare, tratare, reciclare) | ✅ | Monitorizare **manuală**: procese de transformare (`output_fixed`/`input_fixed`), recondiționare (Task F), blocare/deblocare loturi pe criterii de calitate |
+| 4 | Monitorizarea livrării + confirmarea recepției de către client | ✅ | Task X5 (livrări + aviz + e-Transport) + **confirmarea recepției** (Task X7, `deliveries.received_at`/`received_by_name`) - înregistrare manuală de staff pe ecranul `/livrari/[id]` |
+| 5 | Planificare inteligentă: optimizarea rutelor + cicluri de retur/reutilizare | ✅ | **Task X7** - calculul a 1-3 rute alternative (Google Routes API, mock fără cheie) la planificarea livrării, cu ruta cea mai rapidă marcată automat "Recomandată"; preview hartă; ciclurile de retur/reutilizare acoperite separat de Task F (retururi) |
+
+**Notă de interpretare** (consecventă cu §6 din anexă, "caracter general și orientativ"):
+punctele 1-3 nu necesită o integrare nouă - modulele existente de producție/stoc/loturi
+ÎNSEAMNĂ monitorizare a fluxului tehnologic, exact ca la orice proces de producție
+înregistrat operativ. Punctul 5 este singurul gap real închis prin cod nou (optimizare
+de rute); punctul 4 avea un gap mic (confirmarea recepției), închis în același task.
+
+---
+
+## 5. Poziționare față de terminologia anexei
 
 Anexa vorbește despre "elemente din beton" și PaaS pentru Beneficiar; platforma este
 construită multi-tenant, pentru mai mulți clienți plătitori (2 deja în așteptare).

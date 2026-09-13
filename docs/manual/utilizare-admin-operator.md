@@ -338,28 +338,49 @@ materialul înapoi).
 
 ---
 
-## 9. Livrări, aviz și e-Transport
+## 9. Livrări, planificare rute, aviz și e-Transport
 
-> ⚠️ **Această secțiune descrie fluxul planificat (Task X5), aflat în curs de
-> implementare la data redactării acestui manual.** Nu există încă o rută
-> `/livrari` dedicată în aplicație - planificarea livrării, generarea avizului
-> și declararea e-Transport se vor adăuga separat. Manualul va fi actualizat cu
-> pașii exacți din interfață imediat ce task-ul e livrat.
+Meniul **"Livrări"** listează toate livrările planificate, cu statusul declarației
+e-Transport și dacă ruta a fost **calculată** sau introdusă **manual**.
 
-Fluxul planificat, conform planului de implementare:
+### 9.1 Planificarea unei livrări
 
-1. O comandă **acceptată** poate avea o livrare planificată: dată, transportator,
-   număr de înmatriculare, șofer, rută.
-2. Se generează un **aviz de însoțire a mărfii**.
-3. Avizul se declară în **RO e-Transport** (ANAF) prin serviciul terț
-   **Socrate.io** (pentru transporturile care depășesc pragurile legale).
-4. Codul **UIT** rezultat se stochează pe livrare și apare pe avizul PDF
-   printabil.
+Dintr-o comandă **acceptată** (ecranul `/comenzi/[id]`), butonul **"Planifică
+livrare"** deschide formularul:
 
-Până la livrarea acestei funcționalități, planificarea/urmărirea livrărilor se
-face în afara platformei (telefon/document extern), iar comanda se mișcă direct
-din "Acceptată" în "Livrată" prin butonul **"Livrează"** din ecranul comenzii
-(secțiunea 7.1).
+1. Completează **data programată**, **transportatorul**, **numărul de
+   înmatriculare** și **șoferul**.
+2. La secțiunea **"Rută"**: alege un **punct de plecare** (o stație/depozit
+   configurat în **Setări → Puncte de plecare**, secțiunea 9.2) - câmpul
+   "Punct de plecare" (text) se precompletează automat cu adresa stației, iar
+   "Punct de sosire" cu adresa de livrare a comenzii, dacă există.
+3. Apasă **"Calculează rute"** - aplicația propune 1-2 variante de rută, cu
+   distanța și durata estimată (cu trafic), și marchează automat cea mai rapidă
+   ca **"Recomandată"**. Poți alege oricare altă variantă din listă înainte de a
+   planifica livrarea.
+4. Apasă **"Planifică livrarea"**. Dacă nu ai nevoie de calculul rutei, poți
+   completa "Punct de plecare"/"Punct de sosire" direct ca text și trimite
+   formularul fără să apeși "Calculează rute" - planificarea rămâne validă.
+
+### 9.2 Puncte de plecare (Setări → Puncte de plecare)
+
+Doar administratorul poate adăuga/edita/șterge punctele de plecare (stații de
+betoane, depozite) folosite ca origine la calculul rutelor - un singur punct
+poate fi marcat **implicit** (preselectat la planificarea unei livrări noi).
+
+### 9.3 Ecranul de detaliu al unei livrări (`/livrari/[id]`)
+
+- **"Rută (planificare optimizată)"** - distanța/durata estimată și, dacă a fost
+  generată, harta rutei. Butonul **"Recalculează"** reface calculul (util dacă
+  adresa de livrare s-a schimbat) și păstrează automat cea mai rapidă variantă.
+- **"Confirmarea recepției"** - după ce clientul confirmă (verbal, telefonic sau
+  pe avizul semnat) că a primit marfa, completează **numele persoanei care a
+  recepționat** și, opțional, observații, apoi apasă **"Confirmă recepția"**.
+  Data confirmării se salvează automat.
+- **"Declarare RO e-Transport"** - avizul de însoțire a mărfii se declară în RO
+  e-Transport (ANAF) prin serviciul terț **Socrate.io** (pentru transporturile
+  care depășesc pragurile legale). Codul **UIT** rezultat se stochează pe
+  livrare și apare pe avizul PDF printabil (buton **"Descarcă avizul (PDF)"**).
 
 ---
 
