@@ -6,8 +6,18 @@ const { assistantDb } = await import("./db");
 const { appendMessage, getConversation, listConversations } = await import("./service");
 
 const CONVERSATIONS = [
-  { id: "conv-2", title: "A doua conversație", created_at: "2026-09-13T10:00:00Z" },
-  { id: "conv-1", title: "Prima conversație", created_at: "2026-09-12T10:00:00Z" },
+  {
+    id: "conv-2",
+    title: "A doua conversație",
+    created_at: "2026-09-13T10:00:00Z",
+    updated_at: "2026-09-13T10:05:00Z",
+  },
+  {
+    id: "conv-1",
+    title: "Prima conversație",
+    created_at: "2026-09-12T10:00:00Z",
+    updated_at: "2026-09-12T10:00:00Z",
+  },
 ];
 
 beforeEach(() => {
@@ -27,8 +37,18 @@ describe("listConversations", () => {
     const result = await listConversations();
 
     expect(result).toEqual([
-      { id: "conv-2", title: "A doua conversație", createdAt: "2026-09-13T10:00:00Z" },
-      { id: "conv-1", title: "Prima conversație", createdAt: "2026-09-12T10:00:00Z" },
+      {
+        id: "conv-2",
+        title: "A doua conversație",
+        createdAt: "2026-09-13T10:00:00Z",
+        updatedAt: "2026-09-13T10:05:00Z",
+      },
+      {
+        id: "conv-1",
+        title: "Prima conversație",
+        createdAt: "2026-09-12T10:00:00Z",
+        updatedAt: "2026-09-12T10:00:00Z",
+      },
     ]);
     expect(order).toHaveBeenCalledWith("updated_at", { ascending: false });
   });
@@ -49,6 +69,7 @@ describe("getConversation", () => {
       id: "conv-2",
       title: "A doua conversație",
       createdAt: "2026-09-13T10:00:00Z",
+      updatedAt: "2026-09-13T10:05:00Z",
     });
   });
 

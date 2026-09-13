@@ -95,8 +95,12 @@ function ConversationList({
                 "text-xs",
                 active ? "text-primary-foreground/80" : "text-muted-foreground/80",
               )}
+              // Textul depinde de `Date.now()`: randarea pe server si hidratarea pe client
+              // se intampla la momente diferite, deci pot iesi valori diferite ("acum" vs
+              // "acum 1 minut") - e asteptat, nu o eroare reala de hidratare.
+              suppressHydrationWarning
             >
-              {relativeDate(conversation.createdAt)}
+              {relativeDate(conversation.updatedAt)}
             </p>
           </Link>
         );
