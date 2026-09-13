@@ -13,6 +13,22 @@ Format intrare:
 
 ---
 
+## 2026-09-14 — Claude Sonnet 5 — Adapter de rutare Google/mock (Etapa 2/X7)
+
+- **Cerut:** continuarea planului de planificare optimizată a rutelor (vezi intrarea
+  anterioară) - Etapa 2: stratul de calcul, independent de UI.
+- **Facut:** `src/features/routing/` - `provider.ts` (`RoutingProvider`, geocodare +
+  calcul rute; `MockRoutingProvider` determinist, implicit; `GoogleRoutingProvider`
+  peste Geocoding API + Routes API v2 `computeRoutes`, activat cu `GOOGLE_MAPS_API_KEY`),
+  `polyline.ts` (encoder Google Polyline Algorithm, fără dependență nouă), `rank.ts`
+  (`pickBestRouteIndex` - durata cea mai mică, la egalitate ±5% câștigă distanța),
+  `static-map.ts` (URL Maps Static cu ruta recomandată evidențiată cu culoarea
+  tenantului, deasupra alternativelor gri). `.env.example` - `ROUTING_PROVIDER`/
+  `GOOGLE_MAPS_API_KEY` (opționale, mock implicit).
+- **Verificat:** 21 teste noi (mock determinist, parsare Routes API, encoding
+  polilinie vs. exemplul oficial Google, clasificare rute, URL hartă statică),
+  `pnpm typecheck`, `pnpm lint`.
+
 ## 2026-09-14 — Claude Sonnet 5 — Plan + model de date pentru planificarea optimizată a rutelor (Etapa 1/X7)
 
 - **Cerut:** răspunsul SKETON la scrisoarea de clarificări AM nr. 1/31905/AM/07.09.2026
