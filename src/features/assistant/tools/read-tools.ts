@@ -58,7 +58,15 @@ export const cauta: AssistantTool<{ text: string }> = {
   roles: ["super_admin", "admin", "operator", "client"],
   kind: "read",
   parse: (args) => ({ text: requiredString(asObject(args), "text") }),
-  execute: async (input, ctx) => globalSearch(input.text, { role: ctx.role, limit: 5 }),
+  execute: async (input, ctx) => {
+    const groups = await globalSearch(input.text, { role: ctx.role, limit: 5 });
+    // `href` e numele folosit de UI-ul de cautare propriu; modelul primeste `link`,
+    // acelasi nume ca la celelalte tool-uri, ca sa aiba o singura conventie de citat.
+    return groups.map((group) => ({
+      ...group,
+      results: group.results.map(({ href, ...rest }) => ({ ...rest, link: href })),
+    }));
+  },
 };
 
 export const cautaFirmaDupaCui: AssistantTool<{ cui: string }> = {
@@ -100,6 +108,7 @@ export const listeazaClienti: AssistantTool<{ cautare: string | null }> = {
       denumire: client.name,
       cui: client.cui,
       email: client.email,
+      link: `/clienti/${client.id}`,
     }));
   },
 };
@@ -125,6 +134,7 @@ export const itemiVandabili: AssistantTool<{ cautare: string | null }> = {
       item_id: item.id,
       denumire: item.title,
       um: item.unit,
+      link: `/itemi/${item.id}`,
     }));
   },
 };
