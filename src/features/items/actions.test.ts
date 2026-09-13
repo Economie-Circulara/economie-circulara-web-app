@@ -81,6 +81,7 @@ describe("createItemAction", () => {
     ).rejects.toThrow("REDIRECT:/itemi");
 
     expect(createItem).toHaveBeenCalledWith({
+      id: expect.any(String),
       organizationId: "org-1",
       title: "Basic PaaS",
       description: "Abonament lunar",

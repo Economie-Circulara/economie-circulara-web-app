@@ -56,10 +56,15 @@ describe("listOrders", () => {
       ],
       error: null,
     });
+    const linksBuilder = makeQueryBuilder({
+      data: [{ linked_order_id: "order-1", link_type: "return" }],
+      error: null,
+    });
 
     const from = vi.fn((table: string) => {
       if (table === "orders") return ordersBuilder;
       if (table === "order_items") return itemsBuilder;
+      if (table === "order_links") return linksBuilder;
       throw new Error(`tabel neasteptat: ${table}`);
     });
     createClient.mockResolvedValue({ from });
@@ -68,11 +73,13 @@ describe("listOrders", () => {
 
     expect(ordersBuilder.eq).toHaveBeenCalledWith("status", "sent");
     expect(itemsBuilder.in).toHaveBeenCalledWith("order_id", ["order-1"]);
+    expect(linksBuilder.in).toHaveBeenCalledWith("linked_order_id", ["order-1"]);
     expect(result).toEqual([
       expect.objectContaining({
         id: "order-1",
         clientName: "Construcții Apex SRL",
         itemsSummary: "Cărămidă eco ×4, Pavaj ×2",
+        linkType: "return",
         status: "sent",
       }),
     ]);

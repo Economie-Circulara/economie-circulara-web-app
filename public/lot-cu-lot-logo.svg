@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="55 35 960 310" fill="none" role="img" aria-labelledby="logo-title logo-desc">
+  <title id="logo-title">Lot cu Lot</title>
+  <desc id="logo-desc">Wordmark verde-petrol cu doua inele unite printr-un traseu circular verde-lime.</desc>
+  <style>
+    .wordmark {
+      fill: #0b4f4a;
+      font-family: Montserrat, "Avenir Next", "Century Gothic", "Trebuchet MS", sans-serif;
+      font-size: 164px;
+      font-weight: 700;
+      letter-spacing: -5px;
+    }
+    .route {
+      fill: none;
+      stroke: #b7e33d;
+      stroke-width: 14;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    @media (prefers-color-scheme: dark) {
+      .wordmark {
+        fill: #e8f4ef;
+      }
+      .ring {
+        stroke: #e8f4ef;
+      }
+    }
+  </style>
+
+  <g id="trace-loop">
+    <path class="route" d="M224 192v-90q0-36 36-36h542q36 0 36 36v90" />
+    <path fill="#b7e33d" d="m517 45 27 21-27 21Z" />
+    <path class="route" d="M838 192v90q0 36-36 36H260q-36 0-36-36v-90" />
+    <path fill="#b7e33d" d="m545 297-27 21 27 21Z" />
+  </g>
+
+  <g id="wordmark" aria-label="lot cu lot">
+    <text class="wordmark" x="79" y="250">l</text>
+    <g transform="translate(224 192)">
+      <circle class="ring" r="48" stroke="#0b4f4a" stroke-width="20" />
+      <circle r="20" fill="#b7e33d" />
+    </g>
+    <text class="wordmark" x="292" y="250">t</text>
+    <text class="wordmark" x="421" y="250">cu</text>
+    <text class="wordmark" x="693" y="250">l</text>
+    <g transform="translate(838 192)">
+      <circle class="ring" r="48" stroke="#0b4f4a" stroke-width="20" />
+      <circle r="20" fill="#b7e33d" />
+    </g>
+    <text class="wordmark" x="906" y="250">t</text>
+  </g>
+</svg>

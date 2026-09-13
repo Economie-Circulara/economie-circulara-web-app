@@ -13,6 +13,42 @@ Format intrare:
 
 ---
 
+## 2026-09-13 — Codex GPT-5 — Rezolvare conflict PR #25
+
+- **Cerut:** rezolvarea conflictului de merge pentru PR #25, branchul
+  `codex/lot-cu-lot-branding` catre `main`.
+- **Facut:** integrat `origin/main` prin merge fara rescrierea istoricului si rezolvat
+  conflictul unic din `docs/prompt-log.md`, pastrand integral intrarile ambelor ramuri.
+  Restul modificarilor din `main` s-au integrat automat. Doua teste stale din `main` au
+  fost aliniate cu ID-ul pre-generat pentru itemi si noua interogare `order_links`. Plan:
+  `docs/plans/resolve-pr-25-conflict.md`.
+- **Verificat:** `pnpm test` (687 teste), `pnpm typecheck`, `pnpm lint` si `pnpm build`
+  (cu valori locale fictive pentru variabilele Supabase cerute la prerandare).
+
+## 2026-09-13 — Codex GPT-5 — Co-branding Lot cu Lot in sidebar
+
+- **Cerut:** pastrarea discreta a logo-ului Lot cu Lot in sidebar, alaturi de brandingul
+  fiecarei organizatii, apoi commit si push.
+- **Facut:** footer desktop separat cu „Powered by” si wordmark-ul Lot cu Lot la
+  dimensiune redusa si opacitate temperata; brandingul organizatiei ramane in header,
+  iar meniul mobil nu primeste atribuirea suplimentara. Test unitar nou pentru ierarhia
+  celor doua branduri. Plan: `docs/plans/sidebar-platform-co-branding.md`.
+- **Verificat:** `pnpm test` (674 teste), `pnpm typecheck`, `pnpm lint`, `pnpm build`
+  (cu valori locale fictive pentru variabilele Supabase cerute la prerandare).
+
+## 2026-09-13 — Codex GPT-5 — Logo Lot cu Lot pe homepage si favicon
+
+- **Cerut:** integrarea logo-ului SVG „Lot cu Lot” pe homepage si folosirea identitatii
+  vizuale si pentru iconita site-ului.
+- **Facut:** wordmark SVG public, adaptat pentru contrast in tema dark si afisat in
+  header-ul intrarii generice; brandingul white-label al tenantilor ramane neschimbat.
+  Favicon SVG nou, simplificat pentru dimensiuni mici, derivat din cele doua loturi si
+  traseul circular. Testele homepage-ului verifica separat brandingul platformei si al
+  tenantului. Plan: `docs/plans/logo-homepage-favicon.md`.
+- **Verificat:** inspectie vizuala desktop + mobil (390 px) in tema dark, favicon randat,
+  `pnpm test` (673 teste), `pnpm typecheck`, `pnpm lint`, `pnpm build` (cu valori locale
+  fictive pentru variabilele Supabase cerute la prerandare).
+
 ## 2026-09-13 — Codex GPT-5 — Rezolvare conflicte PR magic link
 
 - **Cerut:** rezolvarea conflictelor de merge din PR-ul pentru autentificarea prin magic
@@ -44,6 +80,7 @@ Format intrare:
   si Prettier pe fisierele schimbate. Build-ul compileaza si trece TypeScript;
   prerandarea locala se opreste fiindca worktree-ul nu are cheile Supabase din
   `.env.local`.
+
 ## 2026-09-13 — Claude Opus 5 — Date demo pentru recepție (producție)
 
 - **Cerut:** migrarea la zi pe producție și conturi/date demo valide și complexe.
