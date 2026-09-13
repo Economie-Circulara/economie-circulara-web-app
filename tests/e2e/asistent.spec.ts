@@ -30,8 +30,10 @@ test.describe("Asistent AI", () => {
     await page.getByRole("button", { name: "Trimite" }).click();
 
     // Mock-ul cheama `cauta_in_manual`, iar raspunsul final trece prin bucla de tool-uri.
+    // Textul intrebarii apare si in sidebar-ul de conversatii - scopat la bulele de chat.
+    const messages = page.getByTestId("chat-messages");
     await expect(page.getByText("Mă gândesc...")).toBeHidden({ timeout: 20_000 });
-    await expect(page.locator("text=cum adaug un lot în stoc?")).toBeVisible();
+    await expect(messages.getByText("cum adaug un lot în stoc?")).toBeVisible();
   });
 
   test("clientul are asistentul, dar fara acțiuni de organizație", async ({ page }) => {

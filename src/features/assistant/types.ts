@@ -25,6 +25,7 @@ export interface AssistantConversation {
   id: string;
   title: string | null;
   createdAt: string;
+  updatedAt: string;
 }
 
 /** Ce vede UI-ul dupa o tura: raspunsul modelului si, eventual, o actiune de confirmat. */
