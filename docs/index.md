@@ -27,9 +27,14 @@ Folderul [`manual/`](manual/) contine documentatia de utilizare si administrare 
 platformei (Task X6 - livrabil obligatoriu Anexa 1: manual de utilizare, ghid de
 administrare, plan de instruire). Punct de start: [`manual/README.md`](manual/README.md).
 
+Aceleasi documente se citesc si **din aplicatie**, in sectiunea **Ajutor** (`/ajutor`),
+cu capturi si cuprins pe sectiuni; fiecare rol vede doar documentele care il privesc.
+Fisierele `.md` de aici raman sursa unica - sunt randate la cerere, nu copiate (vezi
+[`plans/manual-in-app.md`](plans/manual-in-app.md)).
+
 | Fisier                                                     | Descriere                                                                                          |
 | ----------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| [manual/README.md](manual/README.md)                       | Cuprins - pentru cine e fiecare document, nota despre capturi de ecran (de adaugat ulterior).      |
+| [manual/README.md](manual/README.md)                       | Cuprins - pentru cine e fiecare document, cum se regenereaza capturile de ecran.                    |
 | [manual/utilizare-admin-operator.md](manual/utilizare-admin-operator.md) | Manual pas-cu-pas pentru rolurile Administrator/Operator - tot fluxul de business (ecrane reale). |
 | [manual/utilizare-client.md](manual/utilizare-client.md)   | Manual pas-cu-pas pentru rolul Client - portalul de catalog/comenzi/documente.                     |
 | [manual/ghid-administrare.md](manual/ghid-administrare.md) | Setari organizatie, useri, super-admin, operare tehnica (Supabase/Vercel/migrari/backup).           |

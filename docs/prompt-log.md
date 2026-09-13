@@ -13,6 +13,32 @@ Format intrare:
 
 ---
 
+## 2026-09-13 — Claude Opus 5 — Manual de utilizare in aplicatie (`/ajutor`)
+
+- **Cerut:** un „manual de utilizare" accesibil din aplicatie, pentru oameni care nu stiu
+  sa foloseasca platforma: sursele raman in markdown, iar in React se randeaza md -> html.
+  Acces doar autentificat, filtrat pe rol; asistentul AI discutat separat (nu in acest task).
+- **Facut:** ruta `/ajutor` (grup nou `(help)`, o singura definitie pentru toate rolurile,
+  guard `requireUser`) cu index de documente si pagina de document cu cuprins sticky.
+  `src/features/manual/` contine catalogul cu roluri (`registry.ts`), extractorul de cuprins
+  (`toc.ts`), pluginul remark pentru `{#id}` (`remark-heading-id.ts`), rescrierea link-urilor
+  si a imaginilor (`links.ts`), guard-ul de path traversal (`image-path.ts`), cititorul
+  memoizat (`loader.ts`) si randarea cu `react-markdown` mapata pe design system
+  (`manual-content.tsx`). Capturile din `docs/manual/img/` sunt servite autentificat de
+  `/ajutor/img/[...path]` (folderul e in afara lui `public/`, ca markdown-ul din `docs/` sa
+  ramana sursa unica). Intrare noua in sidebar (`HELP_NAV_ITEM`, separata de `STAFF_NAV`,
+  ca testul de guard din smoke sa ramana corect) + `outputFileTracingIncludes` pentru
+  `docs/manual`. Corectat in documentatie paragraful care sustinea ca nu exista capturi si
+  cele doua locuri unde `<...>` era inghitit ca tag HTML la randare.
+- **Verificat:** `pnpm typecheck`, `pnpm lint`, `pnpm test` (624 teste, dintre care 33 noi),
+  `pnpm build` + verificarea `.nft.json` (5 fisiere `.md` si 28 PNG ajung in bundle).
+  Testul `manual-anchors.test.tsx` randeaza documentele REALE si verifica faptul ca fiecare
+  intrare din cuprins are titlul ei randat cu acelasi id. E2E (`tests/e2e/ajutor.spec.ts`)
+  scris, dar **nerulat**: mediul nu are Docker, deci nici Supabase local.
+- **Ramas:** cautare in documentatie, ajutor contextual per ecran si asistentul AI
+  (chat/RAG peste manual, agent pe datele proprii, server MCP) - vezi
+  [`plans/manual-in-app.md`](plans/manual-in-app.md).
+
 ## 2026-09-13 — Codex GPT-5 — Fix magic link Supabase SSR
 
 - **Cerut:** dupa configurarea Resend + domeniul `lotculot.eu`, login-ul prin magic link

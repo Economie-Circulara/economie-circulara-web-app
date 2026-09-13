@@ -36,17 +36,29 @@ Manualul admin/operator acoperă pașii 1-9 din perspectiva organizației; manua
 clientului acoperă partea vizibilă lui din pașii 7-9 (plasare comandă, urmărire
 status, retur, descărcare documente/certificate).
 
-## Notă importantă - capturi de ecran
+## Capturi de ecran
 
-**Acest manual nu conține încă capturi de ecran (screenshot-uri).** Textul
-descrie titlurile de ecran, denumirile de buton și câmpurile de formular exact
-așa cum apar în interfață (verificate în codul sursă la data redactării), dar
-imaginile propriu-zise trebuie adăugate ulterior, direct din aplicația
-funcțională (mediu de dezvoltare sau producție), de către echipa de proiect sau
-un agent cu acces la un browser/aplicație rulantă. Locurile recomandate pentru
-capturi sunt marcate în text cu formatul:
+Capturile de ecran din manuale sunt în [`img/`](img/) și sunt generate automat din
+aplicație, pe datele demo, de walkthrough-ul Playwright
+[`tests/e2e/manual-screenshots.spec.ts`](../../tests/e2e/manual-screenshots.spec.ts).
+Se regenerează după schimbări de interfață cu:
 
-> 📷 **[Captură de adăugat: <descriere ecran>]**
+```bash
+pnpm exec playwright test manual-screenshots --workers=1
+```
+
+Câteva locuri sunt încă marcate în text cu formatul de mai jos - sunt ecrane care
+au nevoie de date de test pe care seed-ul nu le are încă (de exemplu un retur pe o
+comandă livrată):
+
+> 📷 **[Captură de adăugat: `<descriere ecran>`]**
+
+## Manualul în aplicație
+
+Aceleași documente se citesc și direct din platformă, în secțiunea **Ajutor**
+(`/ajutor`), cu tot cu capturi și cuprins pe secțiuni - fiecare rol vede doar
+documentele care îl privesc. Sursa rămâne aceste fișiere `.md`: ele sunt randate
+la cerere, nu copiate.
 
 ## Stadiul funcționalităților la data redactării (2026-07-19)
 

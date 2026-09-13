@@ -141,7 +141,7 @@ prime/componente). **Rețetele nu se versionează** - dacă se schimbă compozi�
 se creează un item (produs) nou.
 
 Pentru a defini/edita rețeta unui item: din listă, click pe item -> ecranul
-**"Rețetă - <nume item>"**. Dacă itemul nu are încă rețetă, apare un buton de
+**"Rețetă - `<nume item>`"**. Dacă itemul nu are încă rețetă, apare un buton de
 creare; altfel, editorul de rețetă permite adăugarea/editarea componentelor și a
 procentelor lor. Rețetele se pot defini **doar pentru itemi de tip Fizic**
 (pentru servicii, ecranul afișează un mesaj informativ).
