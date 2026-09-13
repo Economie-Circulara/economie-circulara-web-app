@@ -4,6 +4,17 @@ Jurnal al sarcinilor lucrate de agenti AI in acest repo. Conform regulii 1.2 din
 [`AGENTS.md`](../AGENTS.md), la **fiecare commit** se adauga o intrare aici.
 Cele mai noi intrari sus.
 
+## 2026-09-14 — Codex GPT-5 — Cuprins sticky in Ajutor
+
+- **Cerut:** meniul de navigare al unui document Markdown din sectiunea Ajutor sa
+  ramana sticky la scroll.
+- **Facut:** intarit layout-ul documentului cu `items-start`, offset sticky si
+  scroll intern pentru cuprinsul lung; schimbat overflow-ul orizontal al shell-ului
+  in `overflow-x-clip` pentru a nu limita contextul sticky; adaugata verificare E2E
+  pentru `position: sticky`.
+- **Verificat:** `git diff --check`; verificarile pnpm nu au putut rula complet,
+  deoarece registry-ul npm a fost inaccesibil si dependentele nu s-au instalat.
+
 Format intrare:
 
 - **Data** - YYYY-MM-DD
