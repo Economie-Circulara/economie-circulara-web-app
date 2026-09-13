@@ -1,7 +1,13 @@
 import type { UserRole } from "@/features/auth/session";
+import type { CardPresentation } from "./tools/presentation-types";
 
-/** Statusul unei propuneri de actiune. Tool-urile de citire se salveaza direct `confirmed`. */
-export type ToolCallStatus = "proposed" | "confirmed" | "rejected" | "failed";
+/**
+ * Statusul unei propuneri de actiune. Tool-urile de citire se salveaza direct `confirmed`.
+ * `executing` e tranzitoriu - revendicat ATOMIC de `service.ts#claimProposal` inainte de
+ * `tool.execute`, ca doua confirmari concurente (dublu-click, doua file) sa nu execute
+ * aceeasi actiune de doua ori (docs/plans/asistent-contract-capabilitati.md).
+ */
+export type ToolCallStatus = "proposed" | "executing" | "confirmed" | "rejected" | "failed";
 
 export interface AssistantMessage {
   id: string;
@@ -14,10 +20,13 @@ export interface AssistantToolCall {
   id: string;
   conversationId: string;
   tool: string;
+  toolVersion: number;
   arguments: Record<string, unknown>;
   status: ToolCallStatus;
   result: unknown;
   error: string | null;
+  /** Id-ul tool-call-ului dat de furnizorul LLM - vezi coloana `provider_call_id`. */
+  providerCallId: string | null;
   createdAt: string;
 }
 
@@ -40,10 +49,12 @@ export interface AssistantTurn {
 export interface PendingAction {
   toolCallId: string;
   tool: string;
+  /** Versiunea contractului tool-ului la momentul propunerii - vezi `AssistantTool.version`. */
+  toolVersion: number;
   /** Titlu scurt pentru cardul de confirmare ("Creează clientul ACME SRL"). */
   summary: string;
-  /** Campurile propuse, in ordinea de afisare. */
-  fields: { name: string; label: string; value: string }[];
+  /** Payload-ul TIPAT al cardului - vezi `tools/presentation-types.ts`. */
+  presentation: CardPresentation;
 }
 
 export interface QuotaStatus {

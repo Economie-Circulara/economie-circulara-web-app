@@ -68,6 +68,28 @@ Un task e gata doar cand:
 - [ ] fara secrete hardcodate (totul prin `.env`)
 - [ ] intrare adaugata in `docs/prompt-log.md` (regula 1.2)
 
+### 2.4 Impactul asupra asistentului AI (obligatoriu la orice feature nou)
+
+Asistentul (`src/features/assistant/`) NU capata acces automat la o functionalitate
+noua - registrul de tool-uri (`tools/registry.ts`) e singurul allowlist. La orice
+task nou, decide explicit si documenteaza in planul task-ului (regula 1.1):
+
+- **Decizia**: `none` (nu are legatura cu asistentul) | `read` (asistentul poate
+  CITI datele noi - tool de citire) | `write` (asistentul poate PROPUNE o actiune
+  noua - tool de scriere, cu confirmare umana obligatorie).
+- Pentru `read`/`write`: numele tool-ului nou (sau al celui modificat).
+- Pentru `write`: **randerul cardului de confirmare** - `"generic"` (campuri
+  tipate text/boolean, valori rezolvate - NU ID-uri brute) sau unul dedicat (ca
+  `order_draft`) daca structura datelor n-are ce cauta intr-o lista plata de
+  campuri (array-uri, selectii cascadate). Un tool `write` fara randerul declarat
+  e un bug - vezi verificarea automata din `tools/registry.test.ts`.
+- Actualizeaza manualul (`docs/manual/`) daca actiunea noua e vizibila utilizatorului.
+- Un caz de regresie testat (macar un test unitar) pt. fluxul propunere -> confirmare -> executie.
+
+Context: `docs/plans/asistent-contract-capabilitati.md` (contractul viu al
+capabilitatilor - manifest versionat, carduri tipate, continuare automata dupa
+confirmare, revendicare atomica a executiei).
+
 ---
 
 ## 3. Descrierea proiectului (crucial pentru context)

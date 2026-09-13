@@ -103,7 +103,7 @@ export function AssistantChat({
     });
   }
 
-  function confirm(overrides: Record<string, string>) {
+  function confirm(overrides: Record<string, unknown>) {
     if (!pending || isPending) return;
     const toolCallId = pending.toolCallId;
     setPending(null);

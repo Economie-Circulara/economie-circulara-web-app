@@ -114,7 +114,10 @@ export async function listMessages(conversationId: string): Promise<AssistantMes
 export async function saveProposal(input: {
   conversationId: string;
   tool: string;
+  toolVersion: number;
   arguments: Record<string, unknown>;
+  /** Id-ul tool-call-ului dat de furnizorul LLM - vezi coloana `provider_call_id`. */
+  providerCallId: string;
 }): Promise<string> {
   const db = await assistantDb();
   const { data, error } = await db
@@ -122,11 +125,13 @@ export async function saveProposal(input: {
     .insert({
       conversation_id: input.conversationId,
       tool: input.tool,
+      tool_version: input.toolVersion,
       arguments: input.arguments as Json,
       status: "proposed",
       result: null,
       error: null,
       confirmed_by: null,
+      provider_call_id: input.providerCallId,
       resolved_at: null,
     })
     .select("id")
@@ -140,6 +145,7 @@ export async function saveProposal(input: {
 export async function logReadCall(input: {
   conversationId: string;
   tool: string;
+  toolVersion: number;
   arguments: Record<string, unknown>;
   ok: boolean;
   error?: string;
@@ -148,20 +154,25 @@ export async function logReadCall(input: {
   await db.from("assistant_tool_calls").insert({
     conversation_id: input.conversationId,
     tool: input.tool,
+    tool_version: input.toolVersion,
     arguments: input.arguments as Json,
     status: input.ok ? "confirmed" : "failed",
     result: null,
     error: input.error ?? null,
     confirmed_by: null,
+    provider_call_id: null,
     resolved_at: new Date().toISOString(),
   });
 }
+
+const PROPOSAL_COLUMNS =
+  "id, conversation_id, tool, tool_version, arguments, status, result, error, provider_call_id, created_at";
 
 export async function getProposal(toolCallId: string): Promise<AssistantToolCall | null> {
   const db = await assistantDb();
   const { data } = await db
     .from("assistant_tool_calls")
-    .select("id, conversation_id, tool, arguments, status, result, error, created_at")
+    .select(PROPOSAL_COLUMNS)
     .eq("id", toolCallId)
     .single();
 
@@ -171,12 +182,36 @@ export async function getProposal(toolCallId: string): Promise<AssistantToolCall
     id: row.id,
     conversationId: row.conversation_id,
     tool: row.tool,
+    toolVersion: row.tool_version,
     arguments: (row.arguments ?? {}) as Record<string, unknown>,
     status: row.status,
     result: row.result,
     error: row.error,
+    providerCallId: row.provider_call_id,
     createdAt: row.created_at,
   };
+}
+
+/**
+ * Revendica ATOMIC executia unei propuneri: `proposed -> executing` intr-o SINGURA
+ * instructiune SQL conditionata (`where status = 'proposed'`) - Postgres serializeaza
+ * doua UPDATE-uri concurente pe acelasi rand (MVCC), deci a doua cerere gaseste
+ * randul deja `executing` si nu afecteaza niciun rand. Intoarce `false` cand
+ * revendicarea a esuat (deja revendicata/rezolvata de o alta cerere) - apelantul
+ * (`run.ts#confirmAction`) NU trebuie sa mai execute tool-ul in acest caz.
+ */
+export async function claimProposal(toolCallId: string): Promise<boolean> {
+  const db = await assistantDb();
+  const { data, error } = await db
+    .from("assistant_tool_calls")
+    .update({ status: "executing" })
+    .eq("id", toolCallId)
+    .eq("status", "proposed")
+    .select("id")
+    .maybeSingle();
+
+  if (error) throw new Error("Nu am putut revendica acțiunea pentru execuție.");
+  return Boolean(data);
 }
 
 export async function resolveProposal(input: {

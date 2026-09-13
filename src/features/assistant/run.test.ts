@@ -20,6 +20,7 @@ vi.mock("./service", () => ({
   saveProposal: vi.fn().mockResolvedValue("call-1"),
   logReadCall: vi.fn().mockResolvedValue(undefined),
   getProposal: vi.fn(),
+  claimProposal: vi.fn(),
   resolveProposal: vi.fn().mockResolvedValue(undefined),
 }));
 
@@ -51,10 +52,12 @@ const QUOTA = {
 
 /** Furnizor scriptat: fiecare apel consuma urmatorul raspuns din coada. */
 class ScriptedProvider implements ChatProvider {
-  readonly name = "scripted";
   readonly calls: { messages: unknown[] }[] = [];
 
-  constructor(private readonly script: Partial<ChatCompletion>[]) {}
+  constructor(
+    private readonly script: Partial<ChatCompletion>[],
+    readonly name: string = "scripted",
+  ) {}
 
   async complete({ messages }: { messages: unknown[] }): Promise<ChatCompletion> {
     this.calls.push({ messages: [...messages] });
@@ -73,6 +76,7 @@ function readTool(execute = vi.fn().mockResolvedValue({ rezultat: "ok" })) {
     description: "x",
     parameters: { type: "object" },
     roles: ["admin"],
+    version: 1,
     kind: "read" as const,
     parse: (args: unknown) => args,
     execute,
@@ -85,10 +89,23 @@ function writeTool(execute = vi.fn().mockResolvedValue({ client_id: "c1" })) {
     description: "x",
     parameters: { type: "object" },
     roles: ["admin"],
+    version: 1,
     kind: "write" as const,
     parse: (args: unknown) => args,
     summary: () => "Creează clientul ACME SRL",
-    fields: () => [{ name: "denumire", label: "Denumire", value: "ACME SRL" }],
+    presentation: async (input: Record<string, unknown>) => ({
+      renderer: "generic" as const,
+      fields: [
+        {
+          name: "denumire",
+          label: "Denumire",
+          displayValue: String(input.denumire ?? ""),
+          editable: true,
+          kind: "text" as const,
+          value: String(input.denumire ?? ""),
+        },
+      ],
+    }),
     execute,
   };
 }
@@ -100,6 +117,7 @@ beforeEach(() => {
   vi.mocked(service.createConversation).mockResolvedValue("conv-1");
   vi.mocked(service.saveProposal).mockResolvedValue("call-1");
   vi.mocked(service.listMessages).mockResolvedValue([]);
+  vi.mocked(service.claimProposal).mockResolvedValue(true);
 });
 
 describe("runAssistantTurn", () => {
@@ -122,11 +140,14 @@ describe("runAssistantTurn", () => {
     expect(execute).toHaveBeenCalledWith({ text: "beton" }, CTX);
     expect(turn.reply).toBe("Am găsit 2 rezultate.");
     expect(turn.pendingAction).toBeNull();
+    expect(service.logReadCall).toHaveBeenCalledWith(
+      expect.objectContaining({ tool: "cauta", toolVersion: 1, ok: true }),
+    );
     // A doua rundă a primit rezultatul tool-ului.
     expect(JSON.stringify(provider.calls[1].messages)).toContain("gasit");
   });
 
-  it("NU executa tool-urile de scriere: le propune spre confirmare", async () => {
+  it("NU executa tool-urile de scriere: le propune spre confirmare, cu card tipat", async () => {
     const execute = vi.fn();
     vi.mocked(findTool).mockReturnValue(writeTool(execute) as never);
 
@@ -147,13 +168,28 @@ describe("runAssistantTurn", () => {
     expect(service.saveProposal).toHaveBeenCalledWith({
       conversationId: "conv-1",
       tool: "creeaza_client",
+      toolVersion: 1,
       arguments: { cui: "123", denumire: "ACME SRL" },
+      providerCallId: "t1",
     });
     expect(turn.pendingAction).toEqual({
       toolCallId: "call-1",
       tool: "creeaza_client",
+      toolVersion: 1,
       summary: "Creează clientul ACME SRL",
-      fields: [{ name: "denumire", label: "Denumire", value: "ACME SRL" }],
+      presentation: {
+        renderer: "generic",
+        fields: [
+          {
+            name: "denumire",
+            label: "Denumire",
+            displayValue: "ACME SRL",
+            editable: true,
+            kind: "text",
+            value: "ACME SRL",
+          },
+        ],
+      },
     });
   });
 
@@ -241,14 +277,16 @@ describe("confirmAction / rejectAction", () => {
     id: "call-1",
     conversationId: "conv-1",
     tool: "creeaza_client",
+    toolVersion: 1,
     arguments: { cui: "12345678", denumire: "ACME SRL" },
     status: "proposed" as const,
     result: null,
     error: null,
+    providerCallId: "t1",
     createdAt: "2026-09-13T10:00:00Z",
   };
 
-  it("executa actiunea confirmata, cu argumentele corectate in UI", async () => {
+  it("executa actiunea confirmata, cu argumentele corectate in UI (revendicare reusita)", async () => {
     const tool = writeTool();
     vi.mocked(findTool).mockReturnValue(tool as never);
     vi.mocked(service.getProposal).mockResolvedValue(proposal);
@@ -257,8 +295,10 @@ describe("confirmAction / rejectAction", () => {
       toolCallId: "call-1",
       ctx: CTX,
       overrides: { denumire: "ACME RECICLARE SRL" },
+      provider: new ScriptedProvider([], "mock"),
     });
 
+    expect(service.claimProposal).toHaveBeenCalledWith("call-1");
     expect(tool.execute).toHaveBeenCalledWith(
       { cui: "12345678", denumire: "ACME RECICLARE SRL" },
       CTX,
@@ -269,17 +309,96 @@ describe("confirmAction / rejectAction", () => {
     expect(turn.reply).toContain("Gata");
   });
 
-  it("marcheaza esecul fara sa arunce", async () => {
+  it("marcheaza esecul fara sa arunce (dupa revendicare reusita)", async () => {
     const tool = writeTool(vi.fn().mockRejectedValue(new Error("Există deja un client cu CUI.")));
     vi.mocked(findTool).mockReturnValue(tool as never);
     vi.mocked(service.getProposal).mockResolvedValue(proposal);
 
-    const turn = await confirmAction({ toolCallId: "call-1", ctx: CTX });
+    const turn = await confirmAction({
+      toolCallId: "call-1",
+      ctx: CTX,
+      provider: new ScriptedProvider([], "mock"),
+    });
 
     expect(service.resolveProposal).toHaveBeenCalledWith(
       expect.objectContaining({ status: "failed", error: "Există deja un client cu CUI." }),
     );
     expect(turn.reply).toContain("Există deja un client cu CUI.");
+  });
+
+  it("eroare de validare la confirmare: RECUPERABILA - propunerea nu se rezolva, executia nu porneste", async () => {
+    const tool = writeTool();
+    let firstCall = true;
+    tool.parse = (args: unknown) => {
+      if (firstCall) {
+        firstCall = false;
+        throw new InvalidToolArgumentsError('Câmpul "cui" este obligatoriu.');
+      }
+      return args;
+    };
+    vi.mocked(findTool).mockReturnValue(tool as never);
+    vi.mocked(service.getProposal).mockResolvedValue(proposal);
+
+    const turn = await confirmAction({
+      toolCallId: "call-1",
+      ctx: CTX,
+      overrides: { cui: "" },
+      provider: new ScriptedProvider([], "mock"),
+    });
+
+    expect(service.claimProposal).not.toHaveBeenCalled();
+    expect(service.resolveProposal).not.toHaveBeenCalled();
+    expect(tool.execute).not.toHaveBeenCalled();
+    expect(turn.reply).toContain("obligatoriu");
+    expect(turn.pendingAction?.toolCallId).toBe("call-1");
+  });
+
+  it("revendicare esuata (deja procesata concurent): NU executa a doua oara", async () => {
+    const tool = writeTool();
+    vi.mocked(findTool).mockReturnValue(tool as never);
+    vi.mocked(service.getProposal).mockResolvedValue(proposal);
+    vi.mocked(service.claimProposal).mockResolvedValue(false);
+
+    const turn = await confirmAction({
+      toolCallId: "call-1",
+      ctx: CTX,
+      provider: new ScriptedProvider([], "mock"),
+    });
+
+    expect(tool.execute).not.toHaveBeenCalled();
+    expect(service.resolveProposal).not.toHaveBeenCalled();
+    expect(turn.reply).toContain("deja procesată");
+  });
+
+  it("continuare automata DOAR pe furnizor real - modelul propune pasul urmator", async () => {
+    const tool = writeTool();
+    vi.mocked(findTool).mockReturnValue(tool as never);
+    vi.mocked(service.getProposal).mockResolvedValue(proposal);
+
+    const provider = new ScriptedProvider(
+      [{ content: "Acum pregătesc comanda pentru ACME." }],
+      "openai-compatible",
+    );
+
+    const turn = await confirmAction({ toolCallId: "call-1", ctx: CTX, provider });
+
+    expect(provider.calls).toHaveLength(1);
+    expect(turn.reply).toContain("Gata");
+    expect(turn.reply).toContain("Acum pregătesc comanda pentru ACME.");
+  });
+
+  it("continuare DEZACTIVATA pe furnizorul mock - nu se mai apeleaza providerul", async () => {
+    const tool = writeTool();
+    vi.mocked(findTool).mockReturnValue(tool as never);
+    vi.mocked(service.getProposal).mockResolvedValue(proposal);
+
+    const provider = new ScriptedProvider([{ content: "nu ar trebui apelat" }], "mock");
+
+    const turn = await confirmAction({ toolCallId: "call-1", ctx: CTX, provider });
+
+    expect(provider.calls).toHaveLength(0);
+    expect(turn.reply).toContain("Gata");
+    expect(turn.reply).not.toContain("nu ar trebui apelat");
   });
 
   it("nu executa nimic la respingere si nici pe o propunere deja rezolvata", async () => {
@@ -294,7 +413,11 @@ describe("confirmAction / rejectAction", () => {
     );
 
     vi.mocked(service.getProposal).mockResolvedValue({ ...proposal, status: "confirmed" });
-    const turn = await confirmAction({ toolCallId: "call-1", ctx: CTX });
+    const turn = await confirmAction({
+      toolCallId: "call-1",
+      ctx: CTX,
+      provider: new ScriptedProvider([], "mock"),
+    });
 
     expect(tool.execute).not.toHaveBeenCalled();
     expect(turn.reply).toContain("nu mai este disponibilă");

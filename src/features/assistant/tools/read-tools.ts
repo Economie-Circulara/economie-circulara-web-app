@@ -27,10 +27,12 @@ export const cautaInManual: AssistantTool<{ intrebare: string }> = {
     "Folosește-l pentru orice întrebare de tipul 'cum fac X' sau 'unde găsesc Y'.",
   parameters: {
     type: "object",
+    additionalProperties: false,
     properties: { intrebare: { type: "string", description: "Întrebarea utilizatorului." } },
     required: ["intrebare"],
   },
   roles: ["super_admin", "admin", "operator", "client"],
+  version: 1,
   kind: "read",
   parse: (args) => ({ intrebare: requiredString(asObject(args), "intrebare") }),
   execute: async (input, ctx: ToolContext) => {
@@ -52,10 +54,12 @@ export const cauta: AssistantTool<{ text: string }> = {
     "utilizatorul curent. Întoarce rezultate grupate pe tip.",
   parameters: {
     type: "object",
+    additionalProperties: false,
     properties: { text: { type: "string", description: "Textul căutat." } },
     required: ["text"],
   },
   roles: ["super_admin", "admin", "operator", "client"],
+  version: 1,
   kind: "read",
   parse: (args) => ({ text: requiredString(asObject(args), "text") }),
   execute: async (input, ctx) => {
@@ -76,10 +80,12 @@ export const cautaFirmaDupaCui: AssistantTool<{ cui: string }> = {
     "Folosește-l ÎNAINTE de a propune crearea unui client, ca datele să fie corecte.",
   parameters: {
     type: "object",
+    additionalProperties: false,
     properties: { cui: { type: "string", description: "CUI-ul firmei, cu sau fără prefixul RO." } },
     required: ["cui"],
   },
   roles: ["super_admin", "admin", "operator"],
+  version: 1,
   kind: "read",
   parse: (args) => {
     const cui = normalizeCui(requiredString(asObject(args), "cui"));
@@ -96,9 +102,11 @@ export const listeazaClienti: AssistantTool<{ cautare: string | null }> = {
     "Folosește-l ca să găsești `client_id`-ul necesar pentru o comandă.",
   parameters: {
     type: "object",
+    additionalProperties: false,
     properties: { cautare: { type: "string", description: "Filtru după denumire sau CUI." } },
   },
   roles: ["super_admin", "admin", "operator"],
+  version: 1,
   kind: "read",
   parse: (args) => ({ cautare: optionalString(asObject(args), "cautare") }),
   execute: async (input) => {
@@ -120,9 +128,11 @@ export const itemiVandabili: AssistantTool<{ cautare: string | null }> = {
     "Folosește-l ca să găsești `item_id`-ul pentru liniile unei comenzi.",
   parameters: {
     type: "object",
+    additionalProperties: false,
     properties: { cautare: { type: "string", description: "Filtru după denumire." } },
   },
   roles: ["super_admin", "admin", "operator"],
+  version: 1,
   kind: "read",
   parse: (args) => ({ cautare: optionalString(asObject(args), "cautare") }),
   execute: async (input) => {
@@ -144,9 +154,11 @@ export const stocDisponibil: AssistantTool<{ item: string | null }> = {
   description: "Arată loturile din stoc și cantitățile rămase, opțional filtrate după item.",
   parameters: {
     type: "object",
+    additionalProperties: false,
     properties: { item: { type: "string", description: "Denumirea itemului (filtru)." } },
   },
   roles: ["super_admin", "admin", "operator"],
+  version: 1,
   kind: "read",
   parse: (args) => ({ item: optionalString(asObject(args), "item") }),
   execute: async (input) => {

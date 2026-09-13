@@ -11,6 +11,7 @@ import { systemPrompt } from "./prompt";
 import { getQuotaStatus, quotaMessage, trackUsage } from "./quota";
 import {
   appendMessage,
+  claimProposal,
   createConversation,
   getProposal,
   HISTORY_LIMIT,
@@ -28,7 +29,9 @@ import type { AssistantTurn, PendingAction, ToolContext } from "./types";
  *
  * Tool-urile de CITIRE se executa imediat si rezultatul se da inapoi modelului, in
  * aceeasi tura. Primul tool de SCRIERE opreste bucla: se salveaza ca propunere si se
- * intoarce in UI ca un card de confirmare. Nimic nu se scrie fara confirmare umana.
+ * intoarce in UI ca un card de confirmare TIPAT (`tools/presentation-types.ts`).
+ * Nimic nu se scrie fara confirmare umana, iar executia e revendicata ATOMIC
+ * (`confirmAction`) - vezi docs/plans/asistent-contract-capabilitati.md.
  */
 
 /** Cate runde de model acceptam intr-o tura (citire -> citire -> raspuns). */
@@ -44,28 +47,26 @@ function toolArguments(call: ProviderToolCall): Record<string, unknown> {
 }
 
 /** Rezultatul unui tool, trimis inapoi modelului ca mesaj `tool`. */
-function toolResultMessage(call: ProviderToolCall, payload: unknown): ChatMessage {
-  return {
-    role: "tool",
-    toolCallId: call.id,
-    content: JSON.stringify(payload).slice(0, 6000),
-  };
+function toolResultMessage(toolCallId: string, payload: unknown): ChatMessage {
+  return { role: "tool", toolCallId, content: JSON.stringify(payload).slice(0, 6000) };
 }
 
 function assistantCallMessage(call: ProviderToolCall): ChatMessage {
   return { role: "assistant", content: "", toolCalls: [call] };
 }
 
-function pendingActionFrom(
+async function pendingActionFrom(
   tool: AssistantTool<never>,
   input: never,
   toolCallId: string,
-): PendingAction {
+  ctx: ToolContext,
+): Promise<PendingAction> {
   return {
     toolCallId,
     tool: tool.name,
+    toolVersion: tool.version,
     summary: tool.summary?.(input) ?? `Execută ${tool.name}`,
-    fields: tool.fields?.(input) ?? [],
+    presentation: (await tool.presentation?.(input, ctx)) ?? { renderer: "generic", fields: [] },
   };
 }
 
@@ -160,7 +161,7 @@ async function converse(input: {
     if (!tool) {
       messages.push(assistantCallMessage(call));
       messages.push(
-        toolResultMessage(call, { eroare: `Tool necunoscut sau nepermis: ${call.name}.` }),
+        toolResultMessage(call.id, { eroare: `Tool necunoscut sau nepermis: ${call.name}.` }),
       );
       continue;
     }
@@ -172,7 +173,7 @@ async function converse(input: {
     } catch (err) {
       const reason = err instanceof InvalidToolArgumentsError ? err.message : "Argumente invalide.";
       messages.push(assistantCallMessage(call));
-      messages.push(toolResultMessage(call, { eroare: reason }));
+      messages.push(toolResultMessage(call.id, { eroare: reason }));
       continue;
     }
 
@@ -180,32 +181,41 @@ async function converse(input: {
       const toolCallId = await saveProposal({
         conversationId: id,
         tool: tool.name,
+        toolVersion: tool.version,
         arguments: rawArgs,
+        providerCallId: call.id,
       });
       return {
         reply:
           completion.content.trim() ||
           "Am pregătit acțiunea de mai jos. Verific-o și confirm-o ca să o execut.",
-        pendingAction: pendingActionFrom(tool, parsed, toolCallId),
+        pendingAction: await pendingActionFrom(tool, parsed, toolCallId, ctx),
       };
     }
 
     try {
       const result = await tool.execute(parsed, ctx);
-      await logReadCall({ conversationId: id, tool: tool.name, arguments: rawArgs, ok: true });
+      await logReadCall({
+        conversationId: id,
+        tool: tool.name,
+        toolVersion: tool.version,
+        arguments: rawArgs,
+        ok: true,
+      });
       messages.push(assistantCallMessage(call));
-      messages.push(toolResultMessage(call, result));
+      messages.push(toolResultMessage(call.id, result));
     } catch (err) {
       const reason = err instanceof Error ? err.message : "Eroare la execuția tool-ului.";
       await logReadCall({
         conversationId: id,
         tool: tool.name,
+        toolVersion: tool.version,
         arguments: rawArgs,
         ok: false,
         error: reason,
       });
       messages.push(assistantCallMessage(call));
-      messages.push(toolResultMessage(call, { eroare: reason }));
+      messages.push(toolResultMessage(call.id, { eroare: reason }));
     }
   }
 
@@ -217,8 +227,52 @@ async function converse(input: {
 }
 
 /**
+ * Reconstruieste mesajele necesare ca sa reluam conversatia cu modelul dupa o
+ * confirmare: istoricul persistat (care se opreste la raspunsul "Am pregătit
+ * acțiunea...") + perechea assistant(tool_calls)/tool(result) a apelului tocmai
+ * executat - NICIODATA persistata in `assistant_messages` (doar in `assistant_tool_calls`,
+ * de aceea avem nevoie de `provider_call_id`, vezi migrarea 0024).
+ */
+async function messagesForContinuation(input: {
+  conversationId: string;
+  ctx: ToolContext;
+  tool: string;
+  toolCallId: string;
+  args: Record<string, unknown>;
+  result: unknown;
+}): Promise<ChatMessage[]> {
+  const org = await getCurrentOrg();
+  const history = (await listMessages(input.conversationId)).slice(-HISTORY_LIMIT);
+  const call: ProviderToolCall = {
+    id: input.toolCallId,
+    name: input.tool,
+    arguments: JSON.stringify(input.args),
+  };
+
+  return [
+    { role: "system", content: systemPrompt(input.ctx, org?.name ?? PLATFORM_NAME) },
+    ...history.map((entry) => ({
+      role: entry.role === "tool" ? ("assistant" as const) : entry.role,
+      content: entry.content,
+    })),
+    assistantCallMessage(call),
+    toolResultMessage(input.toolCallId, input.result),
+  ];
+}
+
+/**
  * Executa o actiune propusa, dupa confirmarea utilizatorului. Argumentele pot fi
  * CORECTATE in UI - de aceea se re-valideaza aici, exact ca un `FormData` din browser.
+ *
+ * Trei garzi, in ordine:
+ *  1. `tool.parse` - o eroare aici e RECUPERABILA: propunerea ramane `proposed`,
+ *     ratspunsul explica ce e de corectat, cardul ramane deschis (nu se apeleaza
+ *     `resolveProposal`, deci nimic nu se "consuma").
+ *  2. `claimProposal` - revendicare ATOMICA `proposed -> executing`; esecul
+ *     inseamna ca o alta cerere concurenta a executat deja actiunea (dublu-click,
+ *     doua file) - NU executam a doua oara.
+ *  3. `tool.execute` - o eroare aici e TERMINALA (regula de business incalcata,
+ *     ex. CUI duplicat) - propunerea devine `failed`.
  */
 export async function confirmAction(input: {
   toolCallId: string;
@@ -226,13 +280,14 @@ export async function confirmAction(input: {
   overrides?: Record<string, unknown>;
   provider?: ChatProvider;
 }): Promise<AssistantTurn> {
-  const { ctx } = input;
+  const { ctx, provider = getChatProvider() } = input;
   const proposal = await getProposal(input.toolCallId);
 
   if (!proposal || proposal.status !== "proposed") {
     return {
       conversationId: proposal?.conversationId ?? "",
-      reply: "Acțiunea nu mai este disponibilă (a fost deja confirmată sau anulată).",
+      reply:
+        "Acțiunea nu mai este disponibilă (a fost deja confirmată, anulată sau e în execuție).",
       pendingAction: null,
       quota: await getQuotaStatus(ctx),
     };
@@ -256,9 +311,38 @@ export async function confirmAction(input: {
 
   const args = { ...proposal.arguments, ...(input.overrides ?? {}) };
 
-  let reply: string;
+  let parsed: never;
   try {
-    const parsed = tool.parse(args) as never;
+    parsed = tool.parse(args) as never;
+  } catch (err) {
+    // GARDA 1 - recuperabila: NU marcam propunerea `failed`. Reconstruim cardul din
+    // argumentele ORIGINALE (validate deja o data la propunere), ca utilizatorul sa
+    // poata incerca din nou - editarea lui gresita se pierde, dar propunerea nu.
+    const reason = err instanceof InvalidToolArgumentsError ? err.message : "Argumente invalide.";
+    const original = tool.parse(proposal.arguments) as never;
+    return {
+      conversationId: proposal.conversationId,
+      reply: `Nu am putut aplica modificarea: ${reason} Corectează și confirmă din nou.`,
+      pendingAction: await pendingActionFrom(tool, original, proposal.id, ctx),
+      quota: await getQuotaStatus(ctx),
+    };
+  }
+
+  // GARDA 2 - revendicare atomica. Vezi `service.ts#claimProposal`.
+  const claimed = await claimProposal(proposal.id);
+  if (!claimed) {
+    return {
+      conversationId: proposal.conversationId,
+      reply: "Această acțiune a fost deja procesată (posibil dintr-o altă filă).",
+      pendingAction: null,
+      quota: await getQuotaStatus(ctx),
+    };
+  }
+
+  let reply: string;
+  let pendingAction: PendingAction | null = null;
+  try {
+    // GARDA 3 - executie efectiva.
     const result = await tool.execute(parsed, ctx);
     await resolveProposal({
       toolCallId: proposal.id,
@@ -267,7 +351,36 @@ export async function confirmAction(input: {
       arguments: args,
       result,
     });
-    reply = `Gata: ${tool.summary?.(parsed) ?? tool.name}. Rezultat: ${JSON.stringify(result)}`;
+    reply = `Gata: ${tool.summary?.(parsed) ?? tool.name}.`;
+
+    // Continuarea automata a obiectivului multi-pas (docs/plans/asistent-contract-capabilitati.md,
+    // decizia 2): DOAR pe furnizor real. `MockChatProvider` decide dupa ULTIMUL mesaj
+    // `user` (cuvinte cheie) - n-are cum sa interpreteze un rezultat de tool, deci ar
+    // produce mereu introducerea generica ("Rulez pe furnizorul de test..."), o
+    // regresie fata de linia determinista de mai sus.
+    if (provider.name !== "mock") {
+      try {
+        const continuationMessages = await messagesForContinuation({
+          conversationId: proposal.conversationId,
+          ctx,
+          tool: proposal.tool,
+          toolCallId: proposal.providerCallId ?? proposal.id,
+          args,
+          result,
+        });
+        const continuation = await converse({
+          id: proposal.conversationId,
+          ctx,
+          provider,
+          messages: continuationMessages,
+        });
+        if (continuation.reply.trim()) reply = `${reply}\n\n${continuation.reply.trim()}`;
+        pendingAction = continuation.pendingAction;
+      } catch {
+        // Best-effort: daca modelul nu poate fi contactat pentru continuare, utilizatorul
+        // tot vede confirmarea deterministă de mai sus - nu transformam asta intr-o eroare.
+      }
+    }
   } catch (err) {
     const reason = err instanceof Error ? err.message : "Acțiunea a eșuat.";
     await resolveProposal({
@@ -289,7 +402,7 @@ export async function confirmAction(input: {
   return {
     conversationId: proposal.conversationId,
     reply,
-    pendingAction: null,
+    pendingAction,
     quota: await getQuotaStatus(ctx),
   };
 }
