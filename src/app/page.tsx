@@ -1,7 +1,9 @@
 import { headers } from "next/headers";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { getOrgBranding } from "@/features/auth/queries";
+import { getCurrentUser, homePathForRole } from "@/features/auth/session";
 import { resolveTenant } from "@/features/auth/tenant";
 import { PLATFORM_DESCRIPTION, PLATFORM_NAME } from "@/lib/brand";
 
@@ -54,6 +56,9 @@ const CAPABILITIES = [
 ];
 
 export default async function Home() {
+  const user = await getCurrentUser();
+  if (user) redirect(homePathForRole(user.role));
+
   const h = await headers();
   const hint = resolveTenant(h.get("host"), "/", process.env.NEXT_PUBLIC_ROOT_DOMAIN);
   const branding = await getOrgBranding(hint);

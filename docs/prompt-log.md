@@ -13,6 +13,16 @@ Format intrare:
 
 ---
 
+## 2026-09-13 — Codex GPT-5 — Redirect de siguranta de pe pagina principala
+
+- **Cerut:** magic link-ul tot ajungea pe pagina principala dupa deploy, nu in dashboard.
+- **Facut:** pagina `/` verifica acum sesiunea si redirecteaza utilizatorii autentificati
+  catre ruta rolului (`homePathForRole`), astfel incat chiar si un link/callback care
+  ajunge la root nu lasa userul logat pe landing page. Testul paginii principale acopera
+  redirectul pentru admin.
+- **Verificat:** `pnpm vitest run src/app/page.test.tsx src/app/auth/callback/route.test.ts`,
+  `pnpm typecheck`, `pnpm lint`.
+
 ## 2026-09-13 — Codex GPT-5 — Redirect magic link catre dashboard-ul rolului
 
 - **Cerut:** magic link-ul nu mai dadea eroare, dar dupa autentificare trimitea la pagina
