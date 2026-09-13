@@ -13,6 +13,16 @@ Format intrare:
 
 ---
 
+## 2026-09-14 — Codex GPT-5 — Rezolvare conflict PR #28
+
+- **Cerut:** crearea PR-ului pentru logo-ul din sidebar si homepage-ul accesibil dupa
+  autentificare.
+- **Facut:** creat PR #28, integrat ultima versiune `origin/main` fara rescrierea
+  istoricului si rezolvat conflictul unic din `docs/prompt-log.md`, pastrand toate
+  intrarile ambelor ramuri.
+- **Verificat:** `pnpm test` (712 teste), `pnpm typecheck`, `pnpm lint` si `pnpm build`
+  (cu valori locale fictive pentru variabilele Supabase cerute la prerandare).
+
 ## 2026-09-14 — Claude Sonnet 5 — Fix accept_order pentru itemi service + teste SQL stricate
 
 - **Cerut:** o comandă cu un item `kind = 'service'` (abonament) nu putea fi acceptată
@@ -64,6 +74,21 @@ Format intrare:
   `issuer.test.ts`, `settings/actions.test.ts`, extensie `certificates/service.test.ts`);
   verificare manuală completă în UI local (completare Setări -> flux comandă nou
   -> certificat web + PDF descărcat din Storage, ambele arată linia).
+
+## 2026-09-13 — Codex GPT-5 — Logo sidebar si homepage autentificat
+
+- **Cerut:** eliminarea textului „Powered by”, marirea si centrarea logo-ului Lot cu Lot
+  din sidebar, link catre homepage si pastrarea homepage-ului accesibil dupa autentificare
+  cu CTA catre zona utilizatorului.
+- **Facut:** footer-ul desktop contine doar logo-ul de 48 px, centrat si clickable spre
+  `/`; meniul mobil ramane neschimbat. Homepage-ul nu mai redirectioneaza automat
+  utilizatorii autentificati, ci afiseaza numele lor si CTA-ul potrivit rolului catre
+  dashboard, portal sau administrarea platformei. Fluxurile Auth cu `code`/`token_hash`
+  continua sa fie trimise prioritar la callback. Plan:
+  `docs/plans/sidebar-logo-home-authenticated.md`.
+- **Verificat:** documentatia curenta Supabase pentru autentificare server-side,
+  `pnpm test` (690 teste), `pnpm typecheck`, `pnpm lint` si `pnpm build` (cu valori locale
+  fictive pentru variabilele Supabase cerute la prerandare).
 
 ## 2026-09-13 — Codex GPT-5 — Rezolvare conflict PR #25
 
