@@ -13,6 +13,18 @@ Format intrare:
 
 ---
 
+## 2026-09-13 — Codex GPT-5 — Rezolvare conflicte PR magic link
+
+- **Cerut:** rezolvarea conflictelor de merge din PR-ul pentru autentificarea prin magic
+  link.
+- **Facut:** integrat `origin/main` in branch-ul PR-ului si rezolvat conflictul unic din
+  `docs/prompt-log.md`, pastrand integral si in ordine cronologica intrarile ambelor
+  branch-uri. Restul modificarilor din `main` s-au integrat automat.
+- **Verificat:** 686/686 teste unitare, `pnpm typecheck`, `pnpm lint` si Prettier pe
+  fisierul rezolvat. Verificarea Prettier globala semnaleaza doua fisiere nemodificate de
+  acest PR, deja neformatate in `main`: `src/components/layout/app-shell.tsx` si
+  `src/features/recipes/actions.test.ts`.
+
 ## 2026-09-13 — Codex GPT-5 — Flux magic link determinist
 
 - **Cerut:** dupa mai multe fixuri de redirect, magic link-ul tot nu autentifica; userul
@@ -32,7 +44,57 @@ Format intrare:
   si Prettier pe fisierele schimbate. Build-ul compileaza si trece TypeScript;
   prerandarea locala se opreste fiindca worktree-ul nu are cheile Supabase din
   `.env.local`.
+## 2026-09-13 — Claude Opus 5 — Date demo pentru recepție (producție)
 
+- **Cerut:** migrarea la zi pe producție și conturi/date demo valide și complexe.
+- **Facut:** migrarea 0019 aplicată pe proiectul hosted. `supabase/demo/seed-demo.sql`
+  (organizația izolată `beton-circular`, 7 conturi, ~6 luni de istoric prin RPC-urile
+  reale, verificare de consistență a stocului), `teardown-demo.sql`, `README.md`;
+  `scripts/demo/export-demo-data.sql` + `build-demo-artifacts.tsx` (certificate PDF și
+  documente cu codul aplicației, urcate cu `supabase storage cp`). Rulat în producție:
+  47 comenzi, 75 loturi, 33 procese, 34 livrări, 27 certificate, 15 documente. Plan:
+  `docs/plans/demo-data-productie.md`.
+- **Verificat:** seed + teardown pe Supabase local; smoke Playwright local pe 22 de ecrane
+  (admin, client, super-admin) cu datele demo; în producție, verificări SQL (statusuri,
+  fișiere existente în Storage pentru fiecare certificat/document).
+
+## 2026-09-13 — Claude Opus 5 — Fix randare PDF certificat și aviz
+
+- **Cerut:** (descoperit la generarea certificatelor demo) PDF-urile nu se randau.
+- **Facut:** `src/lib/pdf/fonts.ts` înregistrează și variante italic (mapate pe fișierele
+  drepte) - lipsa lor făcea certificatul și avizul să arunce la randare din commit-ul
+  `41e5476`. Graful din certificatul PDF: font cu diacritice pe textele SVG, înălțime după
+  numărul de noduri, etichete trunchiate la lățimea coloanei. Test nou de randare reală
+  `src/lib/pdf/render.test.tsx` (pică fără fix).
+- **Verificat:** `pnpm typecheck`, `pnpm lint`, `pnpm test`; certificate reale inspectate vizual.
+
+
+## 2026-09-13 — Claude Opus 5 — Asistent AI cu acțiuni și quota (`/asistent`)
+
+- **Cerut:** branch nou cu asistentul AI; fiecare user/organizatie sa aiba quota, iar
+  interfata sa arate ca feature-ul e inclus limitat si ca extinderea poate fi platita.
+- **Facut:** `src/features/assistant/` + ruta `/asistent` (in grupul `(help)`, guard
+  `requireUser`). Furnizor LLM abstractizat OpenAI-compatibil (Mistral/Groq/OpenRouter/
+  OpenAI) cu mock implicit fara chei. Registry de tool-uri filtrat pe rol: citire
+  (manual, cautare globala, CUI ANAF, clienti, itemi vandabili, stoc) si scriere
+  (`creeaza_client`, `creeaza_comanda`, `trimite_comanda`). Scrierile nu se executa
+  niciodata direct: se salveaza ca propunere, iar UI-ul cere confirmare pe argumente
+  editabile, re-validate pe server. Cautarea in manual refoloseste `extractToc` din
+  feature-ul `/ajutor` (sectiuni h2/h3 scorate lexical, cu link la ancora).
+  Migrarea `0020_assistant.sql`: conversatii/mesaje/propuneri (RLS personal), consum
+  zilnic + RPC atomic de contorizare, coloane `organizations.ai_*` si trigger
+  `app.enforce_ai_limits` (adminul organizatiei NU isi poate ridica singur quota).
+  Quota: mesaje/luna per organizatie + plafon zilnic per user, afisate intr-un card cu
+  mesajul comercial; la depasire nu se mai apeleaza deloc furnizorul.
+- **Verificat:** `pnpm typecheck`, `pnpm lint`, `pnpm test` (671 teste, 38 noi: registry
+  si roluri, validarea argumentelor, bucla de conversatie cu furnizor scriptat -
+  inclusiv un fixture de prompt injection -, quota, cautarea in manual pe documentele
+  reale, formatul cererii catre furnizor), `pnpm build`.
+- **Nerulat aici** (mediul nu are Docker, deci nici Supabase local): migrarea
+  `0020`, `supabase/tests/assistant_rls.sql` (`pnpm db:test:assistant`),
+  `tests/e2e/asistent.spec.ts` si `pnpm gen:types` - de rulat local inainte de merge.
+  Pana la `gen:types`, tipurile tabelelor noi sunt scrise de mana in
+  `src/features/assistant/db.ts`.
 ## 2026-09-13 — Codex GPT-5 — Root callback bridge pentru magic link
 
 - **Cerut:** magic link-ul Resend/Supabase redirectiona catre
@@ -64,6 +126,48 @@ Format intrare:
   raman neschimbate.
 - **Verificat:** `pnpm vitest run src/app/auth/callback/route.test.ts`, `pnpm typecheck`,
   `pnpm lint`.
+
+## 2026-09-13 — Claude Opus 5 — Manual de utilizare in aplicatie (`/ajutor`)
+
+- **Cerut:** un „manual de utilizare" accesibil din aplicatie, pentru oameni care nu stiu
+  sa foloseasca platforma: sursele raman in markdown, iar in React se randeaza md -> html.
+  Acces doar autentificat, filtrat pe rol; asistentul AI discutat separat (nu in acest task).
+- **Facut:** ruta `/ajutor` (grup nou `(help)`, o singura definitie pentru toate rolurile,
+  guard `requireUser`) cu index de documente si pagina de document cu cuprins sticky.
+  `src/features/manual/` contine catalogul cu roluri (`registry.ts`), extractorul de cuprins
+  (`toc.ts`), pluginul remark pentru `{#id}` (`remark-heading-id.ts`), rescrierea link-urilor
+  si a imaginilor (`links.ts`), guard-ul de path traversal (`image-path.ts`), cititorul
+  memoizat (`loader.ts`) si randarea cu `react-markdown` mapata pe design system
+  (`manual-content.tsx`). Capturile din `docs/manual/img/` sunt servite autentificat de
+  `/ajutor/img/[...path]` (folderul e in afara lui `public/`, ca markdown-ul din `docs/` sa
+  ramana sursa unica). Intrare noua in sidebar (`HELP_NAV_ITEM`, separata de `STAFF_NAV`,
+  ca testul de guard din smoke sa ramana corect) + `outputFileTracingIncludes` pentru
+  `docs/manual`. Corectat in documentatie paragraful care sustinea ca nu exista capturi si
+  cele doua locuri unde `<...>` era inghitit ca tag HTML la randare.
+- **Verificat:** `pnpm typecheck`, `pnpm lint`, `pnpm test` (624 teste, dintre care 33 noi),
+  `pnpm build` + verificarea `.nft.json` (5 fisiere `.md` si 28 PNG ajung in bundle).
+  Testul `manual-anchors.test.tsx` randeaza documentele REALE si verifica faptul ca fiecare
+  intrare din cuprins are titlul ei randat cu acelasi id. E2E (`tests/e2e/ajutor.spec.ts`)
+  scris, dar **nerulat**: mediul nu are Docker, deci nici Supabase local.
+- **Ramas:** cautare in documentatie, ajutor contextual per ecran si asistentul AI
+  (chat/RAG peste manual, agent pe datele proprii, server MCP) - vezi
+  [`plans/manual-in-app.md`](plans/manual-in-app.md).
+
+## 2026-09-13 — Claude Opus 5 — Plan: asistent AI cu actiuni (`docs/plans/task-asistent-ai.md`)
+
+- **Cerut:** planul pentru asistentul AI peste manual, dar **cu functionalitate** ("adauga
+  clientul X si fa-i o comanda"), plus intrebarea daca exista un chatbot gratuit utilizabil.
+- **Facut:** plan in 4 faze (chat peste manual -> tool-uri de citire -> tool-uri de scriere
+  cu confirmare -> server MCP). Principii: tool-urile ruleaza pe sesiunea utilizatorului
+  (RLS neschimbat, fara `SUPABASE_SECRET_KEY`), apeleaza serviciile existente in loc de SQL,
+  iar orice scriere cere confirmare umana pe argumentele propuse - ceea ce acopera si
+  prompt injection, si greselile modelelor mici. Furnizorul LLM e abstractizat OpenAI-compatibil,
+  cu mock implicit, ca la providerul de email.
+- **Despre free tier:** exista (Groq, Google AI Studio, Mistral Experiment, Cerebras,
+  OpenRouter `:free`), dar la aproape toate datele intra in antrenare - acceptabil doar
+  pentru Faza 1 (manual, continut public) si pentru dezvoltare. Pentru date reale de tenant:
+  tier platit, recomandat Mistral EU (~0,20 $/1M input), adica fractiuni de cent per conversatie.
+
 
 ## 2026-09-13 — Codex GPT-5 — Fix magic link Supabase SSR
 

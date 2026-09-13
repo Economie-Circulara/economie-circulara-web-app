@@ -5,6 +5,8 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import {
   BarChart3,
+  BookOpen,
+  Bot,
   Boxes,
   Factory,
   FileText,
@@ -50,6 +52,8 @@ const NAV_ICONS: Record<NavIconName, LucideIcon> = {
   settings: Settings,
   catalog: LayoutGrid,
   documents: FileText,
+  help: BookOpen,
+  assistant: Bot,
 };
 
 export interface SidebarProps {

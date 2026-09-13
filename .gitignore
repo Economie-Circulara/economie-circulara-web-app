@@ -44,3 +44,7 @@ src/lib/database.types.generated.ts
 # Worktree-uri temporare ale subagentilor (izolare paralela)
 .claude/worktrees/
 .vercel
+
+# Date demo generate local (supabase/demo/README.md)
+.demo-artifacts/
+.demo-artifacts.json
