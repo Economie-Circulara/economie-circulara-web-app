@@ -1,8 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // Mocks (nu spies - AGENTS.md §2.2).
-const { headers } = vi.hoisted(() => ({ headers: vi.fn() }));
-vi.mock("next/headers", () => ({ headers }));
+const { getSiteOrigin } = vi.hoisted(() => ({
+  getSiteOrigin: vi.fn().mockResolvedValue("https://www.lotculot.eu"),
+}));
+vi.mock("@/lib/site-url", () => ({ getSiteOrigin }));
 
 const { revalidatePath } = vi.hoisted(() => ({ revalidatePath: vi.fn() }));
 vi.mock("next/cache", () => ({ revalidatePath }));
@@ -46,12 +48,6 @@ function clientRow(overrides: Record<string, unknown> = {}) {
 const ADMIN = { id: "admin-1", role: "admin", organizationId: "org-1" };
 
 beforeEach(() => {
-  headers.mockResolvedValue(
-    new Map([
-      ["x-forwarded-proto", "https"],
-      ["host", "app.lotculot.eu"],
-    ]),
-  );
   getCurrentUser.mockResolvedValue(ADMIN);
 });
 
@@ -199,7 +195,7 @@ describe("inviteClientAction - flux fericit", () => {
     );
 
     expect(inviteUserByEmail).toHaveBeenCalledWith("client@acme.ro", {
-      redirectTo: "https://app.lotculot.eu/auth/callback?next=/set-password",
+      redirectTo: "https://www.lotculot.eu/auth/callback?next=/set-password",
     });
     expect(insert).toHaveBeenCalledWith({
       id: "user-1",

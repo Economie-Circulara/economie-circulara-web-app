@@ -1,9 +1,9 @@
 "use server";
 
-import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireRole } from "@/features/auth/session";
+import { getSiteOrigin } from "@/lib/site-url";
 import { isValidSlug } from "./slug";
 import {
   InviteFailedError,
@@ -17,13 +17,6 @@ import type { CreateOrganizationState, OrgStatusState } from "./form-state";
 
 function clean(value: FormDataEntryValue | null): string {
   return String(value ?? "").trim();
-}
-
-async function siteOrigin(): Promise<string> {
-  const h = await headers();
-  const proto = h.get("x-forwarded-proto") ?? "http";
-  const host = h.get("host") ?? "localhost:3000";
-  return `${proto}://${host}`;
 }
 
 const SLUG_ERROR_MESSAGE =
@@ -97,7 +90,7 @@ export async function createOrganizationAction(
     };
   }
 
-  const origin = await siteOrigin();
+  const origin = await getSiteOrigin();
   try {
     await inviteOrganizationAdmin(
       organizationId,
