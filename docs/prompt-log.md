@@ -13,6 +13,26 @@ Format intrare:
 
 ---
 
+## 2026-09-14 — Claude Sonnet 5 — Plan + model de date pentru planificarea optimizată a rutelor (Etapa 1/X7)
+
+- **Cerut:** răspunsul SKETON la scrisoarea de clarificări AM nr. 1/31905/AM/07.09.2026
+  (SMIS 350456) a amânat detalierea a 5 caracteristici funcționale minime; userul a decis
+  ca #1-#3 (producție/colectare/procesare deșeuri) rămân monitorizare manuală pe modulele
+  existente, iar #5 (planificare inteligentă/optimizarea rutelor) și #4 (confirmarea
+  recepției) cer funcționalitate nouă - un preview hartă Google cu 1-3 rute și "ruta
+  recomandată" la planificarea livrării.
+- **Facut:** plan complet în `docs/plans/rute-optimizate-livrari.md`; migrarea
+  `supabase/migrations/0024_route_planning.sql` (aditivă): tabel nou `organization_sites`
+  (puncte de plecare, staff-only), componente de adresă structurate + geocodare pe
+  `client_addresses`/`organization_sites` (pregătire pt. Google Routes/Geocoding și pt. o
+  viitoare declarație e-Transport structurată prin Socrate.io, S4 încă nerezolvat), și pe
+  `deliveries`: rezultatul calculului de rută (`route_distance_m`/`route_duration_s`/
+  `route_polyline`/`route_alternatives`/`route_selected_index`/`route_selection`/
+  `route_computed_at`) + confirmarea recepției (`received_at`/`received_by_name`/
+  `receipt_notes`). `database.types.ts` regenerat cu `pnpm gen:types` (stack local
+  Supabase disponibil în acest worktree).
+- **Verificat:** `pnpm db:reset`, `pnpm typecheck`, `pnpm test` (712 teste, toate trec).
+
 ## 2026-09-14 — Codex GPT-5 — Rezolvare conflict PR #28
 
 - **Cerut:** crearea PR-ului pentru logo-ul din sidebar si homepage-ul accesibil dupa
