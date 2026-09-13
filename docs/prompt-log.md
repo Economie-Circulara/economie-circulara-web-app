@@ -13,6 +13,17 @@ Format intrare:
 
 ---
 
+## 2026-09-13 — Codex GPT-5 — Co-branding Lot cu Lot in sidebar
+
+- **Cerut:** pastrarea discreta a logo-ului Lot cu Lot in sidebar, alaturi de brandingul
+  fiecarei organizatii, apoi commit si push.
+- **Facut:** footer desktop separat cu „Powered by” si wordmark-ul Lot cu Lot la
+  dimensiune redusa si opacitate temperata; brandingul organizatiei ramane in header,
+  iar meniul mobil nu primeste atribuirea suplimentara. Test unitar nou pentru ierarhia
+  celor doua branduri. Plan: `docs/plans/sidebar-platform-co-branding.md`.
+- **Verificat:** `pnpm test` (674 teste), `pnpm typecheck`, `pnpm lint`, `pnpm build`
+  (cu valori locale fictive pentru variabilele Supabase cerute la prerandare).
+
 ## 2026-09-13 — Codex GPT-5 — Logo Lot cu Lot pe homepage si favicon
 
 - **Cerut:** integrarea logo-ului SVG „Lot cu Lot” pe homepage si folosirea identitatii

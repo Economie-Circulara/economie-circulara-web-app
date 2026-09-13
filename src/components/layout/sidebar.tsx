@@ -110,11 +110,25 @@ function SidebarNav({ items, onNavigate }: { items: NavItem[]; onNavigate?: () =
   );
 }
 
+/** Atribuire discreta a platformei, separata de identitatea white-label a tenantului. */
+function PlatformAttribution() {
+  return (
+    <div className="border-t px-4 py-3">
+      <p className="text-muted-foreground mb-1 text-[10px] font-medium tracking-wider uppercase">
+        Powered by
+      </p>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src="/lot-cu-lot-logo.svg" alt="Lot cu Lot" className="h-6 w-auto max-w-28 opacity-70" />
+    </div>
+  );
+}
+
 export function Sidebar({ orgName, logoUrl, items }: SidebarProps) {
   return (
     <aside className="sticky top-0 hidden h-svh w-60 shrink-0 flex-col border-r bg-card lg:flex">
       <SidebarBrand orgName={orgName} logoUrl={logoUrl} />
       <SidebarNav items={items} />
+      <PlatformAttribution />
     </aside>
   );
 }
