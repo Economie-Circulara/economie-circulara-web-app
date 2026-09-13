@@ -125,7 +125,7 @@ export function AssistantChat({
           </div>
         ) : null}
 
-        <div className="space-y-3">
+        <div className="space-y-3" data-testid="chat-messages">
           {bubbles.map((bubble) => (
             <div
               key={bubble.id}

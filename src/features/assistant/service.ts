@@ -40,26 +40,34 @@ export async function listConversations(): Promise<AssistantConversation[]> {
   const db = await assistantDb();
   const { data } = await db
     .from("assistant_conversations")
-    .select("id, title, created_at")
+    .select("id, title, created_at, updated_at")
     .order("updated_at", { ascending: false })
     .limit(50);
 
-  return ((data ?? []) as Pick<AssistantConversationRow, "id" | "title" | "created_at">[]).map(
-    (row) => ({ id: row.id, title: row.title, createdAt: row.created_at }),
-  );
+  return (
+    (data ?? []) as Pick<AssistantConversationRow, "id" | "title" | "created_at" | "updated_at">[]
+  ).map((row) => ({
+    id: row.id,
+    title: row.title,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  }));
 }
 
 export async function getConversation(id: string): Promise<AssistantConversation | null> {
   const db = await assistantDb();
   const { data } = await db
     .from("assistant_conversations")
-    .select("id, title, created_at")
+    .select("id, title, created_at, updated_at")
     .eq("id", id)
     .maybeSingle();
 
-  const row = data as Pick<AssistantConversationRow, "id" | "title" | "created_at"> | null;
+  const row = data as Pick<
+    AssistantConversationRow,
+    "id" | "title" | "created_at" | "updated_at"
+  > | null;
   if (!row) return null;
-  return { id: row.id, title: row.title, createdAt: row.created_at };
+  return { id: row.id, title: row.title, createdAt: row.created_at, updatedAt: row.updated_at };
 }
 
 export async function appendMessage(input: {
