@@ -13,6 +13,21 @@ Format intrare:
 
 ---
 
+## 2026-09-13 — Codex GPT-5 — Logo sidebar si homepage autentificat
+
+- **Cerut:** eliminarea textului „Powered by”, marirea si centrarea logo-ului Lot cu Lot
+  din sidebar, link catre homepage si pastrarea homepage-ului accesibil dupa autentificare
+  cu CTA catre zona utilizatorului.
+- **Facut:** footer-ul desktop contine doar logo-ul de 48 px, centrat si clickable spre
+  `/`; meniul mobil ramane neschimbat. Homepage-ul nu mai redirectioneaza automat
+  utilizatorii autentificati, ci afiseaza numele lor si CTA-ul potrivit rolului catre
+  dashboard, portal sau administrarea platformei. Fluxurile Auth cu `code`/`token_hash`
+  continua sa fie trimise prioritar la callback. Plan:
+  `docs/plans/sidebar-logo-home-authenticated.md`.
+- **Verificat:** documentatia curenta Supabase pentru autentificare server-side,
+  `pnpm test` (690 teste), `pnpm typecheck`, `pnpm lint` si `pnpm build` (cu valori locale
+  fictive pentru variabilele Supabase cerute la prerandare).
+
 ## 2026-09-13 — Codex GPT-5 — Rezolvare conflict PR #25
 
 - **Cerut:** rezolvarea conflictului de merge pentru PR #25, branchul

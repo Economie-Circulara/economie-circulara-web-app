@@ -33,14 +33,6 @@ describe("Home", () => {
     getCurrentUser.mockResolvedValue(null);
   });
 
-  it("redirecteaza utilizatorii autentificati catre ruta rolului", async () => {
-    getCurrentUser.mockResolvedValue({ role: "admin" });
-
-    await Home();
-
-    expect(redirect).toHaveBeenCalledWith("/dashboard");
-  });
-
   it("paseaza codul Supabase primit la root catre callback-ul Auth", async () => {
     await Home({ searchParams: searchParams({ code: "abc" }) });
 
@@ -96,6 +88,29 @@ describe("Home", () => {
       expect(
         screen.getByRole("heading", { name: "Livrări, avize și e-Transport" }),
       ).toBeInTheDocument();
+    });
+  });
+
+  describe("pentru utilizatorul autentificat", () => {
+    beforeEach(() => {
+      getOrgBranding.mockResolvedValue(null);
+    });
+
+    it.each([
+      ["admin", "/dashboard", "Mergi la dashboard"],
+      ["operator", "/dashboard", "Mergi la dashboard"],
+      ["client", "/portal", "Mergi la portalul tău"],
+      ["super_admin", "/platform", "Administrează platforma"],
+    ])("ramane pe homepage si ofera CTA-ul rolului %s", async (role, href, label) => {
+      getCurrentUser.mockResolvedValue({ role, fullName: "Ana Popescu" });
+
+      await renderHome();
+
+      expect(redirect).not.toHaveBeenCalled();
+      expect(screen.getByText("Ești autentificat ca Ana Popescu.")).toBeInTheDocument();
+      expect(screen.getByRole("link", { name: label })).toHaveAttribute("href", href);
+      expect(screen.getByRole("link", { name: "Contul meu" })).toHaveAttribute("href", href);
+      expect(screen.queryByRole("link", { name: "Autentificare" })).not.toBeInTheDocument();
     });
   });
 

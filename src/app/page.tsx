@@ -81,7 +81,14 @@ export default async function Home({ searchParams }: HomeProps = {}) {
   }
 
   const user = await getCurrentUser();
-  if (user) redirect(homePathForRole(user.role));
+  const userHomePath = user ? homePathForRole(user.role) : null;
+  const userHomeLabel = user
+    ? user.role === "client"
+      ? "Mergi la portalul tău"
+      : user.role === "super_admin"
+        ? "Administrează platforma"
+        : "Mergi la dashboard"
+    : null;
 
   const h = await headers();
   const hint = resolveTenant(h.get("host"), "/", process.env.NEXT_PUBLIC_ROOT_DOMAIN);
@@ -115,7 +122,7 @@ export default async function Home({ searchParams }: HomeProps = {}) {
           ) : null}
         </div>
         <Button asChild size="sm" variant="outline">
-          <Link href="/login">Autentificare</Link>
+          <Link href={userHomePath ?? "/login"}>{user ? "Contul meu" : "Autentificare"}</Link>
         </Button>
       </header>
 
@@ -129,11 +136,25 @@ export default async function Home({ searchParams }: HomeProps = {}) {
           clientului — și dovedește-l cu documente.
         </p>
 
-        <div className="mt-8 flex flex-wrap gap-3">
-          <Button asChild variant="accent" size="lg">
-            <Link href="/login">Intră în platformă</Link>
-          </Button>
-        </div>
+        {user && userHomePath && userHomeLabel ? (
+          <div className="bg-card mt-8 max-w-xl rounded-xl border p-5 shadow-sm">
+            <p className="font-semibold">
+              Ești autentificat{user.fullName ? ` ca ${user.fullName}` : ""}.
+            </p>
+            <p className="text-muted-foreground mt-1 text-sm">
+              Continuă în spațiul tău de lucru din platformă.
+            </p>
+            <Button asChild variant="accent" size="lg" className="mt-4 w-full sm:w-auto">
+              <Link href={userHomePath}>{userHomeLabel}</Link>
+            </Button>
+          </div>
+        ) : (
+          <div className="mt-8 flex flex-wrap gap-3">
+            <Button asChild variant="accent" size="lg">
+              <Link href="/login">Intră în platformă</Link>
+            </Button>
+          </div>
+        )}
 
         <section aria-labelledby="capabilities" className="mt-16">
           <h2 id="capabilities" className="sr-only">
@@ -151,8 +172,9 @@ export default async function Home({ searchParams }: HomeProps = {}) {
       </main>
 
       <footer className="text-muted-foreground px-6 py-6 text-xs sm:px-10">
-        Accesul se face pe invitație. Dacă organizația ta folosește platforma, cere un cont
-        administratorului ei.
+        {user
+          ? "Ești autentificat și poți reveni oricând în spațiul tău de lucru."
+          : "Accesul se face pe invitație. Dacă organizația ta folosește platforma, cere un cont administratorului ei."}
       </footer>
     </div>
   );

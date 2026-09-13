@@ -16,7 +16,7 @@ const items = [
 ];
 
 describe("Sidebar", () => {
-  it("pastreaza organizatia ca brand principal si afiseaza discret platforma in footer", () => {
+  it("pastreaza organizatia sus si afiseaza logo-ul platformei centrat, cu link la homepage", () => {
     render(
       <Sidebar orgName="Beton Circular" logoUrl="https://example.com/org-logo.svg" items={items} />,
     );
@@ -25,10 +25,11 @@ describe("Sidebar", () => {
       "src",
       "https://example.com/org-logo.svg",
     );
-    expect(screen.getByText("Powered by")).toBeInTheDocument();
-    expect(screen.getByRole("img", { name: "Lot cu Lot" })).toHaveAttribute(
-      "src",
-      "/lot-cu-lot-logo.svg",
-    );
+    expect(screen.queryByText("Powered by")).not.toBeInTheDocument();
+
+    const platformLogo = screen.getByRole("img", { name: "Lot cu Lot" });
+    expect(platformLogo).toHaveAttribute("src", "/lot-cu-lot-logo.svg");
+    expect(platformLogo).toHaveClass("h-12");
+    expect(screen.getByRole("link", { name: "Lot cu Lot" })).toHaveAttribute("href", "/");
   });
 });
