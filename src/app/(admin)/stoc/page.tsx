@@ -13,7 +13,7 @@ const selectClassName =
   "flex h-9 w-full rounded-md border border-input bg-card px-3 py-1 text-sm shadow-xs outline-none sm:w-56";
 
 interface StocPageProps {
-  searchParams: Promise<{ item_id?: string; provenance?: string }>;
+  searchParams: Promise<{ item_id?: string; provenance?: string; view?: string }>;
 }
 
 /** Ecranul Stoc - lista loturilor (doar staff), cu filtre pe item si proveniență. */
@@ -26,10 +26,17 @@ export default async function StocPage({ searchParams }: StocPageProps) {
     ? (provenanceParam as LotProvenance)
     : undefined;
   const itemId = params.item_id || undefined;
+  const view = params.view === "lots" ? "lots" : "grouped";
 
   const [lots, items] = await Promise.all([listLots({ itemId, provenance }), listItemOptions()]);
 
   const hasFilters = Boolean(itemId || provenance);
+
+  const otherViewParams = new URLSearchParams();
+  if (itemId) otherViewParams.set("item_id", itemId);
+  if (provenance) otherViewParams.set("provenance", provenance);
+  if (view === "grouped") otherViewParams.set("view", "lots");
+  const otherViewHref = `/stoc${otherViewParams.size ? `?${otherViewParams.toString()}` : ""}`;
 
   return (
     <div className="space-y-6">
@@ -88,9 +95,14 @@ export default async function StocPage({ searchParams }: StocPageProps) {
             <Link href="/stoc">Resetează</Link>
           </Button>
         ) : null}
+        <Button asChild variant="ghost" className="sm:ml-auto">
+          <Link href={otherViewHref}>
+            {view === "grouped" ? "Arată toate loturile" : "Arată totaluri pe produs"}
+          </Link>
+        </Button>
       </form>
 
-      <StockTable lots={lots} />
+      <StockTable lots={lots} view={view} />
     </div>
   );
 }

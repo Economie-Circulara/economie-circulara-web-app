@@ -1,6 +1,7 @@
 import type { Database } from "@/lib/database.types";
 
 export type OrderStatus = Database["public"]["Enums"]["order_status"];
+export type OrderLinkType = Database["public"]["Enums"]["order_link_type"];
 export type UnitOfMeasure = Database["public"]["Enums"]["unit_of_measure"];
 
 /** O comanda, asa cum e afisata/editata in ecranele /comenzi. */
@@ -23,6 +24,14 @@ export interface OrderListRow extends Order {
   clientName: string;
   /** Rezumat text al liniilor, ex. "Cărămidă eco ×4.000, Pavaj ×600". */
   itemsSummary: string;
+  /**
+   * Tipul legaturii `order_links` daca aceasta comanda e ea insăși un retur/
+   * garanție/inlocuire (vezi `getReturnLinkForOrder`), altfel `null` (comanda de
+   * vanzare obisnuita). Folosit pentru indicatorul de sens al stocului in listă:
+   * "return"/"warranty" cresc stocul (intake), orice alta valoare (incl.
+   * "replacement", care e o vanzare obisnuita) sau `null` il scade (consumption).
+   */
+  linkType: OrderLinkType | null;
 }
 
 /** Linia unei comenzi (item + cantitate), cu titlul/UM itemului. */

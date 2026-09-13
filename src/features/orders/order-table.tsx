@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { ShoppingCart } from "lucide-react";
+import { ArrowDownCircle, ArrowUpCircle, ShoppingCart } from "lucide-react";
 import type { ColumnDef } from "@tanstack/react-table";
 import { DataTable } from "@/components/data-table";
 import { EmptyState } from "@/components/empty-state";
 import { StatusBadge } from "@/components/status-badge";
+import { cn } from "@/lib/utils";
 import { ORDER_STATUS_BADGE_STATUS } from "./labels";
 import { OrderStatusActions } from "./order-status-actions";
 import type { OrderListRow } from "./types";
@@ -14,6 +15,34 @@ const dateFormatter = new Intl.DateTimeFormat("ro-RO");
 
 function formatDate(iso: string | null): string {
   return iso ? dateFormatter.format(new Date(iso)) : "-";
+}
+
+/**
+ * Indicator vizual al sensului stocului: "return"/"warranty" (`linkType`)
+ * creează un lot nou (intake, stocul crește); orice altă comandă - inclusiv
+ * "replacement", care e o vanzare obisnuita - consumă FIFO (stocul scade).
+ */
+function StockDirectionIndicator({ linkType }: { linkType: OrderListRow["linkType"] }) {
+  const increasesStock = linkType === "return" || linkType === "warranty";
+  const label = linkType === "warranty" ? "Garanție" : linkType === "return" ? "Retur" : "Vânzare";
+  const title = increasesStock ? `${label} — stocul crește` : `${label} — stocul scade`;
+
+  return (
+    <span
+      title={title}
+      className={cn(
+        "inline-flex items-center gap-1 text-xs font-medium",
+        increasesStock ? "text-ok" : "text-danger",
+      )}
+    >
+      {increasesStock ? (
+        <ArrowUpCircle className="size-3.5" aria-hidden="true" />
+      ) : (
+        <ArrowDownCircle className="size-3.5" aria-hidden="true" />
+      )}
+      {label}
+    </span>
+  );
 }
 
 const columns: ColumnDef<OrderListRow>[] = [
@@ -25,6 +54,11 @@ const columns: ColumnDef<OrderListRow>[] = [
         {row.original.orderNumber ?? "Draft"}
       </Link>
     ),
+  },
+  {
+    id: "direction",
+    header: "Sens stoc",
+    cell: ({ row }) => <StockDirectionIndicator linkType={row.original.linkType} />,
   },
   { accessorKey: "clientName", header: "Client" },
   {

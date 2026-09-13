@@ -61,9 +61,15 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
   // Embed `organizations(status)` (relatia profiles_organization_id_fkey) - o singura
   // interogare, in stilul embed-urilor din features/*/queries.ts. `null` pentru
   // super_admin (organization_id null) sau daca organizatia nu a putut fi rezolvata.
+  // Relatia e dezambiguizata explicit (`!profiles_organization_id_fkey`): de la
+  // 0020_assistant.sql exista si o a doua cale profiles -> organizations, via
+  // assistant_usage (user_id + organization_id), iar PostgREST refuza embed-ul
+  // scurt `organizations(status)` cu "PGRST201 - more than one relationship found".
   const { data: profile } = await supabase
     .from("profiles")
-    .select("role, organization_id, client_id, full_name, email, organizations(status)")
+    .select(
+      "role, organization_id, client_id, full_name, email, organizations!profiles_organization_id_fkey(status)",
+    )
     .eq("id", user.id)
     .single();
   if (!profile) return null;
