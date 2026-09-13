@@ -124,6 +124,45 @@ export function SettingsForm({ org }: { org: CurrentOrg }) {
 
         <Card>
           <CardHeader>
+            <CardTitle>Date firmă</CardTitle>
+            <CardDescription>
+              Apar pe certificatul de trasabilitate, ca date ale emitentului. Fără CUI, certificatul
+              nu poate fi folosit comercial.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <FormField label="CUI">
+                {(id) => (
+                  <Input id={id} name="cui" defaultValue={org.cui ?? ""} placeholder="RO12345678" />
+                )}
+              </FormField>
+              <FormField label="Nr. Registrul Comerțului">
+                {(id) => (
+                  <Input
+                    id={id}
+                    name="reg_com"
+                    defaultValue={org.regCom ?? ""}
+                    placeholder="J40/1234/2020"
+                  />
+                )}
+              </FormField>
+            </div>
+            <FormField label="Adresă sediu">
+              {(id) => (
+                <Input
+                  id={id}
+                  name="address"
+                  defaultValue={org.address ?? ""}
+                  placeholder="Str. Exemplu nr. 1, București"
+                />
+              )}
+            </FormField>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
             <CardTitle>Domeniu & email</CardTitle>
             <CardDescription>Domeniu white-label si expeditorul emailurilor.</CardDescription>
           </CardHeader>

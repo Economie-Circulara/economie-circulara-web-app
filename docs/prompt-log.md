@@ -13,6 +13,58 @@ Format intrare:
 
 ---
 
+## 2026-09-14 — Claude Sonnet 5 — Fix accept_order pentru itemi service + teste SQL stricate
+
+- **Cerut:** o comandă cu un item `kind = 'service'` (abonament) nu putea fi acceptată
+  ("Stoc insuficient" chiar la cantitatea 1).
+- **Facut:** migrarea `0022_accept_order_skip_service_items.sql` - `accept_order` sare
+  peste liniile cu itemi de tip serviciu (fără `consume_fifo`); `cancel_order` rămâne
+  neschimbat (nu are ce reface). Pe drum, verificarea a scos la iveală că
+  `supabase/tests/business_flow.sql` era complet stricat structural de la introducerea
+  lui (toate UUID-urile de item/lot/comandă erau hardcodate, deși `seed.sql` le
+  generează cu `gen_random_uuid()` - nu putea trece decât o dată, întâmplător, în CI
+  `db.yml` fiind mereu roșu de atunci) - rescris să caute entitățile dinamic
+  (`\gset` + subquery-uri pe câmpuri stabile). Test nou B13 pentru fix-ul de mai sus.
+  Similar, `supabase/tests/assistant_rls.sql` (migrarea 0020) avea 2 blocuri
+  `begin/exception` + un `perform` scrise "bare" (sintaxă PL/pgSQL invalidă fără
+  `do $$ ... $$`) și nu era cablat deloc în `db.yml` - reparat + adăugat pasul lipsă.
+  Plan: `docs/plans/fix-service-orders-cert-issuer-e2e.md`.
+- **Verificat:** `business_flow.sql`, `rls_isolation.sql`, `assistant_rls.sql` - toate
+  trei, în ordinea din `db.yml`, pe un `supabase db reset` complet; verificare directă
+  prin RPC-uri (comandă doar-serviciu și comandă mixtă) înainte de a găsi locul
+  potrivit în suită.
+
+## 2026-09-14 — Claude Sonnet 5 — Fix selector login ambiguu în mvp-flow.spec.ts
+
+- **Cerut:** `tests/e2e/mvp-flow.spec.ts` pica la login (semnalat în sesiunea
+  anterioară, nereparat).
+- **Facut:** `loginAsAdmin` trece pe `#email`/`#password` (ca în
+  `routes-smoke.spec.ts`) - `getByLabel("Email", { exact: false })` era ambiguu
+  (formularul are și `#magic-email`, cu eticheta "Sau primește un link pe email",
+  care conține substringul "email").
+- **Verificat:** testul complet rulat REAL (Supabase local + `pnpm dev`, nu doar
+  static) - trece integral, pașii 1-9.
+
+## 2026-09-14 — Claude Sonnet 5 — CUI, Reg. Com. și adresă pe certificatul de trasabilitate
+
+- **Cerut:** certificatul de trasabilitate nu avea datele fiscale ale emitentului
+  (spike S2, `docs/analiza-standarde-certificat.md` §7.1, rândurile B2/B4 - fără CUI,
+  documentul nu poate fi folosit comercial).
+- **Facut:** migrarea `0023_organization_legal_fields.sql`
+  (`organizations.cui`/`reg_com`/`address`, nullable, fără validare de format).
+  `getCurrentOrg()` extins; card nou "Date firmă" în ecranul Setări
+  (`updateOrganizationAction`). Certificatul (web `certificate-view.tsx` + PDF
+  `pdf.tsx`) afișează linia `CUI ... · Reg. Com. · Adresă` prin funcția pură
+  partajată `src/features/certificates/issuer.ts`. `pnpm gen:types` rulat (Docker
+  disponibil în acest mediu) - a recuperat și tipurile `assistant_*`/`item_images`
+  care lipseau din `database.types.ts` de la migrările 0020/0021 (comise fără
+  regenerare, semnalat explicit în prompt-log-ul sesiunii anterioare).
+  `docs/analiza-standarde-certificat.md` actualizat (B2/B4 ✅).
+- **Verificat:** `pnpm typecheck`, `pnpm lint`, `pnpm test` (694 teste, inclusiv noi:
+  `issuer.test.ts`, `settings/actions.test.ts`, extensie `certificates/service.test.ts`);
+  verificare manuală completă în UI local (completare Setări -> flux comandă nou
+  -> certificat web + PDF descărcat din Storage, ambele arată linia).
+
 ## 2026-09-13 — Codex GPT-5 — Rezolvare conflict PR #25
 
 - **Cerut:** rezolvarea conflictului de merge pentru PR #25, branchul

@@ -1,6 +1,7 @@
 import { Document, Page, Path, Rect, StyleSheet, Svg, Text, View } from "@react-pdf/renderer";
 import { layoutSankey } from "@/features/production/sankey-data";
 import { PDF_FONT_FAMILY, registerPdfFonts } from "@/lib/pdf/fonts";
+import { formatIssuerLine } from "./issuer";
 import type { TraceabilitySnapshot } from "./types";
 
 /** Culori implicite (tema "forest" a mockup-ului) - suprascrise de brandingul organizatiei. */
@@ -29,6 +30,10 @@ export interface CertificatePdfProps {
    */
   certificateNumber: string;
   orgName: string;
+  /** Date de identificare fiscala ale emitentului (migrarea 0023) - opționale (organizatii vechi, necompletate din Setari). */
+  orgCui?: string;
+  orgRegCom?: string;
+  orgAddress?: string;
   brandColor?: string;
   accentColor?: string;
 }
@@ -223,9 +228,13 @@ export function CertificatePdfDocument({
   snapshot,
   certificateNumber,
   orgName,
+  orgCui,
+  orgRegCom,
+  orgAddress,
   brandColor = DEFAULT_BRAND_COLOR,
   accentColor = DEFAULT_ACCENT_COLOR,
 }: CertificatePdfProps) {
+  const issuerLine = formatIssuerLine(orgCui, orgRegCom, orgAddress);
   return (
     <Document title={`Certificat ${certificateNumber}`}>
       <Page size="A4" style={styles.page}>
@@ -235,6 +244,7 @@ export function CertificatePdfDocument({
             <View>
               <Text style={styles.orgName}>{orgName}</Text>
               <Text style={styles.orgSub}>Materiale de construcții circulare</Text>
+              {issuerLine ? <Text style={styles.orgSub}>{issuerLine}</Text> : null}
             </View>
             <View>
               <Text style={styles.certTitle}>Certificat de trasabilitate</Text>

@@ -157,20 +157,31 @@ export async function buildOrderTraceabilitySnapshot(
   return { organizationId: order.organization_id, snapshot };
 }
 
+/** Datele emitentului necesare pe certificat - subset din `organizations`. */
+interface CertificateIssuer {
+  name: string;
+  cui?: string | null;
+  regCom?: string | null;
+  address?: string | null;
+  brandColor?: string | null;
+  accentColor?: string | null;
+}
+
 /** Randeaza PDF-ul certificatului (buffer) - vezi decizia S3/PDF in pdf.tsx. */
 async function renderCertificatePdf(
   snapshot: TraceabilitySnapshot,
   certificateNumber: string,
-  orgName: string,
-  brandColor?: string | null,
-  accentColor?: string | null,
+  issuer: CertificateIssuer,
 ): Promise<Buffer> {
   const element = createElement(CertificatePdfDocument, {
     snapshot,
     certificateNumber,
-    orgName,
-    brandColor: brandColor ?? undefined,
-    accentColor: accentColor ?? undefined,
+    orgName: issuer.name,
+    orgCui: issuer.cui ?? undefined,
+    orgRegCom: issuer.regCom ?? undefined,
+    orgAddress: issuer.address ?? undefined,
+    brandColor: issuer.brandColor ?? undefined,
+    accentColor: issuer.accentColor ?? undefined,
   });
   // `renderToBuffer` tipizeaza strict argumentul ca `ReactElement<DocumentProps>`
   // (props-urile <Document>-ului react-pdf), desi accepta la runtime orice element
@@ -218,18 +229,19 @@ export async function generateCertificateForOrder(
 
   const { data: org } = await supabase
     .from("organizations")
-    .select("name, primary_color, secondary_color")
+    .select("name, cui, reg_com, address, primary_color, secondary_color")
     .eq("id", organizationId)
     .maybeSingle();
 
   const number = await generateCertificateNumber(organizationId);
-  const pdfBuffer = await renderCertificatePdf(
-    snapshot,
-    number,
-    org?.name ?? PLATFORM_NAME,
-    org?.primary_color,
-    org?.secondary_color,
-  );
+  const pdfBuffer = await renderCertificatePdf(snapshot, number, {
+    name: org?.name ?? PLATFORM_NAME,
+    cui: org?.cui,
+    regCom: org?.reg_com,
+    address: org?.address,
+    brandColor: org?.primary_color,
+    accentColor: org?.secondary_color,
+  });
 
   const admin = createAdminClient();
   const path = `${organizationId}/${orderId}/${number}.pdf`;

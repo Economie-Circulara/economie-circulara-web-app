@@ -152,7 +152,14 @@ describe("generateCertificateForOrder", () => {
           order_number: "CMD-2026-0001",
           clients: { name: "Apex SRL", cui: "RO123" },
         },
-        organizations: { name: "Organizatie Test", primary_color: null, secondary_color: null },
+        organizations: {
+          name: "Organizatie Test",
+          cui: "RO987654",
+          reg_com: "J40/9999/2020",
+          address: "Str. Fabricii nr. 1",
+          primary_color: null,
+          secondary_color: null,
+        },
       }),
       rpc,
     });
@@ -182,6 +189,18 @@ describe("generateCertificateForOrder", () => {
 
     expect(result.created).toBe(true);
     expect(result.certificate.number).toBe("CRT-2026-0002");
+
+    // Datele de identificare fiscala ale organizatiei (migrarea 0023) ajung la PDF
+    // (`CertificatePdfDocument`) - `renderToBuffer` primeste elementul React deja
+    // construit cu aceste props.
+    expect(renderToBuffer).toHaveBeenCalledTimes(1);
+    const pdfElement = renderToBuffer.mock.calls[0][0] as { props: Record<string, unknown> };
+    expect(pdfElement.props).toMatchObject({
+      orgName: "Organizatie Test",
+      orgCui: "RO987654",
+      orgRegCom: "J40/9999/2020",
+      orgAddress: "Str. Fabricii nr. 1",
+    });
 
     expect(upload).toHaveBeenCalledTimes(1);
     const [path, , options] = upload.mock.calls[0];
