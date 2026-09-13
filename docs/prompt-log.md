@@ -13,6 +13,24 @@ Format intrare:
 
 ---
 
+## 2026-09-14 — Claude Sonnet 5 — Puncte de plecare (organization_sites) - Etapa 3/X7
+
+- **Cerut:** continuarea planului de planificare optimizată a rutelor - Etapa 3:
+  ecran de administrare a punctelor de plecare (stații/depozite), necesar ca origine
+  la calculul rutelor.
+- **Facut:** `src/features/routing/site-*` (types/queries/service/action-state/actions/
+  section) - CRUD complet, mirror exact pe patternul `client_addresses`
+  (`src/features/clients/address-section.tsx` + `service.ts`): un singur punct
+  implicit per organizație, dezactivat automat la marcarea altuia. Ecran nou
+  `/setari/statii` (admin-only, ca restul secțiunii Setări) + link din `/setari`.
+  RLS-ul `organization_sites_staff_all` (0024) rămâne staff (admin+operator) -
+  punctele sunt selectabile la planificarea livrării chiar dacă administrarea e
+  admin-only.
+- **Fix găsit în drum:** `GoogleRoutingProvider.geocode` (Etapa 2) cădea pe
+  `"România"` singur ca adresă când nu existau componente structurate, în loc de
+  `input.address` - corectat + 2 teste noi.
+- **Verificat:** 28 teste (routing), `pnpm typecheck`, `pnpm lint`.
+
 ## 2026-09-14 — Claude Sonnet 5 — Adapter de rutare Google/mock (Etapa 2/X7)
 
 - **Cerut:** continuarea planului de planificare optimizată a rutelor (vezi intrarea
