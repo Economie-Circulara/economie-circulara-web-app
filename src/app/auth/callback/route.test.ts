@@ -11,7 +11,7 @@ function mockSupabase(options: {
   exchangeError?: { message: string } | null;
   verifyError?: { message: string } | null;
   user?: { id: string } | null;
-  profile?: { id: string } | null;
+  profile?: { id: string; role: "admin" | "operator" | "client" | "super_admin" } | null;
 }) {
   const { exchangeError = null, verifyError = null, user = { id: "u1" }, profile = null } = options;
   const signOut = vi.fn().mockResolvedValue({ error: null });
@@ -70,7 +70,7 @@ describe("GET /auth/callback", () => {
   });
 
   it("redirecteaza la `next` cand userul are profil", async () => {
-    mockSupabase({ user: { id: "u1" }, profile: { id: "u1" } });
+    mockSupabase({ user: { id: "u1" }, profile: { id: "u1", role: "admin" } });
     const request = new NextRequest("http://localhost:3000/auth/callback?code=abc&next=/dashboard");
     const response = await GET(request);
     expect(response.headers.get("location")).toBe("http://localhost:3000/dashboard");
@@ -79,7 +79,7 @@ describe("GET /auth/callback", () => {
   it("verifica magic link-urile SSR cu `token_hash` si redirecteaza la `next`", async () => {
     const { exchangeCodeForSession, verifyOtp } = mockSupabase({
       user: { id: "u1" },
-      profile: { id: "u1" },
+      profile: { id: "u1", role: "admin" },
     });
     const request = new NextRequest(
       "http://localhost:3000/auth/callback?token_hash=hash&type=magiclink&next=/portal",
@@ -100,15 +100,24 @@ describe("GET /auth/callback", () => {
     expect(response.headers.get("location")).toBe("http://localhost:3000/login?error=auth");
   });
 
-  it("redirecteaza catre radacina cand nu exista `next` si userul are profil", async () => {
-    mockSupabase({ user: { id: "u1" }, profile: { id: "u1" } });
+  it("redirecteaza implicit catre ruta rolului cand nu exista `next` si userul are profil", async () => {
+    mockSupabase({ user: { id: "u1" }, profile: { id: "u1", role: "admin" } });
     const request = new NextRequest("http://localhost:3000/auth/callback?code=abc");
     const response = await GET(request);
-    expect(response.headers.get("location")).toBe("http://localhost:3000/");
+    expect(response.headers.get("location")).toBe("http://localhost:3000/dashboard");
+  });
+
+  it("redirecteaza implicit clientii catre portal cand nu exista `next`", async () => {
+    mockSupabase({ user: { id: "u1" }, profile: { id: "u1", role: "client" } });
+    const request = new NextRequest(
+      "http://localhost:3000/auth/callback?token_hash=hash&type=magiclink",
+    );
+    const response = await GET(request);
+    expect(response.headers.get("location")).toBe("http://localhost:3000/portal");
   });
 
   it("permite fluxul de resetare parola (`next=/set-password`) cand userul are profil", async () => {
-    mockSupabase({ user: { id: "u1" }, profile: { id: "u1" } });
+    mockSupabase({ user: { id: "u1" }, profile: { id: "u1", role: "admin" } });
     const request = new NextRequest(
       "http://localhost:3000/auth/callback?code=abc&next=/set-password",
     );

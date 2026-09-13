@@ -1,7 +1,9 @@
 import { headers } from "next/headers";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { getOrgBranding } from "@/features/auth/queries";
+import { getCurrentUser, homePathForRole } from "@/features/auth/session";
 import { resolveTenant } from "@/features/auth/tenant";
 import { PLATFORM_DESCRIPTION, PLATFORM_NAME } from "@/lib/brand";
 
@@ -53,7 +55,34 @@ const CAPABILITIES = [
   },
 ];
 
-export default async function Home() {
+interface HomeProps {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+}
+
+function firstParam(value: string | string[] | undefined): string | null {
+  if (Array.isArray(value)) return value[0] ?? null;
+  return value ?? null;
+}
+
+export default async function Home({ searchParams }: HomeProps = {}) {
+  const params = (await searchParams) ?? {};
+  const code = firstParam(params.code);
+  const tokenHash = firstParam(params.token_hash);
+  if (code || tokenHash) {
+    const query = new URLSearchParams();
+    for (const [key, value] of Object.entries(params)) {
+      if (Array.isArray(value)) {
+        value.forEach((entry) => query.append(key, entry));
+      } else if (value !== undefined) {
+        query.set(key, value);
+      }
+    }
+    redirect(`/auth/callback?${query.toString()}`);
+  }
+
+  const user = await getCurrentUser();
+  if (user) redirect(homePathForRole(user.role));
+
   const h = await headers();
   const hint = resolveTenant(h.get("host"), "/", process.env.NEXT_PUBLIC_ROOT_DOMAIN);
   const branding = await getOrgBranding(hint);

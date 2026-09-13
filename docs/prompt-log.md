@@ -13,6 +13,38 @@ Format intrare:
 
 ---
 
+## 2026-09-13 — Codex GPT-5 — Root callback bridge pentru magic link
+
+- **Cerut:** magic link-ul Resend/Supabase redirectiona catre
+  `https://www.lotculot.eu/?code=...`, nu catre `/auth/callback`, iar userul ramanea
+  nelogat pe pagina principala.
+- **Facut:** pagina `/` detecteaza parametrii Supabase Auth (`code` sau `token_hash`) si
+  redirectioneaza imediat catre `/auth/callback`, pastrand query string-ul. Callback-ul
+  existent face apoi schimbul codului pe sesiune si redirectul pe rol.
+- **Verificat:** `pnpm vitest run src/app/page.test.tsx src/app/auth/callback/route.test.ts`,
+  `pnpm typecheck`, `pnpm lint`.
+
+## 2026-09-13 — Codex GPT-5 — Redirect de siguranta de pe pagina principala
+
+- **Cerut:** magic link-ul tot ajungea pe pagina principala dupa deploy, nu in dashboard.
+- **Facut:** pagina `/` verifica acum sesiunea si redirecteaza utilizatorii autentificati
+  catre ruta rolului (`homePathForRole`), astfel incat chiar si un link/callback care
+  ajunge la root nu lasa userul logat pe landing page. Testul paginii principale acopera
+  redirectul pentru admin.
+- **Verificat:** `pnpm vitest run src/app/page.test.tsx src/app/auth/callback/route.test.ts`,
+  `pnpm typecheck`, `pnpm lint`.
+
+## 2026-09-13 — Codex GPT-5 — Redirect magic link catre dashboard-ul rolului
+
+- **Cerut:** magic link-ul nu mai dadea eroare, dar dupa autentificare trimitea la pagina
+  principala; userul nu poate testa local si a cerut push pentru verificare pe Vercel.
+- **Facut:** callback-ul Auth citeste rolul din `profiles` si, cand linkul nu are `next`,
+  redirecteaza implicit prin `homePathForRole`: admin/operator -> `/dashboard`, client ->
+  `/portal`, super-admin -> `/platform`. Fluxurile cu `next` explicit (ex. setare parola)
+  raman neschimbate.
+- **Verificat:** `pnpm vitest run src/app/auth/callback/route.test.ts`, `pnpm typecheck`,
+  `pnpm lint`.
+
 ## 2026-09-13 — Claude Opus 5 — Manual de utilizare in aplicatie (`/ajutor`)
 
 - **Cerut:** un „manual de utilizare" accesibil din aplicatie, pentru oameni care nu stiu
@@ -53,6 +85,7 @@ Format intrare:
   OpenRouter `:free`), dar la aproape toate datele intra in antrenare - acceptabil doar
   pentru Faza 1 (manual, continut public) si pentru dezvoltare. Pentru date reale de tenant:
   tier platit, recomandat Mistral EU (~0,20 $/1M input), adica fractiuni de cent per conversatie.
+
 
 ## 2026-09-13 — Codex GPT-5 — Fix magic link Supabase SSR
 

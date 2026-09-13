@@ -3,9 +3,16 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const { headers } = vi.hoisted(() => ({ headers: vi.fn() }));
 vi.mock("next/headers", () => ({ headers }));
+const { redirect } = vi.hoisted(() => ({ redirect: vi.fn() }));
+vi.mock("next/navigation", () => ({ redirect }));
 
 const { getOrgBranding } = vi.hoisted(() => ({ getOrgBranding: vi.fn() }));
 vi.mock("@/features/auth/queries", () => ({ getOrgBranding }));
+const { getCurrentUser } = vi.hoisted(() => ({ getCurrentUser: vi.fn() }));
+vi.mock("@/features/auth/session", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/features/auth/session")>();
+  return { ...actual, getCurrentUser };
+});
 
 import Home from "./page";
 import { PLATFORM_NAME } from "@/lib/brand";
@@ -15,10 +22,37 @@ async function renderHome() {
   render(await Home());
 }
 
+function searchParams(params: Record<string, string>) {
+  return Promise.resolve(params);
+}
+
 describe("Home", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     headers.mockResolvedValue(new Map([["host", "app.example.com"]]));
+    getCurrentUser.mockResolvedValue(null);
+  });
+
+  it("redirecteaza utilizatorii autentificati catre ruta rolului", async () => {
+    getCurrentUser.mockResolvedValue({ role: "admin" });
+
+    await Home();
+
+    expect(redirect).toHaveBeenCalledWith("/dashboard");
+  });
+
+  it("paseaza codul Supabase primit la root catre callback-ul Auth", async () => {
+    await Home({ searchParams: searchParams({ code: "abc" }) });
+
+    expect(redirect).toHaveBeenCalledWith("/auth/callback?code=abc");
+  });
+
+  it("paseaza token_hash-ul primit la root catre callback-ul Auth", async () => {
+    await Home({
+      searchParams: searchParams({ token_hash: "hash", type: "magiclink" }),
+    });
+
+    expect(redirect).toHaveBeenCalledWith("/auth/callback?token_hash=hash&type=magiclink");
   });
 
   describe("pe domeniul platformei (fara tenant)", () => {
