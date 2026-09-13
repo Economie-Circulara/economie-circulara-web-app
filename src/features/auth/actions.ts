@@ -1,17 +1,10 @@
 "use server";
 
-import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getSiteOrigin } from "@/lib/site-url";
 import { getCurrentUser, homePathForRole } from "./session";
 import type { AuthState } from "./form-state";
-
-async function siteOrigin(): Promise<string> {
-  const h = await headers();
-  const proto = h.get("x-forwarded-proto") ?? "http";
-  const host = h.get("host") ?? "localhost:3000";
-  return `${proto}://${host}`;
-}
 
 function readEmail(formData: FormData): string {
   return String(formData.get("email") ?? "")
@@ -53,7 +46,7 @@ export async function signInWithMagicLinkAction(
     email,
     options: {
       shouldCreateUser: false, // doar utilizatori existenti (invitati de admin)
-      emailRedirectTo: `${await siteOrigin()}/auth/callback`,
+      emailRedirectTo: `${await getSiteOrigin()}/auth/callback`,
     },
   });
   if (error) {
@@ -67,7 +60,7 @@ export async function signInWithGoogleAction(): Promise<void> {
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
-    options: { redirectTo: `${await siteOrigin()}/auth/callback` },
+    options: { redirectTo: `${await getSiteOrigin()}/auth/callback` },
   });
   if (error || !data?.url) redirect("/login?error=oauth");
   redirect(data.url);
@@ -83,7 +76,7 @@ export async function requestPasswordResetAction(
 
   const supabase = await createClient();
   await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${await siteOrigin()}/auth/callback?next=/set-password`,
+    redirectTo: `${await getSiteOrigin()}/auth/callback?next=/set-password`,
   });
   // Mesaj neutru (nu dezvaluim daca emailul exista).
   return {

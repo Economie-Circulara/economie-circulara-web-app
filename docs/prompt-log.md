@@ -13,6 +13,26 @@ Format intrare:
 
 ---
 
+## 2026-09-13 — Codex GPT-5 — Flux magic link determinist
+
+- **Cerut:** dupa mai multe fixuri de redirect, magic link-ul tot nu autentifica; userul
+  a ales pastrarea magic link-ului cu `token_hash`, URL canonic si diagnostic sigur.
+- **Facut:** toate callback-urile Auth (magic link, Google, resetare si invitatii) folosesc
+  acum helper-ul comun bazat pe `NEXT_PUBLIC_SITE_URL`; callback-ul logheaza structurat
+  modul si codul/statusul erorii fara URL-uri sau tokenuri; erorile de lookup ale
+  profilului nu mai sunt confundate cu lipsa profilului. Documentatia include Site URL,
+  redirect allowlist, template-ul direct cu `TokenHash` si dezactivarea link tracking.
+  `NEXT_PUBLIC_SITE_URL=https://www.lotculot.eu` a fost adaugat si verificat in Vercel
+  Production (devine activ la urmatorul deployment). Dupa ce un link real a confirmat
+  ca template-ul hosted inca livreaza sesiunea prin fragmentul implicit
+  `#access_token=...`, a fost adaugat si un bridge client-side: sterge fragmentul,
+  valideaza perechea access/refresh prin `setSession()` si continua magic link-ul,
+  invitatia sau resetarea parolei fara a loga tokenurile.
+- **Verificat:** 46/46 teste tintite, 613/613 teste unitare, `pnpm typecheck`, `pnpm lint`
+  si Prettier pe fisierele schimbate. Build-ul compileaza si trece TypeScript;
+  prerandarea locala se opreste fiindca worktree-ul nu are cheile Supabase din
+  `.env.local`.
+
 ## 2026-09-13 — Codex GPT-5 — Root callback bridge pentru magic link
 
 - **Cerut:** magic link-ul Resend/Supabase redirectiona catre

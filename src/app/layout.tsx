@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Archivo, IBM_Plex_Mono, Spectral } from "next/font/google";
 import { ThemeProvider } from "next-themes";
+import { ImplicitSessionBridge } from "@/features/auth/implicit-session-bridge";
 import "./globals.css";
 
 const archivo = Archivo({
@@ -40,6 +41,7 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body>
+        <ImplicitSessionBridge />
         <ThemeProvider
           attribute="class"
           defaultTheme="system"

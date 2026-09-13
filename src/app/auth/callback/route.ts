@@ -3,6 +3,31 @@ import type { EmailOtpType } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import { homePathForRole } from "@/features/auth/session";
 
+type AuthCallbackMode = "token_hash" | "pkce" | "missing";
+
+function safeErrorMetadata(error: unknown): Record<string, string | number | null> {
+  if (!error || typeof error !== "object") return {};
+  const candidate = error as { code?: unknown; name?: unknown; status?: unknown };
+  return {
+    name: typeof candidate.name === "string" ? candidate.name : null,
+    code: typeof candidate.code === "string" ? candidate.code : null,
+    status: typeof candidate.status === "number" ? candidate.status : null,
+  };
+}
+
+/** Log operational fara URL/query, token, cod PKCE, email sau cookie-uri. */
+function logCallbackFailure(
+  event: "verification_failed" | "profile_lookup_failed",
+  mode: AuthCallbackMode,
+  error: unknown,
+) {
+  console.error("[auth/callback]", {
+    event,
+    mode,
+    ...safeErrorMetadata(error),
+  });
+}
+
 /**
  * Endpoint comun de callback pentru OAuth (Google), magic link si resetare parola.
  * Schimba `code`-ul PKCE sau `token_hash`-ul emailului pe o sesiune (cookie). Daca
@@ -21,6 +46,7 @@ export async function GET(request: NextRequest) {
   const tokenHash = searchParams.get("token_hash");
   const type = searchParams.get("type") as EmailOtpType | null;
   const next = searchParams.get("next") ?? "/";
+  const mode: AuthCallbackMode = tokenHash && type ? "token_hash" : code ? "pkce" : "missing";
 
   const supabase = await createClient();
   const { data, error } =
@@ -30,27 +56,34 @@ export async function GET(request: NextRequest) {
         ? await supabase.auth.exchangeCodeForSession(code)
         : { data: { user: null }, error: new Error("Missing auth code") };
 
-  if (!error && data.user) {
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("id, role")
-      .eq("id", data.user.id)
-      .maybeSingle();
-
-    if (!profile) {
-      // Autentificat la nivel de Supabase Auth, dar fara profil provizionat -> nu are
-      // acces. Delogam ca sa nu ramana un cookie de sesiune orfan si trimitem un mesaj
-      // clar la login.
-      await supabase.auth.signOut();
-      return NextResponse.redirect(`${origin}/login?error=unprovisioned`);
-    }
-
-    // `next` e mereu o cale relativa controlata de noi (nu input liber al userului).
-    const redirectPath = next === "/" ? homePathForRole(profile.role) : next;
-    return NextResponse.redirect(
-      `${origin}${redirectPath.startsWith("/") ? redirectPath : `/${redirectPath}`}`,
-    );
+  if (error || !data.user) {
+    logCallbackFailure("verification_failed", mode, error);
+    return NextResponse.redirect(`${origin}/login?error=auth`);
   }
 
-  return NextResponse.redirect(`${origin}/login?error=auth`);
+  const { data: profile, error: profileError } = await supabase
+    .from("profiles")
+    .select("id, role")
+    .eq("id", data.user.id)
+    .maybeSingle();
+
+  if (profileError) {
+    logCallbackFailure("profile_lookup_failed", mode, profileError);
+    await supabase.auth.signOut();
+    return NextResponse.redirect(`${origin}/login?error=auth`);
+  }
+
+  if (!profile) {
+    // Autentificat la nivel de Supabase Auth, dar fara profil provizionat -> nu are
+    // acces. Delogam ca sa nu ramana un cookie de sesiune orfan si trimitem un mesaj
+    // clar la login.
+    await supabase.auth.signOut();
+    return NextResponse.redirect(`${origin}/login?error=unprovisioned`);
+  }
+
+  // `next` e mereu o cale relativa controlata de noi (nu input liber al userului).
+  const redirectPath = next === "/" ? homePathForRole(profile.role) : next;
+  return NextResponse.redirect(
+    `${origin}${redirectPath.startsWith("/") ? redirectPath : `/${redirectPath}`}`,
+  );
 }
