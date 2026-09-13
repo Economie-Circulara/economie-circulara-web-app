@@ -13,6 +13,18 @@ Format intrare:
 
 ---
 
+## 2026-09-13 — Codex GPT-5 — Rezolvare conflict PR #25
+
+- **Cerut:** rezolvarea conflictului de merge pentru PR #25, branchul
+  `codex/lot-cu-lot-branding` catre `main`.
+- **Facut:** integrat `origin/main` prin merge fara rescrierea istoricului si rezolvat
+  conflictul unic din `docs/prompt-log.md`, pastrand integral intrarile ambelor ramuri.
+  Restul modificarilor din `main` s-au integrat automat. Doua teste stale din `main` au
+  fost aliniate cu ID-ul pre-generat pentru itemi si noua interogare `order_links`. Plan:
+  `docs/plans/resolve-pr-25-conflict.md`.
+- **Verificat:** `pnpm test` (687 teste), `pnpm typecheck`, `pnpm lint` si `pnpm build`
+  (cu valori locale fictive pentru variabilele Supabase cerute la prerandare).
+
 ## 2026-09-13 — Codex GPT-5 — Co-branding Lot cu Lot in sidebar
 
 - **Cerut:** pastrarea discreta a logo-ului Lot cu Lot in sidebar, alaturi de brandingul
@@ -36,6 +48,38 @@ Format intrare:
 - **Verificat:** inspectie vizuala desktop + mobil (390 px) in tema dark, favicon randat,
   `pnpm test` (673 teste), `pnpm typecheck`, `pnpm lint`, `pnpm build` (cu valori locale
   fictive pentru variabilele Supabase cerute la prerandare).
+
+## 2026-09-13 — Codex GPT-5 — Rezolvare conflicte PR magic link
+
+- **Cerut:** rezolvarea conflictelor de merge din PR-ul pentru autentificarea prin magic
+  link.
+- **Facut:** integrat `origin/main` in branch-ul PR-ului si rezolvat conflictul unic din
+  `docs/prompt-log.md`, pastrand integral si in ordine cronologica intrarile ambelor
+  branch-uri. Restul modificarilor din `main` s-au integrat automat.
+- **Verificat:** 686/686 teste unitare, `pnpm typecheck`, `pnpm lint` si Prettier pe
+  fisierul rezolvat. Verificarea Prettier globala semnaleaza doua fisiere nemodificate de
+  acest PR, deja neformatate in `main`: `src/components/layout/app-shell.tsx` si
+  `src/features/recipes/actions.test.ts`.
+
+## 2026-09-13 — Codex GPT-5 — Flux magic link determinist
+
+- **Cerut:** dupa mai multe fixuri de redirect, magic link-ul tot nu autentifica; userul
+  a ales pastrarea magic link-ului cu `token_hash`, URL canonic si diagnostic sigur.
+- **Facut:** toate callback-urile Auth (magic link, Google, resetare si invitatii) folosesc
+  acum helper-ul comun bazat pe `NEXT_PUBLIC_SITE_URL`; callback-ul logheaza structurat
+  modul si codul/statusul erorii fara URL-uri sau tokenuri; erorile de lookup ale
+  profilului nu mai sunt confundate cu lipsa profilului. Documentatia include Site URL,
+  redirect allowlist, template-ul direct cu `TokenHash` si dezactivarea link tracking.
+  `NEXT_PUBLIC_SITE_URL=https://www.lotculot.eu` a fost adaugat si verificat in Vercel
+  Production (devine activ la urmatorul deployment). Dupa ce un link real a confirmat
+  ca template-ul hosted inca livreaza sesiunea prin fragmentul implicit
+  `#access_token=...`, a fost adaugat si un bridge client-side: sterge fragmentul,
+  valideaza perechea access/refresh prin `setSession()` si continua magic link-ul,
+  invitatia sau resetarea parolei fara a loga tokenurile.
+- **Verificat:** 46/46 teste tintite, 613/613 teste unitare, `pnpm typecheck`, `pnpm lint`
+  si Prettier pe fisierele schimbate. Build-ul compileaza si trece TypeScript;
+  prerandarea locala se opreste fiindca worktree-ul nu are cheile Supabase din
+  `.env.local`.
 
 ## 2026-09-13 — Claude Opus 5 — Date demo pentru recepție (producție)
 
@@ -88,7 +132,6 @@ Format intrare:
   `tests/e2e/asistent.spec.ts` si `pnpm gen:types` - de rulat local inainte de merge.
   Pana la `gen:types`, tipurile tabelelor noi sunt scrise de mana in
   `src/features/assistant/db.ts`.
-
 ## 2026-09-13 — Codex GPT-5 — Root callback bridge pentru magic link
 
 - **Cerut:** magic link-ul Resend/Supabase redirectiona catre

@@ -1,21 +1,14 @@
 "use server";
 
-import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { getSiteOrigin } from "@/lib/site-url";
 import { getCurrentUser } from "@/features/auth/session";
 import { getClient } from "@/features/clients/queries";
 import type { UserMgmtState } from "./action-state";
 
 /** Validare minimala de format email (server-side; input-ul HTML e `type="email"`). */
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-async function siteOrigin(): Promise<string> {
-  const h = await headers();
-  const proto = h.get("x-forwarded-proto") ?? "http";
-  const host = h.get("host") ?? "localhost:3000";
-  return `${proto}://${host}`;
-}
 
 /**
  * Invita un membru de staff (operator sau alt admin) in organizatia curenta. Trimite
@@ -41,7 +34,7 @@ export async function inviteStaffAction(
   }
 
   const adminClient = createAdminClient();
-  const origin = await siteOrigin();
+  const origin = await getSiteOrigin();
 
   const { data, error } = await adminClient.auth.admin.inviteUserByEmail(email, {
     redirectTo: `${origin}/auth/callback?next=/set-password`,
@@ -79,7 +72,6 @@ export async function inviteClientAction(
   formData: FormData,
 ): Promise<UserMgmtState> {
   const admin = await getCurrentUser();
-  console.log("inviteClientAction admin", admin);
   if (!admin || admin.role !== "admin" || !admin.organizationId) {
     return { error: "Nu ai permisiunea de a invita utilizatori.", message: null };
   }
@@ -120,7 +112,7 @@ export async function inviteClientAction(
     return { error: "Aceasta firma are deja un utilizator client asociat.", message: null };
   }
 
-  const origin = await siteOrigin();
+  const origin = await getSiteOrigin();
   const { data, error } = await adminClient.auth.admin.inviteUserByEmail(email, {
     redirectTo: `${origin}/auth/callback?next=/set-password`,
   });

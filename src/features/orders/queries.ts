@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import type { ClientAddress } from "@/features/clients/types";
 import type { ItemOption } from "@/features/items/types";
-import type { OrderDetail, OrderItemRow, OrderListRow, OrderStatus } from "./types";
+import type { OrderDetail, OrderItemRow, OrderLinkType, OrderListRow, OrderStatus } from "./types";
 
 type SupabaseClient = Awaited<ReturnType<typeof createClient>>;
 
@@ -22,7 +22,9 @@ interface OrderCoreRow {
   updated_at: string;
 }
 
-function mapOrderRow(row: OrderCoreRow): Omit<OrderListRow, "clientName" | "itemsSummary"> {
+function mapOrderRow(
+  row: OrderCoreRow,
+): Omit<OrderListRow, "clientName" | "itemsSummary" | "linkType"> {
   return {
     id: row.id,
     clientId: row.client_id,
@@ -67,6 +69,27 @@ async function summarizeOrderItems(
   return summaries;
 }
 
+/**
+ * Tipul legaturii `order_links` pentru comenzile care sunt ele insele un
+ * retur/garanție/inlocuire, intr-o a doua interogare simpla (acelasi stil ca
+ * `summarizeOrderItems` - evita embed-uri imbricate). Comenzile obisnuite
+ * (fara legatura) nu apar in map.
+ */
+async function getLinkTypesForOrders(
+  supabase: SupabaseClient,
+  orderIds: string[],
+): Promise<Map<string, OrderLinkType>> {
+  if (orderIds.length === 0) return new Map();
+
+  const { data, error } = await supabase
+    .from("order_links")
+    .select("linked_order_id, link_type")
+    .in("linked_order_id", orderIds);
+  if (error) throw new Error("Nu am putut incarca legăturile comenzilor.");
+
+  return new Map((data ?? []).map((row) => [row.linked_order_id, row.link_type]));
+}
+
 export interface ListOrdersFilters {
   status?: OrderStatus;
   /** Cauta in denumirea clientului SAU numarul comenzii (substring, case-insensitive). */
@@ -88,15 +111,17 @@ export async function listOrders(filters: ListOrdersFilters = {}): Promise<Order
   const { data: orderRows, error } = await query;
   if (error) throw new Error("Nu am putut incarca lista de comenzi.");
 
-  const summaries = await summarizeOrderItems(
-    supabase,
-    (orderRows ?? []).map((row) => row.id),
-  );
+  const orderIds = (orderRows ?? []).map((row) => row.id);
+  const [summaries, linkTypes] = await Promise.all([
+    summarizeOrderItems(supabase, orderIds),
+    getLinkTypesForOrders(supabase, orderIds),
+  ]);
 
   let rows: OrderListRow[] = (orderRows ?? []).map((row) => ({
     ...mapOrderRow(row),
     clientName: row.clients?.name ?? "-",
     itemsSummary: summaries.get(row.id) ?? "-",
+    linkType: linkTypes.get(row.id) ?? null,
   }));
 
   const search = filters.search?.trim().toLowerCase();

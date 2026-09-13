@@ -30,10 +30,10 @@ vi.mock("next/navigation", () => ({ redirect }));
 const { revalidatePath } = vi.hoisted(() => ({ revalidatePath: vi.fn() }));
 vi.mock("next/cache", () => ({ revalidatePath }));
 
-const { headers } = vi.hoisted(() => ({
-  headers: vi.fn(),
+const { getSiteOrigin } = vi.hoisted(() => ({
+  getSiteOrigin: vi.fn().mockResolvedValue("https://www.lotculot.eu"),
 }));
-vi.mock("next/headers", () => ({ headers }));
+vi.mock("@/lib/site-url", () => ({ getSiteOrigin }));
 
 import {
   createOrganizationAction,
@@ -50,12 +50,6 @@ function formData(fields: Record<string, string>): FormData {
 }
 
 beforeEach(() => {
-  headers.mockResolvedValue(
-    new Map([
-      ["x-forwarded-proto", "https"],
-      ["host", "app.lotculot.eu"],
-    ]),
-  );
   requireRole.mockResolvedValue({ id: "super-1", role: "super_admin" });
 });
 
@@ -106,7 +100,7 @@ describe("createOrganizationAction", () => {
     expect(inviteOrganizationAdmin).toHaveBeenCalledWith(
       "org-1",
       "admin@acme.ro",
-      "https://app.lotculot.eu/auth/callback?next=/set-password",
+      "https://www.lotculot.eu/auth/callback?next=/set-password",
     );
     expect(revalidatePath).toHaveBeenCalledWith("/platform");
   });

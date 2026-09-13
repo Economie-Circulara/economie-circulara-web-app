@@ -95,14 +95,41 @@ export function ItemForm({ item }: { item?: Item }) {
             </FormField>
           </div>
 
-          <FormField label="URL poză" hint="Adresa publică a imaginii (opțional).">
+          <FormField label="Poză" hint="PNG, JPEG, WEBP sau GIF, max 2MB (opțional).">
             {(id) => (
-              <Input
-                id={id}
-                name="image_url"
-                defaultValue={item?.imageUrl ?? ""}
-                placeholder="https://..."
-              />
+              <div className="flex items-center gap-4">
+                <div className="flex size-16 shrink-0 items-center justify-center rounded-md border border-dashed border-input bg-muted/40">
+                  {item?.imageUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={item.imageUrl}
+                      alt={item.title}
+                      className="size-full rounded object-contain p-1"
+                    />
+                  ) : (
+                    <span className="text-[10px] text-muted-foreground">Fără poză</span>
+                  )}
+                </div>
+                <div className="flex-1 space-y-2">
+                  <Input
+                    id={id}
+                    name="image"
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp,image/gif"
+                    className="cursor-pointer"
+                  />
+                  {item?.imageUrl ? (
+                    <label className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <input
+                        type="checkbox"
+                        name="remove_image"
+                        className="size-4 rounded border-input"
+                      />
+                      Elimină poza curentă
+                    </label>
+                  ) : null}
+                </div>
+              </div>
             )}
           </FormField>
 

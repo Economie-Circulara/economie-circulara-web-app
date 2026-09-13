@@ -40,6 +40,7 @@ secret API keys"** (chei API noi; le inlocuiesc pe cele legacy `anon` / `service
 | `NEXT_PUBLIC_SUPABASE_URL` | Project URL (Settings -> API) |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | publishable key (`sb_publishable_...`) |
 | `SUPABASE_SECRET_KEY` | secret key (`sb_secret_...`) - **doar pe server, niciodata in client/commit** |
+| `NEXT_PUBLIC_SITE_URL` | originea canonica a aplicatiei; in productie `https://www.lotculot.eu` |
 
 > Regiune: alege **EU** (GDPR) la crearea proiectului - vezi `docs/handoff.md`.
 
@@ -75,6 +76,37 @@ corespunzator in `public.profiles`; callback-ul de autentificare (`/auth/callbac
 detecteaza acest caz si respinge accesul (`error=unprovisioned`), dar pasul de mai sus
 elimina complet posibilitatea ca un cont neinvitat sa apara in `auth.users`.
 
+### 2.6 Configureaza emailurile Auth pentru SSR (OBLIGATORIU)
+
+Fluxul hosted trebuie sa trimita tokenul magic direct la callback-ul aplicatiei. In
+**Authentication -> URL Configuration** seteaza:
+
+- **Site URL:** `https://www.lotculot.eu`
+- **Redirect URLs:** `https://www.lotculot.eu/auth/callback`
+
+In **Authentication -> Email Templates -> Magic Link**, linkul butonului trebuie sa fie:
+
+```html
+<a href="{{ .RedirectTo }}?token_hash={{ .TokenHash }}&type=magiclink">
+  Autentifica-te
+</a>
+```
+
+Nu folosi `{{ .ConfirmationURL }}` pentru acest flux SSR: acesta introduce pasul PKCE
+cu `code`, dependent de cookie-ul browserului care a cerut emailul. Dupa orice schimbare
+a template-ului, genereaza un link nou; linkurile anterioare sunt one-time si pot ramane
+invalide.
+
+Aplicatia pastreaza temporar un bridge client-side pentru linkurile vechi care ajung ca
+`#access_token=...&refresh_token=...`. Fragmentul nu este trimis serverului; bridge-ul il
+sterge imediat, valideaza sesiunea in browser si continua spre dashboard sau
+`/set-password`. Acesta este fallback de compatibilitate, nu template-ul recomandat.
+
+Dezactiveaza **click tracking/link tracking** in providerul SMTP (Resend). Rescrierea
+URL-urilor din email poate invalida linkurile Auth. Daca infrastructura destinatarului
+foloseste Safe Links/prefetch agresiv, varianta robusta ramane un ecran intermediar cu
+confirmare explicita sau OTP numeric.
+
 ---
 
 ## 3. Vercel
@@ -84,6 +116,7 @@ elimina complet posibilitatea ca un cont neinvitat sa apara in `auth.users`.
 3. **Environment Variables** (Project Settings -> Environment Variables) - aceleasi ca in
    `.env.local`:
    - `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (Production + Preview)
+   - `NEXT_PUBLIC_SITE_URL=https://www.lotculot.eu` (Production; callback Auth canonic)
    - `SUPABASE_SECRET_KEY` (doar unde e nevoie pe server; marcheaza ca secret)
 4. Deploy. Pentru deploy din CLI: `pnpm dlx vercel link` apoi `vercel --prod`.
 

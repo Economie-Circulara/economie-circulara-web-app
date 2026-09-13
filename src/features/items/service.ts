@@ -19,6 +19,12 @@ function mapItem(row: ItemRow): Item {
 }
 
 export interface CreateItemInput {
+  /**
+   * Id pre-generat (vezi `randomUUID()` in actions.ts) - permite incarcarea pozei
+   * in storage la path-ul `${id}/image` INAINTE de a insera itemul, ca eventuala
+   * eroare de upload sa nu lase in urma un item orfan fara poza.
+   */
+  id?: string;
   organizationId: string;
   title: string;
   description?: string | null;
@@ -34,6 +40,7 @@ export async function createItem(input: CreateItemInput): Promise<Item> {
   const { data, error } = await supabase
     .from("items")
     .insert({
+      ...(input.id ? { id: input.id } : {}),
       organization_id: input.organizationId,
       title: input.title,
       description: input.description ?? null,
@@ -59,6 +66,12 @@ export interface UpdateItemInput {
   unit: UnitOfMeasure;
   kind: ItemKind;
   sellable: boolean;
+  /**
+   * Tri-state: cheia LIPSA = nu atinge poza existenta (nu s-a incarcat un fisier
+   * nou si nu s-a cerut eliminarea); `null` = elimina poza; `string` = poza noua.
+   * Verificat prin `"imageUrl" in input`, nu prin `??`, ca sa distingem "lipsa" de
+   * "explicit null" - vezi actions.ts.
+   */
   imageUrl?: string | null;
 }
 
@@ -73,7 +86,7 @@ export async function updateItem(id: string, input: UpdateItemInput): Promise<It
       unit: input.unit,
       kind: input.kind,
       sellable: input.sellable,
-      image_url: input.imageUrl ?? null,
+      ...("imageUrl" in input ? { image_url: input.imageUrl ?? null } : {}),
     })
     .eq("id", id)
     .select(
