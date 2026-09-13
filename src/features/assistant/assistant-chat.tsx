@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useRef, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -42,8 +42,15 @@ export function AssistantChat({
   const [draft, setDraft] = useState("");
   const [isPending, startTransition] = useTransition();
   const nextId = useRef(0);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const blocked = quota.blockedReason !== null;
+
+  // Scroll la ultimul mesaj - si la aparitia bulei "Mă gândesc...", ca userul sa vada
+  // imediat ca a pornit un raspuns, nu doar cand acesta soseste.
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+  }, [bubbles, isPending]);
 
   function push(role: Bubble["role"], content: string) {
     nextId.current += 1;
@@ -125,7 +132,10 @@ export function AssistantChat({
           </div>
         ) : null}
 
-        <div className="space-y-3" data-testid="chat-messages">
+        <div
+          className="max-h-[60vh] space-y-3 overflow-y-auto scroll-smooth"
+          data-testid="chat-messages"
+        >
           {bubbles.map((bubble) => (
             <div
               key={bubble.id}
@@ -148,6 +158,7 @@ export function AssistantChat({
               Mă gândesc...
             </p>
           ) : null}
+          <div ref={messagesEndRef} />
         </div>
 
         {pending ? (
