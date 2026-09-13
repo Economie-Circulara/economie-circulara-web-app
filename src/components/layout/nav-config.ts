@@ -22,7 +22,8 @@ export type NavIconName =
   | "reports"
   | "settings"
   | "catalog"
-  | "documents";
+  | "documents"
+  | "help";
 
 export interface NavItem {
   label: string;
@@ -58,7 +59,19 @@ export const CLIENT_NAV: NavItem[] = [
   },
 ];
 
+/**
+ * Ajutorul (manualul din aplicatie) e vizibil TUTUROR rolurilor, deci sta separat,
+ * nu in `STAFF_NAV`: `tests/e2e/routes-smoke.spec.ts` foloseste `STAFF_NAV` ca lista
+ * de rute pe care clientul NU are voie, iar `/ajutor` nu e o astfel de ruta.
+ */
+export const HELP_NAV_ITEM: NavItem = {
+  label: "Ajutor",
+  href: "/ajutor",
+  icon: "help",
+  roles: ["super_admin", "admin", "operator", "client"],
+};
+
 export function navForRole(role: AppRole): NavItem[] {
-  if (role === "client") return CLIENT_NAV;
-  return STAFF_NAV.filter((item) => item.roles.includes(role));
+  if (role === "client") return [...CLIENT_NAV, HELP_NAV_ITEM];
+  return [...STAFF_NAV.filter((item) => item.roles.includes(role)), HELP_NAV_ITEM];
 }
