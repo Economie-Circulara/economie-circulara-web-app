@@ -1,6 +1,16 @@
 import type { Json } from "@/lib/database.types";
-import { assistantDb, type AssistantMessageRow, type AssistantToolCallRow } from "./db";
-import type { AssistantMessage, AssistantToolCall, ToolCallStatus } from "./types";
+import {
+  assistantDb,
+  type AssistantConversationRow,
+  type AssistantMessageRow,
+  type AssistantToolCallRow,
+} from "./db";
+import type {
+  AssistantConversation,
+  AssistantMessage,
+  AssistantToolCall,
+  ToolCallStatus,
+} from "./types";
 
 /** Cate mesaje din istoric trimitem modelului (context marginit = cost marginit). */
 export const HISTORY_LIMIT = 20;
@@ -25,6 +35,33 @@ export async function createConversation(input: {
   return data.id;
 }
 
+/** Conversatiile utilizatorului curent, cele mai recent active primele (pentru sidebar). */
+export async function listConversations(): Promise<AssistantConversation[]> {
+  const db = await assistantDb();
+  const { data } = await db
+    .from("assistant_conversations")
+    .select("id, title, created_at")
+    .order("updated_at", { ascending: false })
+    .limit(50);
+
+  return ((data ?? []) as Pick<AssistantConversationRow, "id" | "title" | "created_at">[]).map(
+    (row) => ({ id: row.id, title: row.title, createdAt: row.created_at }),
+  );
+}
+
+export async function getConversation(id: string): Promise<AssistantConversation | null> {
+  const db = await assistantDb();
+  const { data } = await db
+    .from("assistant_conversations")
+    .select("id, title, created_at")
+    .eq("id", id)
+    .maybeSingle();
+
+  const row = data as Pick<AssistantConversationRow, "id" | "title" | "created_at"> | null;
+  if (!row) return null;
+  return { id: row.id, title: row.title, createdAt: row.created_at };
+}
+
 export async function appendMessage(input: {
   conversationId: string;
   role: AssistantMessage["role"];
@@ -37,6 +74,17 @@ export async function appendMessage(input: {
     content: input.content,
   });
   if (error) throw new Error("Nu am putut salva mesajul.");
+
+  // Best-effort: sidebar-ul se sorteaza dupa activitate reala, nu doar dupa creare.
+  // Nu aruncam daca esueaza - mesajul de mai sus s-a salvat deja cu succes.
+  try {
+    await db
+      .from("assistant_conversations")
+      .update({ updated_at: new Date().toISOString() })
+      .eq("id", input.conversationId);
+  } catch {
+    // ignorat - vezi comentariul de mai sus.
+  }
 }
 
 export async function listMessages(conversationId: string): Promise<AssistantMessage[]> {

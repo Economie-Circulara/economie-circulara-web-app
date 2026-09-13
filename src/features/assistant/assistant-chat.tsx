@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,28 +11,34 @@ import {
   rejectAssistantActionAction,
   sendAssistantMessageAction,
 } from "./actions";
+import { MessageMarkdown } from "./message-markdown";
 import { QuotaCard } from "./quota-card";
 import type { AssistantTurn, PendingAction, QuotaStatus } from "./types";
 
-interface Bubble {
+export interface Bubble {
   id: string;
   role: "user" | "assistant";
   content: string;
 }
 
 export function AssistantChat({
+  initialConversationId,
+  initialMessages,
   initialQuota,
   suggestions,
   providerConfigured,
 }: {
+  initialConversationId: string | null;
+  initialMessages: Bubble[];
   initialQuota: QuotaStatus;
   suggestions: string[];
   providerConfigured: boolean;
 }) {
-  const [bubbles, setBubbles] = useState<Bubble[]>([]);
+  const router = useRouter();
+  const [bubbles, setBubbles] = useState<Bubble[]>(initialMessages);
   const [quota, setQuota] = useState(initialQuota);
   const [pending, setPending] = useState<PendingAction | null>(null);
-  const [conversationId, setConversationId] = useState<string | null>(null);
+  const [conversationId, setConversationId] = useState<string | null>(initialConversationId);
   const [draft, setDraft] = useState("");
   const [isPending, startTransition] = useTransition();
   const nextId = useRef(0);
@@ -44,7 +51,13 @@ export function AssistantChat({
   }
 
   function apply(turn: AssistantTurn) {
-    if (turn.conversationId) setConversationId(turn.conversationId);
+    // Conversatie noua: doar actualizam URL-ul, fara reload - remount-ul complet (prin
+    // `key` pe AssistantChat, vezi assistant-page-content.tsx) se intampla doar la
+    // navigarea intre conversatii diferite, nu la aceasta tranzitie.
+    if (turn.conversationId && conversationId === null) {
+      setConversationId(turn.conversationId);
+      router.replace(`/asistent/${turn.conversationId}`, { scroll: false });
+    }
     setQuota(turn.quota);
     setPending(turn.pendingAction);
     push("assistant", turn.reply);
@@ -117,11 +130,17 @@ export function AssistantChat({
             <div
               key={bubble.id}
               className={cn(
-                "max-w-[85%] rounded-lg border px-4 py-3 text-sm whitespace-pre-wrap",
-                bubble.role === "user" ? "ml-auto bg-secondary/60" : "bg-card text-card-foreground",
+                "max-w-[85%] rounded-lg border px-4 py-3 text-sm",
+                bubble.role === "user"
+                  ? "ml-auto bg-secondary/60 whitespace-pre-wrap"
+                  : "bg-card text-card-foreground",
               )}
             >
-              {bubble.content}
+              {bubble.role === "assistant" ? (
+                <MessageMarkdown content={bubble.content} />
+              ) : (
+                bubble.content
+              )}
             </div>
           ))}
           {isPending ? (
