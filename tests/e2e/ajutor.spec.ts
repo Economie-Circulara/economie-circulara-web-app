@@ -31,6 +31,7 @@ test.describe("Manual in aplicatie", () => {
 
     // Cuprinsul lateral + ancora catre prima sectiune.
     const toc = page.getByRole("navigation", { name: "Cuprins" }).last();
+    await expect(toc).toHaveCSS("position", "sticky");
     const firstEntry = toc.getByRole("link").first();
     const anchor = await firstEntry.getAttribute("href");
     await firstEntry.click();
