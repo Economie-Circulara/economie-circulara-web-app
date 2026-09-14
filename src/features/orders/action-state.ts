@@ -12,6 +12,8 @@ export const initialOrderFormState: OrderFormState = { error: null };
 
 export interface OrderTransitionState {
   error: string | null;
+  /** Prezent doar cand `error` vine dintr-un `InsufficientStockError` cu item cunoscut - alimenteaza CTA-ul "Adaugă stoc". */
+  insufficientStockItemId?: string | null;
 }
 
 export const initialOrderTransitionState: OrderTransitionState = { error: null };

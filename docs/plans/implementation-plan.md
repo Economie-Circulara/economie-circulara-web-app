@@ -530,6 +530,7 @@ C (stoc) -> B (itemi/retete) -> A (clienti) -> E (comenzi) -> D (productie) -> G
 | X5 Livrari/e-Transport  | 3    | E, S4        | ✅ livrat (mock; real=S4) |
 | X6 Documentatie/instruire | 3  | Wave 2       | ✅ livrat (docs/manual)  |
 | X4 Seed + E2E           | 3    | toate        | ✅ livrat (verificat static, fara Supabase local) |
+| X7 Planificare rute + confirmare recepție | 3 | X5 | ✅ livrat (plan: docs/plans/rute-optimizate-livrari.md) |
 
 > **Conformitate finantare:** proiectul trebuie sa respecte
 > [Anexa 1](../anexa-1-specificatii-tehnice.md). Gap-urile din

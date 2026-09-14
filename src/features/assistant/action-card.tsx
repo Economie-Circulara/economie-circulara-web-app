@@ -5,27 +5,72 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { OrderDraftCard } from "./order-draft-card";
 import type { PendingAction } from "./types";
+
+export interface ActionCardProps {
+  action: PendingAction;
+  busy: boolean;
+  onConfirm: (overrides: Record<string, unknown>) => void;
+  onReject: () => void;
+}
 
 /**
  * Cardul de confirmare - piesa centrala de siguranta a asistentului: modelul doar
- * PROPUNE, omul confirma. Campurile sunt editabile, ca o valoare gresita sa poata fi
- * corectata pe loc, fara reformularea cererii. Valorile corectate se re-valideaza pe
- * server (`tool.parse`), exact ca un formular normal.
+ * PROPUNE, omul confirma. Dispatch pe `presentation.renderer` (docs/plans/
+ * asistent-contract-capabilitati.md): `"order_draft"` are nevoie STRUCTURAL de un
+ * editor cu linii + selectii cascadate (`OrderDraftCard`, reutilizeaza `OrderEditor`);
+ * orice alt tool de scriere foloseste randerul generic de mai jos.
  */
-export function ActionCard({
+export function ActionCard({ action, busy, onConfirm, onReject }: ActionCardProps) {
+  if (action.presentation.renderer === "order_draft") {
+    return (
+      <OrderDraftCard
+        action={action}
+        presentation={action.presentation}
+        busy={busy}
+        onConfirm={onConfirm}
+        onReject={onReject}
+      />
+    );
+  }
+
+  return (
+    <GenericActionCard
+      action={action}
+      presentation={action.presentation}
+      busy={busy}
+      onConfirm={onConfirm}
+      onReject={onReject}
+    />
+  );
+}
+
+/**
+ * Randerul generic: campuri TIPATE (text editabil, boolean ca checkbox, sau
+ * doar-afisare pt. valori rezolvate - ex. un ID intern aratat ca denumire). Spre
+ * deosebire de vechiul card (orice camp = `<Input>` de text), valorile trimise la
+ * "Confirmă" pastreaza tipul original - fixul direct al bug-ului raportat
+ * (un array/boolean serializat ca text si retrimis ca override suprascria
+ * valoarea tipata din propunere).
+ */
+function GenericActionCard({
   action,
+  presentation,
   busy,
   onConfirm,
   onReject,
-}: {
-  action: PendingAction;
-  busy: boolean;
-  onConfirm: (overrides: Record<string, string>) => void;
-  onReject: () => void;
+}: ActionCardProps & {
+  presentation: Extract<PendingAction["presentation"], { renderer: "generic" }>;
 }) {
-  const [values, setValues] = useState<Record<string, string>>(() =>
-    Object.fromEntries(action.fields.map((field) => [field.name, field.value])),
+  const editableFields = presentation.fields.filter((field) => field.editable);
+  const [values, setValues] = useState<Record<string, string | boolean>>(() =>
+    Object.fromEntries(
+      editableFields.map((field) => [
+        field.name,
+        field.value ?? (field.kind === "boolean" ? false : ""),
+      ]),
+    ),
   );
 
   return (
@@ -38,20 +83,39 @@ export function ActionCard({
           <p className="mt-1 font-semibold">{action.summary}</p>
         </div>
 
-        {action.fields.length > 0 ? (
+        {presentation.fields.length > 0 ? (
           <div className="grid gap-3 sm:grid-cols-2">
-            {action.fields.map((field) => (
-              <div key={field.name} className="space-y-1.5">
-                <Label htmlFor={`action-${field.name}`}>{field.label}</Label>
-                <Input
-                  id={`action-${field.name}`}
-                  value={values[field.name] ?? ""}
-                  onChange={(event) =>
-                    setValues((current) => ({ ...current, [field.name]: event.target.value }))
-                  }
-                />
-              </div>
-            ))}
+            {presentation.fields.map((field) =>
+              !field.editable ? (
+                <div key={field.name} className="space-y-1.5">
+                  <Label>{field.label}</Label>
+                  <p className="text-sm text-muted-foreground">{field.displayValue}</p>
+                </div>
+              ) : field.kind === "boolean" ? (
+                <label key={field.name} className="flex items-center gap-2 self-end pb-2 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={Boolean(values[field.name])}
+                    onChange={(event) =>
+                      setValues((current) => ({ ...current, [field.name]: event.target.checked }))
+                    }
+                    className="size-4 rounded border-input"
+                  />
+                  {field.label}
+                </label>
+              ) : (
+                <div key={field.name} className="space-y-1.5">
+                  <Label htmlFor={`action-${field.name}`}>{field.label}</Label>
+                  <Input
+                    id={`action-${field.name}`}
+                    value={(values[field.name] as string) ?? ""}
+                    onChange={(event) =>
+                      setValues((current) => ({ ...current, [field.name]: event.target.value }))
+                    }
+                  />
+                </div>
+              ),
+            )}
           </div>
         ) : null}
 

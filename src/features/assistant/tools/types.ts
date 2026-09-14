@@ -1,5 +1,6 @@
 import type { UserRole } from "@/features/auth/session";
 import type { ToolContext } from "../types";
+import type { CardPresentation } from "./presentation-types";
 
 /** Argumente invalide venite de la model - se intorc modelului ca sa reincerce. */
 export class InvalidToolArgumentsError extends Error {
@@ -21,12 +22,25 @@ export interface AssistantTool<TInput = Record<string, unknown>> {
    * umana a argumentelor propuse de model.
    */
   kind: "read" | "write";
+  /**
+   * Versiunea contractului acestui tool (schema parametrilor + comportament) -
+   * persistata pe `assistant_tool_calls.tool_version` la propunere, ca audit. Se
+   * incrementeaza manual cand schema/logica se schimba intr-un mod care ar
+   * schimba interpretarea unui apel vechi. Toate tool-urile pornesc de la 1
+   * (AGENTS.md §2.4).
+   */
+  version: number;
   /** Valideaza si normalizeaza argumentele modelului. Arunca `InvalidToolArgumentsError`. */
   parse(args: unknown): TInput;
-  /** Titlul cardului de confirmare (doar pentru `write`). */
+  /** Titlul cardului de confirmare / linia de rezultat (doar pentru `write`). */
   summary?(input: TInput): string;
-  /** Campurile afisate in cardul de confirmare (doar pentru `write`). */
-  fields?(input: TInput): { name: string; label: string; value: string }[];
+  /**
+   * Payload-ul TIPAT al cardului de confirmare (doar pentru `write`, OBLIGATORIU -
+   * verificat de `tools/registry.test.ts`). Poate citi din DB (rezolva ID-uri la
+   * denumiri, incarca optiuni pt. randere structurate ca `order_draft`) - de aceea
+   * e async si primeste `ctx`.
+   */
+  presentation?(input: TInput, ctx: ToolContext): Promise<CardPresentation>;
   execute(input: TInput, ctx: ToolContext): Promise<unknown>;
 }
 

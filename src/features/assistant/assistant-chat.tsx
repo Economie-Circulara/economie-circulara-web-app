@@ -43,6 +43,7 @@ export function AssistantChat({
   const [isPending, startTransition] = useTransition();
   const nextId = useRef(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const columnRef = useRef<HTMLDivElement>(null);
 
   const blocked = quota.blockedReason !== null;
 
@@ -51,6 +52,24 @@ export function AssistantChat({
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [bubbles, isPending]);
+
+  // Coloana de chat se intinde pana jos, ca sa scroleze doar zona de mesaje, nu toata
+  // pagina. `main` din AppShell n-are inaltime fixa (creste cu continutul), deci nu
+  // exista un procent CSS de "restul paginii" - masuram efectiv cat spatiu de viewport
+  // ramane sub coloana (Topbar-ul de deasupra isi schimba inaltimea responsiv, n-are
+  // sens fix). `p-4 sm:p-6` de pe `main` (AppShell) da padding-ul de jos de scazut.
+  useEffect(() => {
+    function updateHeight() {
+      const el = columnRef.current;
+      if (!el) return;
+      const bottomPadding = window.innerWidth >= 640 ? 24 : 16;
+      const available = window.innerHeight - el.getBoundingClientRect().top - bottomPadding;
+      el.style.height = `${Math.max(available, 320)}px`;
+    }
+    updateHeight();
+    window.addEventListener("resize", updateHeight);
+    return () => window.removeEventListener("resize", updateHeight);
+  }, []);
 
   function push(role: Bubble["role"], content: string) {
     nextId.current += 1;
@@ -84,7 +103,7 @@ export function AssistantChat({
     });
   }
 
-  function confirm(overrides: Record<string, string>) {
+  function confirm(overrides: Record<string, unknown>) {
     if (!pending || isPending) return;
     const toolCallId = pending.toolCallId;
     setPending(null);
@@ -107,7 +126,7 @@ export function AssistantChat({
 
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_18rem]">
-      <div className="min-w-0 space-y-4">
+      <div ref={columnRef} className="flex min-w-0 flex-col gap-4">
         {bubbles.length === 0 ? (
           <div className="rounded-lg border bg-card p-5">
             <p className="text-sm font-medium">Cu ce te pot ajuta?</p>
@@ -133,7 +152,7 @@ export function AssistantChat({
         ) : null}
 
         <div
-          className="max-h-[60vh] space-y-3 overflow-y-auto scroll-smooth"
+          className="min-h-0 flex-1 space-y-3 overflow-y-auto scroll-smooth"
           data-testid="chat-messages"
         >
           {bubbles.map((bubble) => (

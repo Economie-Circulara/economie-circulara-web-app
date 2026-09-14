@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireRole } from "@/features/auth/session";
+import { InsufficientStockError } from "@/features/stock/service";
 import type { OrderFormState, OrderTransitionState } from "./action-state";
 import { onOrderStatusChanged } from "./notifications";
 import { getOrderStatus } from "./queries";
@@ -164,6 +165,9 @@ export async function acceptOrderAction(
       toStatus: "accepted",
     });
   } catch (err) {
+    if (err instanceof InsufficientStockError) {
+      return { error: err.message, insufficientStockItemId: err.itemId || null };
+    }
     return { error: err instanceof Error ? err.message : "Nu am putut accepta comanda." };
   }
 

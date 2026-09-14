@@ -41,7 +41,7 @@ export default async function HelpDocPage({ params }: PageProps) {
         description={doc.description}
       />
 
-      <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_16rem]">
+      <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_16rem]">
         <article className="min-w-0">
           {toc.length > 0 ? (
             <details className="mb-6 rounded-lg border p-4 lg:hidden">
@@ -52,7 +52,10 @@ export default async function HelpDocPage({ params }: PageProps) {
           <ManualContent markdown={markdown} />
         </article>
 
-        <ManualToc entries={toc} className="hidden lg:sticky lg:top-6 lg:block lg:self-start" />
+        <ManualToc
+          entries={toc}
+          className="hidden lg:sticky lg:top-6 lg:block lg:max-h-[calc(100svh-3rem)] lg:self-start lg:overflow-y-auto"
+        />
       </div>
     </>
   );

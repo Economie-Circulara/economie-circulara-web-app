@@ -8,13 +8,31 @@ import {
   DeliveryNotFoundError,
   DeliveryOrderNotFoundError,
   DeliveryValidationError,
+  confirmDeliveryReceipt,
   declareETransport,
   planDelivery,
+  recalculateDeliveryRoute,
 } from "./service";
-import type { DeliveryRecord } from "./types";
+import type { DeliveryRecord, PlanDeliveryRouteChoice } from "./types";
 
 function clean(value: FormDataEntryValue | null): string {
   return String(value ?? "").trim();
+}
+
+/**
+ * Alegerea de ruta trimisa de `RoutePreview` (client component) ca un singur
+ * camp ascuns JSON (`route_choice`) - mai simplu decat sa desfacem manual N
+ * campuri primitive, iar continutul e needitabil de utilizator (populat exclusiv
+ * de handler-ul JS al butonului "Calculează rute"/selectiei de ruta).
+ */
+function readRouteChoice(formData: FormData): PlanDeliveryRouteChoice | null {
+  const raw = formData.get("route_choice");
+  if (typeof raw !== "string" || !raw.trim()) return null;
+  try {
+    return JSON.parse(raw) as PlanDeliveryRouteChoice;
+  } catch {
+    return null;
+  }
 }
 
 function errorMessage(err: unknown, fallback: string): string {
@@ -52,6 +70,7 @@ export async function planDeliveryAction(
       driverName: clean(formData.get("driver_name")),
       routeOrigin: clean(formData.get("route_origin")),
       routeDestination: clean(formData.get("route_destination")),
+      route: readRouteChoice(formData),
       createdBy: user.id,
     });
     deliveryId = delivery.id;
@@ -93,4 +112,56 @@ export async function declareETransportAction(
       error: errorMessage(err, "Nu am putut declara livrarea la e-Transport."),
     };
   }
+}
+
+export interface RecalculateRouteResult {
+  delivery: DeliveryRecord | null;
+  error: string | null;
+}
+
+/**
+ * Recalculeaza ruta unei livrari existente (buton "Recalculează", ecranul
+ * /livrari/[id]) - DOAR staff. Apelata direct din `onClick`, ca `declareETransportAction`.
+ */
+export async function recalculateDeliveryRouteAction(
+  deliveryId: string,
+): Promise<RecalculateRouteResult> {
+  await requireRole(["admin", "operator"]);
+
+  try {
+    const delivery = await recalculateDeliveryRoute(deliveryId);
+    revalidatePath(`/livrari/${deliveryId}`);
+    return { delivery, error: null };
+  } catch (err) {
+    return { delivery: null, error: errorMessage(err, "Nu am putut recalcula ruta.") };
+  }
+}
+
+/**
+ * Confirma receptia livrarii de catre client (caracteristica #4 din clarificarea
+ * AM) - DOAR staff, inregistrare manuala (ecranul /livrari/[id]).
+ */
+export async function confirmDeliveryReceiptAction(
+  _prev: DeliveryFormState,
+  formData: FormData,
+): Promise<DeliveryFormState> {
+  await requireRole(["admin", "operator"]);
+
+  const deliveryId = clean(formData.get("delivery_id"));
+  const receivedByName = clean(formData.get("received_by_name"));
+  if (!deliveryId) return { error: "Livrare invalidă." };
+  if (!receivedByName) return { error: "Numele persoanei care confirmă este obligatoriu." };
+
+  try {
+    await confirmDeliveryReceipt({
+      deliveryId,
+      receivedByName,
+      notes: clean(formData.get("receipt_notes")),
+    });
+  } catch (err) {
+    return { error: errorMessage(err, "Nu am putut salva confirmarea recepției.") };
+  }
+
+  revalidatePath(`/livrari/${deliveryId}`);
+  return { error: null };
 }

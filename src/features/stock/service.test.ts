@@ -146,6 +146,46 @@ describe("consumeFIFO", () => {
 
     await expect(consumeFIFO("item-1", 10)).rejects.toThrow("alta eroare");
   });
+
+  it("inlocuieste uuid-ul itemului cu titlul lui in mesajul de stoc insuficient", async () => {
+    const rpc = vi.fn().mockResolvedValue({
+      data: null,
+      error: {
+        message: "Stoc insuficient pentru itemul item-1: lipsesc 5 unitati din 10 cerute.",
+        code: "LT001",
+      },
+    });
+    const maybeSingle = vi
+      .fn()
+      .mockResolvedValue({ data: { id: "item-1", title: "Paleti EUR" }, error: null });
+    const eq = vi.fn().mockReturnValue({ maybeSingle });
+    const select = vi.fn().mockReturnValue({ eq });
+    const from = vi.fn().mockReturnValue({ select });
+    createClient.mockResolvedValue({ rpc, from });
+
+    await expect(consumeFIFO("item-1", 10)).rejects.toThrow(
+      'Stoc insuficient pentru itemul "Paleti EUR": lipsesc 5 unitati din 10 cerute.',
+    );
+  });
+
+  it("pastreaza mesajul brut daca titlul itemului nu poate fi rezolvat (item sters/RLS)", async () => {
+    const rpc = vi.fn().mockResolvedValue({
+      data: null,
+      error: {
+        message: "Stoc insuficient pentru itemul item-1: lipsesc 5 unitati din 10 cerute.",
+        code: "LT001",
+      },
+    });
+    const maybeSingle = vi.fn().mockResolvedValue({ data: null, error: { message: "no" } });
+    const eq = vi.fn().mockReturnValue({ maybeSingle });
+    const select = vi.fn().mockReturnValue({ eq });
+    const from = vi.fn().mockReturnValue({ select });
+    createClient.mockResolvedValue({ rpc, from });
+
+    await expect(consumeFIFO("item-1", 10)).rejects.toThrow(
+      "Stoc insuficient pentru itemul item-1: lipsesc 5 unitati din 10 cerute.",
+    );
+  });
 });
 
 describe("recordStockEvent", () => {

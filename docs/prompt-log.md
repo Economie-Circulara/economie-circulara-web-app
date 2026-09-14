@@ -4,6 +4,119 @@ Jurnal al sarcinilor lucrate de agenti AI in acest repo. Conform regulii 1.2 din
 [`AGENTS.md`](../AGENTS.md), la **fiecare commit** se adauga o intrare aici.
 Cele mai noi intrari sus.
 
+## 2026-09-14 — Claude Sonnet 5 — Fix e2e/db CI: `supabase/setup-cli` pica pe rate limit la `version: latest`
+
+- **Cerut:** userul a raportat esecul e2e-ului: `supabase/setup-cli@v1` -> "Failed
+  to resolve latest Supabase CLI release: rate limit exceeded" (a intrebat daca
+  problema e Node 20/24 - nu era; mesajul de deprecare Node e doar informativ,
+  de la `actions/setup-node` folosit intern de action-ul compus).
+- **Facut:** `db.yml` si `e2e.yml` foloseau `version: latest` la
+  `supabase/setup-cli@v1`, ceea ce forteaza action-ul sa rezolve "latest" la
+  fiecare rulare (extern, rate-limitat). Proiectul are deja `supabase` fixat ca
+  devDependency in `package.json` (`^2.108.0`, rezolvat in `pnpm-lock.yaml`) -
+  action-ul detecteaza automat versiunea din lockfile cand `version` lipseste.
+  Eliminat `with: version: latest` din ambele workflow-uri.
+- **Verificat:** YAML valid (`yaml.safe_load`); niciun alt loc din repo nu mai
+  seteaza `version: latest` pentru `supabase/setup-cli`.
+
+## 2026-09-14 — Claude Sonnet 5 — Fix coliziune versiune migrare 0024/0025 (db migrate)
+
+- **Cerut:** userul a raportat `db migrate` esuat cu `duplicate key value
+  violates unique constraint "schema_migrations_pkey"`.
+- **Facut:** `mcp__supabase__list_migrations` a aratat ca pe remote
+  `route_planning` e deja aplicat ca versiunea **0025** (nu 0024, cum era
+  numit fisierul local - drift ramas dupa merge-ul PR #33/#34, ambele
+  adaugasera cate un `0024_...sql`). Migrarea noua din acest task folosea tot
+  `0025`, deci coliziune directa. Corectat: `git mv
+  0024_route_planning.sql 0025_route_planning.sql` (aliniat la remote) +
+  migrarea noua redenumita `0026_insufficient_stock_error_detail.sql`;
+  actualizate referintele "migrarea 0025" din comentarii/teste la 0026.
+- **Verificat:** `mcp__supabase__list_migrations` confirma ordinea corecta
+  (0024=assistant_capabilities_contract, 0025=route_planning); niciun fisier
+  nu mai refera intern vechea numerotare.
+
+## 2026-09-14 — Claude Sonnet 5 — Eroare "stoc insuficient" la acceptarea comenzii - label + CTA
+
+- **Cerut:** userul a semnalat mesajul de eroare afisat la acceptarea unei comenzi
+  cu stoc insuficient (`Stoc insuficient pentru itemul <uuid>: lipsesc...`) si a
+  propus 3 imbunatatiri; a aprobat primele doua (label in loc de uuid, CTA cu
+  next steps) - a treia (link catre asistentul AI cu prompt precompletat) ramane
+  pentru mai tarziu.
+- **Facut** (`docs/plans/eroare-stoc-insuficient-la-acceptare.md`, plan complet):
+  - `0025_insufficient_stock_error_detail.sql`: `consume_fifo` pune item_id in
+    `DETAIL` pe exceptia LT001, ca apelantii indirecti (accept_order,
+    confirm_process) sa il citeasca structurat din `error.details`, fara sa
+    parseze mesajul.
+  - `stock/service.ts`: helper nou `buildInsufficientStockError` - inlocuieste
+    uuid-ul cu titlul itemului in mesaj (fallback pe mesajul brut daca lookup-ul
+    esueaza); reutilizat in `consumeFIFO`, `orders/service.ts`
+    (`acceptOrder`/`cancelOrder`) si `production/service.ts` (`confirmProcess`).
+  - `orders/service.ts`: `throwOrderRpcError` (sincron) devenit `orderRpcError`
+    (async, intoarce eroarea) - apelantii fac `throw await orderRpcError(...)`
+    ca sa pastreze narrowing-ul TS pe `data`.
+  - CTA: `OrderTransitionState.insufficientStockItemId` + link "Adaugă stoc
+    pentru acest item" in `order-status-actions.tsx` -> `/stoc/nou?item_id=...`;
+    `LotForm`/`/stoc/nou` preselecteaza item-ul din query.
+- **Verificat:** teste noi in `stock/service.test.ts`, `orders/service.test.ts`,
+  `orders/actions.test.ts` (label rezolvat + fallback pe mesaj brut + CTA
+  populat); 737 teste unitare trec (restul suitei nemodificate); `typecheck` si
+  `eslint` curate pe fisierele atinse.
+
+## 2026-09-14 — Claude Sonnet 5 — Contract viu si UX tipat pentru asistentul AI
+
+- **Cerut:** userul a scris un plan detaliat (contract viu + UX tipat pt.
+  capabilitatile asistentului) dupa ce a observat un bug: la confirmarea comenzii
+  `creeaza_comanda` propuse de asistent, array-ul de linii era serializat ca text
+  de cardul generic si retrimis ca override, suprascriind valoarea tipata -
+  `tool.parse` arunca, iar propunerea era marcata `failed` (nerecuperabila).
+- **Facut** (`docs/plans/asistent-contract-capabilitati.md`, plan complet):
+  - Migrare `0024_assistant_capabilities_contract.sql`: status tranzitoriu
+    `executing` (revendicare atomica inainte de executie), `tool_version`,
+    `provider_call_id` (reconstruieste mesajele la continuarea conversatiei).
+  - Registru versionat: `AssistantTool.version` + `presentation()` (inlocuieste
+    `fields()`) - payload TIPAT pt. cardul de confirmare, doi randere: `"generic"`
+    (campuri text/boolean, editabile sau doar-afisare cu valoare REZOLVATA - nu
+    ID brut) si `"order_draft"` (structura, reutilizeaza editorul de comanda).
+    Scheme JSON stricte (`additionalProperties:false`, `minItems`/`maxItems`).
+  - `src/features/orders/order-editor.tsx` (nou): editorul de comanda extras din
+    `OrderForm`, REFOLOSIT identic de `/comenzi/nou` si de cardul asistentului.
+    `creeaza_comanda` capata `adresa_livrare_id` (parametrul exista deja in
+    `createOrderWithItems`, doar nu era expus tool-ului).
+  - `action-card.tsx` (rescris) + `order-draft-card.tsx` (nou): overrides TIPATE
+    la confirmare (boolean ramane boolean, linii ramane array) - fixul direct.
+  - `run.ts`: `confirmAction` cu 3 garzi in ordine - parse (eroare RECUPERABILA,
+    propunerea ramane `proposed`), revendicare atomica (`claimProposal`, previne
+    dublarea la confirmari concurente), executie; continuare automata a
+    modelului dupa succes (DOAR provider real - mock nu poate interpreta un
+    rezultat de tool, ar produce o regresie vizibila fata de linia determinista).
+  - `provider.ts`: `parallel_tool_calls: false`. `prompt.ts`: regula de
+    continuare automata a obiectivului multi-pas.
+  - `AGENTS.md` §2.4 (checklist nou): orice feature declara explicit impactul
+    asupra asistentului (none/read/write + renderer + manual + test).
+  - Manual (`utilizare-admin-operator.md` §13, `utilizare-client.md`).
+- **Verificat:** 27 teste noi (`order-editor.test.tsx`, `action-card.test.tsx`,
+  extindere `run.test.ts`/`write-tools.test.ts`/`registry.test.ts`), 729 teste
+  total, `pnpm typecheck`, `pnpm lint`. **Neverificat in acest mediu:** Docker a
+  fost indisponibil toata sesiunea (`docker info` blocat) - migrarea nu a fost
+  aplicata local, `pnpm gen:types` nu a rulat (tipurile noi sunt adaugate manual
+  in `db.ts`, ca la lansarea initiala a asistentului), iar
+  `pnpm db:test:assistant` (extins cu teste pt. `executing`/revendicare atomica)
+  nu a rulat. **De facut inainte de merge:** `pnpm db:reset && pnpm gen:types &&
+  pnpm db:test:assistant` cand Docker revine disponibil.
+
+---
+
+## 2026-09-14 — Codex GPT-5 — Cuprins sticky in Ajutor
+
+- **Cerut:** meniul de navigare al unui document Markdown din sectiunea Ajutor sa
+  ramana sticky la scroll.
+- **Facut:** intarit layout-ul documentului cu `items-start`, offset sticky si
+  scroll intern pentru cuprinsul lung; schimbat overflow-ul orizontal al shell-ului
+  in `overflow-x-clip` pentru a nu limita contextul sticky; adaugata verificare E2E
+  pentru `position: sticky`.
+- **Verificat:** `git diff --check`; verificarile pnpm nu au putut rula complet,
+  deoarece registry-ul npm a fost inaccesibil si dependentele nu s-au instalat.
+
 Format intrare:
 
 - **Data** - YYYY-MM-DD
@@ -28,6 +141,108 @@ Format intrare:
   `git diff --check` trec. Testele noi acoperă pragul de stoc redus, agregarea pe
   item, seriile istorice calculate și compunerea datelor operaționale.
 
+## 2026-09-14 — Claude Sonnet 5 — Documentație de conformitate (Etapa 7/X7, final)
+
+- **Cerut:** ultima etapă a planului de planificare optimizată a rutelor -
+  documentația care demonstrează, la o verificare ulterioară, cum sunt acoperite
+  cele 5 caracteristici din clarificarea AM.
+- **Facut:** `docs/analiza-conformitate-anexa.md` - secțiune nouă §4 cu tabelul de
+  mapare (caracteristică → modul/ecran); `docs/manual/utilizare-admin-operator.md`
+  - secțiunea 9 rescrisă complet cu pașii reali din UI (planificare rută, puncte de
+  plecare, confirmare recepție, declarare e-Transport), înlocuind avertismentul
+  "în curs de implementare" rămas netăiat de la Task X5; `AGENTS.md` - regula de
+  business "rezultatele Google Routes se afișează doar pe hartă Google, cheia nu
+  ajunge în browser"; `docs/plans/implementation-plan.md` - rând nou X7 în tabelul
+  de tracking al task-urilor.
+- **Verificat:** `pnpm typecheck`, `pnpm lint` (fără modificări de cod în acest commit).
+- **Task X7 complet** (Etapele 1-5 + 7 din plan; Etapa 6 - planificare multi-stop
+  pe vehicul - rămâne follow-up opțional, documentat ca atare).
+
+## 2026-09-14 — Claude Sonnet 5 — UI rute + confirmarea recepției (Etapa 4+5/X7)
+
+- **Cerut:** continuarea planului de planificare optimizată a rutelor - integrarea
+  in UI (planificare livrare + detaliu livrare) + confirmarea recepției de client
+  (caracteristica #4 din clarificarea AM).
+- **Facut:**
+  - `src/features/routing/route-service.ts` (compute pur, fara DB) + `route-actions.ts`
+    (`previewDeliveryRouteAction`) + `route-preview.tsx` (client component: buton
+    "Calculează rute", listă variante cu radio-selecție, hartă ca data-URI base64 -
+    cheia Google nu ajunge niciodată în browser).
+  - `polyline.ts`: adăugat `decodePolyline` (inversul encoderului) - permite
+    re-randarea hărții unei rute STOCATE fără să mai păstrăm coordonatele
+    originii/destinației separat (primul/ultimul punct al poliliniei decodate).
+  - `deliveries/types.ts|queries.ts|service.ts|actions.ts`: `DeliveryRecord` extins
+    cu `route`/`receipt`; `planDelivery` persistă alegerea de rută (opțională - un
+    câmp ascuns JSON `route_choice`, planificarea manuală rămâne posibilă
+    neschimbată); `recalculateDeliveryRoute` (auto-selecție) + `confirmDeliveryReceipt`.
+  - UI: `/livrari/nou` (selector punct de plecare + preview rute), `/livrari/[id]`
+    (`RoutePanel` cu hartă/distanță/"Recalculează", `ReceiptForm`), coloană "Rută"
+    în `/livrari`.
+  - `supabase/seed.sql`: adăugat un punct de plecare demo (altfel ecranul de
+    planificare nu poate propune calculul de rută în demo).
+- **Verificat manual, end-to-end, în browser** (`ROUTING_PROVIDER=mock`): acceptat
+  o comandă → planificat livrarea cu 2 rute calculate → selectat manual alternativa
+  (23,7 km, non-recomandată) → persistat corect pe ecranul de detaliu → "Recalculează"
+  a suprascris cu varianta automată (20,6 km) → "Confirmă recepția" a salvat numele +
+  data. Coloana "Rută" din listă arată "Calculată"/"Manuală" corect.
+- **Verificat automat:** 749 teste (toate), `pnpm typecheck`, `pnpm lint`.
+- **Scop redus asumat** (documentat în plan): fără card de rută pe `/comenzi/[id]`;
+  fără reselecție manuală la "Recalculează" (alege automat cea mai rapidă); fără
+  formular de adresă structurată în UI (geocodare doar pe `address` text liber).
+
+## 2026-09-14 — Claude Sonnet 5 — Puncte de plecare (organization_sites) - Etapa 3/X7
+
+- **Cerut:** continuarea planului de planificare optimizată a rutelor - Etapa 3:
+  ecran de administrare a punctelor de plecare (stații/depozite), necesar ca origine
+  la calculul rutelor.
+- **Facut:** `src/features/routing/site-*` (types/queries/service/action-state/actions/
+  section) - CRUD complet, mirror exact pe patternul `client_addresses`
+  (`src/features/clients/address-section.tsx` + `service.ts`): un singur punct
+  implicit per organizație, dezactivat automat la marcarea altuia. Ecran nou
+  `/setari/statii` (admin-only, ca restul secțiunii Setări) + link din `/setari`.
+  RLS-ul `organization_sites_staff_all` (0024) rămâne staff (admin+operator) -
+  punctele sunt selectabile la planificarea livrării chiar dacă administrarea e
+  admin-only.
+- **Fix găsit în drum:** `GoogleRoutingProvider.geocode` (Etapa 2) cădea pe
+  `"România"` singur ca adresă când nu existau componente structurate, în loc de
+  `input.address` - corectat + 2 teste noi.
+- **Verificat:** 28 teste (routing), `pnpm typecheck`, `pnpm lint`.
+
+## 2026-09-14 — Claude Sonnet 5 — Adapter de rutare Google/mock (Etapa 2/X7)
+
+- **Cerut:** continuarea planului de planificare optimizată a rutelor (vezi intrarea
+  anterioară) - Etapa 2: stratul de calcul, independent de UI.
+- **Facut:** `src/features/routing/` - `provider.ts` (`RoutingProvider`, geocodare +
+  calcul rute; `MockRoutingProvider` determinist, implicit; `GoogleRoutingProvider`
+  peste Geocoding API + Routes API v2 `computeRoutes`, activat cu `GOOGLE_MAPS_API_KEY`),
+  `polyline.ts` (encoder Google Polyline Algorithm, fără dependență nouă), `rank.ts`
+  (`pickBestRouteIndex` - durata cea mai mică, la egalitate ±5% câștigă distanța),
+  `static-map.ts` (URL Maps Static cu ruta recomandată evidențiată cu culoarea
+  tenantului, deasupra alternativelor gri). `.env.example` - `ROUTING_PROVIDER`/
+  `GOOGLE_MAPS_API_KEY` (opționale, mock implicit).
+- **Verificat:** 21 teste noi (mock determinist, parsare Routes API, encoding
+  polilinie vs. exemplul oficial Google, clasificare rute, URL hartă statică),
+  `pnpm typecheck`, `pnpm lint`.
+
+## 2026-09-14 — Claude Sonnet 5 — Plan + model de date pentru planificarea optimizată a rutelor (Etapa 1/X7)
+
+- **Cerut:** răspunsul SKETON la scrisoarea de clarificări AM nr. 1/31905/AM/07.09.2026
+  (SMIS 350456) a amânat detalierea a 5 caracteristici funcționale minime; userul a decis
+  ca #1-#3 (producție/colectare/procesare deșeuri) rămân monitorizare manuală pe modulele
+  existente, iar #5 (planificare inteligentă/optimizarea rutelor) și #4 (confirmarea
+  recepției) cer funcționalitate nouă - un preview hartă Google cu 1-3 rute și "ruta
+  recomandată" la planificarea livrării.
+- **Facut:** plan complet în `docs/plans/rute-optimizate-livrari.md`; migrarea
+  `supabase/migrations/0024_route_planning.sql` (aditivă): tabel nou `organization_sites`
+  (puncte de plecare, staff-only), componente de adresă structurate + geocodare pe
+  `client_addresses`/`organization_sites` (pregătire pt. Google Routes/Geocoding și pt. o
+  viitoare declarație e-Transport structurată prin Socrate.io, S4 încă nerezolvat), și pe
+  `deliveries`: rezultatul calculului de rută (`route_distance_m`/`route_duration_s`/
+  `route_polyline`/`route_alternatives`/`route_selected_index`/`route_selection`/
+  `route_computed_at`) + confirmarea recepției (`received_at`/`received_by_name`/
+  `receipt_notes`). `database.types.ts` regenerat cu `pnpm gen:types` (stack local
+  Supabase disponibil în acest worktree).
+- **Verificat:** `pnpm db:reset`, `pnpm typecheck`, `pnpm test` (712 teste, toate trec).
 ## 2026-09-14 — Codex GPT-5 — Status consolidat al proiectului
 
 - **Cerut:** analiza tuturor documentelor și a codului-sursă, estimarea progresului și

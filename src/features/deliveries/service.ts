@@ -1,7 +1,10 @@
 import { createElement } from "react";
 import { renderToBuffer } from "@react-pdf/renderer";
 import { createClient } from "@/lib/supabase/server";
-import type { Database } from "@/lib/database.types";
+import type { Database, Json } from "@/lib/database.types";
+import { pickBestRouteIndex } from "@/features/routing/rank";
+import { computeRouteBetween } from "@/features/routing/route-service";
+import { getSiteById } from "@/features/routing/site-queries";
 import {
   ETransportDeclarationError,
   ETransportNotConfiguredError,
@@ -91,6 +94,7 @@ export async function planDelivery(input: PlanDeliveryInput): Promise<DeliveryRe
     throw new DeliveryValidationError("Comanda are deja o livrare planificată.");
   }
 
+  const route = input.route;
   const { data: inserted, error: insertError } = await supabase
     .from("deliveries")
     .insert({
@@ -103,6 +107,24 @@ export async function planDelivery(input: PlanDeliveryInput): Promise<DeliveryRe
       route_origin: routeOrigin,
       route_destination: routeDestination,
       created_by: input.createdBy ?? null,
+      // Rezultatul planificarii optimizate a rutei (Task X7) - optional, prezent
+      // doar daca operatorul a folosit "Calculează rute" (vezi PlanDeliveryRouteChoice).
+      ...(route
+        ? {
+            origin_site_id: route.originSiteId,
+            route_distance_m: route.distanceMeters,
+            route_duration_s: route.durationSeconds,
+            route_polyline: route.polyline,
+            // Cast documentat: RouteChoiceView[] e o structura de date simpla
+            // (numere/siruri), compatibila structural cu Json, dar TS nu poate
+            // verifica asta automat pt. un tip cu proprietati numite (fara index
+            // signature) - acelasi motiv ca la `renderAvizPdfBuffer` de mai jos.
+            route_alternatives: route.alternatives as unknown as Json,
+            route_selected_index: route.selectedIndex,
+            route_selection: route.selection,
+            route_computed_at: new Date().toISOString(),
+          }
+        : {}),
     })
     .select(DELIVERY_CORE_COLUMNS)
     .single();
@@ -206,4 +228,84 @@ export async function renderAvizPdfBuffer(
   });
   // Cast documentat, acelasi motiv ca `certificates/service.ts#renderCertificatePdf`.
   return renderToBuffer(element as unknown as Parameters<typeof renderToBuffer>[0]);
+}
+
+/**
+ * Recalculeaza ruta unei livrari EXISTENTE (buton "Recalculează", ecranul
+ * /livrari/[id]) - geocodeaza din nou originea (punctul de plecare salvat pe
+ * livrare) si destinatia (`route_destination`, text liber), pastreaza automat
+ * varianta recomandata (`selection: "auto"`) - spre deosebire de planificarea
+ * initiala, aici NU exista un pas de selectie manuala in UI (scope redus fata de
+ * Etapa 4 din plan - vezi docs/plans/rute-optimizate-livrari.md).
+ */
+export async function recalculateDeliveryRoute(deliveryId: string): Promise<DeliveryRecord> {
+  const supabase = await createClient();
+  const detail = await getDeliveryDetail(deliveryId);
+  if (!detail) throw new DeliveryNotFoundError();
+  if (!detail.route.originSiteId) {
+    throw new DeliveryValidationError(
+      "Livrarea nu are un punct de plecare salvat - planific-o din nou cu un punct de plecare selectat.",
+    );
+  }
+
+  const site = await getSiteById(detail.route.originSiteId);
+  if (!site) throw new DeliveryValidationError("Punctul de plecare salvat nu mai există.");
+
+  const computation = await computeRouteBetween(
+    { address: site.address },
+    { address: detail.routeDestination },
+  );
+  const bestIndex = pickBestRouteIndex(computation.routes);
+  const best = computation.routes[bestIndex];
+  if (!best) throw new DeliveryValidationError("Nu am putut calcula nicio rută.");
+
+  const { data: updated, error } = await supabase
+    .from("deliveries")
+    .update({
+      route_distance_m: best.distanceMeters,
+      route_duration_s: best.durationSeconds,
+      route_polyline: best.polyline,
+      route_alternatives: computation.routes as unknown as Json,
+      route_selected_index: bestIndex,
+      route_selection: "auto",
+      route_computed_at: new Date().toISOString(),
+    })
+    .eq("id", deliveryId)
+    .select(DELIVERY_CORE_COLUMNS)
+    .single();
+  if (error || !updated) throw new Error(error?.message ?? "Nu am putut salva ruta recalculată.");
+
+  return mapDelivery(updated);
+}
+
+export interface ConfirmReceiptInput {
+  deliveryId: string;
+  receivedByName: string;
+  notes?: string | null;
+}
+
+/**
+ * Confirma receptia livrarii de catre client (caracteristica #4 din scrisoarea de
+ * clarificari AM - inregistrare MANUALA, nu o noua integrare). `receivedByName` e
+ * text liber (nu neaparat un cont din platforma - sofer, gestionar de santier etc.).
+ */
+export async function confirmDeliveryReceipt(input: ConfirmReceiptInput): Promise<DeliveryRecord> {
+  const receivedByName = requireNonEmpty(input.receivedByName, "Numele persoanei care confirmă");
+
+  const supabase = await createClient();
+  const { data: updated, error } = await supabase
+    .from("deliveries")
+    .update({
+      received_at: new Date().toISOString(),
+      received_by_name: receivedByName,
+      receipt_notes: input.notes?.trim() || null,
+    })
+    .eq("id", input.deliveryId)
+    .select(DELIVERY_CORE_COLUMNS)
+    .single();
+  if (error || !updated) {
+    throw new Error(error?.message ?? "Nu am putut salva confirmarea recepției.");
+  }
+
+  return mapDelivery(updated);
 }

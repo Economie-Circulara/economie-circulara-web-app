@@ -34,6 +34,16 @@ const columns: ColumnDef<DeliveryListRow>[] = [
   { accessorKey: "carrierName", header: "Transportator" },
   { accessorKey: "vehiclePlate", header: "Vehicul" },
   {
+    id: "hasComputedRoute",
+    header: "Rută",
+    cell: ({ row }) =>
+      row.original.hasComputedRoute ? (
+        <Badge variant="ok">Calculată</Badge>
+      ) : (
+        <span className="text-xs text-muted-foreground">Manuală</span>
+      ),
+  },
+  {
     id: "declarationStatus",
     header: "e-Transport",
     cell: ({ row }) => (

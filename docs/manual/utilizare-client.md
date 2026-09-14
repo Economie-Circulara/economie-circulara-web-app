@@ -166,6 +166,14 @@ browser) sau **"Descarcă PDF"** (descarcă fișierul PDF al certificatului).
 
 ---
 
+## Asistent AI
+
+Meniul **"Asistent AI"** răspunde la întrebări despre cum se folosește platforma
+și caută în manual - nu poate propune sau executa nicio acțiune pentru contul
+tău (creare/trimitere de comenzi rămâne doar din ecranele obișnuite).
+
+---
+
 ## Rezumat rapid - ce poți și ce nu poți face
 
 | Poți | Nu poți |

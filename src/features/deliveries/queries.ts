@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/database.types";
+import type { RouteChoiceView } from "@/features/routing/route-actions";
 import type { DeliveryDetail, DeliveryItemLine, DeliveryListRow, DeliveryRecord } from "./types";
 
 type SupabaseClient = Awaited<ReturnType<typeof createClient>>;
@@ -19,6 +20,17 @@ type DeliveryCoreRow = Pick<
   | "uit_code"
   | "declaration_status"
   | "declaration_error"
+  | "origin_site_id"
+  | "route_distance_m"
+  | "route_duration_s"
+  | "route_polyline"
+  | "route_alternatives"
+  | "route_selected_index"
+  | "route_selection"
+  | "route_computed_at"
+  | "received_at"
+  | "received_by_name"
+  | "receipt_notes"
   | "created_at"
   | "updated_at"
 >;
@@ -38,6 +50,21 @@ export function mapDelivery(row: DeliveryCoreRow): DeliveryRecord {
     uitCode: row.uit_code,
     declarationStatus: row.declaration_status,
     declarationError: row.declaration_error,
+    route: {
+      originSiteId: row.origin_site_id,
+      distanceMeters: row.route_distance_m,
+      durationSeconds: row.route_duration_s,
+      polyline: row.route_polyline,
+      alternatives: (row.route_alternatives as RouteChoiceView[] | null) ?? null,
+      selectedIndex: row.route_selected_index,
+      selection: row.route_selection,
+      computedAt: row.route_computed_at,
+    },
+    receipt: {
+      receivedAt: row.received_at,
+      receivedByName: row.received_by_name,
+      receiptNotes: row.receipt_notes,
+    },
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -47,7 +74,7 @@ export function mapDelivery(row: DeliveryCoreRow): DeliveryRecord {
 // `string` simplu, iar clientul Supabase tipat are nevoie de LITERALUL exact ca sa
 // infereze corect coloanele din `.select(...)` (altfel `GenericStringError`).
 // prettier-ignore
-export const DELIVERY_CORE_COLUMNS = "id, organization_id, order_id, scheduled_date, carrier_name, vehicle_plate, driver_name, route_origin, route_destination, uit_code, declaration_status, declaration_error, created_at, updated_at";
+export const DELIVERY_CORE_COLUMNS = "id, organization_id, order_id, scheduled_date, carrier_name, vehicle_plate, driver_name, route_origin, route_destination, uit_code, declaration_status, declaration_error, origin_site_id, route_distance_m, route_duration_s, route_polyline, route_alternatives, route_selected_index, route_selection, route_computed_at, received_at, received_by_name, receipt_notes, created_at, updated_at";
 const CORE_COLUMNS = DELIVERY_CORE_COLUMNS;
 
 /** Livrarea unei comenzi, daca a fost deja planificata (`null` altfel - unique(order_id)). */
@@ -123,5 +150,6 @@ export async function listDeliveries(): Promise<DeliveryListRow[]> {
     vehiclePlate: row.vehicle_plate,
     declarationStatus: row.declaration_status,
     uitCode: row.uit_code,
+    hasComputedRoute: row.route_selection !== null,
   }));
 }
