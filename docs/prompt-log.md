@@ -4,6 +4,22 @@ Jurnal al sarcinilor lucrate de agenti AI in acest repo. Conform regulii 1.2 din
 [`AGENTS.md`](../AGENTS.md), la **fiecare commit** se adauga o intrare aici.
 Cele mai noi intrari sus.
 
+## 2026-09-14 — Claude Sonnet 5 — Fix coliziune versiune migrare 0024/0025 (db migrate)
+
+- **Cerut:** userul a raportat `db migrate` esuat cu `duplicate key value
+  violates unique constraint "schema_migrations_pkey"`.
+- **Facut:** `mcp__supabase__list_migrations` a aratat ca pe remote
+  `route_planning` e deja aplicat ca versiunea **0025** (nu 0024, cum era
+  numit fisierul local - drift ramas dupa merge-ul PR #33/#34, ambele
+  adaugasera cate un `0024_...sql`). Migrarea noua din acest task folosea tot
+  `0025`, deci coliziune directa. Corectat: `git mv
+  0024_route_planning.sql 0025_route_planning.sql` (aliniat la remote) +
+  migrarea noua redenumita `0026_insufficient_stock_error_detail.sql`;
+  actualizate referintele "migrarea 0025" din comentarii/teste la 0026.
+- **Verificat:** `mcp__supabase__list_migrations` confirma ordinea corecta
+  (0024=assistant_capabilities_contract, 0025=route_planning); niciun fisier
+  nu mai refera intern vechea numerotare.
+
 ## 2026-09-14 — Claude Sonnet 5 — Eroare "stoc insuficient" la acceptarea comenzii - label + CTA
 
 - **Cerut:** userul a semnalat mesajul de eroare afisat la acceptarea unei comenzi

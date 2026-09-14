@@ -165,7 +165,7 @@ describe("acceptOrder", () => {
     await expect(acceptOrder("order-1")).rejects.toBeInstanceOf(InsufficientStockError);
   });
 
-  it("rezolva item_id din `error.details` (migrarea 0025) la titlul itemului in mesaj", async () => {
+  it("rezolva item_id din `error.details` (migrarea 0026) la titlul itemului in mesaj", async () => {
     const rpc = vi.fn().mockResolvedValue({
       data: null,
       error: {

@@ -26,7 +26,7 @@ export class InsufficientStockError extends Error {
  * mesaj, cand poate fi rezolvat (RLS + item inca existent) - altfel pastreaza
  * mesajul brut din Postgres (`consume_fifo`, errcode LT001). `itemId` poate
  * veni fie direct (apelantul il stie deja), fie din `error.details` (setat de
- * migrarea 0025 pentru apelantii care consuma FIFO indirect, ex. accept_order).
+ * migrarea 0026 pentru apelantii care consuma FIFO indirect, ex. accept_order).
  */
 export async function buildInsufficientStockError(
   itemId: string | null | undefined,

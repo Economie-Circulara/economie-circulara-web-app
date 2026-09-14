@@ -17,7 +17,7 @@ prompt precompletat - ramane pentru mai tarziu).
 
 ### 1. Label in loc de uuid in mesaj
 
-- `supabase/migrations/0025_insufficient_stock_error_detail.sql`: `create or
+- `supabase/migrations/0026_insufficient_stock_error_detail.sql`: `create or
   replace function public.consume_fifo(...)` - adauga `detail = p_item_id::text`
   pe `raise exception ... using errcode = 'LT001'`, ca apelantii care nu au deja
   `item_id` in context (accept_order, confirm_process - propaga eroarea din
@@ -51,10 +51,22 @@ prompt precompletat - ramane pentru mai tarziu).
 
 - `stock/service.test.ts`: label inlocuit cand item-ul e rezolvabil; mesaj
   brut pastrat cand nu e (item sters/RLS).
-- `orders/service.test.ts`: `error.details` (din migrarea 0025) rezolvat la
+- `orders/service.test.ts`: `error.details` (din migrarea 0026) rezolvat la
   titlul itemului in `acceptOrder`.
 - `orders/actions.test.ts`: `acceptOrderAction` populeaza
   `insufficientStockItemId` din `InsufficientStockError.itemId`.
+
+## Bug preexistent gasit si corectat: coliziune de versiune 0024/0025
+
+`db migrate` a esuat cu `duplicate key value violates unique constraint
+"schema_migrations_pkey"`. Cauza: la merge-ul PR #33/#34 (contract asistent +
+rute optimizate), ambele au adaugat cate o migrare `0024_...sql`; pe remote,
+`route_planning` a fost aplicat de fapt ca versiunea **0025** (`list_migrations`
+confirma: `0024`=`assistant_capabilities_contract`, `0025`=`route_planning`),
+dar fisierul local a ramas gresit numit `0024_route_planning.sql` - drift intre
+repo si remote, plus coliziune directa cu migrarea noua din acest task (care
+folosea tot `0025`). Corectat: `git mv 0024_route_planning.sql ->
+0025_route_planning.sql`, iar migrarea noua a devenit `0026_...sql`.
 
 ## Ramane pentru mai tarziu
 

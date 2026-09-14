@@ -64,7 +64,7 @@ async function orderRpcError(
   if (error.code === ERR_INVALID_TRANSITION) return new OrderTransitionError(error.message);
   if (error.code === ERR_FORBIDDEN) return new OrderPermissionError(error.message);
   if (error.code === ERR_INSUFFICIENT_STOCK) {
-    // `details` = item_id (vezi migrarea 0025) - lipseste doar pe erori vechi/necunoscute.
+    // `details` = item_id (vezi migrarea 0026) - lipseste doar pe erori vechi/necunoscute.
     return buildInsufficientStockError(error.details, 0, error.message);
   }
   return new Error(error.message || fallbackMessage);
