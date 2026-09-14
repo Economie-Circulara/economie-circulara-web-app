@@ -8,7 +8,10 @@ import { SettingsForm } from "@/features/settings/settings-form";
 
 export const metadata = { title: "Setari - Lot cu Lot" };
 
-/** Ecranul Setari (doar admin): white-label + acces la managementul utilizatorilor. */
+/**
+ * Ecranul Setari (doar admin): white-label + acces la managementul utilizatorilor
+ * si la punctele de plecare (Task X7 - planificarea rutelor de livrare).
+ */
 export default async function SettingsPage() {
   await requireRole(["admin"]);
   const org = await getCurrentOrg();
@@ -20,9 +23,14 @@ export default async function SettingsPage() {
         title="Setari organizatie"
         description="Personalizeaza identitatea si gestioneaza utilizatorii."
         actions={
-          <Button asChild variant="outline">
-            <Link href="/setari/utilizatori">Utilizatori</Link>
-          </Button>
+          <div className="flex gap-2">
+            <Button asChild variant="outline">
+              <Link href="/setari/statii">Puncte de plecare</Link>
+            </Button>
+            <Button asChild variant="outline">
+              <Link href="/setari/utilizatori">Utilizatori</Link>
+            </Button>
+          </div>
         }
       />
       <SettingsForm org={org} />

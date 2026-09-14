@@ -5,6 +5,11 @@ import { PageHeader } from "@/components/page-header";
 import { requireRole } from "@/features/auth/session";
 import { DeliveryActionsPanel } from "@/features/deliveries/delivery-actions-panel";
 import { getDeliveryDetail } from "@/features/deliveries/queries";
+import { ReceiptForm } from "@/features/deliveries/receipt-form";
+import { RoutePanel } from "@/features/deliveries/route-panel";
+import { getCurrentOrg } from "@/features/auth/queries";
+import { renderStoredRouteStaticMapDataUrl } from "@/features/routing/route-service";
+import type { RouteOption } from "@/features/routing/types";
 
 export const metadata = { title: "Detalii livrare - Lot cu Lot" };
 
@@ -25,6 +30,15 @@ export default async function DeliveryDetailPage({ params }: DeliveryDetailPageP
 
   const delivery = await getDeliveryDetail(id);
   if (!delivery) notFound();
+
+  const org = await getCurrentOrg();
+  const mapDataUrl = delivery.route.alternatives
+    ? await renderStoredRouteStaticMapDataUrl({
+        routes: delivery.route.alternatives as unknown as RouteOption[],
+        selectedIndex: delivery.route.selectedIndex ?? 0,
+        recommendedColor: org?.primaryColor,
+      })
+    : null;
 
   return (
     <div className="space-y-8">
@@ -77,6 +91,34 @@ export default async function DeliveryDetailPage({ params }: DeliveryDetailPageP
               declarationStatus={delivery.declarationStatus}
               uitCode={delivery.uitCode}
               declarationError={delivery.declarationError}
+            />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Rută (planificare optimizată)</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <RoutePanel
+              deliveryId={delivery.id}
+              distanceMeters={delivery.route.distanceMeters}
+              durationSeconds={delivery.route.durationSeconds}
+              mapDataUrl={mapDataUrl}
+            />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Confirmarea recepției</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ReceiptForm
+              deliveryId={delivery.id}
+              receivedAt={delivery.receipt.receivedAt}
+              receivedByName={delivery.receipt.receivedByName}
+              receiptNotes={delivery.receipt.receiptNotes}
             />
           </CardContent>
         </Card>

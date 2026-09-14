@@ -28,13 +28,21 @@ vi.mock("@react-pdf/renderer", async (importOriginal) => {
   return { ...actual, renderToBuffer };
 });
 
+const { getSiteById } = vi.hoisted(() => ({ getSiteById: vi.fn() }));
+vi.mock("@/features/routing/site-queries", () => ({ getSiteById }));
+
+const { computeRouteBetween } = vi.hoisted(() => ({ computeRouteBetween: vi.fn() }));
+vi.mock("@/features/routing/route-service", () => ({ computeRouteBetween }));
+
 import { ETransportDeclarationError, ETransportNotConfiguredError } from "./e-transport";
 import {
   DeliveryNotFoundError,
   DeliveryOrderNotFoundError,
   DeliveryValidationError,
+  confirmDeliveryReceipt,
   declareETransport,
   planDelivery,
+  recalculateDeliveryRoute,
   renderAvizPdfBuffer,
 } from "./service";
 import type { DeliveryDetail, PlanDeliveryInput } from "./types";
@@ -162,6 +170,17 @@ function deliveryDetail(overrides: Partial<DeliveryDetail> = {}): DeliveryDetail
     uitCode: null,
     declarationStatus: "not_declared",
     declarationError: null,
+    route: {
+      originSiteId: null,
+      distanceMeters: null,
+      durationSeconds: null,
+      polyline: null,
+      alternatives: null,
+      selectedIndex: null,
+      selection: null,
+      computedAt: null,
+    },
+    receipt: { receivedAt: null, receivedByName: null, receiptNotes: null },
     createdAt: "2026-07-01T00:00:00.000Z",
     updatedAt: "2026-07-01T00:00:00.000Z",
     orderNumber: "CMD-2026-0001",
@@ -296,5 +315,112 @@ describe("renderAvizPdfBuffer", () => {
 
     expect(renderToBuffer).toHaveBeenCalledTimes(1);
     expect(buffer.toString()).toEqual("pdf-content");
+  });
+});
+
+describe("recalculateDeliveryRoute", () => {
+  it("arunca DeliveryNotFoundError cand livrarea nu exista", async () => {
+    getDeliveryDetail.mockResolvedValue(null);
+
+    await expect(recalculateDeliveryRoute("delivery-x")).rejects.toBeInstanceOf(
+      DeliveryNotFoundError,
+    );
+  });
+
+  it("respinge o livrare fara punct de plecare salvat (planificata fara calcul de ruta)", async () => {
+    getDeliveryDetail.mockResolvedValue(
+      deliveryDetail({ route: { ...deliveryDetail().route, originSiteId: null } }),
+    );
+
+    await expect(recalculateDeliveryRoute("delivery-1")).rejects.toBeInstanceOf(
+      DeliveryValidationError,
+    );
+  });
+
+  it("respinge daca punctul de plecare salvat nu mai exista", async () => {
+    getDeliveryDetail.mockResolvedValue(
+      deliveryDetail({ route: { ...deliveryDetail().route, originSiteId: "site-1" } }),
+    );
+    getSiteById.mockResolvedValue(null);
+
+    await expect(recalculateDeliveryRoute("delivery-1")).rejects.toBeInstanceOf(
+      DeliveryValidationError,
+    );
+  });
+
+  it("recalculeaza, alege automat ruta cu durata minima si o salveaza (selection=auto)", async () => {
+    getDeliveryDetail.mockResolvedValue(
+      deliveryDetail({ route: { ...deliveryDetail().route, originSiteId: "site-1" } }),
+    );
+    getSiteById.mockResolvedValue({ id: "site-1", address: "Stație Iași" });
+    computeRouteBetween.mockResolvedValue({
+      routes: [
+        { distanceMeters: 8000, durationSeconds: 900, polyline: "slow", label: "Ruta 1" },
+        { distanceMeters: 6000, durationSeconds: 600, polyline: "fast", label: "Ruta 2" },
+      ],
+      origin: { lat: 1, lng: 2 },
+      destination: { lat: 3, lng: 4 },
+    });
+
+    const single = vi.fn().mockResolvedValue({
+      data: { id: "delivery-1", route_selection: "auto" },
+      error: null,
+    });
+    const select = vi.fn().mockReturnValue({ single });
+    const eq = vi.fn().mockReturnValue({ select });
+    const update = vi.fn().mockReturnValue({ eq });
+    const from = vi.fn().mockReturnValue({ update });
+    createClient.mockResolvedValue({ from });
+
+    await recalculateDeliveryRoute("delivery-1");
+
+    expect(update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        route_distance_m: 6000,
+        route_duration_s: 600,
+        route_polyline: "fast",
+        route_selected_index: 1,
+        route_selection: "auto",
+      }),
+    );
+  });
+});
+
+describe("confirmDeliveryReceipt", () => {
+  it("respinge un nume gol al persoanei care confirma", async () => {
+    await expect(
+      confirmDeliveryReceipt({ deliveryId: "delivery-1", receivedByName: "   " }),
+    ).rejects.toBeInstanceOf(DeliveryValidationError);
+  });
+
+  it("salveaza data curenta, numele si notele optionale", async () => {
+    const single = vi.fn().mockResolvedValue({
+      data: {
+        id: "delivery-1",
+        received_at: "2026-09-14T00:00:00.000Z",
+        received_by_name: "Ion Popescu",
+        receipt_notes: "Fără observații",
+      },
+      error: null,
+    });
+    const select = vi.fn().mockReturnValue({ single });
+    const eq = vi.fn().mockReturnValue({ select });
+    const update = vi.fn().mockReturnValue({ eq });
+    const from = vi.fn().mockReturnValue({ update });
+    createClient.mockResolvedValue({ from });
+
+    await confirmDeliveryReceipt({
+      deliveryId: "delivery-1",
+      receivedByName: "Ion Popescu",
+      notes: "Fără observații",
+    });
+
+    expect(update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        received_by_name: "Ion Popescu",
+        receipt_notes: "Fără observații",
+      }),
+    );
+    expect(eq).toHaveBeenCalledWith("id", "delivery-1");
   });
 });

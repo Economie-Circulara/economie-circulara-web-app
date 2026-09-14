@@ -288,31 +288,58 @@ export type Database = {
         Row: {
           address: string
           client_id: string
+          county: string | null
+          county_code: string | null
           created_at: string
+          geocoded_at: string | null
           id: string
           is_default: boolean
           label: string | null
+          lat: number | null
+          lng: number | null
+          locality: string | null
           organization_id: string
+          postal_code: string | null
+          street: string | null
+          street_number: string | null
           updated_at: string
         }
         Insert: {
           address: string
           client_id: string
+          county?: string | null
+          county_code?: string | null
           created_at?: string
+          geocoded_at?: string | null
           id?: string
           is_default?: boolean
           label?: string | null
+          lat?: number | null
+          lng?: number | null
+          locality?: string | null
           organization_id: string
+          postal_code?: string | null
+          street?: string | null
+          street_number?: string | null
           updated_at?: string
         }
         Update: {
           address?: string
           client_id?: string
+          county?: string | null
+          county_code?: string | null
           created_at?: string
+          geocoded_at?: string | null
           id?: string
           is_default?: boolean
           label?: string | null
+          lat?: number | null
+          lng?: number | null
+          locality?: string | null
           organization_id?: string
+          postal_code?: string | null
+          street?: string | null
+          street_number?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -402,8 +429,21 @@ export type Database = {
           id: string
           order_id: string
           organization_id: string
+          origin_site_id: string | null
+          receipt_notes: string | null
+          received_at: string | null
+          received_by_name: string | null
+          route_alternatives: Json | null
+          route_computed_at: string | null
           route_destination: string
+          route_distance_m: number | null
+          route_duration_s: number | null
           route_origin: string
+          route_polyline: string | null
+          route_selected_index: number | null
+          route_selection:
+            | Database["public"]["Enums"]["route_selection_mode"]
+            | null
           scheduled_date: string
           uit_code: string | null
           updated_at: string
@@ -419,8 +459,21 @@ export type Database = {
           id?: string
           order_id: string
           organization_id: string
+          origin_site_id?: string | null
+          receipt_notes?: string | null
+          received_at?: string | null
+          received_by_name?: string | null
+          route_alternatives?: Json | null
+          route_computed_at?: string | null
           route_destination: string
+          route_distance_m?: number | null
+          route_duration_s?: number | null
           route_origin: string
+          route_polyline?: string | null
+          route_selected_index?: number | null
+          route_selection?:
+            | Database["public"]["Enums"]["route_selection_mode"]
+            | null
           scheduled_date: string
           uit_code?: string | null
           updated_at?: string
@@ -436,8 +489,21 @@ export type Database = {
           id?: string
           order_id?: string
           organization_id?: string
+          origin_site_id?: string | null
+          receipt_notes?: string | null
+          received_at?: string | null
+          received_by_name?: string | null
+          route_alternatives?: Json | null
+          route_computed_at?: string | null
           route_destination?: string
+          route_distance_m?: number | null
+          route_duration_s?: number | null
           route_origin?: string
+          route_polyline?: string | null
+          route_selected_index?: number | null
+          route_selection?:
+            | Database["public"]["Enums"]["route_selection_mode"]
+            | null
           scheduled_date?: string
           uit_code?: string | null
           updated_at?: string
@@ -463,6 +529,13 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deliveries_origin_site_id_fkey"
+            columns: ["origin_site_id"]
+            isOneToOne: false
+            referencedRelation: "organization_sites"
             referencedColumns: ["id"]
           },
         ]
@@ -903,6 +976,71 @@ export type Database = {
           },
           {
             foreignKeyName: "orders_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      organization_sites: {
+        Row: {
+          address: string
+          county: string | null
+          county_code: string | null
+          created_at: string
+          geocoded_at: string | null
+          id: string
+          is_default: boolean
+          lat: number | null
+          lng: number | null
+          locality: string | null
+          name: string
+          organization_id: string
+          postal_code: string | null
+          street: string | null
+          street_number: string | null
+          updated_at: string
+        }
+        Insert: {
+          address: string
+          county?: string | null
+          county_code?: string | null
+          created_at?: string
+          geocoded_at?: string | null
+          id?: string
+          is_default?: boolean
+          lat?: number | null
+          lng?: number | null
+          locality?: string | null
+          name: string
+          organization_id: string
+          postal_code?: string | null
+          street?: string | null
+          street_number?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string
+          county?: string | null
+          county_code?: string | null
+          created_at?: string
+          geocoded_at?: string | null
+          id?: string
+          is_default?: boolean
+          lat?: number | null
+          lng?: number | null
+          locality?: string | null
+          name?: string
+          organization_id?: string
+          postal_code?: string | null
+          street?: string | null
+          street_number?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_sites_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
@@ -1664,6 +1802,7 @@ export type Database = {
         | "cancelled"
       process_type: "output_fixed" | "input_fixed"
       quality_status: "unchecked" | "passed" | "failed"
+      route_selection_mode: "auto" | "manual"
       stock_event_type:
         | "intake"
         | "consumption"
@@ -1849,6 +1988,7 @@ export const Constants = {
       ],
       process_type: ["output_fixed", "input_fixed"],
       quality_status: ["unchecked", "passed", "failed"],
+      route_selection_mode: ["auto", "manual"],
       stock_event_type: [
         "intake",
         "consumption",
