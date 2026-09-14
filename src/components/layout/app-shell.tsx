@@ -20,7 +20,7 @@ export function AppShell({ orgName, logoUrl, theme, items, children }: AppShellP
     <BrandProvider theme={theme}>
       <div className="flex min-h-svh">
         <Sidebar orgName={orgName} logoUrl={logoUrl} items={items} />
-        <main className="bg-pattern flex-1 overflow-x-hidden">
+        <main className="bg-pattern flex-1 overflow-x-clip">
           <div className="mx-auto max-w-7xl space-y-6 p-4 sm:p-6">
             {children}
           </div>

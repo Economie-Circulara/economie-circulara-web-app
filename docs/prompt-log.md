@@ -4,6 +4,17 @@ Jurnal al sarcinilor lucrate de agenti AI in acest repo. Conform regulii 1.2 din
 [`AGENTS.md`](../AGENTS.md), la **fiecare commit** se adauga o intrare aici.
 Cele mai noi intrari sus.
 
+## 2026-09-14 — Codex GPT-5 — Cuprins sticky in Ajutor
+
+- **Cerut:** meniul de navigare al unui document Markdown din sectiunea Ajutor sa
+  ramana sticky la scroll.
+- **Facut:** intarit layout-ul documentului cu `items-start`, offset sticky si
+  scroll intern pentru cuprinsul lung; schimbat overflow-ul orizontal al shell-ului
+  in `overflow-x-clip` pentru a nu limita contextul sticky; adaugata verificare E2E
+  pentru `position: sticky`.
+- **Verificat:** `git diff --check`; verificarile pnpm nu au putut rula complet,
+  deoarece registry-ul npm a fost inaccesibil si dependentele nu s-au instalat.
+
 Format intrare:
 
 - **Data** - YYYY-MM-DD
@@ -115,6 +126,17 @@ Format intrare:
   `receipt_notes`). `database.types.ts` regenerat cu `pnpm gen:types` (stack local
   Supabase disponibil în acest worktree).
 - **Verificat:** `pnpm db:reset`, `pnpm typecheck`, `pnpm test` (712 teste, toate trec).
+## 2026-09-14 — Codex GPT-5 — Status consolidat al proiectului
+
+- **Cerut:** analiza tuturor documentelor și a codului-sursă, estimarea progresului și
+  livrarea unui rezumat Markdown ușor de urmărit și reutilizat.
+- **Facut:** adăugat `docs/status-proiect-2026-09-14.md`, cu scopul produsului,
+  progresul estimat, statusul pe module, verificările existente, blocajele,
+  ambiguitățile și ordinea recomandată a lucrărilor; raportul a fost actualizat la
+  commitul `3b702dd` de pe `main`, inclusiv remedierile recente pentru testele SQL,
+  comenzile cu servicii și datele juridice ale emitentului certificatului.
+- **Verificat:** raportul a fost confruntat cu documentația, implementarea, migrările,
+  testele și ultimele rezultate CI/DB/E2E disponibile; `git diff --check` trece.
 
 ## 2026-09-14 — Codex GPT-5 — Rezolvare conflict PR #28
 

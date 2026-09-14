@@ -20,7 +20,7 @@ async function login(page: Page, email: string): Promise<void> {
 }
 
 test.describe("Manual in aplicatie", () => {
-  test("adminul citeste manualul, cu capturi si cuprins", async ({ page }) => {
+  test("adminul citeste manualul, cu capturi si cuprins", async ({ page }, testInfo) => {
     await login(page, "admin@demo.local");
 
     await page.goto("/ajutor");
@@ -29,8 +29,17 @@ test.describe("Manual in aplicatie", () => {
     await page.getByRole("link", { name: /Manual admin \/ operator/ }).click();
     await page.waitForURL("**/ajutor/utilizare-admin-operator");
 
-    // Cuprinsul lateral + ancora catre prima sectiune.
+    // Sub `lg`, cuprinsul lateral e ascuns (`hidden`) si cel inline sta intr-un
+    // `<details>` inchis - continutul unui `<details>` inchis nu intra in arborele
+    // de accesibilitate, deci trebuie deschis explicit inainte sa fie gasit. `<summary>`
+    // nu are rol ARIA implicit in Chromium (iese "generic", nu "button") - selector pe tag.
+    if (testInfo.project.name === "mobile-chromium") {
+      await page.locator("summary", { hasText: "Cuprins" }).click();
+    }
+
+    // Cuprinsul lateral (desktop) / inline (mobil) + ancora catre prima sectiune.
     const toc = page.getByRole("navigation", { name: "Cuprins" }).last();
+    await expect(toc).toHaveCSS("position", "sticky");
     const firstEntry = toc.getByRole("link").first();
     const anchor = await firstEntry.getAttribute("href");
     await firstEntry.click();
