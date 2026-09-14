@@ -1,7 +1,11 @@
 import { normalizeCui } from "@/features/clients/cui-lookup";
 import { createClientRecord } from "@/features/clients/service";
+import { listClientAddressesGrouped, listSellableItemOptions } from "@/features/orders/queries";
+import { listClients } from "@/features/clients/queries";
 import { createOrderWithItems, sendOrder } from "@/features/orders/service";
+import { getOrderDetail } from "@/features/orders/queries";
 import type { ToolContext } from "../types";
+import type { CardPresentation } from "./presentation-types";
 import {
   asObject,
   InvalidToolArgumentsError,
@@ -15,7 +19,9 @@ import {
 /**
  * Tool-urile care SCRIU. Nu se executa niciodata direct din raspunsul modelului: `run.ts`
  * le salveaza ca propunere (`assistant_tool_calls.status = 'proposed'`), UI-ul arata
- * argumentele intr-un card editabil, iar executia are loc dupa confirmare umana.
+ * argumentele intr-un card TIPAT (`presentation()` - vezi
+ * docs/plans/asistent-contract-capabilitati.md), iar executia are loc dupa confirmare
+ * umana, revendicata atomic (`run.ts#confirmAction`).
  *
  * Toate apeleaza SERVICIILE existente (nu SQL), deci regulile de business - CUI unic per
  * organizatie, status initial `draft`, compensarea la esecul liniilor - raman intr-un
@@ -41,6 +47,7 @@ export const creeazaClient: AssistantTool<CreateClientToolInput> = {
     "Acțiunea NU se execută până când utilizatorul nu o confirmă.",
   parameters: {
     type: "object",
+    additionalProperties: false,
     properties: {
       cui: { type: "string", description: "CUI-ul firmei." },
       denumire: { type: "string", description: "Denumirea oficială." },
@@ -54,6 +61,7 @@ export const creeazaClient: AssistantTool<CreateClientToolInput> = {
     required: ["cui", "denumire"],
   },
   roles: ["admin", "operator"],
+  version: 1,
   kind: "write",
   parse: (args) => {
     const raw = asObject(args);
@@ -69,15 +77,75 @@ export const creeazaClient: AssistantTool<CreateClientToolInput> = {
     };
   },
   summary: (input) => `Creează clientul „${input.denumire}" (CUI ${input.cui})`,
-  fields: (input) => [
-    { name: "denumire", label: "Denumire", value: input.denumire },
-    { name: "cui", label: "CUI", value: input.cui },
-    { name: "reg_com", label: "Nr. reg. com.", value: input.reg_com ?? "" },
-    { name: "adresa", label: "Adresă sediu", value: input.adresa ?? "" },
-    { name: "email", label: "Email", value: input.email ?? "" },
-    { name: "telefon", label: "Telefon", value: input.telefon ?? "" },
-    { name: "persoana_contact", label: "Persoană de contact", value: input.persoana_contact ?? "" },
-  ],
+  presentation: async (input): Promise<CardPresentation> => ({
+    renderer: "generic",
+    fields: [
+      {
+        name: "denumire",
+        label: "Denumire",
+        displayValue: input.denumire,
+        editable: true,
+        kind: "text",
+        value: input.denumire,
+      },
+      {
+        name: "cui",
+        label: "CUI",
+        displayValue: input.cui,
+        editable: true,
+        kind: "text",
+        value: input.cui,
+      },
+      {
+        name: "reg_com",
+        label: "Nr. reg. com.",
+        displayValue: input.reg_com ?? "-",
+        editable: true,
+        kind: "text",
+        value: input.reg_com ?? "",
+      },
+      {
+        name: "adresa",
+        label: "Adresă sediu",
+        displayValue: input.adresa ?? "-",
+        editable: true,
+        kind: "text",
+        value: input.adresa ?? "",
+      },
+      {
+        name: "email",
+        label: "Email",
+        displayValue: input.email ?? "-",
+        editable: true,
+        kind: "text",
+        value: input.email ?? "",
+      },
+      {
+        name: "telefon",
+        label: "Telefon",
+        displayValue: input.telefon ?? "-",
+        editable: true,
+        kind: "text",
+        value: input.telefon ?? "",
+      },
+      {
+        name: "persoana_contact",
+        label: "Persoană de contact",
+        displayValue: input.persoana_contact ?? "-",
+        editable: true,
+        kind: "text",
+        value: input.persoana_contact ?? "",
+      },
+      {
+        name: "platitor_tva",
+        label: "Plătitor de TVA",
+        displayValue: input.platitor_tva ? "Da" : "Nu",
+        editable: true,
+        kind: "boolean",
+        value: input.platitor_tva ?? false,
+      },
+    ],
+  }),
   execute: async (input, ctx: ToolContext) => {
     if (!ctx.organizationId) {
       throw new InvalidToolArgumentsError("Utilizatorul curent nu are o organizație asociată.");
@@ -100,25 +168,34 @@ export const creeazaClient: AssistantTool<CreateClientToolInput> = {
 interface CreateOrderToolInput {
   client_id: string;
   linii: { item_id: string; cantitate: number }[];
+  adresa_livrare_id: string | null;
   data_livrare: string | null;
   observatii: string | null;
 }
+
+/** Cate linii accepta o comanda propusa de asistent - suficient pentru orice comanda reala, apara modelul sa produca un array uriaș. */
+const MAX_ORDER_LINES = 50;
 
 export const creeazaComanda: AssistantTool<CreateOrderToolInput> = {
   name: "creeaza_comanda",
   description:
     "Propune o comandă nouă pentru un client. Ai nevoie de `client_id` (din `listeaza_clienti` " +
-    "sau din rezultatul creării clientului) și de `item_id`-uri (din `itemi_vandabili`). " +
+    "sau din rezultatul creării clientului), de `item_id`-uri (din `itemi_vandabili`) și, opțional, " +
+    "de `adresa_livrare_id` (din adresele clientului, dacă utilizatorul a precizat una). " +
     "Comanda se creează în status Ciornă. Acțiunea NU se execută până la confirmare.",
   parameters: {
     type: "object",
+    additionalProperties: false,
     properties: {
       client_id: { type: "string", description: "ID-ul clientului." },
       linii: {
         type: "array",
         description: "Liniile comenzii.",
+        minItems: 1,
+        maxItems: MAX_ORDER_LINES,
         items: {
           type: "object",
+          additionalProperties: false,
           properties: {
             item_id: { type: "string" },
             cantitate: { type: "number" },
@@ -126,18 +203,25 @@ export const creeazaComanda: AssistantTool<CreateOrderToolInput> = {
           required: ["item_id", "cantitate"],
         },
       },
+      adresa_livrare_id: { type: "string", description: "ID-ul adresei de livrare a clientului." },
       data_livrare: { type: "string", description: "Data livrării, format YYYY-MM-DD." },
       observatii: { type: "string" },
     },
     required: ["client_id", "linii"],
   },
   roles: ["admin", "operator"],
+  version: 1,
   kind: "write",
   parse: (args) => {
     const raw = asObject(args);
     const lines = raw.linii;
     if (!Array.isArray(lines) || lines.length === 0) {
       throw new InvalidToolArgumentsError("Comanda trebuie să aibă cel puțin o linie.");
+    }
+    if (lines.length > MAX_ORDER_LINES) {
+      throw new InvalidToolArgumentsError(
+        `Comanda poate avea cel mult ${MAX_ORDER_LINES} de linii.`,
+      );
     }
 
     const date = optionalString(raw, "data_livrare");
@@ -154,22 +238,32 @@ export const creeazaComanda: AssistantTool<CreateOrderToolInput> = {
           cantitate: positiveNumber(item, "cantitate"),
         };
       }),
+      adresa_livrare_id: optionalString(raw, "adresa_livrare_id"),
       data_livrare: date,
       observatii: optionalString(raw, "observatii"),
     };
   },
   summary: (input) =>
     `Creează o comandă cu ${input.linii.length} ${input.linii.length === 1 ? "linie" : "linii"}`,
-  fields: (input) => [
-    { name: "client_id", label: "Client (ID)", value: input.client_id },
-    {
-      name: "linii",
-      label: "Linii",
-      value: input.linii.map((line) => `${line.item_id} x ${line.cantitate}`).join(", "),
-    },
-    { name: "data_livrare", label: "Dată livrare", value: input.data_livrare ?? "" },
-    { name: "observatii", label: "Observații", value: input.observatii ?? "" },
-  ],
+  presentation: async (input): Promise<CardPresentation> => {
+    const [clients, addressesByClient, itemOptions] = await Promise.all([
+      listClients(),
+      listClientAddressesGrouped(),
+      listSellableItemOptions(),
+    ]);
+
+    return {
+      renderer: "order_draft",
+      draft: {
+        clientId: input.client_id,
+        deliveryAddressId: input.adresa_livrare_id ?? "",
+        deliveryDate: input.data_livrare ?? "",
+        notes: input.observatii ?? "",
+        lines: input.linii.map((line) => ({ itemId: line.item_id, quantity: line.cantitate })),
+      },
+      options: { clients, addressesByClient, itemOptions },
+    };
+  },
   execute: async (input, ctx) => {
     if (!ctx.organizationId) {
       throw new InvalidToolArgumentsError("Utilizatorul curent nu are o organizație asociată.");
@@ -178,6 +272,7 @@ export const creeazaComanda: AssistantTool<CreateOrderToolInput> = {
       organizationId: ctx.organizationId,
       clientId: input.client_id,
       createdByAdmin: true,
+      deliveryAddressId: input.adresa_livrare_id,
       deliveryDate: input.data_livrare,
       notes: input.observatii,
       lines: input.linii.map((line) => ({ itemId: line.item_id, quantity: line.cantitate })),
@@ -193,14 +288,28 @@ export const trimiteComanda: AssistantTool<{ order_id: string }> = {
     "Acțiunea NU se execută până la confirmare.",
   parameters: {
     type: "object",
+    additionalProperties: false,
     properties: { order_id: { type: "string" } },
     required: ["order_id"],
   },
   roles: ["admin", "operator"],
+  version: 1,
   kind: "write",
   parse: (args) => ({ order_id: requiredString(asObject(args), "order_id") }),
   summary: () => "Trimite comanda către acceptare",
-  fields: (input) => [{ name: "order_id", label: "Comandă (ID)", value: input.order_id }],
+  presentation: async (input): Promise<CardPresentation> => {
+    // ID-ul comenzii ramane o valoare interna - utilizatorul vede eticheta rezolvata
+    // (numar + client), nu UUID-ul brut. Campul NU e editabil: schimbarea comenzii
+    // tinta prin text liber n-are sens - o alta comanda inseamna o alta propunere.
+    const order = await getOrderDetail(input.order_id);
+    const displayValue = order
+      ? `${order.orderNumber ?? "Comandă fără număr"} · ${order.clientName}`
+      : "Comandă indisponibilă";
+    return {
+      renderer: "generic",
+      fields: [{ name: "order_id", label: "Comandă", displayValue, editable: false, kind: "text" }],
+    };
+  },
   execute: async (input, ctx) => {
     if (!ctx.organizationId) {
       throw new InvalidToolArgumentsError("Utilizatorul curent nu are o organizație asociată.");

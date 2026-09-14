@@ -35,11 +35,15 @@ export interface AssistantToolCallRow {
   id: string;
   conversation_id: string;
   tool: string;
+  /** Versiunea contractului tool-ului la propunere - migrarea 0024_assistant_capabilities_contract.sql. */
+  tool_version: number;
   arguments: Json;
-  status: "proposed" | "confirmed" | "rejected" | "failed";
+  status: "proposed" | "executing" | "confirmed" | "rejected" | "failed";
   result: Json | null;
   error: string | null;
   confirmed_by: string | null;
+  /** Id-ul tool-call-ului dat de furnizorul LLM - reconstruieste mesajele la continuare (run.ts). */
+  provider_call_id: string | null;
   created_at: string;
   resolved_at: string | null;
 }

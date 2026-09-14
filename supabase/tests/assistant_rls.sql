@@ -134,4 +134,57 @@ begin;
   end $$;
 rollback;
 
+-- ===== TEST 7: statusul tranzitoriu 'executing' e acceptat de constrangere =====
+-- (migrarea 0024_assistant_capabilities_contract.sql - revendicare atomica inainte
+-- de executie, vezi src/features/assistant/service.ts#claimProposal).
+begin;
+  set local role authenticated;
+  set local request.jwt.claims = '{"sub":"a2222222-2222-2222-2222-222222222222"}';
+  update public.assistant_tool_calls set status = 'executing'
+    where id = 'a8888888-8888-8888-8888-888888888888';
+  select pg_temp.assert('T7 statusul executing e acceptat', count(*), 1)
+    from public.assistant_tool_calls
+    where id = 'a8888888-8888-8888-8888-888888888888' and status = 'executing';
+rollback;
+
+-- ===== TEST 8: revendicarea conditionata (proxy pt. atomicitate) =====
+-- Doua "cereri" secventiale in ACEEASI tranzactie, simuland cursa: a doua
+-- actualizare conditionata (`where status = 'proposed'`) NU mai gaseste randul
+-- (deja trecut pe `executing` de prima) - exact contractul din `claimProposal`.
+-- O cursa REALA concurenta e garantata de MVCC-ul Postgres (un singur UPDATE e
+-- intotdeauna atomic), nu e nevoie de doua sesiuni separate ca sa validam logica.
+begin;
+  set local role authenticated;
+  set local request.jwt.claims = '{"sub":"a2222222-2222-2222-2222-222222222222"}';
+
+  with claim as (
+    update public.assistant_tool_calls set status = 'executing'
+      where id = 'a8888888-8888-8888-8888-888888888888' and status = 'proposed'
+      returning id
+  )
+  select pg_temp.assert('T8 prima revendicare reuseste', count(*), 1) from claim;
+
+  with claim_again as (
+    update public.assistant_tool_calls set status = 'executing'
+      where id = 'a8888888-8888-8888-8888-888888888888' and status = 'proposed'
+      returning id
+  )
+  select pg_temp.assert('T8 a doua revendicare (deja executing) nu afecteaza niciun rand', count(*), 0)
+    from claim_again;
+rollback;
+
+-- ===== TEST 9: tool_version implicit 1, provider_call_id nullable =====
+begin;
+  set local role authenticated;
+  set local request.jwt.claims = '{"sub":"a2222222-2222-2222-2222-222222222222"}';
+  select pg_temp.assert('T9 tool_version implicit', tool_version, 1)
+    from public.assistant_tool_calls where id = 'a8888888-8888-8888-8888-888888888888';
+  select pg_temp.assert(
+      'T9 provider_call_id nullable',
+      case when provider_call_id is null then 1 else 0 end,
+      1
+    )
+    from public.assistant_tool_calls where id = 'a8888888-8888-8888-8888-888888888888';
+rollback;
+
 select '*** TOATE TESTELE RLS DE ASISTENT AU TRECUT ***' as result;

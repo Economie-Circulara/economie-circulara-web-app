@@ -4,6 +4,50 @@ Jurnal al sarcinilor lucrate de agenti AI in acest repo. Conform regulii 1.2 din
 [`AGENTS.md`](../AGENTS.md), la **fiecare commit** se adauga o intrare aici.
 Cele mai noi intrari sus.
 
+## 2026-09-14 — Claude Sonnet 5 — Contract viu si UX tipat pentru asistentul AI
+
+- **Cerut:** userul a scris un plan detaliat (contract viu + UX tipat pt.
+  capabilitatile asistentului) dupa ce a observat un bug: la confirmarea comenzii
+  `creeaza_comanda` propuse de asistent, array-ul de linii era serializat ca text
+  de cardul generic si retrimis ca override, suprascriind valoarea tipata -
+  `tool.parse` arunca, iar propunerea era marcata `failed` (nerecuperabila).
+- **Facut** (`docs/plans/asistent-contract-capabilitati.md`, plan complet):
+  - Migrare `0024_assistant_capabilities_contract.sql`: status tranzitoriu
+    `executing` (revendicare atomica inainte de executie), `tool_version`,
+    `provider_call_id` (reconstruieste mesajele la continuarea conversatiei).
+  - Registru versionat: `AssistantTool.version` + `presentation()` (inlocuieste
+    `fields()`) - payload TIPAT pt. cardul de confirmare, doi randere: `"generic"`
+    (campuri text/boolean, editabile sau doar-afisare cu valoare REZOLVATA - nu
+    ID brut) si `"order_draft"` (structura, reutilizeaza editorul de comanda).
+    Scheme JSON stricte (`additionalProperties:false`, `minItems`/`maxItems`).
+  - `src/features/orders/order-editor.tsx` (nou): editorul de comanda extras din
+    `OrderForm`, REFOLOSIT identic de `/comenzi/nou` si de cardul asistentului.
+    `creeaza_comanda` capata `adresa_livrare_id` (parametrul exista deja in
+    `createOrderWithItems`, doar nu era expus tool-ului).
+  - `action-card.tsx` (rescris) + `order-draft-card.tsx` (nou): overrides TIPATE
+    la confirmare (boolean ramane boolean, linii ramane array) - fixul direct.
+  - `run.ts`: `confirmAction` cu 3 garzi in ordine - parse (eroare RECUPERABILA,
+    propunerea ramane `proposed`), revendicare atomica (`claimProposal`, previne
+    dublarea la confirmari concurente), executie; continuare automata a
+    modelului dupa succes (DOAR provider real - mock nu poate interpreta un
+    rezultat de tool, ar produce o regresie vizibila fata de linia determinista).
+  - `provider.ts`: `parallel_tool_calls: false`. `prompt.ts`: regula de
+    continuare automata a obiectivului multi-pas.
+  - `AGENTS.md` §2.4 (checklist nou): orice feature declara explicit impactul
+    asupra asistentului (none/read/write + renderer + manual + test).
+  - Manual (`utilizare-admin-operator.md` §13, `utilizare-client.md`).
+- **Verificat:** 27 teste noi (`order-editor.test.tsx`, `action-card.test.tsx`,
+  extindere `run.test.ts`/`write-tools.test.ts`/`registry.test.ts`), 729 teste
+  total, `pnpm typecheck`, `pnpm lint`. **Neverificat in acest mediu:** Docker a
+  fost indisponibil toata sesiunea (`docker info` blocat) - migrarea nu a fost
+  aplicata local, `pnpm gen:types` nu a rulat (tipurile noi sunt adaugate manual
+  in `db.ts`, ca la lansarea initiala a asistentului), iar
+  `pnpm db:test:assistant` (extins cu teste pt. `executing`/revendicare atomica)
+  nu a rulat. **De facut inainte de merge:** `pnpm db:reset && pnpm gen:types &&
+  pnpm db:test:assistant` cand Docker revine disponibil.
+
+---
+
 ## 2026-09-14 — Codex GPT-5 — Cuprins sticky in Ajutor
 
 - **Cerut:** meniul de navigare al unui document Markdown din sectiunea Ajutor sa

@@ -159,6 +159,10 @@ export class OpenAiCompatibleProvider implements ChatProvider {
                 },
               })),
               tool_choice: "auto",
+              // Produsul permite o singura propunere de scriere o data (confirmare
+              // umana pe UN card) - dezactivam tool call-urile paralele, ca modelul
+              // sa nu ceara doua actiuni simultan (docs/plans/asistent-contract-capabilitati.md).
+              parallel_tool_calls: false,
             }
           : {}),
       }),

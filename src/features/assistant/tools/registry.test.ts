@@ -24,17 +24,20 @@ describe("registry de tool-uri", () => {
     expect(findTool("tool_inexistent", "admin")).toBeNull();
   });
 
-  it("fiecare tool are nume unic si schema de obiect", () => {
+  it("fiecare tool are nume unic, schema de obiect stricta si o versiune", () => {
     const names = ASSISTANT_TOOLS.map((tool) => tool.name);
     expect(new Set(names).size).toBe(names.length);
 
     for (const tool of ASSISTANT_TOOLS) {
       expect(tool.parameters.type, tool.name).toBe("object");
+      expect(tool.parameters.additionalProperties, tool.name).toBe(false);
       expect(tool.description.length, tool.name).toBeGreaterThan(20);
-      // Tool-urile de scriere trebuie sa poata randa cardul de confirmare.
+      expect(typeof tool.version, tool.name).toBe("number");
+      // AGENTS.md §2.4: orice tool de SCRIERE declara explicit un rander pt.
+      // cardul de confirmare - nu poate fi uitat "generic implicit prin omisiune".
       if (tool.kind === "write") {
         expect(typeof tool.summary, tool.name).toBe("function");
-        expect(typeof tool.fields, tool.name).toBe("function");
+        expect(typeof tool.presentation, tool.name).toBe("function");
       }
     }
   });

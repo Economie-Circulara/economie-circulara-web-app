@@ -428,3 +428,24 @@ Configurarea organizației (identitate, white-label, domeniu, email) și
 managementul utilizatorilor sunt descrise în detaliu în
 [`ghid-administrare.md`](ghid-administrare.md) - accesibile din meniul
 **"Setări"**, vizibil doar rolului Administrator.
+
+---
+
+## 13. Asistent AI
+
+Meniul **"Asistent AI"** răspunde la întrebări despre aplicație și poate **propune**
+acțiuni - creează un client nou, creează o comandă, trimite o comandă spre
+acceptare. Orice acțiune se arată întâi într-un **card de confirmare**, neexecutată:
+
+- Câmpurile se afișează cu **denumiri**, nu cu identificatori interni (ex. la
+  trimiterea unei comenzi vezi numărul și clientul ei, nu un cod tehnic).
+- La o comandă propusă, cardul arată **același editor** ca ecranul "Comandă nouă"
+  (secțiunea 7.2): poți schimba clientul, adresa de livrare, adăuga/șterge linii,
+  înainte de a confirma.
+- Apasă **"Confirmă și execută"** ca acțiunea să se producă efectiv, sau
+  **"Renunță"** ca să o anulezi fără niciun efect.
+- Dacă un câmp completat e invalid, asistentul explică ce trebuie corectat -
+  cardul rămâne deschis, poți încerca din nou fără să reformulezi cererea.
+- După o confirmare reușită, asistentul poate continua singur spre pasul următor
+  al cererii inițiale (ex. "adaugă clientul X și o comandă cu Y" - după ce
+  confirmi clientul, propune imediat comanda).
