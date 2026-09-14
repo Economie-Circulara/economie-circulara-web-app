@@ -4,6 +4,64 @@ Jurnal al sarcinilor lucrate de agenti AI in acest repo. Conform regulii 1.2 din
 [`AGENTS.md`](../AGENTS.md), la **fiecare commit** se adauga o intrare aici.
 Cele mai noi intrari sus.
 
+## 2026-09-14 — Claude Sonnet 5 — Fix e2e/db CI: `supabase/setup-cli` pica pe rate limit la `version: latest`
+
+- **Cerut:** userul a raportat esecul e2e-ului: `supabase/setup-cli@v1` -> "Failed
+  to resolve latest Supabase CLI release: rate limit exceeded" (a intrebat daca
+  problema e Node 20/24 - nu era; mesajul de deprecare Node e doar informativ,
+  de la `actions/setup-node` folosit intern de action-ul compus).
+- **Facut:** `db.yml` si `e2e.yml` foloseau `version: latest` la
+  `supabase/setup-cli@v1`, ceea ce forteaza action-ul sa rezolve "latest" la
+  fiecare rulare (extern, rate-limitat). Proiectul are deja `supabase` fixat ca
+  devDependency in `package.json` (`^2.108.0`, rezolvat in `pnpm-lock.yaml`) -
+  action-ul detecteaza automat versiunea din lockfile cand `version` lipseste.
+  Eliminat `with: version: latest` din ambele workflow-uri.
+- **Verificat:** YAML valid (`yaml.safe_load`); niciun alt loc din repo nu mai
+  seteaza `version: latest` pentru `supabase/setup-cli`.
+
+## 2026-09-14 — Claude Sonnet 5 — Fix coliziune versiune migrare 0024/0025 (db migrate)
+
+- **Cerut:** userul a raportat `db migrate` esuat cu `duplicate key value
+  violates unique constraint "schema_migrations_pkey"`.
+- **Facut:** `mcp__supabase__list_migrations` a aratat ca pe remote
+  `route_planning` e deja aplicat ca versiunea **0025** (nu 0024, cum era
+  numit fisierul local - drift ramas dupa merge-ul PR #33/#34, ambele
+  adaugasera cate un `0024_...sql`). Migrarea noua din acest task folosea tot
+  `0025`, deci coliziune directa. Corectat: `git mv
+  0024_route_planning.sql 0025_route_planning.sql` (aliniat la remote) +
+  migrarea noua redenumita `0026_insufficient_stock_error_detail.sql`;
+  actualizate referintele "migrarea 0025" din comentarii/teste la 0026.
+- **Verificat:** `mcp__supabase__list_migrations` confirma ordinea corecta
+  (0024=assistant_capabilities_contract, 0025=route_planning); niciun fisier
+  nu mai refera intern vechea numerotare.
+
+## 2026-09-14 — Claude Sonnet 5 — Eroare "stoc insuficient" la acceptarea comenzii - label + CTA
+
+- **Cerut:** userul a semnalat mesajul de eroare afisat la acceptarea unei comenzi
+  cu stoc insuficient (`Stoc insuficient pentru itemul <uuid>: lipsesc...`) si a
+  propus 3 imbunatatiri; a aprobat primele doua (label in loc de uuid, CTA cu
+  next steps) - a treia (link catre asistentul AI cu prompt precompletat) ramane
+  pentru mai tarziu.
+- **Facut** (`docs/plans/eroare-stoc-insuficient-la-acceptare.md`, plan complet):
+  - `0025_insufficient_stock_error_detail.sql`: `consume_fifo` pune item_id in
+    `DETAIL` pe exceptia LT001, ca apelantii indirecti (accept_order,
+    confirm_process) sa il citeasca structurat din `error.details`, fara sa
+    parseze mesajul.
+  - `stock/service.ts`: helper nou `buildInsufficientStockError` - inlocuieste
+    uuid-ul cu titlul itemului in mesaj (fallback pe mesajul brut daca lookup-ul
+    esueaza); reutilizat in `consumeFIFO`, `orders/service.ts`
+    (`acceptOrder`/`cancelOrder`) si `production/service.ts` (`confirmProcess`).
+  - `orders/service.ts`: `throwOrderRpcError` (sincron) devenit `orderRpcError`
+    (async, intoarce eroarea) - apelantii fac `throw await orderRpcError(...)`
+    ca sa pastreze narrowing-ul TS pe `data`.
+  - CTA: `OrderTransitionState.insufficientStockItemId` + link "Adaugă stoc
+    pentru acest item" in `order-status-actions.tsx` -> `/stoc/nou?item_id=...`;
+    `LotForm`/`/stoc/nou` preselecteaza item-ul din query.
+- **Verificat:** teste noi in `stock/service.test.ts`, `orders/service.test.ts`,
+  `orders/actions.test.ts` (label rezolvat + fallback pe mesaj brut + CTA
+  populat); 737 teste unitare trec (restul suitei nemodificate); `typecheck` si
+  `eslint` curate pe fisierele atinse.
+
 ## 2026-09-14 — Claude Sonnet 5 — Contract viu si UX tipat pentru asistentul AI
 
 - **Cerut:** userul a scris un plan detaliat (contract viu + UX tipat pt.

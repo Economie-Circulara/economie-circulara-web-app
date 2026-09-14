@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { getItemById } from "@/features/items/queries";
 import type { Database } from "@/lib/database.types";
 import type { Lot, LotProvenance, QualityStatus, StockEventType } from "./types";
 
@@ -18,6 +19,25 @@ export class InsufficientStockError extends Error {
     super(message);
     this.name = "InsufficientStockError";
   }
+}
+
+/**
+ * Construieste `InsufficientStockError` cu titlul itemului in loc de uuid in
+ * mesaj, cand poate fi rezolvat (RLS + item inca existent) - altfel pastreaza
+ * mesajul brut din Postgres (`consume_fifo`, errcode LT001). `itemId` poate
+ * veni fie direct (apelantul il stie deja), fie din `error.details` (setat de
+ * migrarea 0026 pentru apelantii care consuma FIFO indirect, ex. accept_order).
+ */
+export async function buildInsufficientStockError(
+  itemId: string | null | undefined,
+  requestedQty: number,
+  message: string,
+): Promise<InsufficientStockError> {
+  if (!itemId) return new InsufficientStockError("", requestedQty, message);
+
+  const item = await getItemById(itemId).catch(() => null);
+  const friendlyMessage = item ? message.replaceAll(itemId, `"${item.title}"`) : message;
+  return new InsufficientStockError(itemId, requestedQty, friendlyMessage);
 }
 
 /** Lotul cerut nu exista sau nu e accesibil organizatiei apelantului. */
@@ -123,7 +143,7 @@ export async function consumeFIFO(
 
   if (error) {
     if (error.code === ERR_INSUFFICIENT_STOCK) {
-      throw new InsufficientStockError(itemId, qty, error.message);
+      throw await buildInsufficientStockError(itemId, qty, error.message);
     }
     throw new Error(error.message ?? "Nu am putut consuma stocul.");
   }

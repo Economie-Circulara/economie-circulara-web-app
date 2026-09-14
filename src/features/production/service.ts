@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { InsufficientStockError } from "@/features/stock/service";
+import { buildInsufficientStockError } from "@/features/stock/service";
 import type { Database } from "@/lib/database.types";
 import type { ConfirmProcessInput } from "./types";
 
@@ -52,7 +52,7 @@ export async function confirmProcess(input: ConfirmProcessInput): Promise<Proces
 
   if (error || !data) {
     if (error?.code === ERR_INSUFFICIENT_STOCK) {
-      throw new InsufficientStockError("", 0, error.message);
+      throw await buildInsufficientStockError(error.details, 0, error.message);
     }
     throw new Error(error?.message ?? "Nu am putut confirma procesul.");
   }

@@ -165,6 +165,32 @@ describe("acceptOrder", () => {
     await expect(acceptOrder("order-1")).rejects.toBeInstanceOf(InsufficientStockError);
   });
 
+  it("rezolva item_id din `error.details` (migrarea 0026) la titlul itemului in mesaj", async () => {
+    const rpc = vi.fn().mockResolvedValue({
+      data: null,
+      error: {
+        code: "LT001",
+        message: "Stoc insuficient pentru itemul item-1: lipsesc 5 unitati din 10 cerute.",
+        details: "item-1",
+      },
+    });
+    const maybeSingle = vi
+      .fn()
+      .mockResolvedValue({ data: { id: "item-1", title: "Paleti EUR" }, error: null });
+    const eq = vi.fn().mockReturnValue({ maybeSingle });
+    const select = vi.fn().mockReturnValue({ eq });
+    const from = vi.fn().mockReturnValue({ select });
+    createClient.mockResolvedValue({ rpc, from });
+
+    const error = await acceptOrder("order-1").catch((e) => e);
+
+    expect(error).toBeInstanceOf(InsufficientStockError);
+    expect(error.itemId).toBe("item-1");
+    expect(error.message).toBe(
+      'Stoc insuficient pentru itemul "Paleti EUR": lipsesc 5 unitati din 10 cerute.',
+    );
+  });
+
   it("arunca OrderTransitionError cand comanda nu e in status sent (OR001)", async () => {
     const rpc = vi.fn().mockResolvedValue({
       data: null,

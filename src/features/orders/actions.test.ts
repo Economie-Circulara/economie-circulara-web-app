@@ -36,6 +36,7 @@ vi.mock("next/navigation", () => ({ redirect }));
 const { revalidatePath } = vi.hoisted(() => ({ revalidatePath: vi.fn() }));
 vi.mock("next/cache", () => ({ revalidatePath }));
 
+import { InsufficientStockError } from "@/features/stock/service";
 import {
   acceptOrderAction,
   cancelOrderAction,
@@ -206,6 +207,19 @@ describe("acceptOrderAction", () => {
     const state = await acceptOrderAction({ error: null }, formData({ order_id: "order-1" }));
 
     expect(state.error).toMatch(/stoc/i);
+  });
+
+  it("alimenteaza CTA-ul 'Adaugă stoc' cu item-ul cand InsufficientStockError il cunoaste", async () => {
+    requireRole.mockResolvedValue({ id: "u1", organizationId: "org-1" });
+    getOrderStatus.mockResolvedValue("sent");
+    acceptOrder.mockRejectedValue(
+      new InsufficientStockError("item-1", 5, 'Stoc insuficient pentru itemul "Paleti EUR".'),
+    );
+
+    const state = await acceptOrderAction({ error: null }, formData({ order_id: "order-1" }));
+
+    expect(state.error).toBe('Stoc insuficient pentru itemul "Paleti EUR".');
+    expect(state.insufficientStockItemId).toBe("item-1");
   });
 
   it("respinge acceptarea unei comenzi draft (masina de stari, fara sa apeleze RPC-ul)", async () => {

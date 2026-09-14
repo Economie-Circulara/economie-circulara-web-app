@@ -5,10 +5,14 @@ import { LotForm } from "@/features/stock/lot-form";
 
 export const metadata = { title: "Adaugă lot - Lot cu Lot" };
 
+interface StocNouPageProps {
+  searchParams: Promise<{ item_id?: string }>;
+}
+
 /** Formular adăugare lot nou în stoc (doar staff). */
-export default async function StocNouPage() {
+export default async function StocNouPage({ searchParams }: StocNouPageProps) {
   await requireRole(["admin", "operator"]);
-  const items = await listItemOptions();
+  const [items, params] = await Promise.all([listItemOptions(), searchParams]);
 
   return (
     <div className="space-y-6">
@@ -17,7 +21,7 @@ export default async function StocNouPage() {
         description="Înregistrează un lot nou cu proveniență."
         breadcrumbs={[{ label: "Stoc", href: "/stoc" }, { label: "Lot nou" }]}
       />
-      <LotForm items={items} />
+      <LotForm items={items} defaultItemId={params.item_id} />
     </div>
   );
 }
