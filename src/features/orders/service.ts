@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { InsufficientStockError } from "@/features/stock/service";
+import { buildInsufficientStockError } from "@/features/stock/service";
 import type { Database } from "@/lib/database.types";
 import type { Order, OrderLineInput, OrderStatus } from "./types";
 
@@ -53,19 +53,21 @@ function mapOrder(row: OrderRow): Order {
   };
 }
 
-function throwOrderRpcError(
+/** Mapeaza eroarea RPC pe un tip specific, fara sa arunce - apelantul face `throw await ...`. */
+async function orderRpcError(
   orderId: string,
-  error: { code?: string; message: string } | null,
+  error: { code?: string; message: string; details?: string | null } | null,
   fallbackMessage: string,
-): never {
-  if (!error) throw new Error(fallbackMessage);
-  if (error.code === ERR_NOT_FOUND) throw new OrderNotFoundError(orderId);
-  if (error.code === ERR_INVALID_TRANSITION) throw new OrderTransitionError(error.message);
-  if (error.code === ERR_FORBIDDEN) throw new OrderPermissionError(error.message);
+): Promise<Error> {
+  if (!error) return new Error(fallbackMessage);
+  if (error.code === ERR_NOT_FOUND) return new OrderNotFoundError(orderId);
+  if (error.code === ERR_INVALID_TRANSITION) return new OrderTransitionError(error.message);
+  if (error.code === ERR_FORBIDDEN) return new OrderPermissionError(error.message);
   if (error.code === ERR_INSUFFICIENT_STOCK) {
-    throw new InsufficientStockError("", 0, error.message);
+    // `details` = item_id (vezi migrarea 0025) - lipseste doar pe erori vechi/necunoscute.
+    return buildInsufficientStockError(error.details, 0, error.message);
   }
-  throw new Error(error.message || fallbackMessage);
+  return new Error(error.message || fallbackMessage);
 }
 
 /** Numar de comanda secvential nou, per organizatie/an (RPC `generate_order_number`). */
@@ -141,7 +143,7 @@ export async function setOrderStatus(orderId: string, status: OrderStatus): Prom
 export async function acceptOrder(orderId: string): Promise<Order> {
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("accept_order", { p_order_id: orderId });
-  if (error || !data) throwOrderRpcError(orderId, error, "Nu am putut accepta comanda.");
+  if (error || !data) throw await orderRpcError(orderId, error, "Nu am putut accepta comanda.");
   return mapOrder(data);
 }
 
@@ -152,7 +154,7 @@ export async function acceptOrder(orderId: string): Promise<Order> {
 export async function cancelOrder(orderId: string): Promise<Order> {
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("cancel_order", { p_order_id: orderId });
-  if (error || !data) throwOrderRpcError(orderId, error, "Nu am putut anula comanda.");
+  if (error || !data) throw await orderRpcError(orderId, error, "Nu am putut anula comanda.");
   return mapOrder(data);
 }
 

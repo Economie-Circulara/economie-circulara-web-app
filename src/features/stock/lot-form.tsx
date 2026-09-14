@@ -14,7 +14,14 @@ const selectClassName =
   "flex h-9 w-full rounded-md border border-input bg-card px-3 py-1 text-sm shadow-xs outline-none " +
   "focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50";
 
-export function LotForm({ items }: { items: ItemOption[] }) {
+export function LotForm({
+  items,
+  defaultItemId,
+}: {
+  items: ItemOption[];
+  /** Preselecteaza item-ul (ex. link "Adaugă stoc" din eroarea de stoc insuficient la acceptarea comenzii). */
+  defaultItemId?: string;
+}) {
   const [state, action, pending] = useActionState(createLotAction, initialLotFormState);
   const today = new Date().toISOString().slice(0, 10);
 
@@ -31,7 +38,13 @@ export function LotForm({ items }: { items: ItemOption[] }) {
         <CardContent className="space-y-4">
           <FormField label="Item" required>
             {(id) => (
-              <select id={id} name="item_id" required defaultValue="" className={selectClassName}>
+              <select
+                id={id}
+                name="item_id"
+                required
+                defaultValue={defaultItemId ?? ""}
+                className={selectClassName}
+              >
                 <option value="" disabled>
                   Alege un item...
                 </option>

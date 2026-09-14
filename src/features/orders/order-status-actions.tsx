@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState } from "react";
 import { Button, type ButtonProps } from "@/components/ui/button";
 import { initialOrderTransitionState, type OrderTransitionState } from "./action-state";
@@ -41,6 +42,14 @@ function TransitionButton({
       </Button>
       {state.error ? (
         <span className="max-w-48 text-right text-xs text-danger">{state.error}</span>
+      ) : null}
+      {state.insufficientStockItemId ? (
+        <Link
+          href={`/stoc/nou?item_id=${state.insufficientStockItemId}`}
+          className="text-xs font-medium text-primary underline-offset-2 hover:underline"
+        >
+          Adaugă stoc pentru acest item
+        </Link>
       ) : null}
     </form>
   );
