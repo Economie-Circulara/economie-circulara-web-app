@@ -4,6 +4,21 @@ Jurnal al sarcinilor lucrate de agenti AI in acest repo. Conform regulii 1.2 din
 [`AGENTS.md`](../AGENTS.md), la **fiecare commit** se adauga o intrare aici.
 Cele mai noi intrari sus.
 
+## 2026-09-14 — Claude Sonnet 5 — Fix e2e/db CI: `supabase/setup-cli` pica pe rate limit la `version: latest`
+
+- **Cerut:** userul a raportat esecul e2e-ului: `supabase/setup-cli@v1` -> "Failed
+  to resolve latest Supabase CLI release: rate limit exceeded" (a intrebat daca
+  problema e Node 20/24 - nu era; mesajul de deprecare Node e doar informativ,
+  de la `actions/setup-node` folosit intern de action-ul compus).
+- **Facut:** `db.yml` si `e2e.yml` foloseau `version: latest` la
+  `supabase/setup-cli@v1`, ceea ce forteaza action-ul sa rezolve "latest" la
+  fiecare rulare (extern, rate-limitat). Proiectul are deja `supabase` fixat ca
+  devDependency in `package.json` (`^2.108.0`, rezolvat in `pnpm-lock.yaml`) -
+  action-ul detecteaza automat versiunea din lockfile cand `version` lipseste.
+  Eliminat `with: version: latest` din ambele workflow-uri.
+- **Verificat:** YAML valid (`yaml.safe_load`); niciun alt loc din repo nu mai
+  seteaza `version: latest` pentru `supabase/setup-cli`.
+
 ## 2026-09-14 — Claude Sonnet 5 — Fix coliziune versiune migrare 0024/0025 (db migrate)
 
 - **Cerut:** userul a raportat `db migrate` esuat cu `duplicate key value
