@@ -7,7 +7,7 @@ import {
 } from "./validation";
 
 describe("validatePercentage", () => {
-  it("accepta valori in (0, 100]", () => {
+  it("accepta valori strict pozitive", () => {
     expect(validatePercentage(50)).toBeNull();
     expect(validatePercentage(100)).toBeNull();
     expect(validatePercentage(0.001)).toBeNull();
@@ -18,8 +18,9 @@ describe("validatePercentage", () => {
     expect(validatePercentage(-5)).toMatch(/mai mare/i);
   });
 
-  it("respinge valori peste 100", () => {
-    expect(validatePercentage(100.5)).toMatch(/depăș/i);
+  it("accepta valori peste 100 (raport input/output la retete cu pierderi)", () => {
+    expect(validatePercentage(100.5)).toBeNull();
+    expect(validatePercentage(1000)).toBeNull();
   });
 
   it("respinge NaN/Infinity", () => {

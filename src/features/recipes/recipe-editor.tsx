@@ -124,14 +124,17 @@ export function RecipeEditor({
                 </select>
               )}
             </FormField>
-            <FormField label="Procent" required>
+            <FormField
+              label="Procent"
+              required
+              hint="Poate depăși 100% (ex: input mai mare decât outputul, la rețete cu pierderi)."
+            >
               {(id) => (
                 <Input
                   id={id}
                   name="percentage"
                   type="number"
                   min="0"
-                  max="100"
                   step="0.001"
                   required
                   className="w-28"
