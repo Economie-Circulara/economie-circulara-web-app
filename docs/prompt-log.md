@@ -126,6 +126,21 @@ Format intrare:
 
 ---
 
+## 2026-09-14 — Codex GPT-5 — Dashboard operațional extins
+
+- **Cerut:** un dashboard util pentru echipa internă, nu pentru portalul clienților,
+  cu statistici relevante, ultimele comenzi, semnale de stoc redus și grafice care
+  susțin deciziile operaționale.
+- **Făcut:** dashboardul admin/operator combină acum KPI-urile cu linkuri directe,
+  o listă a comenzilor actualizate recent, priorități de acceptare, loturi blocate
+  și itemi cu cel mult 20% din stocul inițial disponibil. Graficul reconstruiește
+  evoluția reală a nivelului de stoc din auditul `stock_events`, pe ultimele 14 zile,
+  separat pe fiecare unitate de măsură; include selector când organizația folosește
+  mai multe UM. Plan: `docs/plans/dashboard-operational.md`.
+- **Verificat:** 715 teste unitare, `pnpm typecheck`, `pnpm lint`, `pnpm build` și
+  `git diff --check` trec. Testele noi acoperă pragul de stoc redus, agregarea pe
+  item, seriile istorice calculate și compunerea datelor operaționale.
+
 ## 2026-09-14 — Claude Sonnet 5 — Documentație de conformitate (Etapa 7/X7, final)
 
 - **Cerut:** ultima etapă a planului de planificare optimizată a rutelor -

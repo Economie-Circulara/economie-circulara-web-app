@@ -16,6 +16,43 @@ export interface DashboardKpis {
   certificatesIssued: number;
 }
 
+export interface DashboardRecentOrder {
+  id: string;
+  orderNumber: string | null;
+  clientName: string;
+  status: OrderStatus;
+  updatedAt: string;
+}
+
+/** Semnal orientativ: maximum 20% din cantitatea initiala a itemului mai este disponibila. */
+export interface DashboardLowStockItem {
+  itemId: string;
+  itemTitle: string;
+  unit: string;
+  initialQty: number;
+  remainingQty: number;
+  availabilityPercent: number;
+  blockedLots: number;
+}
+
+export interface DashboardStockTrendPoint {
+  date: string;
+  quantity: number;
+}
+
+export interface DashboardStockTrend {
+  unit: string;
+  points: DashboardStockTrendPoint[];
+}
+
+export interface OperationalDashboardData {
+  kpis: DashboardKpis;
+  recentOrders: DashboardRecentOrder[];
+  lowStockItems: DashboardLowStockItem[];
+  blockedLots: number;
+  stockTrends: DashboardStockTrend[];
+}
+
 // -----------------------------------------------------------------------------
 // Raport 1 - Comenzi pe perioada
 // -----------------------------------------------------------------------------
