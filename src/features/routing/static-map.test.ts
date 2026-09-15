@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { encodePolyline } from "./polyline";
 import { buildStaticMapUrl } from "./static-map";
 
 const ORIGIN = { lat: 47.1, lng: 27.5 };
@@ -68,5 +69,32 @@ describe("buildStaticMapUrl", () => {
       height: 200,
     });
     expect(new URL(customUrl).searchParams.get("size")).toEqual("320x200");
+  });
+
+  it("simplifica poliliniile lungi (rute reale) ca sa incapa sub limita Maps Static API", () => {
+    // O ruta reala (Google Routes API) poate avea sute/mii de puncte - spre
+    // deosebire de poliliniile mock (2-3 puncte) care nu s-au apropiat niciodata
+    // de limita de 8192 caractere a Maps Static API.
+    const longRoute = Array.from({ length: 5000 }, (_, i) => ({
+      lat: ORIGIN.lat + i * 0.0001,
+      lng: ORIGIN.lng + i * 0.0001,
+    }));
+    const longPolyline = encodePolyline(longRoute);
+    expect(longPolyline.length).toBeGreaterThan(8000);
+
+    const url = buildStaticMapUrl({
+      origin: ORIGIN,
+      destination: DESTINATION,
+      routes: [
+        { polyline: longPolyline, recommended: true },
+        { polyline: longPolyline, recommended: false },
+      ],
+      apiKey: "test-key",
+    });
+
+    expect(url.length).toBeLessThanOrEqual(8000);
+    // Traseul ramane intact la capete, doar simplificat pe drum.
+    const [recommendedPath] = new URL(url).searchParams.getAll("path").slice(-1);
+    expect(recommendedPath).toContain("enc:");
   });
 });
