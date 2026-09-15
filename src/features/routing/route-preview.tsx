@@ -4,6 +4,7 @@ import { useTransition } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { previewDeliveryRouteAction, type RouteChoiceView } from "./route-actions";
+import { RouteMap } from "./route-map";
 
 const distanceFormatter = new Intl.NumberFormat("ro-RO", { maximumFractionDigits: 1 });
 
@@ -25,7 +26,6 @@ export interface RoutePreviewState {
   selectedIndex: number;
   /** true = operatorul a ales explicit alta varianta decat cea recomandata. */
   manualOverride: boolean;
-  mapDataUrl: string | null;
 }
 
 export interface RoutePreviewProps {
@@ -35,15 +35,18 @@ export interface RoutePreviewProps {
   onStateChange: (state: RoutePreviewState | null) => void;
   error: string | null;
   onError: (error: string | null) => void;
+  /** Culoarea primara a organizatiei (hex) - traseul recomandat pe harta. */
+  recommendedColor?: string | null;
 }
 
 /**
  * Preview-ul rutelor calculate (Task X7 - caracteristica #5 din clarificarea AM):
  * buton "Calculează rute" -> apeleaza `previewDeliveryRouteAction` (direct, ca
  * `lookupCuiAction` in `client-form.tsx` - NU e un submit de formular), afiseaza
- * harta (daca exista `GOOGLE_MAPS_API_KEY`) si lista de variante, cu selectie.
- * Rezultatul (varianta aleasa + toate alternativele) e trimis de parinte
- * (`DeliveryForm`) ca un camp ascuns JSON, o data cu restul formularului.
+ * harta interactiva (`RouteMap`, client-side, fara alt round-trip) si lista de
+ * variante, cu selectie. Rezultatul (varianta aleasa + toate alternativele) e
+ * trimis de parinte (`DeliveryForm`) ca un camp ascuns JSON, o data cu restul
+ * formularului.
  */
 export function RoutePreview({
   originSiteId,
@@ -52,6 +55,7 @@ export function RoutePreview({
   onStateChange,
   error,
   onError,
+  recommendedColor,
 }: RoutePreviewProps) {
   const [pending, startTransition] = useTransition();
 
@@ -77,7 +81,6 @@ export function RoutePreview({
         bestIndex: result.bestIndex,
         selectedIndex: result.bestIndex,
         manualOverride: false,
-        mapDataUrl: result.mapDataUrl,
       });
     });
   }
@@ -92,19 +95,11 @@ export function RoutePreview({
 
       {state ? (
         <div className="space-y-3 rounded-lg border bg-card p-3">
-          {state.mapDataUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element -- data-URI generat server-side, nu un asset optimizabil.
-            <img
-              src={state.mapDataUrl}
-              alt="Previzualizare rută pe hartă"
-              className="w-full rounded-md border"
-            />
-          ) : (
-            <p className="text-xs text-muted-foreground">
-              Previzualizare hartă indisponibilă (mod test/fără cheie Google configurată) - lista de
-              rute rămâne validă.
-            </p>
-          )}
+          <RouteMap
+            routes={state.routes}
+            selectedIndex={state.selectedIndex}
+            recommendedColor={recommendedColor}
+          />
 
           <div className="space-y-2">
             {state.routes.map((route, index) => {
