@@ -69,10 +69,20 @@ export async function renderRouteStaticMapDataUrl(input: {
 
   try {
     const response = await fetch(url);
-    if (!response.ok) return null;
+    if (!response.ok) {
+      // Raspunsul Static Maps e text simplu si explica exact motivul (ex. API
+      // neactivat, cheie restrictionata, billing lipsa) - fara asta, un eșec aici
+      // era complet silentios (mapDataUrl: null, fara nicio urma in loguri).
+      const body = await response.text().catch(() => "");
+      console.error(
+        `[routing] Google Maps Static API a răspuns ${response.status}: ${body.slice(0, 500)}`,
+      );
+      return null;
+    }
     const buffer = Buffer.from(await response.arrayBuffer());
     return `data:image/png;base64,${buffer.toString("base64")}`;
-  } catch {
+  } catch (err) {
+    console.error("[routing] Cererea către Google Maps Static API a eșuat:", err);
     return null;
   }
 }
