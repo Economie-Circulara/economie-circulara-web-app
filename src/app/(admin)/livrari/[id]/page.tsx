@@ -8,8 +8,6 @@ import { getDeliveryDetail } from "@/features/deliveries/queries";
 import { ReceiptForm } from "@/features/deliveries/receipt-form";
 import { RoutePanel } from "@/features/deliveries/route-panel";
 import { getCurrentOrg } from "@/features/auth/queries";
-import { renderStoredRouteStaticMapDataUrl } from "@/features/routing/route-service";
-import type { RouteOption } from "@/features/routing/types";
 
 export const metadata = { title: "Detalii livrare - Lot cu Lot" };
 
@@ -32,13 +30,6 @@ export default async function DeliveryDetailPage({ params }: DeliveryDetailPageP
   if (!delivery) notFound();
 
   const org = await getCurrentOrg();
-  const mapDataUrl = delivery.route.alternatives
-    ? await renderStoredRouteStaticMapDataUrl({
-        routes: delivery.route.alternatives as unknown as RouteOption[],
-        selectedIndex: delivery.route.selectedIndex ?? 0,
-        recommendedColor: org?.primaryColor,
-      })
-    : null;
 
   return (
     <div className="space-y-8">
@@ -104,7 +95,9 @@ export default async function DeliveryDetailPage({ params }: DeliveryDetailPageP
               deliveryId={delivery.id}
               distanceMeters={delivery.route.distanceMeters}
               durationSeconds={delivery.route.durationSeconds}
-              mapDataUrl={mapDataUrl}
+              alternatives={delivery.route.alternatives}
+              selectedIndex={delivery.route.selectedIndex}
+              recommendedColor={org?.primaryColor}
             />
           </CardContent>
         </Card>

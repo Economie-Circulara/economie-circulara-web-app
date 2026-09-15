@@ -41,11 +41,15 @@ activitate. Optimizarea multi-stop pe zi/vehicul e o etapă opțională (Etapa 6
    `MockRoutingProvider` implicit (teste, dev, preview fără cheie) - schimbarea
    furnizorului nu atinge UI-ul.
    *Termenii Google:* rezultatele Routes API se afișează doar pe hartă Google (nu Leaflet/OSM).
-2. **Afișare hartă: Maps Static API servit printr-un route handler propriu** (imagine
-   cu polilinii colorate, ruta recomandată evidențiată), nu Maps JavaScript API.
-   Motiv: cheia rămâne pe server, funcționează pe orice domeniu de tenant (subdomenii +
-   domenii white-label - o cheie de browser ar cere restricții de referrer per domeniu),
-   zero JS în plus. Upgrade ulterior la hartă interactivă e posibil fără schimbări de model.
+2. ~~**Afișare hartă: Maps Static API servit printr-un route handler propriu**~~ -
+   **Actualizare (2026-09-15):** imaginea statică a fost înlocuită cu o hartă interactivă
+   client-side (Leaflet + tile-uri OpenStreetMap, `features/routing/route-map.tsx`), exact
+   upgrade-ul anticipat mai jos. Motive: (a) rutele reale (Google Routes API) au polilinii cu
+   sute/mii de puncte - URL-ul Maps Static depășea des limita de 8192 caractere și harta
+   lipsea silențios; (b) editarea adresei cerea un nou apel server ca să vezi din nou harta -
+   clunky. Datele (polilinii deja decodabile client-side) vin oricum în răspunsul serverului
+   (`RouteChoiceView.polyline`), deci nu mai era nevoie de un round-trip separat pt. imagine.
+   Decizia de cheie server-only rămâne validă - Leaflet/OSM nu cere nicio cheie API.
 3. **Criteriul „cea mai bună”:** durata estimată cu trafic la data programată (plecare
    implicită 08:00 ora României), la egalitate (±5%) câștigă distanța mai mică. Operatorul
    poate alege altă rută; se salvează motivul selecției (`auto` / `manual`).

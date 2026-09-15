@@ -1,9 +1,8 @@
 "use server";
 
-import { getCurrentOrg } from "@/features/auth/queries";
 import { requireRole } from "@/features/auth/session";
 import { getSiteById } from "./site-queries";
-import { computeRouteBetween, renderRouteStaticMapDataUrl } from "./route-service";
+import { computeRouteBetween } from "./route-service";
 import { AddressNotFoundError, RoutingNotConfiguredError, RoutingProviderError } from "./types";
 
 /** Reprezentarea serializabila a unei variante de ruta, trimisa catre client component. */
@@ -18,8 +17,6 @@ export interface PreviewRouteResult {
   error: string | null;
   routes: RouteChoiceView[];
   bestIndex: number;
-  /** Imagine Maps Static ca data-URI (base64) - `null` in mod mock sau daca cererea a esuat. */
-  mapDataUrl: string | null;
 }
 
 function routingErrorMessage(err: unknown): string {
@@ -46,7 +43,7 @@ export async function previewDeliveryRouteAction(
 ): Promise<PreviewRouteResult> {
   await requireRole(["admin", "operator"]);
 
-  const empty: PreviewRouteResult = { error: null, routes: [], bestIndex: -1, mapDataUrl: null };
+  const empty: PreviewRouteResult = { error: null, routes: [], bestIndex: -1 };
   if (!originSiteId) return { ...empty, error: "Selectează un punct de plecare." };
   if (!destinationAddress.trim()) return { ...empty, error: "Introdu adresa de livrare." };
 
@@ -54,18 +51,10 @@ export async function previewDeliveryRouteAction(
   if (!site) return { ...empty, error: "Punctul de plecare selectat nu a fost găsit." };
 
   try {
-    const org = await getCurrentOrg();
     const computation = await computeRouteBetween(
       { address: site.address },
       { address: destinationAddress },
     );
-    const mapDataUrl = await renderRouteStaticMapDataUrl({
-      origin: computation.origin,
-      destination: computation.destination,
-      routes: computation.routes,
-      bestIndex: computation.bestIndex,
-      recommendedColor: org?.primaryColor,
-    });
 
     return {
       error: null,
@@ -76,7 +65,6 @@ export async function previewDeliveryRouteAction(
         label: route.label,
       })),
       bestIndex: computation.bestIndex,
-      mapDataUrl,
     };
   } catch (err) {
     return { ...empty, error: routingErrorMessage(err) };

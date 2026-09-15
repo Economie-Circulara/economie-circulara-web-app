@@ -4,13 +4,19 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import type { RouteChoiceView } from "@/features/routing/route-actions";
+import { RouteMap } from "@/features/routing/route-map";
 import { recalculateDeliveryRouteAction } from "./actions";
 
 export interface RoutePanelProps {
   deliveryId: string;
   distanceMeters: number | null;
   durationSeconds: number | null;
-  mapDataUrl: string | null;
+  /** Toate variantele calculate la ultimul calcul/recalcul - `null` pt. livrarile fara ruta calculata. */
+  alternatives: RouteChoiceView[] | null;
+  selectedIndex: number | null;
+  /** Culoarea primara a organizatiei (hex) - traseul selectat pe harta. */
+  recommendedColor?: string | null;
 }
 
 const distanceFormatter = new Intl.NumberFormat("ro-RO", { maximumFractionDigits: 1 });
@@ -29,7 +35,8 @@ function formatDuration(seconds: number): string {
 
 /**
  * Panoul rutei calculate (ecranul /livrari/[id], Task X7 - caracteristica #5):
- * distanta/durata + harta (daca a fost generata) + buton "Recalculează" (alege
+ * distanta/durata + harta interactiva (daca exista variante stocate) + buton
+ * "Recalculează" (alege
  * automat cea mai rapidă variantă la momentul recalculării - fără pas de selecție
  * manuală aici, spre deosebire de planificarea inițială - vezi
  * `src/features/deliveries/service.ts#recalculateDeliveryRoute`).
@@ -38,7 +45,9 @@ export function RoutePanel({
   deliveryId,
   distanceMeters,
   durationSeconds,
-  mapDataUrl,
+  alternatives,
+  selectedIndex,
+  recommendedColor,
 }: RoutePanelProps) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -69,12 +78,11 @@ export function RoutePanel({
         </p>
       )}
 
-      {mapDataUrl ? (
-        // eslint-disable-next-line @next/next/no-img-element -- data-URI generat server-side.
-        <img
-          src={mapDataUrl}
-          alt="Previzualizare rută pe hartă"
-          className="w-full rounded-md border"
+      {alternatives && alternatives.length > 0 ? (
+        <RouteMap
+          routes={alternatives}
+          selectedIndex={selectedIndex ?? 0}
+          recommendedColor={recommendedColor}
         />
       ) : null}
 
