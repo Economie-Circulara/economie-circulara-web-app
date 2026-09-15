@@ -23,6 +23,8 @@ export interface DeliveryFormProps {
   sites: OrganizationSite[];
   /** Adresa de livrare a comenzii (client_addresses) - precompleteaza "Punct de sosire". */
   destinationAddress: string | null;
+  /** Culoarea primara a organizatiei (hex) - folosita pt. traseul recomandat pe harta. */
+  recommendedColor?: string | null;
 }
 
 /**
@@ -44,6 +46,7 @@ export function DeliveryForm({
   clientName,
   sites,
   destinationAddress,
+  recommendedColor,
 }: DeliveryFormProps) {
   const [state, formAction, pending] = useActionState(planDeliveryAction, initialDeliveryFormState);
 
@@ -198,6 +201,7 @@ export function DeliveryForm({
               onStateChange={setRoutePreviewState}
               error={routePreviewError}
               onError={setRoutePreviewError}
+              recommendedColor={recommendedColor}
             />
           ) : null}
         </CardContent>

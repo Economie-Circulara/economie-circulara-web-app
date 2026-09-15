@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { PageHeader } from "@/components/page-header";
+import { getCurrentOrg } from "@/features/auth/queries";
 import { requireRole } from "@/features/auth/session";
 import { DeliveryForm } from "@/features/deliveries/delivery-form";
 import { getDeliveryByOrderId } from "@/features/deliveries/queries";
@@ -32,6 +33,7 @@ export default async function LivrareNouaPage({ searchParams }: LivrareNouaPageP
   if (existing) redirect(`/livrari/${existing.id}`);
 
   const sites = await listSites();
+  const org = await getCurrentOrg();
 
   return (
     <div className="space-y-6">
@@ -61,6 +63,7 @@ export default async function LivrareNouaPage({ searchParams }: LivrareNouaPageP
           clientName={order.clientName}
           sites={sites}
           destinationAddress={order.deliveryAddress}
+          recommendedColor={org?.primaryColor}
         />
       )}
     </div>
