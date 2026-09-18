@@ -8,7 +8,9 @@ import { AddressSection } from "@/features/clients/address-section";
 import { initialClientFormState } from "@/features/clients/action-state";
 import { updateClientAction } from "@/features/clients/actions";
 import { ClientForm } from "@/features/clients/client-form";
+import { ClientPortalInvite } from "@/features/clients/invite-portal-access";
 import { getClient, listClientAddresses } from "@/features/clients/queries";
+import { clientHasPortalAccess } from "@/features/settings/queries";
 import { DocumentList } from "@/features/documents/document-list";
 import { DocumentUpload } from "@/features/documents/document-upload";
 import { listDocuments } from "@/features/documents/service";
@@ -17,6 +19,7 @@ export const metadata = { title: "Detalii client - Lot cu Lot" };
 
 interface ClientDetailPageProps {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ inviteWarning?: string }>;
 }
 
 /**
@@ -24,16 +27,18 @@ interface ClientDetailPageProps {
  * (CRUD, o singură adresă implicită), documente (inclusiv contracte arhivate -
  * decizie 2026-07) și istoric comenzi - placeholder, populat de Task E.
  */
-export default async function ClientDetailPage({ params }: ClientDetailPageProps) {
-  await requireRole(["admin", "operator"]);
+export default async function ClientDetailPage({ params, searchParams }: ClientDetailPageProps) {
+  const user = await requireRole(["admin", "operator"]);
   const { id } = await params;
+  const { inviteWarning } = await searchParams;
 
   const client = await getClient(id);
   if (!client) notFound();
 
-  const [addresses, documents] = await Promise.all([
+  const [addresses, documents, hasPortalAccess] = await Promise.all([
     listClientAddresses(id),
     listDocuments("client", id),
+    clientHasPortalAccess(id),
   ]);
 
   const revalidateTarget = `/clienti/${id}`;
@@ -46,8 +51,22 @@ export default async function ClientDetailPage({ params }: ClientDetailPageProps
         breadcrumbs={[{ label: "Clienți", href: "/clienti" }, { label: client.name }]}
       />
 
+      {inviteWarning ? (
+        <p className="rounded-md border border-warn bg-warn-bg px-3 py-2 text-sm text-warn">
+          {inviteWarning}
+        </p>
+      ) : null}
+
       <section className="space-y-3">
-        <h2 className="text-lg font-semibold">Date firmă</h2>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-lg font-semibold">Date firmă</h2>
+          <ClientPortalInvite
+            clientId={id}
+            defaultEmail={client.email}
+            hasPortalAccess={hasPortalAccess}
+            canInvite={user.role === "admin"}
+          />
+        </div>
         <ClientForm
           mode="edit"
           action={updateClientAction}

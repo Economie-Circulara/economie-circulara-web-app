@@ -8,7 +8,7 @@ export const metadata = { title: "Adaugă client - Lot cu Lot" };
 
 /** Formular creare client nou (doar staff) - CUI lookup opțional pentru precompletare. */
 export default async function ClientNouPage() {
-  await requireRole(["admin", "operator"]);
+  const user = await requireRole(["admin", "operator"]);
 
   return (
     <div className="space-y-6">
@@ -17,7 +17,12 @@ export default async function ClientNouPage() {
         description="Caută firma după CUI (opțional) sau completează datele manual."
         breadcrumbs={[{ label: "Clienți", href: "/clienti" }, { label: "Client nou" }]}
       />
-      <ClientForm mode="create" action={createClientAction} initialState={initialClientFormState} />
+      <ClientForm
+        mode="create"
+        action={createClientAction}
+        initialState={initialClientFormState}
+        currentUserRole={user.role}
+      />
     </div>
   );
 }
