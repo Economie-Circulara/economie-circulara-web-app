@@ -13,6 +13,7 @@ import {
   createOrderWithItems,
   sendOrder,
   setOrderStatus,
+  updateOrder,
 } from "./service";
 import { assertOrderTransition } from "./state-machine";
 import type { OrderLineInput, OrderStatus } from "./types";
@@ -84,6 +85,51 @@ export async function createOrderAction(
   }
 
   revalidatePath("/comenzi");
+  redirect(`/comenzi/${orderId}`);
+}
+
+/**
+ * Actualizeaza o comanda `draft` existenta (ecranul /comenzi/[id]/edit) - doar
+ * staff. Acelasi tipar ca `createOrderAction` (validare campuri + linii, apoi
+ * apel catre service), dar catre `updateOrder`, care respinge server-side orice
+ * comanda ce nu mai e `draft`.
+ */
+export async function updateOrderAction(
+  _prev: OrderFormState,
+  formData: FormData,
+): Promise<OrderFormState> {
+  const user = await requireRole(["admin", "operator"]);
+  if (!user.organizationId) {
+    return { error: "Utilizatorul curent nu are o organizație asociată." };
+  }
+
+  const orderId = clean(formData.get("order_id"));
+  if (!orderId) return { error: "Comandă invalidă." };
+
+  const clientId = clean(formData.get("client_id"));
+  if (!clientId) return { error: "Alege un client." };
+
+  const lines = readLines(formData);
+  if (lines.length === 0) {
+    return { error: "Adaugă cel puțin o linie (item vandabil + cantitate)." };
+  }
+
+  try {
+    await updateOrder({
+      orderId,
+      organizationId: user.organizationId,
+      clientId,
+      deliveryAddressId: clean(formData.get("delivery_address_id")),
+      deliveryDate: clean(formData.get("delivery_date")),
+      notes: clean(formData.get("notes")),
+      lines,
+    });
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : "Nu am putut actualiza comanda." };
+  }
+
+  revalidatePath("/comenzi");
+  revalidatePath(`/comenzi/${orderId}`);
   redirect(`/comenzi/${orderId}`);
 }
 

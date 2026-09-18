@@ -214,3 +214,84 @@ export async function createOrderWithItems(input: CreateOrderInput): Promise<Ord
 
   return mapOrder(order);
 }
+
+export interface UpdateOrderInput {
+  orderId: string;
+  organizationId: string;
+  clientId: string;
+  deliveryAddressId?: string | null;
+  deliveryDate?: string | null;
+  notes?: string | null;
+  lines: OrderLineInput[];
+}
+
+/**
+ * Actualizeaza o comanda `draft` existenta (client/adresa/data/note) si
+ * INLOCUIESTE integral liniile ei (sterge liniile vechi, insereaza cele noi - fara
+ * diff linie-cu-linie, la fel de simplu ca `createOrderWithItems`). Permisa DOAR
+ * cat comanda e inca `draft` (verificat aici, server-side) - o comanda deja
+ * inaintata nu se mai poate edita retroactiv, trebuie anulata si recreata.
+ *
+ * Fara RPC dedicat: trei instructiuni separate (select status, update orders,
+ * delete+insert order_items), in stilul non-atomic al lui `createOrderWithItems`
+ * de mai sus (care are aceeasi limitare - vezi compensarea ei manuala). Un esec
+ * intre UPDATE-ul comenzii si DELETE/INSERT-ul liniilor ar lasa metadatele
+ * comenzii actualizate dar liniile vechi neatinse - o stare recuperabila (ecranul
+ * de editare poate fi reincercat), nu una goala/orfana, deci nu justifica un RPC
+ * nou doar pentru acest task.
+ */
+export async function updateOrder(input: UpdateOrderInput): Promise<Order> {
+  if (input.lines.length === 0) {
+    throw new Error("Comanda trebuie să aibă cel puțin o linie.");
+  }
+
+  const supabase = await createClient();
+
+  const { data: existing, error: existingError } = await supabase
+    .from("orders")
+    .select("status")
+    .eq("id", input.orderId)
+    .maybeSingle();
+  if (existingError) throw new Error(existingError.message ?? "Nu am putut încărca comanda.");
+  if (!existing) throw new OrderNotFoundError(input.orderId);
+  if (existing.status !== "draft") {
+    throw new OrderTransitionError('Doar o comandă în status "Ciornă" poate fi editată.');
+  }
+
+  const { data: order, error: orderError } = await supabase
+    .from("orders")
+    .update({
+      client_id: input.clientId,
+      delivery_address_id: input.deliveryAddressId ?? null,
+      delivery_date: input.deliveryDate ?? null,
+      notes: input.notes ?? null,
+    })
+    .eq("id", input.orderId)
+    .select()
+    .single();
+  if (orderError || !order) {
+    throw new Error(orderError?.message ?? "Nu am putut actualiza comanda.");
+  }
+
+  const { error: deleteError } = await supabase
+    .from("order_items")
+    .delete()
+    .eq("order_id", input.orderId);
+  if (deleteError) {
+    throw new Error("Nu am putut actualiza liniile comenzii.");
+  }
+
+  const { error: itemsError } = await supabase.from("order_items").insert(
+    input.lines.map((line) => ({
+      organization_id: input.organizationId,
+      order_id: input.orderId,
+      item_id: line.itemId,
+      quantity: line.quantity,
+    })),
+  );
+  if (itemsError) {
+    throw new Error("Nu am putut salva liniile comenzii.");
+  }
+
+  return mapOrder(order);
+}

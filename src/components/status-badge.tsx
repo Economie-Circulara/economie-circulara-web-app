@@ -9,11 +9,11 @@ type StatusDef = { label: string; variant: BadgeVariant };
 export const STATUS_REGISTRY = {
   // Statusuri comanda: draft -> trimisa -> acceptata -> livrata -> inchisa / anulata
   order: {
-    draft: { label: "Draft", variant: "neutral" },
-    trimisa: { label: "Trimisă", variant: "info" },
-    acceptata: { label: "Acceptată", variant: "warn" },
+    draft: { label: "Ciornă", variant: "neutral" },
+    trimisa: { label: "Înaintată", variant: "info" },
+    acceptata: { label: "Confirmată", variant: "warn" },
     livrata: { label: "Livrată", variant: "ok" },
-    inchisa: { label: "Închisă", variant: "neutral" },
+    inchisa: { label: "Finalizată", variant: "neutral" },
     anulata: { label: "Anulată", variant: "danger" },
   },
   // Provenienta lot la intrarea in stoc
