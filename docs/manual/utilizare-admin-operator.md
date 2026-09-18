@@ -10,7 +10,7 @@ managementul utilizatorilor - detaliate în [`ghid-administrare.md`](ghid-admini
 Interfața este aceeași pentru ambele roluri (un singur meniu, în stânga ecranului),
 cu excepția "Setări", vizibilă doar pentru Administrator.
 
-![meniul lateral cu toate secțiunile - Dashboard, Comenzi, Stoc, Producție, Clienți, Itemi, Rețete, Audit stoc, Rapoarte, Setări](img/admin-sidebar.png)
+![meniul lateral, grupat pe secțiuni pliabile - Panou de control; grupul Comenzi (Comenzi, Livrări); grupul Stoc (Materiale și servicii, Rețete, Stoc, Audit stoc); Clienți; Producție; Rapoarte; grupul Setări (Setări, Utilizatori, Puncte de plecare)](img/admin-sidebar.png)
 
 ---
 
@@ -37,9 +37,9 @@ organizației (secțiunea "Setări -> Utilizatori").
 
 ---
 
-## 2. Dashboard
+## 2. Panou de control
 
-Ecranul **"Dashboard"** (prima pagină după logare) oferă o privire de ansamblu:
+Ecranul **"Panou de control"** (prima pagină după logare) oferă o privire de ansamblu:
 
 - **Comenzi active** - comenzi trimise, acceptate sau livrate (neînchise, neanulate).
 - **De acceptat** - comenzi trimise, în așteptarea acceptării.
@@ -49,7 +49,7 @@ Ecranul **"Dashboard"** (prima pagină după logare) oferă o privire de ansambl
 Sub cele patru cifre, cardul **"Rapoarte operaționale"** face trimitere directă la
 pagina "Rapoarte" (link **"Vezi rapoarte"**).
 
-![Dashboard cu cele 4 carduri KPI](img/admin-dashboard.png)
+![Panoul de control cu cele 4 carduri KPI](img/admin-dashboard.png)
 
 ---
 
@@ -104,46 +104,47 @@ Din listă, click pe o firmă deschide ecranul de detaliu, cu secțiunile:
 
 ---
 
-## 4. Itemi și Rețete
+## 4. Materiale și servicii, Rețete
 
-### 4.1 Itemi
+### 4.1 Materiale și servicii
 
-Meniul **"Itemi"** este catalogul de produse și servicii al organizației - **fără
-prețuri**. Un item poate fi:
+Meniul **"Materiale și servicii"** este catalogul de produse și servicii al
+organizației - **fără prețuri**. O intrare din catalog poate fi:
 
-- **Fizic** - ține stoc (loturi), poate avea o rețetă.
+- **Fizic** (material) - ține stoc (loturi), poate avea o rețetă.
 - **Serviciu** - abonament/serviciu PaaS (product-as-a-service), fără stoc.
 
 Lista permite filtrare după **Căutare** (titlu), **Tip** (Fizic/Serviciu) și
 **Vandabil** (Da/Nu).
 
-Pentru a adăuga un item, apasă **"+ Adaugă item"** și completează:
+Pentru a adăuga un material sau serviciu, apasă **"+ Adaugă material sau
+serviciu"** și completează:
 
 - **Titlu** (obligatoriu)
 - **Descriere**
 - **Unitate de măsură** (kg, tonă, mc, litru, bucată, sac, palet) - **un singur UM
   per produs**; dacă același material se vinde în unități diferite, se creează
   produse separate (fără conversii între unități).
-- **Tip item** (Fizic/Serviciu)
+- **Tip** (Fizic/Serviciu)
 - **URL poză** (opțional)
-- Bifa **"Vandabil (apare în catalogul clientului)"** - doar itemii vandabili apar
-  în catalogul portalului client.
+- Bifa **"Vandabil (apare în catalogul clientului)"** - doar materialele/serviciile
+  vandabile apar în catalogul portalului client.
 
-Apasă **"Creează itemul"**.
+Apasă **"Creează materialul sau serviciul"**.
 
-![ecranul "Itemi" cu lista și filtrele](img/admin-items.png)
+![ecranul "Materiale și servicii" cu lista și filtrele](img/admin-items.png)
 
 ### 4.2 Rețete
 
-Meniul **"Rețete"** listează rețetele definite pentru itemii fizici. O rețetă
-descrie **compoziția în procente** a unui produs din alți itemi fizici (materii
+Meniul **"Rețete"** listează rețetele definite pentru materialele fizice. O rețetă
+descrie **compoziția în procente** a unui produs din alte materiale fizice (materii
 prime/componente). **Rețetele nu se versionează** - dacă se schimbă compoziția,
-se creează un item (produs) nou.
+se creează un material (produs) nou.
 
-Pentru a defini/edita rețeta unui item: din listă, click pe item -> ecranul
-**"Rețetă - `<nume item>`"**. Dacă itemul nu are încă rețetă, apare un buton de
-creare; altfel, editorul de rețetă permite adăugarea/editarea componentelor și a
-procentelor lor. Rețetele se pot defini **doar pentru itemi de tip Fizic**
+Pentru a defini/edita rețeta unui material: din listă, click pe material -> ecranul
+**"Rețetă - `<nume material>`"**. Dacă materialul nu are încă rețetă, apare un buton
+de creare; altfel, editorul de rețetă permite adăugarea/editarea componentelor și a
+procentelor lor. Rețetele se pot defini **doar pentru materiale de tip Fizic**
 (pentru servicii, ecranul afișează un mesaj informativ).
 
 ![editorul de rețetă cu componentele în procente](img/admin-recipe-editor.png)
@@ -157,8 +158,8 @@ materie primă sau produs finit creează un lot propriu, cu proveniență și ca
 
 ### 5.1 Lista de loturi
 
-Coloane: Item, Data intrare, Proveniență, Cantitate rămasă/inițială, Calitate,
-Status (Activ/Blocat), Acțiuni. Filtrare după **Item** și **Proveniență**.
+Coloane: Material, Data intrare, Proveniență, Cantitate rămasă/inițială, Calitate,
+Status (Activ/Blocat), Acțiuni. Filtrare după **Material** și **Proveniență**.
 
 Proveniențele posibile la intrare manuală: **Achiziție, Producție internă,
 Reciclare, Recondiționare, Retur, Ajustare inventar**. (Recondiționarea este
@@ -167,7 +168,7 @@ distinctă de reciclare în trasabilitate și rapoarte - cerință de conformita
 ### 5.2 Adăugarea unui lot nou
 
 1. Apasă **"+ Adaugă lot"** -> ecranul **"Adaugă lot"**.
-2. Alege **Item**, completează **Cantitate**, **Data intrare** (implicit azi),
+2. Alege **Material**, completează **Cantitate**, **Data intrare** (implicit azi),
    **Proveniență**, opțional **Sursă** (furnizor/proces/referință liberă) și
    **Locație** (depozit/zonă), opțional o **Notă**.
 3. Apasă **"Înregistrează lotul"** - se creează automat și evenimentul de intrare
@@ -194,7 +195,7 @@ ecranele de producție (secțiunea 6).
 ### 5.5 Audit stoc
 
 Meniul **"Audit stoc"** este jurnalul complet al mișcărilor de stoc - Intrare,
-Consum, Ajustare, Blocare, Deblocare, Stornare - cu filtrare pe **Item** și
+Consum, Ajustare, Blocare, Deblocare, Stornare - cu filtrare pe **Material** și
 **Tip eveniment**. Butonul **"⤓ Exportă CSV"** (în antetul paginii) descarcă
 lista filtrată curentă ca fișier CSV.
 
@@ -285,7 +286,7 @@ telefon/WhatsApp și înregistrate în platformă):
 1. Din lista "Comenzi", apasă **"+ Comandă nouă"** -> ecranul **"Comandă nouă"**.
 2. Alege **Client**, opțional o **Adresă de livrare** (dependentă de client) și o
    **Dată livrare**, opțional **Note**.
-3. În secțiunea **"Linii comandă"**, alege un item vandabil și o cantitate, apasă
+3. În secțiunea **"Linii comandă"**, alege un material sau serviciu vandabil și o cantitate, apasă
    adaugă-linie; repetă pentru fiecare produs; poți șterge o linie adăugată.
 4. Trimite formularul - comanda se creează ca **Draft**.
 

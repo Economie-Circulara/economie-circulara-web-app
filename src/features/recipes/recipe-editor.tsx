@@ -97,14 +97,14 @@ export function RecipeEditor({
         <CardHeader>
           <CardTitle>Adaugă componentă</CardTitle>
           <CardDescription>
-            Alegerea unui item deja prezent în rețetă îi actualizează procentul.
+            Alegerea unui material deja prezent în rețetă îi actualizează procentul.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form action={action} className="flex flex-wrap items-end gap-3">
             <input type="hidden" name="recipe_id" value={recipe.recipeId} />
             <input type="hidden" name="item_id" value={recipe.itemId} />
-            <FormField label="Item" required>
+            <FormField label="Material" required>
               {(id) => (
                 <select
                   id={id}
@@ -114,7 +114,7 @@ export function RecipeEditor({
                   className={selectClassName}
                 >
                   <option value="" disabled>
-                    Alege un item...
+                    Alege un material...
                   </option>
                   {componentOptions.map((option) => (
                     <option key={option.id} value={option.id}>

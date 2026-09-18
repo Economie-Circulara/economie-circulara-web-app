@@ -19,9 +19,9 @@ export async function createRecipe(itemId: string): Promise<CreatedRecipe> {
     .select("id, organization_id, kind")
     .eq("id", itemId)
     .maybeSingle();
-  if (itemError || !item) throw new Error("Item inexistent sau fără acces.");
+  if (itemError || !item) throw new Error("Material inexistent sau fără acces.");
   if (item.kind !== "physical") {
-    throw new Error("Rețetele se pot defini doar pentru itemi de tip fizic.");
+    throw new Error("Rețetele se pot defini doar pentru materiale de tip fizic.");
   }
 
   const { data, error } = await supabase

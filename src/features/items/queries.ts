@@ -45,7 +45,7 @@ export async function listItems(filters: ListItemsFilters = {}): Promise<ItemLis
   if (filters.search) query = query.ilike("title", `%${filters.search}%`);
 
   const { data, error } = await query;
-  if (error) throw new Error("Nu am putut incarca lista de itemi.");
+  if (error) throw new Error("Nu am putut incarca lista de materiale si servicii.");
 
   const { data: recipeRows, error: recipeError } = await supabase.from("recipes").select("item_id");
   if (recipeError) throw new Error("Nu am putut verifica retetele existente.");
@@ -67,7 +67,7 @@ export async function getItemById(id: string): Promise<Item | null> {
     .eq("id", id)
     .maybeSingle();
 
-  if (error) throw new Error("Nu am putut incarca itemul.");
+  if (error) throw new Error("Nu am putut incarca materialul sau serviciul.");
   return data ? mapItem(data) : null;
 }
 
@@ -86,7 +86,7 @@ export async function listItemOptions(filters: ListItemOptionsFilters = {}): Pro
   if (filters.excludeId) query = query.neq("id", filters.excludeId);
 
   const { data, error } = await query;
-  if (error) throw new Error("Nu am putut incarca lista de itemi.");
+  if (error) throw new Error("Nu am putut incarca lista de materiale si servicii.");
 
   return (data ?? []).map((row) => ({
     id: row.id,

@@ -36,7 +36,7 @@ export const MANUAL_DOCS: readonly ManualDoc[] = [
     file: "utilizare-admin-operator.md",
     title: "Manual admin / operator",
     description:
-      "Ghid pas-cu-pas pentru activitatea zilnică: clienți, itemi și rețete, stoc, producție și reciclare, comenzi, retur, livrări, rapoarte, căutare.",
+      "Ghid pas-cu-pas pentru activitatea zilnică: clienți, materiale și rețete, stoc, producție și reciclare, comenzi, retur, livrări, rapoarte, căutare.",
     audience: "Administrator / Operator",
     roles: STAFF,
   },

@@ -26,7 +26,7 @@ export async function createRecipeAction(
   await requireRole(["admin", "operator"]);
 
   const itemId = clean(formData.get("item_id"));
-  if (!itemId) return { error: "Alege un item." };
+  if (!itemId) return { error: "Alege un material." };
 
   let recipe: { id: string; itemId: string };
   try {

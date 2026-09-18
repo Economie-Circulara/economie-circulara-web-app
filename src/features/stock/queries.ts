@@ -45,7 +45,7 @@ export async function listLots(filters: ListLotsFilters = {}): Promise<LotWithIt
 export async function listItemOptions(): Promise<ItemOption[]> {
   const supabase = await createClient();
   const { data, error } = await supabase.from("items").select("id, title, unit").order("title");
-  if (error) throw new Error("Nu am putut incarca lista de itemi.");
+  if (error) throw new Error("Nu am putut incarca lista de materiale.");
 
   return (data ?? []).map((row) => ({ id: row.id, title: row.title, unit: row.unit }));
 }

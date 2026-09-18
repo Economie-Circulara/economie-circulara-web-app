@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { STAFF_NAV, navForRole } from "@/components/layout/nav-config";
+import { STAFF_NAV, flattenNavEntries, navForRole } from "@/components/layout/nav-config";
 
 /**
  * Smoke test de rute - plasa de siguranta pentru erorile de RANDARE care NU sunt
@@ -27,9 +27,11 @@ const PASSWORD = "password123";
  * `navForRole()` include si `/ajutor` (manualul, vizibil tuturor rolurilor), deci
  * rutele noi de navigatie intra automat in smoke. Lista bruta `STAFF_NAV` ramane
  * pentru testul de GUARD: acolo conteaza exact rutele exclusive staff-ului, pe care
- * clientul NU are voie (`/ajutor` nu e una dintre ele).
+ * clientul NU are voie (`/ajutor` nu e una dintre ele). `STAFF_NAV`/`navForRole()`
+ * pot grupa itemii sub un `NavGroup` (sidebar pliabil) - `flattenNavEntries()` le
+ * aduce la lista plata de pagini, la fel ca inainte de grupare.
  */
-const staffNavRoutes = STAFF_NAV.map((item) => item.href);
+const staffNavRoutes = flattenNavEntries(STAFF_NAV).map((item) => item.href);
 
 /** Sub-rute care nu apar in sidebar (formulare de creare, căutare, auth). */
 const STAFF_EXTRA_ROUTES = [
@@ -100,7 +102,7 @@ test.describe("Smoke de randare pe toate rutele", () => {
   test("admin vede toate rutele staff", async ({ page }) => {
     await login(page, "admin@demo.local");
     for (const route of [
-      ...navForRole("admin").map((item) => item.href),
+      ...flattenNavEntries(navForRole("admin")).map((item) => item.href),
       ...STAFF_EXTRA_ROUTES,
       ...ADMIN_ONLY_ROUTES,
     ]) {
@@ -110,7 +112,7 @@ test.describe("Smoke de randare pe toate rutele", () => {
 
   test("operator vede rutele staff fara Setari", async ({ page }) => {
     await login(page, "operator@demo.local");
-    const operatorNav = navForRole("operator").map((item) => item.href);
+    const operatorNav = flattenNavEntries(navForRole("operator")).map((item) => item.href);
     for (const route of [...operatorNav, ...STAFF_EXTRA_ROUTES]) {
       await expectRenders(page, route);
     }
@@ -119,7 +121,7 @@ test.describe("Smoke de randare pe toate rutele", () => {
   test("client vede doar portalul", async ({ page }) => {
     await login(page, "client@demo.local");
     for (const route of [
-      ...navForRole("client").map((item) => item.href),
+      ...flattenNavEntries(navForRole("client")).map((item) => item.href),
       ...CLIENT_EXTRA_ROUTES,
     ]) {
       await expectRenders(page, route);

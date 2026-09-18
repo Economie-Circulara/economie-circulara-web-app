@@ -179,7 +179,7 @@ export async function recordStockEvent(input: RecordStockEventInput): Promise<vo
     .eq("id", input.itemId)
     .single();
   if (itemError || !item) {
-    throw new Error("Item inexistent sau fara acces.");
+    throw new Error("Material inexistent sau fara acces.");
   }
 
   const { error } = await supabase.from("stock_events").insert({

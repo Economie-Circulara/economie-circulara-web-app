@@ -24,7 +24,9 @@ export type NavIconName =
   | "catalog"
   | "documents"
   | "help"
-  | "assistant";
+  | "assistant"
+  | "users-admin"
+  | "stations";
 
 export interface NavItem {
   label: string;
@@ -33,19 +35,87 @@ export interface NavItem {
   roles: AppRole[];
 }
 
-/** Navigatie admin / operator (sidebar fix). Setari doar pentru admin. */
-export const STAFF_NAV: NavItem[] = [
-  { label: "Dashboard", href: "/dashboard", icon: "dashboard", roles: ["admin", "operator"] },
-  { label: "Comenzi", href: "/comenzi", icon: "orders", roles: ["admin", "operator"] },
-  { label: "Livrări", href: "/livrari", icon: "deliveries", roles: ["admin", "operator"] },
-  { label: "Stoc", href: "/stoc", icon: "stock", roles: ["admin", "operator"] },
-  { label: "Producție", href: "/productie", icon: "production", roles: ["admin", "operator"] },
+/**
+ * Grup de navigatie pliabil (sidebar staff) - ex. "Stoc" grupeaza Materiale si
+ * servicii / Rețete / Stoc / Audit stoc. `key` e stabila (folosita si ca cheie de
+ * persistare a starii extins/pliat in localStorage) - nu depinde de traducerea
+ * `label`-ului.
+ */
+export interface NavGroup {
+  key: string;
+  label: string;
+  items: NavItem[];
+}
+
+/** O intrare de navigatie staff: fie o pagina, fie un grup pliabil de pagini. */
+export type NavEntry = NavItem | NavGroup;
+
+export function isNavGroup(entry: NavEntry): entry is NavGroup {
+  return "items" in entry;
+}
+
+/** Aplatizeaza `NavEntry[]` la lista de pagini (grupurile isi expun copiii direct). */
+export function flattenNavEntries(entries: NavEntry[]): NavItem[] {
+  return entries.flatMap((entry) => (isNavGroup(entry) ? entry.items : [entry]));
+}
+
+/**
+ * Navigatie admin / operator (sidebar fix), grupata pe zone functionale. Grupurile
+ * sunt doar de prezentare (pliere in sidebar) - fiecare `NavItem` din interior
+ * ramane sursa de adevar pt. rol + href, la fel ca inainte de grupare.
+ */
+export const STAFF_NAV: NavEntry[] = [
+  {
+    label: "Panou de control",
+    href: "/dashboard",
+    icon: "dashboard",
+    roles: ["admin", "operator"],
+  },
+  {
+    key: "comenzi",
+    label: "Comenzi",
+    items: [
+      { label: "Comenzi", href: "/comenzi", icon: "orders", roles: ["admin", "operator"] },
+      { label: "Livrări", href: "/livrari", icon: "deliveries", roles: ["admin", "operator"] },
+    ],
+  },
+  {
+    key: "stoc",
+    label: "Stoc",
+    items: [
+      {
+        label: "Materiale și servicii",
+        href: "/itemi",
+        icon: "items",
+        roles: ["admin", "operator"],
+      },
+      { label: "Rețete", href: "/retete", icon: "recipes", roles: ["admin", "operator"] },
+      { label: "Stoc", href: "/stoc", icon: "stock", roles: ["admin", "operator"] },
+      {
+        label: "Audit stoc",
+        href: "/stoc/audit",
+        icon: "stock-audit",
+        roles: ["admin", "operator"],
+      },
+    ],
+  },
   { label: "Clienți", href: "/clienti", icon: "clients", roles: ["admin", "operator"] },
-  { label: "Itemi", href: "/itemi", icon: "items", roles: ["admin", "operator"] },
-  { label: "Rețete", href: "/retete", icon: "recipes", roles: ["admin", "operator"] },
-  { label: "Audit stoc", href: "/stoc/audit", icon: "stock-audit", roles: ["admin", "operator"] },
+  { label: "Producție", href: "/productie", icon: "production", roles: ["admin", "operator"] },
   { label: "Rapoarte", href: "/rapoarte", icon: "reports", roles: ["admin", "operator"] },
-  { label: "Setări", href: "/setari", icon: "settings", roles: ["admin"] },
+  {
+    key: "setari",
+    label: "Setări",
+    items: [
+      { label: "Setări", href: "/setari", icon: "settings", roles: ["admin"] },
+      { label: "Utilizatori", href: "/setari/utilizatori", icon: "users-admin", roles: ["admin"] },
+      {
+        label: "Puncte de plecare",
+        href: "/setari/statii",
+        icon: "stations",
+        roles: ["admin"],
+      },
+    ],
+  },
 ];
 
 /** Navigatie portal client. */
@@ -62,8 +132,9 @@ export const CLIENT_NAV: NavItem[] = [
 
 /**
  * Ajutorul (manualul din aplicatie) e vizibil TUTUROR rolurilor, deci sta separat,
- * nu in `STAFF_NAV`: `tests/e2e/routes-smoke.spec.ts` foloseste `STAFF_NAV` ca lista
- * de rute pe care clientul NU are voie, iar `/ajutor` nu e o astfel de ruta.
+ * nu in `STAFF_NAV`: `tests/e2e/routes-smoke.spec.ts` foloseste `STAFF_NAV` (aplatizat
+ * cu `flattenNavEntries`) ca lista de rute pe care clientul NU are voie, iar `/ajutor`
+ * nu e o astfel de ruta.
  */
 export const HELP_NAV_ITEM: NavItem = {
   label: "Ajutor",
@@ -80,8 +151,19 @@ export const ASSISTANT_NAV_ITEM: NavItem = {
   roles: ["super_admin", "admin", "operator", "client"],
 };
 
-export function navForRole(role: AppRole): NavItem[] {
+/** Filtreaza `STAFF_NAV` pe rol - pastreaza grupurile, dar le elimina daca raman fara copii. */
+function filterStaffNavForRole(role: AppRole): NavEntry[] {
+  return STAFF_NAV.flatMap((entry): NavEntry[] => {
+    if (isNavGroup(entry)) {
+      const items = entry.items.filter((item) => item.roles.includes(role));
+      return items.length > 0 ? [{ ...entry, items }] : [];
+    }
+    return entry.roles.includes(role) ? [entry] : [];
+  });
+}
+
+export function navForRole(role: AppRole): NavEntry[] {
   const shared = [ASSISTANT_NAV_ITEM, HELP_NAV_ITEM];
   if (role === "client") return [...CLIENT_NAV, ...shared];
-  return [...STAFF_NAV.filter((item) => item.roles.includes(role)), ...shared];
+  return [...filterStaffNavForRole(role), ...shared];
 }

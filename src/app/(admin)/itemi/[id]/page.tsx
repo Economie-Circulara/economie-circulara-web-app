@@ -6,7 +6,7 @@ import { requireRole } from "@/features/auth/session";
 import { getItemById } from "@/features/items/queries";
 import { ItemForm } from "@/features/items/item-form";
 
-export const metadata = { title: "Editează item - Lot cu Lot" };
+export const metadata = { title: "Editează material/serviciu - Lot cu Lot" };
 
 interface ItemDetailPageProps {
   params: Promise<{ id: string }>;
@@ -24,8 +24,8 @@ export default async function ItemDetailPage({ params }: ItemDetailPageProps) {
     <div className="space-y-6">
       <PageHeader
         title={item.title}
-        description="Editează detaliile itemului."
-        breadcrumbs={[{ label: "Itemi", href: "/itemi" }, { label: item.title }]}
+        description="Editează detaliile materialului sau serviciului."
+        breadcrumbs={[{ label: "Materiale și servicii", href: "/itemi" }, { label: item.title }]}
         actions={
           item.kind === "physical" ? (
             <Button asChild variant="outline">

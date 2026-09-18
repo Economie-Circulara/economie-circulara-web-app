@@ -20,15 +20,15 @@ export function RecipeNewForm({ items }: { items: RecipeItemOption[] }) {
     <form action={action} className="max-w-xl space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Alege itemul</CardTitle>
-          <CardDescription>Doar itemi fizici, fără rețetă definită încă.</CardDescription>
+          <CardTitle>Alege materialul</CardTitle>
+          <CardDescription>Doar materiale fizice, fără rețetă definită încă.</CardDescription>
         </CardHeader>
         <CardContent>
-          <FormField label="Item" required>
+          <FormField label="Material" required>
             {(id) => (
               <select id={id} name="item_id" required defaultValue="" className={selectClassName}>
                 <option value="" disabled>
-                  Alege un item...
+                  Alege un material...
                 </option>
                 {items.map((item) => (
                   <option key={item.id} value={item.id}>

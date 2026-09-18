@@ -12,7 +12,7 @@ export function CreateRecipeButton({ itemId }: { itemId: string }) {
   return (
     <form action={action} className="space-y-2">
       <input type="hidden" name="item_id" value={itemId} />
-      <p className="text-sm text-muted-foreground">Acest item nu are încă o rețetă definită.</p>
+      <p className="text-sm text-muted-foreground">Acest material nu are încă o rețetă definită.</p>
       <Button type="submit" disabled={pending}>
         {pending ? "Se creează..." : "Creează rețeta"}
       </Button>
