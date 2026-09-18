@@ -55,7 +55,7 @@ export async function createItem(input: CreateItemInput): Promise<Item> {
     .single();
 
   if (error || !data) {
-    throw new Error(error?.message ?? "Nu am putut crea itemul.");
+    throw new Error(error?.message ?? "Nu am putut crea materialul sau serviciul.");
   }
   return mapItem(data);
 }
@@ -95,7 +95,9 @@ export async function updateItem(id: string, input: UpdateItemInput): Promise<It
     .single();
 
   if (error || !data) {
-    throw new Error(error?.message ?? "Nu am putut salva itemul (verifica accesul).");
+    throw new Error(
+      error?.message ?? "Nu am putut salva materialul sau serviciul (verifica accesul).",
+    );
   }
   return mapItem(data);
 }

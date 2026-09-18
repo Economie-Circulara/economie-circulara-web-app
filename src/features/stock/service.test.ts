@@ -243,7 +243,7 @@ describe("recordStockEvent", () => {
 
     await expect(
       recordStockEvent({ itemId: "item-x", eventType: "adjustment", quantity: 1 }),
-    ).rejects.toThrow("Item inexistent");
+    ).rejects.toThrow("Material inexistent");
   });
 });
 

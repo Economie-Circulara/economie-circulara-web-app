@@ -13,7 +13,7 @@ const SUGGESTIONS: Record<string, string[]> = {
   staff: [
     "Cum adaug un lot în stoc?",
     "Caută firma cu CUI 12345678",
-    "Ce itemi vandabili am?",
+    "Ce materiale și servicii vandabile am?",
     "Cât stoc mai am la agregate?",
   ],
   client: ["Cum plasez o comandă?", "Unde îmi găsesc certificatele?", "Cum fac un retur?"],

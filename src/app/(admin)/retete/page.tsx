@@ -16,7 +16,7 @@ export default async function RetetePage() {
     <div className="space-y-6">
       <PageHeader
         title="Rețete"
-        description="Compoziția (în procente) a itemilor fizici din catalog."
+        description="Compoziția (în procente) a materialelor fizice din catalog."
         actions={
           <Button asChild>
             <Link href="/retete/nou">+ Rețetă nouă</Link>

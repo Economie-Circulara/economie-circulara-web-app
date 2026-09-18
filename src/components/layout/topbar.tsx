@@ -2,7 +2,7 @@ import { Search } from "lucide-react";
 import { SignOutButton } from "@/features/auth/sign-out-button";
 import { ThemeToggle } from "@/components/theme-toggle";
 import type { UserRole } from "@/features/auth/session";
-import type { NavItem } from "./nav-config";
+import type { NavEntry } from "./nav-config";
 import { MobileSidebar } from "./sidebar";
 
 export interface TopbarProps {
@@ -11,7 +11,7 @@ export interface TopbarProps {
   role: UserRole;
   orgName?: string;
   logoUrl?: string;
-  items?: NavItem[];
+  items?: NavEntry[];
 }
 
 /**

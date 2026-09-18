@@ -28,7 +28,7 @@ export function ItemForm({ item }: { item?: Item }) {
       {item ? <input type="hidden" name="id" value={item.id} /> : null}
       <Card>
         <CardHeader>
-          <CardTitle>Detalii item</CardTitle>
+          <CardTitle>Detalii material/serviciu</CardTitle>
           <CardDescription>
             Titlu, unitate de măsură și tip - fizic (stoc + rețetă opțională) sau serviciu
             (abonament/serviciu PaaS, fără stoc).
@@ -73,7 +73,7 @@ export function ItemForm({ item }: { item?: Item }) {
               )}
             </FormField>
             <FormField
-              label="Tip item"
+              label="Tip"
               required
               hint="Fizic = stoc + rețetă opțională. Serviciu = abonament/serviciu PaaS, fără stoc."
             >
@@ -149,7 +149,11 @@ export function ItemForm({ item }: { item?: Item }) {
 
       <div className="flex gap-3">
         <Button type="submit" disabled={pending}>
-          {pending ? "Se salvează..." : item ? "Salvează modificările" : "Creează itemul"}
+          {pending
+            ? "Se salvează..."
+            : item
+              ? "Salvează modificările"
+              : "Creează materialul sau serviciul"}
         </Button>
       </div>
     </form>

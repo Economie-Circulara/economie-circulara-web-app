@@ -20,11 +20,7 @@ vi.mock("next/navigation", () => ({ redirect }));
 const { revalidatePath } = vi.hoisted(() => ({ revalidatePath: vi.fn() }));
 vi.mock("next/cache", () => ({ revalidatePath }));
 
-import {
-  addComponentAction,
-  createRecipeAction,
-  removeComponentAction,
-} from "./actions";
+import { addComponentAction, createRecipeAction, removeComponentAction } from "./actions";
 import { initialRecipeFormState } from "./action-state";
 
 afterEach(() => {
@@ -38,10 +34,10 @@ function formData(fields: Record<string, string>): FormData {
 }
 
 describe("createRecipeAction", () => {
-  it("cere un item", async () => {
+  it("cere un material", async () => {
     requireRole.mockResolvedValue({ id: "u1" });
     const state = await createRecipeAction(initialRecipeFormState, formData({}));
-    expect(state.error).toMatch(/item/i);
+    expect(state.error).toMatch(/material/i);
     expect(createRecipe).not.toHaveBeenCalled();
   });
 

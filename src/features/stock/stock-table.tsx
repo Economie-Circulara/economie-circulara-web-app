@@ -25,7 +25,7 @@ function formatDate(iso: string): string {
 }
 
 const columns: ColumnDef<LotWithItem>[] = [
-  { accessorKey: "itemTitle", header: "Item" },
+  { accessorKey: "itemTitle", header: "Material" },
   {
     accessorKey: "entryDate",
     header: "Data intrare",
@@ -163,7 +163,7 @@ function GroupedStockTable({ groups }: { groups: GroupedStock[] }) {
       <Table>
         <TableHeader>
           <TableRow className="hover:bg-transparent">
-            <TableHead>Item</TableHead>
+            <TableHead>Material</TableHead>
             <TableHead>Cantitate totală</TableHead>
             <TableHead>Loturi</TableHead>
             <TableHead>Status</TableHead>

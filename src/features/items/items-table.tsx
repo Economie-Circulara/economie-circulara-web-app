@@ -54,13 +54,18 @@ export function ItemsTable({ items }: { items: ItemListRow[] }) {
     return (
       <EmptyState
         icon={<Package />}
-        title="Niciun item în catalog"
-        description="Adaugă primul item (produs sau serviciu) pentru a începe."
+        title="Niciun material sau serviciu în catalog"
+        description="Adaugă primul material sau serviciu pentru a începe."
       />
     );
   }
 
   return (
-    <DataTable columns={columns} data={items} pageSize={10} emptyMessage="Niciun item găsit." />
+    <DataTable
+      columns={columns}
+      data={items}
+      pageSize={10}
+      emptyMessage="Niciun material sau serviciu găsit."
+    />
   );
 }

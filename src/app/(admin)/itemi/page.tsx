@@ -8,7 +8,7 @@ import { listItems } from "@/features/items/queries";
 import { ItemsTable } from "@/features/items/items-table";
 import type { ItemKind } from "@/features/items/types";
 
-export const metadata = { title: "Itemi - Lot cu Lot" };
+export const metadata = { title: "Materiale și servicii - Lot cu Lot" };
 
 const selectClassName =
   "flex h-9 w-full rounded-md border border-input bg-card px-3 py-1 text-sm shadow-xs outline-none sm:w-48";
@@ -34,11 +34,11 @@ export default async function ItemiPage({ searchParams }: ItemiPageProps) {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Itemi"
-        description="Catalogul de produse (fizice) și servicii - definiție, fără prețuri."
+        title="Materiale și servicii"
+        description="Catalogul de materiale (fizice) și servicii - definiție, fără prețuri."
         actions={
           <Button asChild>
-            <Link href="/itemi/nou">+ Adaugă item</Link>
+            <Link href="/itemi/nou">+ Adaugă material sau serviciu</Link>
           </Button>
         }
       />

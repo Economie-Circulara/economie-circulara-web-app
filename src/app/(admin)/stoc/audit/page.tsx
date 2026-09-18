@@ -62,7 +62,7 @@ export default async function AuditPage({ searchParams }: AuditPageProps) {
       <form method="get" className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
         <div className="space-y-1.5 sm:w-56">
           <label htmlFor="item_id" className="text-sm font-medium">
-            Item
+            Material
           </label>
           <select
             id="item_id"
@@ -70,7 +70,7 @@ export default async function AuditPage({ searchParams }: AuditPageProps) {
             defaultValue={itemId ?? ""}
             className={selectClassName}
           >
-            <option value="">Toți itemii</option>
+            <option value="">Toate materialele</option>
             {items.map((item) => (
               <option key={item.id} value={item.id}>
                 {item.title}

@@ -12,7 +12,7 @@ import type { RecipeListRow } from "./types";
 const columns: ColumnDef<RecipeListRow>[] = [
   {
     accessorKey: "itemTitle",
-    header: "Item",
+    header: "Material",
     cell: ({ row }) => (
       <Link href={`/retete/${row.original.itemId}`} className="font-medium hover:underline">
         {row.original.itemTitle}
@@ -43,7 +43,7 @@ export function RecipesTable({ recipes }: { recipes: RecipeListRow[] }) {
       <EmptyState
         icon={<ScrollText />}
         title="Nicio rețetă definită"
-        description="Creează prima rețetă pentru un item fizic."
+        description="Creează prima rețetă pentru un material fizic."
       />
     );
   }
