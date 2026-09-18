@@ -3,12 +3,12 @@ import { notFound } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageHeader } from "@/components/page-header";
-import { StatusBadge } from "@/components/status-badge";
 import { requireRole } from "@/features/auth/session";
 import { getCertificateByOrderId } from "@/features/certificates/service";
 import { getDeliveryByOrderId } from "@/features/deliveries/queries";
-import { ORDER_STATUS_BADGE_STATUS, ORDER_STATUS_LABELS } from "@/features/orders/labels";
+import { ORDER_STATUS_LABELS } from "@/features/orders/labels";
 import { OrderStatusActions } from "@/features/orders/order-status-actions";
+import { OrderStatusTimeline } from "@/features/orders/order-status-timeline";
 import { getOrderDetail } from "@/features/orders/queries";
 import { AcceptReturnButton } from "@/features/returns/accept-return-button";
 import { ORDER_LINK_TYPE_LABELS } from "@/features/returns/labels";
@@ -27,21 +27,6 @@ const qtyFormatter = new Intl.NumberFormat("ro-RO");
 function formatDate(iso: string | null): string {
   return iso ? dateFormatter.format(new Date(iso)) : "-";
 }
-
-/**
- * Istoricul de status afisat aici e derivat din masina de stari (nu exista inca un
- * tabel dedicat de audit al tranzitiilor) - arata pozitia curenta pe traseul
- * draft -> trimisă -> acceptată -> livrată -> închisă, sau "Anulată" daca a fost
- * intrerupt. Un istoric cu marcaje de timp per tranzitie ar necesita un tabel nou,
- * in afara scope-ului acestui task (schema 0001 e inghetata).
- */
-const ORDER_JOURNEY: readonly ("draft" | "sent" | "accepted" | "delivered" | "closed")[] = [
-  "draft",
-  "sent",
-  "accepted",
-  "delivered",
-  "closed",
-];
 
 /** Ecranul de detaliu comandă (doar staff): client, livrare, linii, istoric status. */
 export default async function OrderDetailPage({ params }: OrderDetailPageProps) {
@@ -75,9 +60,6 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
       ? await getReturnableItems(id)
       : [];
 
-  const isCancelled = order.status === "cancelled";
-  const currentStepIndex = ORDER_JOURNEY.indexOf(order.status as (typeof ORDER_JOURNEY)[number]);
-
   return (
     <div className="space-y-8">
       <PageHeader
@@ -89,6 +71,11 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
         ]}
         actions={
           <>
+            {order.status === "draft" ? (
+              <Button asChild variant="outline">
+                <Link href={`/comenzi/${order.id}/edit`}>Editează</Link>
+              </Button>
+            ) : null}
             {certificate ? (
               <Button asChild variant="outline">
                 <Link href={`/comenzi/${order.id}/certificat`}>Vezi certificat</Link>
@@ -109,7 +96,13 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
               ) : null
             ) : (
               <>
-                <OrderStatusActions orderId={order.id} status={order.status} />
+                <OrderStatusActions
+                  orderId={order.id}
+                  status={order.status}
+                  delivery={
+                    delivery ? { id: delivery.id, receivedAt: delivery.receipt.receivedAt } : null
+                  }
+                />
                 {returnableItems.length > 0 ? (
                   <ReturnActions originalOrderId={order.id} returnableItems={returnableItems} />
                 ) : null}
@@ -199,28 +192,7 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
 
       <section className="space-y-3">
         <h2 className="text-lg font-semibold">Istoric status</h2>
-        {isCancelled ? (
-          <div className="flex items-center gap-2">
-            <StatusBadge group="order" status={ORDER_STATUS_BADGE_STATUS.cancelled} />
-            <span className="text-sm text-muted-foreground">
-              Comanda a fost anulată din traseul normal.
-            </span>
-          </div>
-        ) : (
-          <ol className="flex flex-wrap items-center gap-2">
-            {ORDER_JOURNEY.map((step, index) => {
-              const reached = index <= currentStepIndex;
-              return (
-                <li key={step} className="flex items-center gap-2">
-                  {index > 0 ? <span className="text-muted-foreground">{"->"}</span> : null}
-                  <span className={reached ? "" : "opacity-40"}>
-                    <StatusBadge group="order" status={ORDER_STATUS_BADGE_STATUS[step]} />
-                  </span>
-                </li>
-              );
-            })}
-          </ol>
-        )}
+        <OrderStatusTimeline status={order.status} />
         <p className="text-xs text-muted-foreground">
           Status curent: {ORDER_STATUS_LABELS[order.status]}.
         </p>

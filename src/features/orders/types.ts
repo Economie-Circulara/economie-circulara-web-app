@@ -19,6 +19,16 @@ export interface Order {
   updatedAt: string;
 }
 
+/**
+ * Info minima despre livrarea unei comenzi - folosita DOAR pt. guard-railurile din
+ * `OrderStatusActions` (nu duplica `DeliveryRecord` din features/deliveries/types.ts,
+ * care are toate coloanele). `null` cand comanda nu are nicio livrare planificata.
+ */
+export interface OrderDeliveryGuard {
+  id: string;
+  receivedAt: string | null;
+}
+
 /** Rand din lista /comenzi - comanda + rezumatul clientului si al produselor. */
 export interface OrderListRow extends Order {
   clientName: string;
@@ -32,6 +42,8 @@ export interface OrderListRow extends Order {
    * "replacement", care e o vanzare obisnuita) sau `null` il scade (consumption).
    */
   linkType: OrderLinkType | null;
+  /** Livrarea planificata a comenzii, daca exista - vezi `OrderDeliveryGuard`. */
+  delivery: OrderDeliveryGuard | null;
 }
 
 /** Linia unei comenzi (item + cantitate), cu titlul/UM itemului. */

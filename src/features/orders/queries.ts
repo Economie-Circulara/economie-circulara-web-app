@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import type { ClientAddress } from "@/features/clients/types";
+import { getDeliveryGuardsForOrders } from "@/features/deliveries/queries";
 import type { ItemOption } from "@/features/items/types";
 import type { OrderDetail, OrderItemRow, OrderLinkType, OrderListRow, OrderStatus } from "./types";
 
@@ -24,7 +25,7 @@ interface OrderCoreRow {
 
 function mapOrderRow(
   row: OrderCoreRow,
-): Omit<OrderListRow, "clientName" | "itemsSummary" | "linkType"> {
+): Omit<OrderListRow, "clientName" | "itemsSummary" | "linkType" | "delivery"> {
   return {
     id: row.id,
     clientId: row.client_id,
@@ -112,9 +113,10 @@ export async function listOrders(filters: ListOrdersFilters = {}): Promise<Order
   if (error) throw new Error("Nu am putut incarca lista de comenzi.");
 
   const orderIds = (orderRows ?? []).map((row) => row.id);
-  const [summaries, linkTypes] = await Promise.all([
+  const [summaries, linkTypes, deliveryGuards] = await Promise.all([
     summarizeOrderItems(supabase, orderIds),
     getLinkTypesForOrders(supabase, orderIds),
+    getDeliveryGuardsForOrders(orderIds),
   ]);
 
   let rows: OrderListRow[] = (orderRows ?? []).map((row) => ({
@@ -122,6 +124,7 @@ export async function listOrders(filters: ListOrdersFilters = {}): Promise<Order
     clientName: row.clients?.name ?? "-",
     itemsSummary: summaries.get(row.id) ?? "-",
     linkType: linkTypes.get(row.id) ?? null,
+    delivery: deliveryGuards.get(row.id) ?? null,
   }));
 
   const search = filters.search?.trim().toLowerCase();

@@ -11,7 +11,7 @@ describe("ActionCard - randerul generic", () => {
       toolCallId: "call-1",
       tool: "trimite_comanda",
       toolVersion: 1,
-      summary: "Trimite comanda către acceptare",
+      summary: "Înaintează comanda spre aprobare",
       presentation: {
         renderer: "generic",
         fields: [

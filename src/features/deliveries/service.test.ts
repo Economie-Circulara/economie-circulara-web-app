@@ -7,7 +7,17 @@ vi.mock("@/lib/supabase/server", () => ({ createClient }));
 const { getDeliveryByOrderId, getDeliveryDetail, mapDelivery } = vi.hoisted(() => ({
   getDeliveryByOrderId: vi.fn(),
   getDeliveryDetail: vi.fn(),
-  mapDelivery: vi.fn((row: Record<string, unknown>) => ({ mapped: true, ...row })),
+  // Alaturi de spread-ul brut (folosit de restul testelor), adauga aliasurile
+  // camelCase `orderId`/`organizationId` pe care `confirmDeliveryReceipt` le
+  // citeste acum (Task de legatura livrare<->status comanda) - mapDelivery
+  // REAL (queries.ts) face aceeasi conversie completa, mock-ul o aproximeaza
+  // doar pentru campurile de care service.ts are nevoie.
+  mapDelivery: vi.fn((row: Record<string, unknown>) => ({
+    mapped: true,
+    ...row,
+    orderId: row.order_id,
+    organizationId: row.organization_id,
+  })),
 }));
 vi.mock("./queries", () => ({
   getDeliveryByOrderId,
@@ -33,6 +43,18 @@ vi.mock("@/features/routing/site-queries", () => ({ getSiteById }));
 
 const { computeRouteBetween } = vi.hoisted(() => ({ computeRouteBetween: vi.fn() }));
 vi.mock("@/features/routing/route-service", () => ({ computeRouteBetween }));
+
+// Task de legatura livrare<->status comanda: `confirmDeliveryReceipt` apeleaza
+// acum `getOrderStatus`/`setOrderStatus`/`onOrderStatusChanged` din features/orders
+// (vezi comentariul din service.ts) - mock-uite separat, ca restul dependintelor.
+const { getOrderStatus } = vi.hoisted(() => ({ getOrderStatus: vi.fn() }));
+vi.mock("@/features/orders/queries", () => ({ getOrderStatus }));
+
+const { setOrderStatus } = vi.hoisted(() => ({ setOrderStatus: vi.fn() }));
+vi.mock("@/features/orders/service", () => ({ setOrderStatus }));
+
+const { onOrderStatusChanged } = vi.hoisted(() => ({ onOrderStatusChanged: vi.fn() }));
+vi.mock("@/features/orders/notifications", () => ({ onOrderStatusChanged }));
 
 import { ETransportDeclarationError, ETransportNotConfiguredError } from "./e-transport";
 import {
@@ -387,6 +409,17 @@ describe("recalculateDeliveryRoute", () => {
 });
 
 describe("confirmDeliveryReceipt", () => {
+  /** Mock-uieste `createClient` pt. UPDATE-ul `deliveries` din `confirmDeliveryReceipt`. */
+  function mockSupabaseForReceipt(row: Record<string, unknown>) {
+    const single = vi.fn().mockResolvedValue({ data: row, error: null });
+    const select = vi.fn().mockReturnValue({ single });
+    const eq = vi.fn().mockReturnValue({ select });
+    const update = vi.fn().mockReturnValue({ eq });
+    const from = vi.fn().mockReturnValue({ update });
+    createClient.mockResolvedValue({ from });
+    return { update, eq };
+  }
+
   it("respinge un nume gol al persoanei care confirma", async () => {
     await expect(
       confirmDeliveryReceipt({ deliveryId: "delivery-1", receivedByName: "   " }),
@@ -394,20 +427,16 @@ describe("confirmDeliveryReceipt", () => {
   });
 
   it("salveaza data curenta, numele si notele optionale", async () => {
-    const single = vi.fn().mockResolvedValue({
-      data: {
-        id: "delivery-1",
-        received_at: "2026-09-14T00:00:00.000Z",
-        received_by_name: "Ion Popescu",
-        receipt_notes: "Fără observații",
-      },
-      error: null,
+    getOrderStatus.mockResolvedValue("accepted");
+    setOrderStatus.mockResolvedValue({ id: "order-1", clientId: "client-1" });
+    const { update, eq } = mockSupabaseForReceipt({
+      id: "delivery-1",
+      organization_id: "org-1",
+      order_id: "order-1",
+      received_at: "2026-09-14T00:00:00.000Z",
+      received_by_name: "Ion Popescu",
+      receipt_notes: "Fără observații",
     });
-    const select = vi.fn().mockReturnValue({ single });
-    const eq = vi.fn().mockReturnValue({ select });
-    const update = vi.fn().mockReturnValue({ eq });
-    const from = vi.fn().mockReturnValue({ update });
-    createClient.mockResolvedValue({ from });
 
     await confirmDeliveryReceipt({
       deliveryId: "delivery-1",
@@ -422,5 +451,69 @@ describe("confirmDeliveryReceipt", () => {
       }),
     );
     expect(eq).toHaveBeenCalledWith("id", "delivery-1");
+  });
+
+  it("dupa salvarea receptiei, tranzitioneaza automat comanda parinte pe delivered", async () => {
+    getOrderStatus.mockResolvedValue("accepted");
+    setOrderStatus.mockResolvedValue({ id: "order-1", clientId: "client-1" });
+    mockSupabaseForReceipt({
+      id: "delivery-1",
+      organization_id: "org-1",
+      order_id: "order-1",
+      received_at: "2026-09-14T00:00:00.000Z",
+      received_by_name: "Ion Popescu",
+      receipt_notes: null,
+    });
+
+    await confirmDeliveryReceipt({ deliveryId: "delivery-1", receivedByName: "Ion Popescu" });
+
+    expect(getOrderStatus).toHaveBeenCalledWith("order-1");
+    expect(setOrderStatus).toHaveBeenCalledWith("order-1", "delivered");
+    expect(onOrderStatusChanged).toHaveBeenCalledWith(
+      expect.objectContaining({
+        orderId: "order-1",
+        organizationId: "org-1",
+        clientId: "client-1",
+        fromStatus: "accepted",
+        toStatus: "delivered",
+      }),
+    );
+  });
+
+  it("nu incearca sa tranzitioneze comanda daca aceasta nu mai e accepted (deja delivered)", async () => {
+    getOrderStatus.mockResolvedValue("delivered");
+    mockSupabaseForReceipt({
+      id: "delivery-1",
+      organization_id: "org-1",
+      order_id: "order-1",
+      received_at: "2026-09-14T00:00:00.000Z",
+      received_by_name: "Ion Popescu",
+      receipt_notes: null,
+    });
+
+    await confirmDeliveryReceipt({ deliveryId: "delivery-1", receivedByName: "Ion Popescu" });
+
+    expect(setOrderStatus).not.toHaveBeenCalled();
+  });
+
+  it("returneaza receptia salvata chiar daca actualizarea statusului comenzii esueaza", async () => {
+    getOrderStatus.mockRejectedValue(new Error("boom"));
+    mockSupabaseForReceipt({
+      id: "delivery-1",
+      organization_id: "org-1",
+      order_id: "order-1",
+      received_at: "2026-09-14T00:00:00.000Z",
+      received_by_name: "Ion Popescu",
+      receipt_notes: null,
+    });
+
+    const result = await confirmDeliveryReceipt({
+      deliveryId: "delivery-1",
+      receivedByName: "Ion Popescu",
+    });
+
+    expect(result).toEqual(
+      expect.objectContaining({ id: "delivery-1", received_by_name: "Ion Popescu" }),
+    );
   });
 });

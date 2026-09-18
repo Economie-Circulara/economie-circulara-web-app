@@ -60,11 +60,16 @@ describe("listOrders", () => {
       data: [{ linked_order_id: "order-1", link_type: "return" }],
       error: null,
     });
+    const deliveriesBuilder = makeQueryBuilder({
+      data: [{ id: "delivery-1", order_id: "order-1", received_at: null }],
+      error: null,
+    });
 
     const from = vi.fn((table: string) => {
       if (table === "orders") return ordersBuilder;
       if (table === "order_items") return itemsBuilder;
       if (table === "order_links") return linksBuilder;
+      if (table === "deliveries") return deliveriesBuilder;
       throw new Error(`tabel neasteptat: ${table}`);
     });
     createClient.mockResolvedValue({ from });
@@ -74,6 +79,7 @@ describe("listOrders", () => {
     expect(ordersBuilder.eq).toHaveBeenCalledWith("status", "sent");
     expect(itemsBuilder.in).toHaveBeenCalledWith("order_id", ["order-1"]);
     expect(linksBuilder.in).toHaveBeenCalledWith("linked_order_id", ["order-1"]);
+    expect(deliveriesBuilder.in).toHaveBeenCalledWith("order_id", ["order-1"]);
     expect(result).toEqual([
       expect.objectContaining({
         id: "order-1",
@@ -81,6 +87,7 @@ describe("listOrders", () => {
         itemsSummary: "Cărămidă eco ×4, Pavaj ×2",
         linkType: "return",
         status: "sent",
+        delivery: { id: "delivery-1", receivedAt: null },
       }),
     ]);
   });

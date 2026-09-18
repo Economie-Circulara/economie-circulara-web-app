@@ -89,6 +89,32 @@ export async function getDeliveryByOrderId(orderId: string): Promise<DeliveryRec
   return data ? mapDelivery(data) : null;
 }
 
+/**
+ * Livrarile (doar `id` + `received_at`) ale unui set de comenzi, indexate dupa
+ * `order_id` - folosita de `orders/queries.ts#listOrders` pt. guard-railurile din
+ * `OrderStatusActions` (butonul manual "Livrează" trebuie ascuns/confirmat in
+ * functie de existenta/starea livrarii - vezi `order-status-actions.tsx`).
+ * Acelasi stil ca `summarizeOrderItems`/`getLinkTypesForOrders` din
+ * orders/queries.ts - o interogare simpla, agregata in JS, evita embed-uri
+ * imbricate pe 2 niveluri.
+ */
+export async function getDeliveryGuardsForOrders(
+  orderIds: string[],
+): Promise<Map<string, { id: string; receivedAt: string | null }>> {
+  if (orderIds.length === 0) return new Map();
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("deliveries")
+    .select("id, order_id, received_at")
+    .in("order_id", orderIds);
+  if (error) throw new Error("Nu am putut verifica livrările comenzilor.");
+
+  return new Map(
+    (data ?? []).map((row) => [row.order_id, { id: row.id, receivedAt: row.received_at }]),
+  );
+}
+
 /** Liniile comenzii asociate livrarii (produse + cantitati) - pt. avizul PDF/ecranul de detaliu. */
 async function loadOrderItemLines(
   supabase: SupabaseClient,

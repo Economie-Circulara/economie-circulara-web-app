@@ -2,11 +2,11 @@ import type { OrderStatus } from "./types";
 
 /** Etichete RO pentru statusul unei comenzi (folosite in select-uri de filtrare). */
 export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
-  draft: "Draft",
-  sent: "Trimisă",
-  accepted: "Acceptată",
+  draft: "Ciornă",
+  sent: "Înaintată",
+  accepted: "Confirmată",
   delivered: "Livrată",
-  closed: "Închisă",
+  closed: "Finalizată",
   cancelled: "Anulată",
 };
 

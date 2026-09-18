@@ -284,7 +284,7 @@ export const creeazaComanda: AssistantTool<CreateOrderToolInput> = {
 export const trimiteComanda: AssistantTool<{ order_id: string }> = {
   name: "trimite_comanda",
   description:
-    "Propune trimiterea unei comenzi din Ciornă în Trimisă. Nu mișcă stoc. " +
+    "Propune trimiterea unei comenzi din Ciornă în Înaintată. Nu mișcă stoc. " +
     "Acțiunea NU se execută până la confirmare.",
   parameters: {
     type: "object",
@@ -296,7 +296,7 @@ export const trimiteComanda: AssistantTool<{ order_id: string }> = {
   version: 1,
   kind: "write",
   parse: (args) => ({ order_id: requiredString(asObject(args), "order_id") }),
-  summary: () => "Trimite comanda către acceptare",
+  summary: () => "Înaintează comanda spre aprobare",
   presentation: async (input): Promise<CardPresentation> => {
     // ID-ul comenzii ramane o valoare interna - utilizatorul vede eticheta rezolvata
     // (numar + client), nu UUID-ul brut. Campul NU e editabil: schimbarea comenzii
