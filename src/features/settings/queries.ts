@@ -55,3 +55,19 @@ export async function listAvailableClientsForInvite(): Promise<AvailableClient[]
     .filter((c) => !linkedIds.has(c.id))
     .map((c) => ({ id: c.id, name: c.name, cui: c.cui }));
 }
+
+/**
+ * Adevarat daca firma-client are deja un utilizator `client` legat
+ * (`profiles.client_id`) - folosit pe `/clienti/[id]` ca sa nu ofere invitare
+ * repetata (vezi si `listAvailableClientsForInvite`, aceeasi regula la nivel de
+ * lista). Foloseste clientul de sesiune (RLS), doar citire.
+ */
+export async function clientHasPortalAccess(clientId: string): Promise<boolean> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("profiles")
+    .select("id")
+    .eq("client_id", clientId)
+    .maybeSingle();
+  return data !== null;
+}
