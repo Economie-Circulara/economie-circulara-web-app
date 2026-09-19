@@ -4,6 +4,33 @@ Jurnal al sarcinilor lucrate de agenti AI in acest repo. Conform regulii 1.2 din
 [`AGENTS.md`](../AGENTS.md), la **fiecare commit** se adauga o intrare aici.
 Cele mai noi intrari sus.
 
+## 2026-09-19 — Claude Sonnet 5 — Fix /comenzi (500) + automatizare deploy migrari DB
+
+- **Cerut:** dupa PR #42, pagina `/comenzi` din productie da eroare de server
+  (raportat cu screenshot din Safari mobil, lotculot.eu).
+- **Depistat:** `listOrders()` (`src/features/orders/queries.ts`) selecteaza
+  `order_type`, coloana adaugata de migrarea `0030_order_types.sql` (PR #42).
+  `supabase db push` e un pas MANUAL, separat de deploy-ul de cod pe Vercel
+  (`docs/setup.md` §2.4) - migrarile 0030/0031 nu fusesera aplicate pe proiectul
+  cloud dupa merge, deci coloana nu exista in DB-ul de productie. Confirmat cu
+  utilizatorul (nu avea acces la Supabase/GitHub din sandbox pentru verificare
+  directa).
+- **Facut:**
+  - `.github/workflows/db-deploy.yml`: ruleaza automat `supabase db push` cand
+    `supabase/migrations/**` ajunge pe `main` (idempotent - CLI-ul tine evidenta
+    migrarilor deja aplicate).
+  - `docs/setup.md` §2.4: documenteaza pasul automat + secretele necesare
+    (`SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_REF`, `SUPABASE_DB_PASSWORD`),
+    pastreaza `pnpm supabase db push` ca fallback manual.
+  - Fix imediat de productie: SQL-ul din 0030 + 0031 rulat manual de utilizator
+    in Supabase Dashboard > SQL Editor (utilizatorul era fara laptop) - nu e in
+    acest commit, e o interventie directa pe DB.
+- **PR:** #43 (`claude/orders-page-error-khawa4`).
+- **Verificat:** `pnpm typecheck`, `pnpm build` (cu `.env.local` local, sters
+  inainte de commit), `npx prettier --check` pe fisierele modificate.
+- **Impact asistent AI (regula 2.4):** `none` - modificare doar de infrastructura
+  CI/deploy, fara suprafata noua de date sau actiuni.
+
 ## 2026-09-19 — Claude Sonnet 5 — Tipuri explicite de comandă (material / serviciu / aport)
 
 - **Cerut:** epicul "tipuri de comandă": `orders.order_type` NOT NULL

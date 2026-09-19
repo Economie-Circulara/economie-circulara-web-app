@@ -1,0 +1,46 @@
+name: DB Deploy
+
+# Aplica automat migrarile Supabase pe proiectul cloud legat de fiecare data cand
+# `supabase/migrations/**` se schimba pe `main` (dupa merge).
+#
+# De ce (2026-09): deploy-ul de cod (Vercel) e automat la push pe main, dar
+# migrarile DB erau pana acum un pas MANUAL separat (`pnpm supabase db push`,
+# vezi docs/setup.md §2.4). PR #42 a adaugat coloana `orders.order_type`
+# (migrarea 0030) fara ca migrarea sa fi fost aplicata si pe productie - codul
+# nou selecta o coloana inexistenta in DB, ceea ce a picat /comenzi cu eroare
+# 500 pentru toti utilizatorii. Acest workflow inchide golul.
+#
+# `supabase db push` e idempotent: tine evidenta migrarilor deja aplicate intr-un
+# tabel propriu (`supabase_migrations.schema_migrations`) si aplica DOAR fisierele
+# noi din `supabase/migrations/` - o rulare cand schema e deja la zi e un no-op.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "supabase/migrations/**"
+  workflow_dispatch:
+
+jobs:
+  deploy-migrations:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      # Aceeasi versiune pinata ca in db.yml - vezi comentariul de acolo (fara
+      # `version:` cade silentios pe un default vechi).
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.117.0
+
+      - name: Leaga proiectul cloud
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: supabase link --project-ref "${{ secrets.SUPABASE_PROJECT_REF }}"
+
+      - name: Aplica migrarile noi (idempotent)
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+        run: supabase db push --yes
