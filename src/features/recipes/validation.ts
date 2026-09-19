@@ -16,6 +16,19 @@ export function validatePercentage(value: number): string | null {
   return null;
 }
 
+/**
+ * Valideaza factorul de conversie de UM al unei componente (migrarea 0028): numar
+ * finit, strict pozitiv. Semnificatie: cate unitati din UM-ul itemului retetei
+ * corespund unei unitati din UM-ul componentei (1 = UM-uri identice / no-op).
+ * Zero sau negativ ar face impartirea din `distributeByPercentage` fara sens fizic
+ * (infinit sau cantitati negative), de-aici pragul strict.
+ */
+export function validateConversionFactor(value: number): string | null {
+  if (!Number.isFinite(value)) return "Factorul de conversie trebuie să fie un număr.";
+  if (value <= 0) return "Factorul de conversie trebuie să fie mai mare ca 0.";
+  return null;
+}
+
 /** Un item nu poate fi componenta propriei retete. */
 export function validateNotSelfReference(itemId: string, componentItemId: string): string | null {
   return itemId === componentItemId ? "Un item nu poate fi componenta propriei rețete." : null;

@@ -603,6 +603,7 @@ export type Database = {
           description: string | null
           id: string
           image_url: string | null
+          is_tracked: boolean
           kind: Database["public"]["Enums"]["item_kind"]
           organization_id: string
           sellable: boolean
@@ -615,6 +616,7 @@ export type Database = {
           description?: string | null
           id?: string
           image_url?: string | null
+          is_tracked?: boolean
           kind?: Database["public"]["Enums"]["item_kind"]
           organization_id: string
           sellable?: boolean
@@ -627,6 +629,7 @@ export type Database = {
           description?: string | null
           id?: string
           image_url?: string | null
+          is_tracked?: boolean
           kind?: Database["public"]["Enums"]["item_kind"]
           organization_id?: string
           sellable?: boolean
@@ -1357,6 +1360,7 @@ export type Database = {
       recipe_components: {
         Row: {
           component_item_id: string
+          conversion_factor: number
           created_at: string
           id: string
           organization_id: string
@@ -1366,6 +1370,7 @@ export type Database = {
         }
         Insert: {
           component_item_id: string
+          conversion_factor?: number
           created_at?: string
           id?: string
           organization_id: string
@@ -1375,6 +1380,7 @@ export type Database = {
         }
         Update: {
           component_item_id?: string
+          conversion_factor?: number
           created_at?: string
           id?: string
           organization_id?: string
@@ -1409,6 +1415,7 @@ export type Database = {
       recipes: {
         Row: {
           created_at: string
+          direction: Database["public"]["Enums"]["recipe_direction"]
           id: string
           item_id: string
           organization_id: string
@@ -1416,6 +1423,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          direction?: Database["public"]["Enums"]["recipe_direction"]
           id?: string
           item_id: string
           organization_id: string
@@ -1423,6 +1431,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          direction?: Database["public"]["Enums"]["recipe_direction"]
           id?: string
           item_id?: string
           organization_id?: string
@@ -1802,6 +1811,7 @@ export type Database = {
         | "cancelled"
       process_type: "output_fixed" | "input_fixed"
       quality_status: "unchecked" | "passed" | "failed"
+      recipe_direction: "compunere" | "descompunere"
       route_selection_mode: "auto" | "manual"
       stock_event_type:
         | "intake"

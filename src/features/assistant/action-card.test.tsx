@@ -90,7 +90,7 @@ describe("ActionCard - randerul order_draft", () => {
   ];
   const ADDRESSES: Record<string, ClientAddress[]> = {};
   const ITEMS: ItemOption[] = [
-    { id: "i1", title: "Agregat reciclat", unit: "tona", kind: "physical" },
+    { id: "i1", title: "Agregat reciclat", unit: "tona", kind: "physical", isTracked: true },
   ];
 
   it("confirmarea trimite liniile ca ARRAY structurat, nu ca text serializat", () => {

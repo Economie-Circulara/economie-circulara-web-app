@@ -41,8 +41,8 @@ const ADDRESSES: Record<string, ClientAddress[]> = {
   c2: [address({ id: "a2", clientId: "c2", label: "Șantier", address: "Str. Bravo 2" })],
 };
 const ITEMS: ItemOption[] = [
-  { id: "i1", title: "Agregat reciclat", unit: "tona", kind: "physical" },
-  { id: "i2", title: "Abonament", unit: "bucata", kind: "service" },
+  { id: "i1", title: "Agregat reciclat", unit: "tona", kind: "physical", isTracked: true },
+  { id: "i2", title: "Abonament", unit: "bucata", kind: "service", isTracked: true },
 ];
 
 function Harness({

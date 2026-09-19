@@ -6,6 +6,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { DataTable } from "@/components/data-table";
 import { EmptyState } from "@/components/empty-state";
 import { Badge } from "@/components/ui/badge";
+import { DIRECTION_SHORT_LABELS } from "./labels";
 import { isPercentageSumComplete } from "./validation";
 import type { RecipeListRow } from "./types";
 
@@ -17,6 +18,15 @@ const columns: ColumnDef<RecipeListRow>[] = [
       <Link href={`/retete/${row.original.itemId}`} className="font-medium hover:underline">
         {row.original.itemTitle}
       </Link>
+    ),
+  },
+  {
+    accessorKey: "direction",
+    header: "Direcție",
+    cell: ({ row }) => (
+      <Badge variant={row.original.direction === "compunere" ? "info" : "accent"}>
+        {DIRECTION_SHORT_LABELS[row.original.direction]}
+      </Badge>
     ),
   },
   {

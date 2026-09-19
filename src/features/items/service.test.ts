@@ -13,6 +13,7 @@ function itemRow(overrides: Record<string, unknown> = {}) {
     description: null,
     unit: "bucata",
     kind: "physical",
+    is_tracked: true,
     sellable: true,
     image_url: null,
     created_at: "2026-07-01T00:00:00.000Z",
@@ -57,6 +58,7 @@ describe("createItem", () => {
       description: null,
       unit: "bucata",
       kind: "physical",
+      is_tracked: true,
       sellable: true,
       image_url: null,
     });
@@ -66,6 +68,7 @@ describe("createItem", () => {
       description: null,
       unit: "bucata",
       kind: "physical",
+      isTracked: true,
       sellable: true,
       imageUrl: null,
       createdAt: "2026-07-01T00:00:00.000Z",
@@ -109,10 +112,30 @@ describe("updateItem", () => {
       description: null,
       unit: "bucata",
       kind: "service",
+      is_tracked: true,
       sellable: true,
       image_url: "https://example.com/img.png",
     });
     expect(result.title).toBe("Nou");
+  });
+
+  it("scrie is_tracked = false pentru un item fizic nelimitat (apa/aer, migrarea 0029)", async () => {
+    const builder = makeMutationBuilder({
+      data: itemRow({ title: "Apă tehnologică", unit: "litru", is_tracked: false }),
+      error: null,
+    });
+    createClient.mockResolvedValue({ from: vi.fn().mockReturnValue(builder) });
+
+    const result = await updateItem("item-1", {
+      title: "Apă tehnologică",
+      unit: "litru",
+      kind: "physical",
+      isTracked: false,
+      sellable: false,
+    });
+
+    expect(builder.update).toHaveBeenCalledWith(expect.objectContaining({ is_tracked: false }));
+    expect(result.isTracked).toBe(false);
   });
 
   it("arunca eroare cand itemul nu exista sau nu e accesibil (izolare tenant)", async () => {

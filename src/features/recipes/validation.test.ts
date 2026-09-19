@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   isPercentageSumComplete,
   sumPercentages,
+  validateConversionFactor,
   validateNotSelfReference,
   validatePercentage,
 } from "./validation";
@@ -26,6 +27,24 @@ describe("validatePercentage", () => {
   it("respinge NaN/Infinity", () => {
     expect(validatePercentage(NaN)).toMatch(/număr/i);
     expect(validatePercentage(Infinity)).toMatch(/număr/i);
+  });
+});
+
+describe("validateConversionFactor (migrarea 0028)", () => {
+  it("accepta factori strict pozitivi, inclusiv subunitari si foarte mari", () => {
+    expect(validateConversionFactor(1)).toBeNull();
+    expect(validateConversionFactor(1500)).toBeNull();
+    expect(validateConversionFactor(0.000417)).toBeNull();
+  });
+
+  it("respinge 0 si valori negative (impartirea din calc.ts ar exploda)", () => {
+    expect(validateConversionFactor(0)).toMatch(/mai mare/i);
+    expect(validateConversionFactor(-2)).toMatch(/mai mare/i);
+  });
+
+  it("respinge NaN/Infinity", () => {
+    expect(validateConversionFactor(NaN)).toMatch(/număr/i);
+    expect(validateConversionFactor(Infinity)).toMatch(/număr/i);
   });
 });
 

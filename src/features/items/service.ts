@@ -11,6 +11,7 @@ function mapItem(row: ItemRow): Item {
     description: row.description,
     unit: row.unit,
     kind: row.kind,
+    isTracked: row.is_tracked,
     sellable: row.sellable,
     imageUrl: row.image_url,
     createdAt: row.created_at,
@@ -30,6 +31,12 @@ export interface CreateItemInput {
   description?: string | null;
   unit: UnitOfMeasure;
   kind: ItemKind;
+  /**
+   * `items.is_tracked` (migrarea 0029) - `false` doar pentru itemi fizici
+   * "nelimitati" (apa, aer): raman in catalog si in retete, dar sunt sariti de la
+   * consumul de stoc. Implicit `true`.
+   */
+  isTracked?: boolean;
   sellable: boolean;
   imageUrl?: string | null;
 }
@@ -46,11 +53,12 @@ export async function createItem(input: CreateItemInput): Promise<Item> {
       description: input.description ?? null,
       unit: input.unit,
       kind: input.kind,
+      is_tracked: input.isTracked ?? true,
       sellable: input.sellable,
       image_url: input.imageUrl ?? null,
     })
     .select(
-      "id, organization_id, title, description, unit, kind, sellable, image_url, created_at, updated_at",
+      "id, organization_id, title, description, unit, kind, is_tracked, sellable, image_url, created_at, updated_at",
     )
     .single();
 
@@ -65,6 +73,8 @@ export interface UpdateItemInput {
   description?: string | null;
   unit: UnitOfMeasure;
   kind: ItemKind;
+  /** Vezi `CreateItemInput.isTracked`. Implicit `true`. */
+  isTracked?: boolean;
   sellable: boolean;
   /**
    * Tri-state: cheia LIPSA = nu atinge poza existenta (nu s-a incarcat un fisier
@@ -85,12 +95,13 @@ export async function updateItem(id: string, input: UpdateItemInput): Promise<It
       description: input.description ?? null,
       unit: input.unit,
       kind: input.kind,
+      is_tracked: input.isTracked ?? true,
       sellable: input.sellable,
       ...("imageUrl" in input ? { image_url: input.imageUrl ?? null } : {}),
     })
     .eq("id", id)
     .select(
-      "id, organization_id, title, description, unit, kind, sellable, image_url, created_at, updated_at",
+      "id, organization_id, title, description, unit, kind, is_tracked, sellable, image_url, created_at, updated_at",
     )
     .single();
 

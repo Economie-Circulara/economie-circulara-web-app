@@ -148,7 +148,7 @@ export async function listSellableItemOptions(): Promise<ItemOption[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("items")
-    .select("id, title, unit, kind")
+    .select("id, title, unit, kind, is_tracked")
     .eq("sellable", true)
     .order("title");
   if (error) throw new Error("Nu am putut incarca catalogul de itemi vandabili.");
@@ -158,6 +158,7 @@ export async function listSellableItemOptions(): Promise<ItemOption[]> {
     title: row.title,
     unit: row.unit,
     kind: row.kind,
+    isTracked: row.is_tracked,
   }));
 }
 
