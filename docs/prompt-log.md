@@ -4,6 +4,59 @@ Jurnal al sarcinilor lucrate de agenti AI in acest repo. Conform regulii 1.2 din
 [`AGENTS.md`](../AGENTS.md), la **fiecare commit** se adauga o intrare aici.
 Cele mai noi intrari sus.
 
+## 2026-09-19 — Claude Sonnet 5 — Tipuri explicite de comandă (material / serviciu / aport)
+
+- **Cerut:** epicul "tipuri de comandă": `orders.order_type` NOT NULL
+  (`material|serviciu|aport`), `expected_return_date` doar pentru `serviciu`,
+  direcție nouă `aport` (clientul aduce material -> crește stocul, cu trasabilitate
+  spre client), restrângerea eligibilității de retur/garanție în funcție de tip.
+- **Făcut:** migrările `0030_order_types.sql` (enum `order_type` + coloana cu
+  backfill `material`, `lots.client_id`, valoarea de provenieanță `aport_client`) și
+  `0031_aport_intake.sql` (`create_lot` + `p_client_id`, RPC nou
+  `accept_intake_order`, gardă anti-`aport` în `accept_order`); selector de tip
+  obligatoriu în `OrderEditor` cu catalog de itemi comutat pe tip, buton
+  "Acceptă aport", regula `ALLOWED_RETURN_FLOWS_BY_ORDER_TYPE` (retur pur doar pe
+  `serviciu`, garanție și pe `material`, nimic pe `aport`), `creeaza_comanda` v2
+  (`tip_comanda` opțional, implicit `material`), tipuri DB actualizate manual,
+  seed-uri + test SQL `B14`, `AGENTS.md` §4 și
+  `docs/plans/task-x8-tipuri-comanda-aport.md`.
+- **Verificat:** `pnpm run typecheck`, `pnpm run lint`, `pnpm run test`
+  (788 de teste) - toate verzi. Testele SQL (`business_flow.sql` B14) nu au putut fi
+  rulate: nu există Supabase local în acest worktree.
+
+## 2026-09-19 — Claude Opus 5 — Rețete: direcție explicită + conversii de UM + itemi fara stoc
+
+- **Cerut:** doua bug-uri din productie cu aceeasi radacina: (1) retetele aplicau
+  procente peste cantitati brute, fara constiinta unitatilor de masura (1 kg tratat
+  ca 1 litru si ca 1 mc - o reteta de beton cu apa/nisip/ciment dadea cantitati
+  gresite); (2) aceeasi reteta era interpretata in doua feluri opuse, dupa
+  wizard-ul deschis ("graficul de reciclare arata invers"). Cerut si un mod de a
+  modela materiale nelimitate (apa, aer) care nu se consuma din stoc.
+- **Facut:**
+  - `0028_recipe_direction_and_um_conversion.sql`: enum nou `recipe_direction`
+    (`compunere` / `descompunere`) + `recipes.direction` (implicit `compunere`,
+    backfill `descompunere` pe retetele deja folosite in procese `input_fixed`) si
+    `recipe_components.conversion_factor numeric(18,9) default 1 check (> 0)`.
+    Plafonul de 100% eliminat in 0027 NU e reintrodus.
+  - `0029_untracked_items.sql`: `items.is_tracked` (implicit `true`) + index;
+    `accept_order` si `confirm_process` rescrise ca sa sara itemii netrasati (si
+    serviciile, la fel ca in 0022) de la `consume_fifo`/creare de lot.
+  - Calcul: `distributeByPercentage` imparte la `conversion_factor` si intoarce si
+    `qtyInRecipeUnit`; `sumQtyInRecipeUnit`/`toRecipeUnit` pentru totaluri si
+    balante omogene; `computeLoss` documentat ca "like-for-like".
+  - UI: selector de directie la crearea/editarea retetei (cu avertisment la
+    schimbare), input de factor de conversie cu ajutor "1 <UM componenta> = ?
+    <UM produs>", text de procent dependent de directie; comutator "Urmărește
+    stocul" la itemii fizici; wizard-ul de productie citeste `recipes.direction` si
+    refuza sa calculeze pe directia gresita, oferind trecerea in fluxul corect.
+  - Seed + demo seed: directii reale si factori de conversie pe retetele cu UM-uri
+    mixte; item nou "Apă tehnologică" (fizic, `is_tracked = false`).
+  - AGENTS.md §4: regula "un UM unic per produs; fara conversii intre unitati"
+    inlocuita cu documentatia noului sistem (conversii + directie + itemi nelimitati).
+- **Verificat:** `pnpm run typecheck`, `pnpm run lint`, `pnpm run test`
+  (796 teste, inclusiv fixture-uri actualizate + teste noi pentru conversii,
+  directie si `is_tracked`), `pnpm run format:check`.
+
 ## 2026-09-14 — Claude Sonnet 5 — Fix e2e/db CI: `supabase/setup-cli` pica pe rate limit la `version: latest`
 
 - **Cerut:** userul a raportat esecul e2e-ului: `supabase/setup-cli@v1` -> "Failed

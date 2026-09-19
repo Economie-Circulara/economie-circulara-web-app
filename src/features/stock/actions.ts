@@ -43,7 +43,7 @@ export async function createLotAction(
   const quantity = parseQty(formData.get("quantity"));
   const provenance = parseProvenance(formData.get("provenance"));
 
-  if (!itemId) return { error: "Alege un item.", message: null };
+  if (!itemId) return { error: "Alege un material.", message: null };
   if (!quantity) return { error: "Introdu o cantitate mai mare ca zero.", message: null };
   if (!provenance) return { error: "Alege proveniența lotului.", message: null };
 

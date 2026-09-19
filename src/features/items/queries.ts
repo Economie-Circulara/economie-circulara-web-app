@@ -7,6 +7,7 @@ function mapItem(row: {
   description: string | null;
   unit: Item["unit"];
   kind: ItemKind;
+  is_tracked: boolean;
   sellable: boolean;
   image_url: string | null;
   created_at: string;
@@ -18,6 +19,7 @@ function mapItem(row: {
     description: row.description,
     unit: row.unit,
     kind: row.kind,
+    isTracked: row.is_tracked,
     sellable: row.sellable,
     imageUrl: row.image_url,
     createdAt: row.created_at,
@@ -37,7 +39,9 @@ export async function listItems(filters: ListItemsFilters = {}): Promise<ItemLis
   const supabase = await createClient();
   let query = supabase
     .from("items")
-    .select("id, title, description, unit, kind, sellable, image_url, created_at, updated_at")
+    .select(
+      "id, title, description, unit, kind, is_tracked, sellable, image_url, created_at, updated_at",
+    )
     .order("title");
 
   if (filters.kind) query = query.eq("kind", filters.kind);
@@ -45,7 +49,7 @@ export async function listItems(filters: ListItemsFilters = {}): Promise<ItemLis
   if (filters.search) query = query.ilike("title", `%${filters.search}%`);
 
   const { data, error } = await query;
-  if (error) throw new Error("Nu am putut incarca lista de itemi.");
+  if (error) throw new Error("Nu am putut incarca lista de materiale si servicii.");
 
   const { data: recipeRows, error: recipeError } = await supabase.from("recipes").select("item_id");
   if (recipeError) throw new Error("Nu am putut verifica retetele existente.");
@@ -63,11 +67,13 @@ export async function getItemById(id: string): Promise<Item | null> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("items")
-    .select("id, title, description, unit, kind, sellable, image_url, created_at, updated_at")
+    .select(
+      "id, title, description, unit, kind, is_tracked, sellable, image_url, created_at, updated_at",
+    )
     .eq("id", id)
     .maybeSingle();
 
-  if (error) throw new Error("Nu am putut incarca itemul.");
+  if (error) throw new Error("Nu am putut incarca materialul sau serviciul.");
   return data ? mapItem(data) : null;
 }
 
@@ -80,18 +86,19 @@ export interface ListItemOptionsFilters {
 /** Optiuni de item pentru select-uri (stoc, componente de reteta). */
 export async function listItemOptions(filters: ListItemOptionsFilters = {}): Promise<ItemOption[]> {
   const supabase = await createClient();
-  let query = supabase.from("items").select("id, title, unit, kind").order("title");
+  let query = supabase.from("items").select("id, title, unit, kind, is_tracked").order("title");
 
   if (filters.kind) query = query.eq("kind", filters.kind);
   if (filters.excludeId) query = query.neq("id", filters.excludeId);
 
   const { data, error } = await query;
-  if (error) throw new Error("Nu am putut incarca lista de itemi.");
+  if (error) throw new Error("Nu am putut incarca lista de materiale si servicii.");
 
   return (data ?? []).map((row) => ({
     id: row.id,
     title: row.title,
     unit: row.unit,
     kind: row.kind,
+    isTracked: row.is_tracked,
   }));
 }

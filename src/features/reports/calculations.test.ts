@@ -20,11 +20,11 @@ describe("aggregateOrdersByStatus", () => {
       { status: "accepted" },
     ]);
     expect(result).toEqual([
-      { status: "draft", label: "Draft", count: 0 },
-      { status: "sent", label: "Trimisă", count: 2 },
-      { status: "accepted", label: "Acceptată", count: 1 },
+      { status: "draft", label: "Ciornă", count: 0 },
+      { status: "sent", label: "Înaintată", count: 2 },
+      { status: "accepted", label: "Confirmată", count: 1 },
       { status: "delivered", label: "Livrată", count: 0 },
-      { status: "closed", label: "Închisă", count: 0 },
+      { status: "closed", label: "Finalizată", count: 0 },
       { status: "cancelled", label: "Anulată", count: 0 },
     ]);
   });

@@ -1,7 +1,12 @@
 import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/database.types";
 import { getReturnableItems } from "./queries";
-import type { ReturnFlowType, ReturnItemInput } from "./types";
+import {
+  ALLOWED_RETURN_FLOWS_BY_ORDER_TYPE,
+  type OrderType,
+  type ReturnFlowType,
+  type ReturnItemInput,
+} from "./types";
 
 type OrderRow = Database["public"]["Tables"]["orders"]["Row"];
 type OrderStatus = Database["public"]["Enums"]["order_status"];
@@ -61,20 +66,32 @@ interface OriginalOrderForReturn {
   organizationId: string;
   clientId: string;
   orderNumber: string | null;
+  orderType: OrderType;
   status: OrderStatus;
 }
 
 /**
- * Incarca + valideaza comanda originala pentru un retur/garantie: trebuie sa
- * existe (RLS ii filtreaza deja pe cele inaccesibile apelantului) si sa fie
- * `delivered`/`closed` (AGENTS.md/plan: "pe o comanda finalizata"). Aruncă
- * `ReturnNotFoundError`/`ReturnValidationError` altfel.
+ * Incarca + valideaza comanda originala pentru un retur/garantie. DOUA conditii,
+ * ambele obligatorii:
+ *
+ *   1. STATUS: `delivered`/`closed` (AGENTS.md/plan: "pe o comanda finalizata").
+ *   2. TIP: fluxul cerut trebuie sa fie permis pentru `order_type`-ul comenzii -
+ *      vezi `ALLOWED_RETURN_FLOWS_BY_ORDER_TYPE` (retur si garantie pe
+ *      `material`/`serviciu`, nimic pe `aport`). Regula a fost adaugata odata cu
+ *      migrarea 0030 (initial `return` pur doar pe `serviciu`, relaxata la
+ *      `material` dupa ce datele demo au aratat exceptii reale - retur de
+ *      ambalaj/surplus).
+ *
+ * Aruncă `ReturnNotFoundError`/`ReturnValidationError` altfel.
  */
-export async function loadOriginalOrderForReturn(orderId: string): Promise<OriginalOrderForReturn> {
+export async function loadOriginalOrderForReturn(
+  orderId: string,
+  flowType: ReturnFlowType,
+): Promise<OriginalOrderForReturn> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("orders")
-    .select("id, organization_id, client_id, order_number, status")
+    .select("id, organization_id, client_id, order_number, order_type, status")
     .eq("id", orderId)
     .maybeSingle();
   if (error) throw new Error("Nu am putut încărca comanda originală.");
@@ -86,11 +103,20 @@ export async function loadOriginalOrderForReturn(orderId: string): Promise<Origi
     );
   }
 
+  if (!ALLOWED_RETURN_FLOWS_BY_ORDER_TYPE[data.order_type].includes(flowType)) {
+    throw new ReturnValidationError(
+      flowType === "return"
+        ? "Returul se poate face doar pe o comandă de tip serviciu (închiriere). Pentru un produs defect vândut, folosește Garanție."
+        : "Garanția se poate cere doar pe o comandă de tip material sau serviciu.",
+    );
+  }
+
   return {
     id: data.id,
     organizationId: data.organization_id,
     clientId: data.client_id,
     orderNumber: data.order_number,
+    orderType: data.order_type,
     status: data.status,
   };
 }
@@ -125,7 +151,7 @@ export async function createReturnOrder(
     throw new ReturnValidationError("Adaugă cel puțin o linie de retur.");
   }
 
-  const original = await loadOriginalOrderForReturn(input.originalOrderId);
+  const original = await loadOriginalOrderForReturn(input.originalOrderId, input.type);
   const returnable = await getReturnableItems(input.originalOrderId);
   const returnableByOrderItemId = new Map(returnable.map((item) => [item.orderItemId, item]));
 
@@ -155,6 +181,12 @@ export async function createReturnOrder(
     .insert({
       organization_id: original.organizationId,
       client_id: original.clientId,
+      // Comanda-retur MOSTENESTE tipul comenzii originale: ea nu e o vanzare noua,
+      // ci reversul uneia existente, si asa ramane citibila in liste/rapoarte
+      // ("retur pe o închiriere" vs. "retur pe o vânzare în garanție"). NU e
+      // `aport`: aportul inseamna material adus prima data de client, nu marfa
+      // care se intoarce dintr-o comanda a organizatiei.
+      order_type: original.orderType,
       created_by_admin: input.createdByAdmin,
       status: "draft",
       notes: input.notes ?? null,
@@ -202,6 +234,10 @@ export async function createReturnOrder(
       .insert({
         organization_id: original.organizationId,
         client_id: original.clientId,
+        // Comanda de inlocuire pastreaza si ea tipul originalului: e o livrare
+        // noua, de acelasi fel (vanzare de material, resp. inlocuirea bunului
+        // inchiriat), si parcurge fluxul normal send -> accept -> deliver -> close.
+        order_type: original.orderType,
         created_by_admin: input.createdByAdmin,
         status: "draft",
         notes: `Comandă de înlocuire (garanție) pentru ${original.orderNumber ?? original.id}`,

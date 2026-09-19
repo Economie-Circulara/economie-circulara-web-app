@@ -64,8 +64,12 @@ select quote_literal(id) as lot_beton_blk   from public.lots
   where organization_id = :org and item_id = :item_beton and is_blocked = true                \gset
 select quote_literal(id) as lot_nisip       from public.lots
   where organization_id = :org and item_id = :item_nisip                                      \gset
+-- filtrat pe provenance = 'purchase': dupa migrarea 0031 (Task X8) seed.sql
+-- adauga si un al doilea lot de moloz, cu provenance = 'aport_client' (linia
+-- 572+, demonstreaza fluxul de aport) - fara filtru, query-ul de mai jos
+-- intoarce 2 randuri si pica la \gset ("more than one row returned").
 select quote_literal(id) as lot_moloz       from public.lots
-  where organization_id = :org and item_id = :item_moloz                                      \gset
+  where organization_id = :org and item_id = :item_moloz and provenance = 'purchase'           \gset
 
 -- Comenzi din seed - cautate dupa `order_number` (stabil), nu dupa UUID.
 --   order_sent   = CMD-2026-0002, status 'sent', o linie de 10 Nisip reciclat
@@ -425,8 +429,14 @@ begin;
       where organization_id = 'a0000000-0000-0000-0000-0000000000a1' and title = 'Moloz';
     select id into v_item_pietris from public.items
       where organization_id = 'a0000000-0000-0000-0000-0000000000a1' and title = 'Pietriș reciclat';
+    -- provenance = 'purchase': dupa migrarea 0031 (Task X8), seed.sql adauga si
+    -- un al doilea lot de moloz (provenance = 'aport_client', 80 ramase) - fara
+    -- filtru, "select into" cu mai multe randuri nu da eroare in PL/pgSQL (spre
+    -- deosebire de \gset), dar ar putea alege nedeterminist lotul gresit si ar
+    -- rupe asertarea de mai jos (200 -> 180, valabila doar pt. lotul original).
     select id into v_lot_moloz from public.lots
-      where organization_id = 'a0000000-0000-0000-0000-0000000000a1' and item_id = v_item_moloz;
+      where organization_id = 'a0000000-0000-0000-0000-0000000000a1' and item_id = v_item_moloz
+        and provenance = 'purchase';
 
     v_proc := public.confirm_process(
       p_type => 'input_fixed'::public.process_type,
@@ -558,6 +568,81 @@ begin;
 
   select pg_temp.assert_num('B13 niciun eveniment de stoc pentru serviciu', count(*), 0)
   from public.stock_events where order_id = 'eeee0000-0000-0000-0000-00000000ee03';
+rollback;
+
+-- ===========================================================================
+-- B14: accept_intake_order (migrarile 0030/0031) - APORT: materialul adus de
+--      client INTRA in stoc ca lot nou cu provenienta `aport_client`,
+--      `client_id` completat si calitate `unchecked`; doar pentru comenzi de
+--      tip `aport` aflate in `draft`. In plus, `accept_order` (fluxul de
+--      vanzare, care CONSUMA stoc) refuza o comanda de aport.
+-- ===========================================================================
+begin;
+  set local role authenticated;
+  set local request.jwt.claims = '{"sub":"b0000000-0000-0000-0000-0000000000b1"}';
+
+  -- Comanda obisnuita (material) - NU poate fi acceptata ca aport.
+  insert into public.orders (id, organization_id, client_id, order_type, status, created_by)
+  values ('eeee0000-0000-0000-0000-00000000ee04', :org, :client_demo, 'material', 'draft',
+          'b0000000-0000-0000-0000-0000000000b1');
+
+  do $$
+  begin
+    begin
+      perform public.accept_intake_order('eeee0000-0000-0000-0000-00000000ee04'::uuid);
+      raise exception 'FAIL: B14 o comanda `material` ar fi trebuit respinsa ca aport';
+    exception
+      when sqlstate 'AP003' then raise notice 'PASS: B14 comanda non-aport respinsa (AP003)';
+    end;
+  end $$;
+
+  insert into public.orders (id, organization_id, client_id, order_type, status, created_by)
+  values ('eeee0000-0000-0000-0000-00000000ee05', :org, :client_demo, 'aport', 'draft',
+          'b0000000-0000-0000-0000-0000000000b1');
+  insert into public.order_items (organization_id, order_id, item_id, quantity)
+  values (:org, 'eeee0000-0000-0000-0000-00000000ee05', :item_caramizi, 12);
+
+  select id from public.accept_intake_order('eeee0000-0000-0000-0000-00000000ee05');
+
+  select pg_temp.assert_eq('B14 comanda-aport devine accepted', status::text, 'accepted')
+  from public.orders where id = 'eeee0000-0000-0000-0000-00000000ee05';
+
+  select pg_temp.assert_num('B14 lot nou de aport creat (12 buc)', count(*), 1)
+  from public.lots
+  where item_id = :item_caramizi and provenance = 'aport_client' and initial_qty = 12;
+
+  select pg_temp.assert_eq('B14 lotul de aport pastreaza clientul care l-a adus',
+    client_id::text, :client_demo)
+  from public.lots
+  where item_id = :item_caramizi and provenance = 'aport_client' and initial_qty = 12;
+
+  select pg_temp.assert_eq('B14 materialul adus asteapta QC (unchecked)',
+    quality_status::text, 'unchecked')
+  from public.lots
+  where item_id = :item_caramizi and provenance = 'aport_client' and initial_qty = 12;
+
+  -- A doua acceptare (comanda nu mai e `draft`) -> AP001.
+  do $$
+  begin
+    begin
+      perform public.accept_intake_order('eeee0000-0000-0000-0000-00000000ee05'::uuid);
+      raise exception 'FAIL: B14 a doua acceptare ar fi trebuit respinsa';
+    exception
+      when sqlstate 'AP001' then raise notice 'PASS: B14 aport deja acceptat respins (AP001)';
+    end;
+  end $$;
+
+  -- Fluxul de vanzare refuza o comanda de aport (ar CONSUMA stoc, invers).
+  update public.orders set status = 'sent' where id = 'eeee0000-0000-0000-0000-00000000ee05';
+  do $$
+  begin
+    begin
+      perform public.accept_order('eeee0000-0000-0000-0000-00000000ee05'::uuid);
+      raise exception 'FAIL: B14 accept_order ar fi trebuit sa refuze o comanda de aport';
+    exception
+      when sqlstate 'OR001' then raise notice 'PASS: B14 accept_order refuza aportul (OR001)';
+    end;
+  end $$;
 rollback;
 
 select '*** TOATE TESTELE FUNCTIONALE DE BUSINESS AU TRECUT ***' as result;

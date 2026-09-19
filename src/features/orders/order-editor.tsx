@@ -8,6 +8,8 @@ import { Input } from "@/components/ui/input";
 import { FormField } from "@/components/form-field";
 import type { Client, ClientAddress } from "@/features/clients/types";
 import type { ItemOption } from "@/features/items/types";
+import { ORDER_TYPE_DESCRIPTIONS, ORDER_TYPE_LABELS, ORDER_TYPE_OPTIONS } from "./labels";
+import type { OrderType } from "./types";
 
 export const selectClassName =
   "flex h-9 w-full rounded-md border border-input bg-card px-3 py-1 text-sm shadow-xs outline-none " +
@@ -26,23 +28,47 @@ export interface OrderEditorLine {
 
 /** Starea completa a draftului editat - controlata de parinte (`OrderForm` sau cardul asistentului). */
 export interface OrderEditorValue {
+  /**
+   * Tipul comenzii. `""` = inca nealeasa - deliberat NU exista un default in UI
+   * (vezi migrarea 0030): alegerea trebuie facuta explicit, pentru ca sensul
+   * stocului depinde de ea. Default-ul din DB e doar plasa de siguranta pentru
+   * insert-urile care nu trec pe aici (seed-uri, comenzi-retur).
+   */
+  orderType: OrderType | "";
   clientId: string;
   deliveryAddressId: string;
   deliveryDate: string;
+  /** Data estimata de retur - se trimite doar cand `orderType === "serviciu"`. */
+  expectedReturnDate: string;
   notes: string;
   lines: OrderEditorLine[];
 }
 
 export function emptyOrderEditorValue(): OrderEditorValue {
-  return { clientId: "", deliveryAddressId: "", deliveryDate: "", notes: "", lines: [] };
+  return {
+    orderType: "",
+    clientId: "",
+    deliveryAddressId: "",
+    deliveryDate: "",
+    expectedReturnDate: "",
+    notes: "",
+    lines: [],
+  };
 }
 
 export interface OrderEditorProps {
   clients: Client[];
   /** Adresele fiecarui client, precalculate - evita un fetch suplimentar la schimbarea clientului. */
   addressesByClient: Record<string, ClientAddress[]>;
-  /** Itemi vandabili (catalog client) - singurele linii permise intr-o comanda. */
+  /** Itemi vandabili (catalog client) - liniile permise pe o comanda `material`/`serviciu`. */
   itemOptions: ItemOption[];
+  /**
+   * Itemii oferiti pe o comanda de tip `aport` (orice item FIZIC, si nevandabil -
+   * vezi `listIntakeItemOptions`). Optional: cand lipseste (ex. cardul
+   * asistentului, care incarca doar catalogul vandabil), se cade inapoi pe
+   * `itemOptions` - aportul ramane creabil, doar cu o lista mai restransa.
+   */
+  intakeItemOptions?: ItemOption[];
   value: OrderEditorValue;
   onChange: (value: OrderEditorValue) => void;
   /**
@@ -67,6 +93,7 @@ export function OrderEditor({
   clients,
   addressesByClient,
   itemOptions,
+  intakeItemOptions,
   value,
   onChange,
   nativeFormFields = false,
@@ -75,14 +102,24 @@ export function OrderEditor({
   const [draftQuantity, setDraftQuantity] = useState("");
 
   const addresses = value.clientId ? (addressesByClient[value.clientId] ?? []) : [];
+
+  // Lista de itemi depinde de tipul comenzii: `material`/`serviciu` pastreaza
+  // catalogul vandabil de pana acum, `aport` ofera itemii fizici (inclusiv
+  // nevandabili - vezi `listIntakeItemOptions`).
+  const availableItems =
+    value.orderType === "aport" ? (intakeItemOptions ?? itemOptions) : itemOptions;
+  // Denumirile liniilor deja adaugate se rezolva din AMBELE liste: la schimbarea
+  // tipului, liniile raman in draft si trebuie sa se afiseze in continuare corect.
   const itemById = useMemo(
-    () => new Map(itemOptions.map((item) => [item.id, item] as const)),
-    [itemOptions],
+    () => new Map([...itemOptions, ...(intakeItemOptions ?? [])].map((i) => [i.id, i] as const)),
+    [itemOptions, intakeItemOptions],
   );
 
   function addLine() {
     const quantity = Number(draftQuantity.replace(",", "."));
-    if (!draftItemId || !Number.isFinite(quantity) || quantity <= 0) return;
+    // Fara tip ales nu stim din ce catalog provine linia - selectorul de item e
+    // oricum dezactivat, garda de aici acopera si apelul programatic.
+    if (!value.orderType || !draftItemId || !Number.isFinite(quantity) || quantity <= 0) return;
 
     onChange({
       ...value,
@@ -99,8 +136,60 @@ export function OrderEditor({
     onChange({ ...value, lines: value.lines.filter((line) => line.key !== key) });
   }
 
+  function changeOrderType(next: OrderType) {
+    const directionChanged = (value.orderType === "aport") !== (next === "aport");
+    onChange({
+      ...value,
+      orderType: next,
+      // Data de retur are sens doar la `serviciu` - o golim ca sa nu plece pe server
+      // o valoare ramasa de la o alegere anterioara.
+      expectedReturnDate: next === "serviciu" ? value.expectedReturnDate : "",
+      // Aportul foloseste ALT catalog (itemi fizici, si nevandabili). La schimbarea
+      // sensului comenzii, liniile deja adaugate pot proveni din catalogul gresit,
+      // asa ca se golesc - intre `material` si `serviciu` raman neatinse.
+      lines: directionChanged ? [] : value.lines,
+    });
+    setDraftItemId("");
+  }
+
   return (
     <>
+      <Card>
+        <CardHeader>
+          <CardTitle>Tip comandă</CardTitle>
+          <CardDescription>
+            Determină sensul mișcării de stoc - alege înainte de a adăuga linii.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <fieldset className="space-y-2">
+            <legend className="sr-only">Tip comandă</legend>
+            {ORDER_TYPE_OPTIONS.map((type) => (
+              <label
+                key={type}
+                className="flex cursor-pointer items-start gap-3 rounded-md border p-3 text-sm has-checked:border-primary"
+              >
+                <input
+                  type="radio"
+                  name="order_type"
+                  value={type}
+                  required={nativeFormFields}
+                  checked={value.orderType === type}
+                  onChange={() => changeOrderType(type)}
+                  className="mt-0.5"
+                />
+                <span>
+                  <span className="font-medium">{ORDER_TYPE_LABELS[type]}</span>
+                  <span className="block text-xs text-muted-foreground">
+                    {ORDER_TYPE_DESCRIPTIONS[type]}
+                  </span>
+                </span>
+              </label>
+            ))}
+          </fieldset>
+        </CardContent>
+      </Card>
+
       <Card>
         <CardHeader>
           <CardTitle>Client și livrare</CardTitle>
@@ -157,7 +246,10 @@ export function OrderEditor({
           </FormField>
 
           <div className="grid gap-4 sm:grid-cols-2">
-            <FormField label="Data livrare" hint="Opțional.">
+            <FormField
+              label={value.orderType === "aport" ? "Data aportului" : "Data livrare"}
+              hint="Opțional."
+            >
               {(id) => (
                 <Input
                   id={id}
@@ -168,6 +260,24 @@ export function OrderEditor({
                 />
               )}
             </FormField>
+
+            {/* `expected_return_date` (coloana existenta din 0001, pana acum fara UI)
+                e relevanta DOAR pentru inchiriere/PaaS - de aceea apare exclusiv la
+                tipul `serviciu` (vezi migrarea 0030 si `createOrderWithItems`, care
+                oricum o ignora pentru celelalte tipuri). */}
+            {value.orderType === "serviciu" ? (
+              <FormField label="Retur estimat" hint="Opțional - data la care bunul se întoarce.">
+                {(id) => (
+                  <Input
+                    id={id}
+                    name={nativeFormFields ? "expected_return_date" : undefined}
+                    type="date"
+                    value={value.expectedReturnDate}
+                    onChange={(e) => onChange({ ...value, expectedReturnDate: e.target.value })}
+                  />
+                )}
+              </FormField>
+            ) : null}
           </div>
 
           <FormField label="Note" hint="Opțional.">
@@ -188,7 +298,11 @@ export function OrderEditor({
       <Card>
         <CardHeader>
           <CardTitle>Linii comandă</CardTitle>
-          <CardDescription>Adaugă produse din catalogul vandabil, cu cantitate.</CardDescription>
+          <CardDescription>
+            {value.orderType === "aport"
+              ? "Adaugă materialele aduse de client, cu cantitate."
+              : "Adaugă produse din catalogul vandabil, cu cantitate."}
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           {value.lines.length === 0 ? (
@@ -232,13 +346,14 @@ export function OrderEditor({
                 <select
                   id={id}
                   value={draftItemId}
+                  disabled={!value.orderType}
                   onChange={(e) => setDraftItemId(e.target.value)}
                   className={selectClassName}
                 >
                   <option value="" disabled>
-                    Alege un item...
+                    {value.orderType ? "Alege un item..." : "Alege întâi tipul comenzii..."}
                   </option>
-                  {itemOptions.map((option) => (
+                  {availableItems.map((option) => (
                     <option key={option.id} value={option.id}>
                       {option.title} ({option.unit})
                     </option>

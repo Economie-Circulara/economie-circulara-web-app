@@ -18,7 +18,7 @@ import { ORDER_STATUS_BADGE_STATUS } from "@/features/orders/labels";
 import { DashboardStockChart } from "@/features/reports/dashboard-stock-chart";
 import { getOperationalDashboard } from "@/features/reports/dashboard-queries";
 
-export const metadata = { title: "Dashboard - Lot cu Lot" };
+export const metadata = { title: "Panou de control - Lot cu Lot" };
 
 const numberFormatter = new Intl.NumberFormat("ro-RO");
 
@@ -62,7 +62,7 @@ export default async function DashboardPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Dashboard"
+        title="Panou de control"
         description="Priorități, stoc și activitatea recentă — într-un singur loc."
       />
 

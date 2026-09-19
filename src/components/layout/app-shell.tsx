@@ -1,13 +1,13 @@
 import type * as React from "react";
 import { BrandProvider, type BrandTheme } from "@/components/brand-provider";
 import { Sidebar } from "./sidebar";
-import type { NavItem } from "./nav-config";
+import type { NavEntry } from "./nav-config";
 
 export interface AppShellProps {
   orgName: string;
   logoUrl?: string;
   theme?: BrandTheme;
-  items: NavItem[];
+  items: NavEntry[];
   children: React.ReactNode;
 }
 
@@ -21,9 +21,7 @@ export function AppShell({ orgName, logoUrl, theme, items, children }: AppShellP
       <div className="flex min-h-svh">
         <Sidebar orgName={orgName} logoUrl={logoUrl} items={items} />
         <main className="bg-pattern flex-1 overflow-x-clip">
-          <div className="mx-auto max-w-7xl space-y-6 p-4 sm:p-6">
-            {children}
-          </div>
+          <div className="mx-auto max-w-7xl space-y-6 p-4 sm:p-6">{children}</div>
         </main>
       </div>
     </BrandProvider>

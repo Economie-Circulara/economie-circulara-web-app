@@ -20,10 +20,19 @@ import type { ReturnableItem, ReturnFlowType } from "./types";
 export function ReturnActions({
   originalOrderId,
   returnableItems,
+  allowedFlows,
   redirectBasePath = "/comenzi",
 }: {
   originalOrderId: string;
   returnableItems: ReturnableItem[];
+  /**
+   * Fluxurile permise pentru TIPUL comenzii originale - calculate de pagina
+   * (server) din `ALLOWED_RETURN_FLOWS_BY_ORDER_TYPE`: retur si garantie pe
+   * `material`/`serviciu`, nimic pe `aport`. Sursa de adevar ramane
+   * `loadOriginalOrderForReturn` (server); aici doar nu aratam un buton care ar
+   * esua garantat.
+   */
+  allowedFlows: ReturnFlowType[];
   /**
    * Ruta de baza spre care se navigheaza dupa crearea returului. Admin: `/comenzi`
    * (implicit); portalul clientului (Task H) paseaza `/comenzile-mele`, ruta lui.
@@ -38,7 +47,7 @@ export function ReturnActions({
   const [pending, startTransition] = useTransition();
 
   const hasReturnable = returnableItems.some((item) => item.returnableQuantity > 0);
-  if (!hasReturnable && openType === null) {
+  if ((!hasReturnable || allowedFlows.length === 0) && openType === null) {
     return null;
   }
 
@@ -92,12 +101,16 @@ export function ReturnActions({
   if (openType === null) {
     return (
       <div className="flex gap-2">
-        <Button type="button" variant="outline" size="sm" onClick={() => openForm("return")}>
-          Retur
-        </Button>
-        <Button type="button" variant="outline" size="sm" onClick={() => openForm("warranty")}>
-          Garanție
-        </Button>
+        {allowedFlows.includes("return") ? (
+          <Button type="button" variant="outline" size="sm" onClick={() => openForm("return")}>
+            Retur
+          </Button>
+        ) : null}
+        {allowedFlows.includes("warranty") ? (
+          <Button type="button" variant="outline" size="sm" onClick={() => openForm("warranty")}>
+            Garanție
+          </Button>
+        ) : null}
       </div>
     );
   }

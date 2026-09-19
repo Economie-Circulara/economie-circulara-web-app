@@ -75,7 +75,7 @@ export async function getOperationalDashboard(): Promise<OperationalDashboardDat
 
   const lots = (lotsRes.data ?? []).map((lot) => ({
     itemId: lot.item_id,
-    itemTitle: lot.items?.title ?? "Item fără denumire",
+    itemTitle: lot.items?.title ?? "Material fără denumire",
     unit: lot.items?.unit ?? "unități",
     initialQty: Number(lot.initial_qty),
     remainingQty: Number(lot.remaining_qty),

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireRole } from "@/features/auth/session";
+import { sendClientInvite } from "@/features/settings/user-actions";
 import type { AddressFormState, ClientFormState } from "./action-state";
 import { defaultCuiLookupProvider, type CuiLookupResult } from "./cui-lookup";
 import {
@@ -49,7 +50,15 @@ function readClientFields(formData: FormData): {
   };
 }
 
-/** Creeaza un client nou (ecranul /clienti/nou) - doar staff. */
+/**
+ * Creeaza un client nou (ecranul /clienti/nou) - doar staff. Optional, admin poate
+ * bifa "Trimite acces în portal": dupa ce clientul e creat, trimite invitatia
+ * folosind acelasi nucleu (`sendClientInvite`) ca formularul dedicat din
+ * /setari/utilizatori - vezi src/features/settings/user-actions.ts. Un esec la
+ * invitare NU anuleaza crearea clientului (staff poate invita oricand mai tarziu
+ * din /setari/utilizatori); eroarea e transmisa mai departe prin query string catre
+ * pagina de detaliu, la care se face redirect in orice caz.
+ */
 export async function createClientAction(
   _prev: ClientFormState,
   formData: FormData,
@@ -58,6 +67,8 @@ export async function createClientAction(
   const { fields, error } = readClientFields(formData);
   if (!fields) return { error };
   if (!user.organizationId) return { error: "Utilizatorul curent nu are o organizație asociată." };
+
+  const sendInvite = checkbox(formData.get("send_invite"));
 
   let clientId: string;
   try {
@@ -83,8 +94,25 @@ export async function createClientAction(
     };
   }
 
+  let inviteWarning: string | null = null;
+  if (sendInvite) {
+    if (!fields.email) {
+      inviteWarning =
+        "Clientul a fost creat, dar invitația nu a putut fi trimisă: completează adresa de email.";
+    } else {
+      const inviteResult = await sendClientInvite(clientId, fields.email);
+      if (inviteResult.error) {
+        inviteWarning = `Clientul a fost creat, dar invitația nu a putut fi trimisă: ${inviteResult.error}`;
+      }
+    }
+  }
+
   revalidatePath("/clienti");
-  redirect(`/clienti/${clientId}`);
+  redirect(
+    inviteWarning
+      ? `/clienti/${clientId}?inviteWarning=${encodeURIComponent(inviteWarning)}`
+      : `/clienti/${clientId}`,
+  );
 }
 
 /** Actualizeaza un client existent (ecranul /clienti/[id]) - doar staff. */

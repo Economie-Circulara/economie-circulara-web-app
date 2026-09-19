@@ -10,6 +10,7 @@ import { ORDER_STATUS_BADGE_STATUS, ORDER_STATUS_LABELS } from "@/features/order
 import { getOrderDetail } from "@/features/orders/queries";
 import { ReturnActions } from "@/features/returns/return-actions";
 import { getReturnableItems } from "@/features/returns/queries";
+import { ALLOWED_RETURN_FLOWS_BY_ORDER_TYPE } from "@/features/returns/types";
 
 export const metadata = { title: "Detalii comandă - Lot cu Lot" };
 
@@ -43,7 +44,13 @@ export default async function ClientOrderDetailPage({ params }: OrderDetailPageP
 
   // Retur/garantie: doar pe comenzile finalizate. `getReturnableItems` e RLS-scoped
   // (clientul vede doar comenzile proprii), deci nu e nevoie de autorizare aici.
-  const returnableItems = isFinished(order.status) ? await getReturnableItems(order.id) : [];
+  // ...si doar pe tipurile de comanda care permit fluxul cerut (migrarea 0030:
+  // retur si garantie pe `material`/`serviciu`, nimic pe `aport`).
+  const allowedReturnFlows = ALLOWED_RETURN_FLOWS_BY_ORDER_TYPE[order.orderType];
+  const returnableItems =
+    isFinished(order.status) && allowedReturnFlows.length > 0
+      ? await getReturnableItems(order.id)
+      : [];
 
   return (
     <div className="space-y-8">
@@ -120,6 +127,7 @@ export default async function ClientOrderDetailPage({ params }: OrderDetailPageP
           <ReturnActions
             originalOrderId={order.id}
             returnableItems={returnableItems}
+            allowedFlows={allowedReturnFlows}
             redirectBasePath="/comenzile-mele"
           />
         </section>

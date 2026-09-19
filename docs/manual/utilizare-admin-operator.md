@@ -10,7 +10,7 @@ managementul utilizatorilor - detaliate în [`ghid-administrare.md`](ghid-admini
 Interfața este aceeași pentru ambele roluri (un singur meniu, în stânga ecranului),
 cu excepția "Setări", vizibilă doar pentru Administrator.
 
-![meniul lateral cu toate secțiunile - Dashboard, Comenzi, Stoc, Producție, Clienți, Itemi, Rețete, Audit stoc, Rapoarte, Setări](img/admin-sidebar.png)
+![meniul lateral, grupat pe secțiuni pliabile - Panou de control; grupul Comenzi (Comenzi, Livrări); grupul Stoc (Materiale și servicii, Rețete, Stoc, Audit stoc); Clienți; Producție; Rapoarte; grupul Setări (Setări, Utilizatori, Puncte de plecare)](img/admin-sidebar.png)
 
 ---
 
@@ -37,9 +37,9 @@ organizației (secțiunea "Setări -> Utilizatori").
 
 ---
 
-## 2. Dashboard
+## 2. Panou de control
 
-Ecranul **"Dashboard"** (prima pagină după logare) oferă o privire de ansamblu:
+Ecranul **"Panou de control"** (prima pagină după logare) oferă o privire de ansamblu:
 
 - **Comenzi active** - comenzi trimise, acceptate sau livrate (neînchise, neanulate).
 - **De acceptat** - comenzi trimise, în așteptarea acceptării.
@@ -49,7 +49,7 @@ Ecranul **"Dashboard"** (prima pagină după logare) oferă o privire de ansambl
 Sub cele patru cifre, cardul **"Rapoarte operaționale"** face trimitere directă la
 pagina "Rapoarte" (link **"Vezi rapoarte"**).
 
-![Dashboard cu cele 4 carduri KPI](img/admin-dashboard.png)
+![Panoul de control cu cele 4 carduri KPI](img/admin-dashboard.png)
 
 ---
 
@@ -104,46 +104,47 @@ Din listă, click pe o firmă deschide ecranul de detaliu, cu secțiunile:
 
 ---
 
-## 4. Itemi și Rețete
+## 4. Materiale și servicii, Rețete
 
-### 4.1 Itemi
+### 4.1 Materiale și servicii
 
-Meniul **"Itemi"** este catalogul de produse și servicii al organizației - **fără
-prețuri**. Un item poate fi:
+Meniul **"Materiale și servicii"** este catalogul de produse și servicii al
+organizației - **fără prețuri**. O intrare din catalog poate fi:
 
-- **Fizic** - ține stoc (loturi), poate avea o rețetă.
+- **Fizic** (material) - ține stoc (loturi), poate avea o rețetă.
 - **Serviciu** - abonament/serviciu PaaS (product-as-a-service), fără stoc.
 
 Lista permite filtrare după **Căutare** (titlu), **Tip** (Fizic/Serviciu) și
 **Vandabil** (Da/Nu).
 
-Pentru a adăuga un item, apasă **"+ Adaugă item"** și completează:
+Pentru a adăuga un material sau serviciu, apasă **"+ Adaugă material sau
+serviciu"** și completează:
 
 - **Titlu** (obligatoriu)
 - **Descriere**
 - **Unitate de măsură** (kg, tonă, mc, litru, bucată, sac, palet) - **un singur UM
   per produs**; dacă același material se vinde în unități diferite, se creează
   produse separate (fără conversii între unități).
-- **Tip item** (Fizic/Serviciu)
+- **Tip** (Fizic/Serviciu)
 - **URL poză** (opțional)
-- Bifa **"Vandabil (apare în catalogul clientului)"** - doar itemii vandabili apar
-  în catalogul portalului client.
+- Bifa **"Vandabil (apare în catalogul clientului)"** - doar materialele/serviciile
+  vandabile apar în catalogul portalului client.
 
-Apasă **"Creează itemul"**.
+Apasă **"Creează materialul sau serviciul"**.
 
-![ecranul "Itemi" cu lista și filtrele](img/admin-items.png)
+![ecranul "Materiale și servicii" cu lista și filtrele](img/admin-items.png)
 
 ### 4.2 Rețete
 
-Meniul **"Rețete"** listează rețetele definite pentru itemii fizici. O rețetă
-descrie **compoziția în procente** a unui produs din alți itemi fizici (materii
+Meniul **"Rețete"** listează rețetele definite pentru materialele fizice. O rețetă
+descrie **compoziția în procente** a unui produs din alte materiale fizice (materii
 prime/componente). **Rețetele nu se versionează** - dacă se schimbă compoziția,
-se creează un item (produs) nou.
+se creează un material (produs) nou.
 
-Pentru a defini/edita rețeta unui item: din listă, click pe item -> ecranul
-**"Rețetă - `<nume item>`"**. Dacă itemul nu are încă rețetă, apare un buton de
-creare; altfel, editorul de rețetă permite adăugarea/editarea componentelor și a
-procentelor lor. Rețetele se pot defini **doar pentru itemi de tip Fizic**
+Pentru a defini/edita rețeta unui material: din listă, click pe material -> ecranul
+**"Rețetă - `<nume material>`"**. Dacă materialul nu are încă rețetă, apare un buton
+de creare; altfel, editorul de rețetă permite adăugarea/editarea componentelor și a
+procentelor lor. Rețetele se pot defini **doar pentru materiale de tip Fizic**
 (pentru servicii, ecranul afișează un mesaj informativ).
 
 ![editorul de rețetă cu componentele în procente](img/admin-recipe-editor.png)
@@ -157,8 +158,8 @@ materie primă sau produs finit creează un lot propriu, cu proveniență și ca
 
 ### 5.1 Lista de loturi
 
-Coloane: Item, Data intrare, Proveniență, Cantitate rămasă/inițială, Calitate,
-Status (Activ/Blocat), Acțiuni. Filtrare după **Item** și **Proveniență**.
+Coloane: Material, Data intrare, Proveniență, Cantitate rămasă/inițială, Calitate,
+Status (Activ/Blocat), Acțiuni. Filtrare după **Material** și **Proveniență**.
 
 Proveniențele posibile la intrare manuală: **Achiziție, Producție internă,
 Reciclare, Recondiționare, Retur, Ajustare inventar**. (Recondiționarea este
@@ -167,7 +168,7 @@ distinctă de reciclare în trasabilitate și rapoarte - cerință de conformita
 ### 5.2 Adăugarea unui lot nou
 
 1. Apasă **"+ Adaugă lot"** -> ecranul **"Adaugă lot"**.
-2. Alege **Item**, completează **Cantitate**, **Data intrare** (implicit azi),
+2. Alege **Material**, completează **Cantitate**, **Data intrare** (implicit azi),
    **Proveniență**, opțional **Sursă** (furnizor/proces/referință liberă) și
    **Locație** (depozit/zonă), opțional o **Notă**.
 3. Apasă **"Înregistrează lotul"** - se creează automat și evenimentul de intrare
@@ -194,7 +195,7 @@ ecranele de producție (secțiunea 6).
 ### 5.5 Audit stoc
 
 Meniul **"Audit stoc"** este jurnalul complet al mișcărilor de stoc - Intrare,
-Consum, Ajustare, Blocare, Deblocare, Stornare - cu filtrare pe **Item** și
+Consum, Ajustare, Blocare, Deblocare, Stornare - cu filtrare pe **Material** și
 **Tip eveniment**. Butonul **"⤓ Exportă CSV"** (în antetul paginii) descarcă
 lista filtrată curentă ca fișier CSV.
 
@@ -258,7 +259,24 @@ Click pe un proces din listă deschide ecranul de detaliu, cu:
 Meniul **"Comenzi"** listează comenzile clienților, cu filtrare după **Status**
 și **Căutare** (client sau număr comandă).
 
-### 7.1 Mașina de stări a unei comenzi
+### 7.1 Tipul comenzii (Material / Serviciu / Aport)
+
+Orice comandă are un **tip**, ales explicit la creare (nu există o valoare
+implicită) - el dă sensul mișcării de stoc:
+
+| Tip          | Sens               | Efect la acceptare                                   |
+| ------------ | ------------------ | ---------------------------------------------------- |
+| **Material** | organizație → client | **scade** stocul (consum FIFO)                       |
+| **Serviciu** | organizație → client | ca la material, plus câmpul **"Retur estimat"**      |
+| **Aport**    | **client → organizație** | **crește** stocul: materialul adus de client intră ca lot nou |
+
+**Aportul** acoperă cazul în care clientul aduce material către organizație (ex.
+moloz din demolări, pentru reciclare). La linii se pot alege **orice itemi fizici**,
+inclusiv cei nevandabili (materiile prime nu apar în catalogul de vânzare). O
+comandă de aport nu se "trimite" și nu se "livrează": are o singură acțiune,
+**"Acceptă aport"** (vezi 7.4), după care rămâne **Acceptată**.
+
+### 7.2 Mașina de stări a unei comenzi
 
 ```
 Draft -> Trimisă -> Acceptată -> Livrată -> Închisă
@@ -274,37 +292,47 @@ statusul curent, atât în listă cât și în ecranul de detaliu):
   (consum FIFO din loturile disponibile pentru fiecare linie a comenzii). La
   **"Anulează"**, dacă stocul fusese deja scăzut, acesta **se reface**.
 - **"Închide"** generează **automat** certificatul de trasabilitate PDF al
-  comenzii (secțiunea 7.4) - nu există un buton separat "Generează certificat".
+  comenzii - nu există un buton separat "Generează certificat".
 
-### 7.2 Crearea unei comenzi în numele clientului
+### 7.3 Crearea unei comenzi în numele clientului
 
 Organizația poate crea o comandă în numele unui client (flag intern
 "creată de organizație"), util pentru fluxul dominant real (comenzi preluate prin
 telefon/WhatsApp și înregistrate în platformă):
 
 1. Din lista "Comenzi", apasă **"+ Comandă nouă"** -> ecranul **"Comandă nouă"**.
-2. Alege **Client**, opțional o **Adresă de livrare** (dependentă de client) și o
-   **Dată livrare**, opțional **Note**.
-3. În secțiunea **"Linii comandă"**, alege un item vandabil și o cantitate, apasă
+2. Alege **Tipul comenzii** (Material / Serviciu / Aport - vezi 7.1). Abia după
+   această alegere se poate completa lista de materiale/servicii, pentru că ea
+   depinde de tip.
+3. Alege **Client**, opțional o **Adresă de livrare** (dependentă de client) și o
+   **Dată livrare**, opțional **Note**. La tipul **Serviciu** apare în plus
+   **"Retur estimat"** (data la care se așteaptă bunul înapoi).
+4. În secțiunea **"Linii comandă"**, alege un material sau serviciu și o cantitate, apasă
    adaugă-linie; repetă pentru fiecare produs; poți șterge o linie adăugată.
-4. Trimite formularul - comanda se creează ca **Draft**.
+5. Trimite formularul - comanda se creează ca **Draft**.
 
 Notificările prin email se trimit identic indiferent dacă e comandă creată de
 client sau de organizație.
 
 ![ecranul "Comandă nouă" cu selectorul de client și liniile de comandă](img/admin-order-new.png)
 
-### 7.3 Detaliul unei comenzi
+### 7.4 Detaliul unei comenzi
 
-Ecranul de detaliu (`/comenzi/[id]`) afișează: client (CUI, notă "Creată de
-organizație în numele clientului" dacă e cazul), livrare (adresă, dată livrare,
-eventual "Retur estimat (închiriere)" pentru fluxul de închiriere ca serviciu),
-linii de comandă, și un **traseu vizual al statusului** (Draft -> Trimisă ->
-Acceptată -> Livrată -> Închisă, sau "Anulată").
+Ecranul de detaliu (`/comenzi/[id]`) afișează: **tipul comenzii** (cu o scurtă
+explicație), client (CUI, notă "Creată de organizație în numele clientului" dacă e
+cazul), livrare (adresă, dată livrare, eventual "Retur estimat (închiriere)" pentru
+fluxul de închiriere ca serviciu), linii de comandă, și un **traseu vizual al
+statusului** (Draft -> Trimisă -> Acceptată -> Livrată -> Închisă, sau "Anulată").
 
 Dacă o comandă a fost livrată/închisă, pot apărea butoanele **"Retur"** și
 **"Garanție"** (secțiunea 8). Dacă certificatul există deja, apare butonul
 **"Vezi certificat"**.
+
+Pe o comandă de tip **Aport** aflată în Draft, în locul butoanelor de tranziție apare
+**"Acceptă aport"**: materialul adus de client intră în stoc ca lot nou, cu
+proveniența "Aport client", cu **clientul care l-a adus** păstrat pe lot
+(trasabilitate) și cu calitatea **"Neverificat"** - controlul de calitate se face
+ulterior, din ecranul de Stoc. Traseul afișat se oprește la "Acceptată".
 
 ![ecranul de detaliu comandă, cu traseul de status](img/admin-order-detail.png)
 
@@ -313,7 +341,19 @@ Dacă o comandă a fost livrată/închisă, pot apărea butoanele **"Retur"** ș
 ## 8. Retur și garanție
 
 După ce o comandă e finalizată (livrată/închisă), din ecranul ei de detaliu pot
-apărea două butoane:
+apărea două butoane - **care dintre ele apare depinde de tipul comenzii** (7.1):
+
+| Tipul comenzii | "Retur" | "Garanție" |
+| -------------- | ------- | ---------- |
+| Material       | nu      | da         |
+| Serviciu       | da      | da         |
+| Aport          | nu      | nu         |
+
+Motivul: un **retur pur** (materialul se întoarce în stoc, fără înlocuire) are sens
+pe o **închiriere** care se încheie, nu pe o vânzare de material, care e o
+tranzacție într-un singur sens; **garanția** rămâne posibilă și pe material, pentru
+că un produs defect trebuie înlocuit. Pe un **aport** nu se aplică niciunul -
+materialul a venit de la client, nu către el.
 
 - **"Retur"** - clientul (sau organizația, în numele lui) aduce materialele
   înapoi. Se deschide un formular cu o linie per produs livrat, cu maximul
@@ -440,7 +480,7 @@ acceptare. Orice acțiune se arată întâi într-un **card de confirmare**, nee
 - Câmpurile se afișează cu **denumiri**, nu cu identificatori interni (ex. la
   trimiterea unei comenzi vezi numărul și clientul ei, nu un cod tehnic).
 - La o comandă propusă, cardul arată **același editor** ca ecranul "Comandă nouă"
-  (secțiunea 7.2): poți schimba clientul, adresa de livrare, adăuga/șterge linii,
+  (secțiunea 7.3): poți schimba clientul, tipul comenzii, adresa de livrare, adăuga/șterge linii,
   înainte de a confirma.
 - Apasă **"Confirmă și execută"** ca acțiunea să se producă efectiv, sau
   **"Renunță"** ca să o anulezi fără niciun efect.

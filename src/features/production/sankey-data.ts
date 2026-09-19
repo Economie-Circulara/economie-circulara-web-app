@@ -40,6 +40,15 @@ const PROCESS_NODE_ID = "process";
  * la forma generica noduri/legaturi consumata de `SankeyDiagram` - loturi de
  * input -> nodul de proces -> loturi de output (vezi spike S3 pentru alegerea
  * implementarii Sankey; aceasta functie e pura, testabila fara React/SVG).
+ *
+ * Functia e (si ramane) agnostica la directia rețetei: deseneaza exact ce i se
+ * da in `inputs`/`outputs`. Cine o apeleaza decide care parte e input si care e
+ * output, pe baza `recipes.direction` (migrarea 0028) - de-aici venea bug-ul
+ * "graficul de reciclare arata invers", nu de aici.
+ *
+ * Dimensionarea foloseste `baseQuantity` cand exista (cantitatea intr-o unitate
+ * comuna), ca sa fie comparabile linii cu UM-uri diferite; eticheta ramane mereu
+ * cantitatea reala, in UM-ul propriu al itemului.
  */
 export function buildProcessSankeyData(
   detail: { inputs: ProcessLotLine[]; outputs: ProcessLotLine[] },
@@ -51,29 +60,31 @@ export function buildProcessSankeyData(
   let totalIn = 0;
   detail.inputs.forEach((line, index) => {
     const nodeId = `in:${line.lotId}:${index}`;
+    const value = line.baseQuantity ?? line.quantity;
     nodes.push({
       id: nodeId,
       label: line.itemTitle,
       sublabel: formatQty(line.quantity, line.unit),
       column: 0,
-      value: line.quantity,
+      value,
     });
-    links.push({ id: nodeId, source: nodeId, target: PROCESS_NODE_ID, value: line.quantity });
-    totalIn += line.quantity;
+    links.push({ id: nodeId, source: nodeId, target: PROCESS_NODE_ID, value });
+    totalIn += value;
   });
 
   let totalOut = 0;
   detail.outputs.forEach((line, index) => {
     const nodeId = `out:${line.lotId}:${index}`;
+    const value = line.baseQuantity ?? line.quantity;
     nodes.push({
       id: nodeId,
       label: line.itemTitle,
       sublabel: formatQty(line.quantity, line.unit),
       column: 2,
-      value: line.quantity,
+      value,
     });
-    links.push({ id: nodeId, source: PROCESS_NODE_ID, target: nodeId, value: line.quantity });
-    totalOut += line.quantity;
+    links.push({ id: nodeId, source: PROCESS_NODE_ID, target: nodeId, value });
+    totalOut += value;
   });
 
   nodes.push({

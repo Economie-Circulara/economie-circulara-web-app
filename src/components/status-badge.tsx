@@ -9,11 +9,11 @@ type StatusDef = { label: string; variant: BadgeVariant };
 export const STATUS_REGISTRY = {
   // Statusuri comanda: draft -> trimisa -> acceptata -> livrata -> inchisa / anulata
   order: {
-    draft: { label: "Draft", variant: "neutral" },
-    trimisa: { label: "Trimisă", variant: "info" },
-    acceptata: { label: "Acceptată", variant: "warn" },
+    draft: { label: "Ciornă", variant: "neutral" },
+    trimisa: { label: "Înaintată", variant: "info" },
+    acceptata: { label: "Confirmată", variant: "warn" },
     livrata: { label: "Livrată", variant: "ok" },
-    inchisa: { label: "Închisă", variant: "neutral" },
+    inchisa: { label: "Finalizată", variant: "neutral" },
     anulata: { label: "Anulată", variant: "danger" },
   },
   // Provenienta lot la intrarea in stoc
@@ -25,6 +25,9 @@ export const STATUS_REGISTRY = {
     // sa apara separat in trasabilitate/rapoarte, nu confundata cu reciclarea.
     reconditionare: { label: "Recondiționare", variant: "secondary" },
     retur: { label: "Retur", variant: "warn" },
+    // Aport: material ADUS de client (comanda de tip `aport`, migrarea 0030) -
+    // distinct de achizitie (furnizor) si de retur (marfa proprie care se intoarce).
+    aport: { label: "Aport client", variant: "accent" },
     ajustare: { label: "Ajustare", variant: "neutral" },
   },
   // Status lot in stoc

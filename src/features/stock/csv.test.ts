@@ -24,7 +24,9 @@ describe("stockEventsToCsv", () => {
   it("include header-ul in romana ca prim rand", () => {
     const csv = stockEventsToCsv([]);
     const [header] = csv.replace(/^\uFEFF/, "").split("\r\n");
-    expect(header).toBe("Data,Tip eveniment,Item,Lot,Cantitate,Motiv,Comanda,Proces,Utilizator");
+    expect(header).toBe(
+      "Data,Tip eveniment,Material,Lot,Cantitate,Motiv,Comanda,Proces,Utilizator",
+    );
   });
 
   it("incepe cu BOM UTF-8 (compatibilitate Excel cu diacritice)", () => {

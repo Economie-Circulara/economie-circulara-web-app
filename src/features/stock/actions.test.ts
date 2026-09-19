@@ -33,13 +33,13 @@ function formData(fields: Record<string, string>): FormData {
 }
 
 describe("createLotAction", () => {
-  it("respinge cererea cand itemul lipseste", async () => {
+  it("respinge cererea cand materialul lipseste", async () => {
     requireRole.mockResolvedValue({ id: "u1" });
     const state = await createLotAction(
       { error: null, message: null },
       formData({ quantity: "10", provenance: "purchase" }),
     );
-    expect(state.error).toMatch(/item/i);
+    expect(state.error).toMatch(/material/i);
     expect(createLot).not.toHaveBeenCalled();
   });
 
@@ -92,14 +92,14 @@ describe("createLotAction", () => {
 
   it("returneaza eroarea serviciului fara redirect (ex. item inexistent)", async () => {
     requireRole.mockResolvedValue({ id: "u1" });
-    createLot.mockRejectedValue(new Error("Item inexistent sau fara acces."));
+    createLot.mockRejectedValue(new Error("Material inexistent sau fara acces."));
 
     const state = await createLotAction(
       { error: null, message: null },
       formData({ item_id: "item-x", quantity: "10", provenance: "purchase" }),
     );
 
-    expect(state.error).toBe("Item inexistent sau fara acces.");
+    expect(state.error).toBe("Material inexistent sau fara acces.");
     expect(redirect).not.toHaveBeenCalled();
   });
 });

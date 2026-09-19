@@ -4,7 +4,7 @@ import type { StockEvent } from "./types";
 const CSV_HEADERS = [
   "Data",
   "Tip eveniment",
-  "Item",
+  "Material",
   "Lot",
   "Cantitate",
   "Motiv",

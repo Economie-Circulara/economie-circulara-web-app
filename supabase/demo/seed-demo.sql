@@ -226,25 +226,40 @@ begin
     v_ids := v_ids || jsonb_build_object(u.k, v_id);
   end loop;
 
-  -- Retete: pentru produse = compozitie (consum per unitate de output); pentru deseuri
-  -- = descompunerea in fractii la reciclare (vezi migrarea 0008).
+  -- Retete - fiecare cu DIRECTIA explicita (migrarea 0028):
+  --   * 'descompunere' = itemul retetei e materialul de INTRARE, componentele sunt
+  --     fractiile REZULTATE (deseurile concasate: R_MOLOZ, R_CERAMIC);
+  --   * 'compunere'    = itemul retetei e produsul OBTINUT, componentele sunt
+  --     materialele CONSUMATE (produsele: pavele, borduri, blocuri, beton).
+  -- Al treilea numar din fiecare componenta e `conversion_factor`: cate unitati din
+  -- UM-ul itemului retetei corespund unei unitati din UM-ul componentei. Deseurile
+  -- au totul in tone (factor 1); produsele au UM-uri mixte:
+  --   * pavele  - 1 palet ≈ 9 mp × 6 cm × 2,3 t/mc ≈ 1,24 t  -> 1 t ≈ 0,806452 paleti
+  --   * borduri - 1 palet = 24 buc × 0,0375 mc × 2,4 t/mc ≈ 2,16 t -> 1 t ≈ 0,462963
+  --   * blocuri - 1 palet ≈ 1,05 t                             -> 1 t ≈ 0,952381
+  --   * beton   - 1 mc ≈ 2,4 t                                 -> 1 t ≈ 0,416667 mc
   for u in
     select * from (values
-      ('R_MOLOZ',   'I_MOLOZ',   '[["I_AGR04",40],["I_AGR416",28],["I_AGR1631",22]]'),
-      ('R_CERAMIC', 'I_CERAMIC', '[["I_BALAST",88]]'),
-      ('R_PAVELE',  'I_PAVELE',  '[["I_AGR04",45],["I_NISIP",25],["I_CIMENT",15]]'),
-      ('R_BORDURI', 'I_BORDURI', '[["I_AGR416",50],["I_AGR04",30],["I_CIMENT",20]]'),
-      ('R_BLOCURI', 'I_BLOCURI', '[["I_AGR04",40],["I_BALAST",30],["I_CIMENT",15]]'),
-      ('R_BETON',   'I_BETON',   '[["I_AGR416",45],["I_AGR04",30],["I_CIMENT",15],["I_NISIP",10]]')
-    ) as t(k, item, components)
+      ('R_MOLOZ',   'I_MOLOZ',   'descompunere', '[["I_AGR04",40,1],["I_AGR416",28,1],["I_AGR1631",22,1]]'),
+      ('R_CERAMIC', 'I_CERAMIC', 'descompunere', '[["I_BALAST",88,1]]'),
+      ('R_PAVELE',  'I_PAVELE',  'compunere',    '[["I_AGR04",45,0.806452],["I_NISIP",25,0.806452],["I_CIMENT",15,0.806452]]'),
+      ('R_BORDURI', 'I_BORDURI', 'compunere',    '[["I_AGR416",50,0.462963],["I_AGR04",30,0.462963],["I_CIMENT",20,0.462963]]'),
+      ('R_BLOCURI', 'I_BLOCURI', 'compunere',    '[["I_AGR04",40,0.952381],["I_BALAST",30,0.952381],["I_CIMENT",15,0.952381]]'),
+      ('R_BETON',   'I_BETON',   'compunere',    '[["I_AGR416",45,0.416667],["I_AGR04",30,0.416667],["I_CIMENT",15,0.416667],["I_NISIP",10,0.416667]]')
+    ) as t(k, item, direction, components)
   loop
-    insert into public.recipes (organization_id, item_id, created_at, updated_at)
-    values (v_org, pg_temp.idof(v_ids, u.item), v_start - 20, v_start - 20)
+    insert into public.recipes (organization_id, item_id, direction, created_at, updated_at)
+    values (v_org, pg_temp.idof(v_ids, u.item), u.direction::public.recipe_direction,
+            v_start - 20, v_start - 20)
     returning id into v_id;
     v_ids := v_ids || jsonb_build_object(u.k, v_id);
     for l in select value from jsonb_array_elements(u.components::jsonb) loop
-      insert into public.recipe_components (organization_id, recipe_id, component_item_id, percentage, created_at, updated_at)
-      values (v_org, v_id, pg_temp.idof(v_ids, l->>0), (l->>1)::numeric, v_start - 20, v_start - 20);
+      insert into public.recipe_components (
+        organization_id, recipe_id, component_item_id, percentage, conversion_factor,
+        created_at, updated_at
+      )
+      values (v_org, v_id, pg_temp.idof(v_ids, l->>0), (l->>1)::numeric, (l->>2)::numeric,
+              v_start - 20, v_start - 20);
     end loop;
   end loop;
 
@@ -539,7 +554,11 @@ begin
    {"d":181,"k":"order","key":"O32","client":"C_ARCADA","by":"U_ARCADA","addr":"A_ARCADA_SUD","dd":186,"lines":[["I_PAVELE",30],["I_BORDURI",20]],"notes":"Etapa II - spații verzi"},
    {"d":181,"k":"order","key":"O33","client":"C_DRUMURI","by":"U_DRUMURI","addr":"A_DRUMURI_DJ606","dd":185,"lines":[["I_AGR1631",80]]},
    {"d":181,"k":"order","key":"O34","client":"C_VERESTI","addr":"A_VERESTI_CENTRU","send":false,"lines":[["I_BLOCURI",20]],"notes":"Ofertă în lucru - în așteptarea aprobării bugetului local"},
-   {"d":181,"k":"order","key":"O35","client":"C_BRAVO","by":"U_BRAVO","addr":"A_BRAVO_MILITARI","send":false,"lines":[["I_BETON",15]]}
+   {"d":181,"k":"order","key":"O35","client":"C_BRAVO","by":"U_BRAVO","addr":"A_BRAVO_MILITARI","send":false,"lines":[["I_BETON",15]]},
+   {"d":182,"k":"aport","key":"AP1","client":"C_BRAVO","addr":"A_BRAVO_MILITARI","dd":182,"lines":[["I_MOLOZ",95]],
+    "notes":"Aport client - moloz din demolarea corpului C, adus de Bravo Construct pe platforma de recepție"},
+   {"d":182,"k":"aport","key":"AP2","client":"C_CASAVERDE","addr":"A_CV_CORBEANCA","dd":184,"accept":false,"lines":[["I_CERAMIC",22]],
+    "notes":"Aport anunțat - deșeu ceramic sortat, se recepționează săptămâna viitoare"}
   ]'::jsonb;
 
   for e in
@@ -641,9 +660,18 @@ begin
       when 'order' then
         v_actor := pg_temp.idof(v_ids, coalesce(j ->> 'by', 'U_ADMIN'));
         v_is_client := coalesce(j ->> 'by', '') like 'U\_%' and j ->> 'by' not in ('U_ADMIN', 'U_OP', 'U_PROD');
-        insert into public.orders (organization_id, client_id, status, created_by_admin, delivery_address_id,
+        -- `order_type` (migrarea 0030): explicit din scenariu (`"tip"`), altfel
+        -- dedus - o comanda cu data de retur (`"ret"`) e o inchiriere (`serviciu`),
+        -- restul sunt vanzari de material.
+        insert into public.orders (organization_id, client_id, order_type, status, created_by_admin,
+                                   delivery_address_id,
                                    delivery_date, expected_return_date, notes, created_by, created_at, updated_at)
-        values (v_org, pg_temp.idof(v_ids, j ->> 'client'), 'draft', not v_is_client,
+        values (v_org, pg_temp.idof(v_ids, j ->> 'client'),
+                coalesce(
+                  (j ->> 'tip')::public.order_type,
+                  case when j ? 'ret' then 'serviciu' else 'material' end
+                ),
+                'draft', not v_is_client,
                 case when j ? 'addr' then pg_temp.idof(v_ids, j ->> 'addr') end,
                 case when j ? 'dd' then v_start + (j ->> 'dd')::int end,
                 case when j ? 'ret' then v_start + (j ->> 'ret')::int end,
@@ -735,8 +763,19 @@ begin
         v_actor := pg_temp.idof(v_ids, coalesce(j ->> 'by', 'U_ADMIN'));
         v_is_client := coalesce(j ->> 'by', '') not in ('', 'U_ADMIN', 'U_OP', 'U_PROD');
         v_id2 := pg_temp.idof(v_ids, j ->> 'original');
-        insert into public.orders (organization_id, client_id, status, created_by_admin, notes, created_by, created_at, updated_at)
-        select v_org, client_id, 'draft', not v_is_client, j ->> 'notes', v_actor, v_ts, v_ts
+        -- Comanda-retur mosteneste `order_type` de la comanda originala (ca in
+        -- returns/service.ts#createReturnOrder).
+        -- Scenariul contine si retururi pe comenzi de tip `material` (surplus
+        -- nefolosit RT2, retur ambalaje/paleti EURO RT3/RT4) - initial regula
+        -- permitea `return` pur doar pe `serviciu`, dar exact aceste cazuri au
+        -- aratat ca exceptia e reala (retur de ambalaj/surplus e uzual la
+        -- vanzarea de materiale, spre deosebire de un retur "asteptat de la
+        -- inceput" ca la inchiriere). Regula a fost relaxata sa permita `return`
+        -- si pe `material` (vezi ALLOWED_RETURN_FLOWS_BY_ORDER_TYPE) - aceste
+        -- evenimente sunt acum create si prin UI, nu doar prin acest insert direct.
+        insert into public.orders (organization_id, client_id, order_type, status, created_by_admin,
+                                   notes, created_by, created_at, updated_at)
+        select v_org, client_id, order_type, 'draft', not v_is_client, j ->> 'notes', v_actor, v_ts, v_ts
         from public.orders where id = v_id2
         returning id into v_id;
         for l in select value from jsonb_array_elements(j -> 'lines') loop
@@ -748,9 +787,10 @@ begin
         v_ids := v_ids || jsonb_build_object(j ->> 'key', v_id);
 
         if j ->> 'type' = 'warranty' then
-          insert into public.orders (organization_id, client_id, status, created_by_admin, notes, created_by,
+          insert into public.orders (organization_id, client_id, order_type, status, created_by_admin,
+                                     notes, created_by,
                                      delivery_address_id, created_at, updated_at)
-          select v_org, client_id, 'draft', not v_is_client,
+          select v_org, client_id, order_type, 'draft', not v_is_client,
                  'Comandă de înlocuire (garanție) pentru ' || coalesce(order_number, id::text),
                  v_actor, delivery_address_id, v_ts, v_ts
           from public.orders where id = v_id2
@@ -780,6 +820,33 @@ begin
             if v_id2 is null then raise exception 'accept_return: lotul de retur % negasit', l ->> 0; end if;
             v_ids := v_ids || jsonb_build_object(l ->> 1, v_id2);
           end loop;
+        end if;
+
+      -- Aport (migrarea 0030): clientul aduce material catre organizatie. Comanda
+      -- de tip `aport` in `draft` + acceptarea ei prin RPC-ul dedicat, care creeaza
+      -- loturile (provenance `aport_client`, `client_id` completat) - exact fluxul
+      -- din UI ("Acceptă aport"). Cu `"accept": false` ramane in draft.
+      when 'aport' then
+        v_actor := pg_temp.idof(v_ids, coalesce(j ->> 'by', 'U_OP'));
+        insert into public.orders (organization_id, client_id, order_type, status, created_by_admin,
+                                   delivery_address_id, delivery_date, notes, created_by,
+                                   created_at, updated_at)
+        values (v_org, pg_temp.idof(v_ids, j ->> 'client'), 'aport', 'draft', true,
+                case when j ? 'addr' then pg_temp.idof(v_ids, j ->> 'addr') end,
+                case when j ? 'dd' then v_start + (j ->> 'dd')::int end,
+                j ->> 'notes', v_actor, v_ts, v_ts)
+        returning id into v_id;
+        for l in select value from jsonb_array_elements(j -> 'lines') loop
+          insert into public.order_items (organization_id, order_id, item_id, quantity, created_at, updated_at)
+          values (v_org, v_id, pg_temp.idof(v_ids, l ->> 0), (l ->> 1)::numeric, v_ts, v_ts);
+        end loop;
+        v_ids := v_ids || jsonb_build_object(j ->> 'key', v_id);
+
+        if coalesce((j ->> 'accept')::boolean, true) then
+          perform pg_temp.become(v_actor);
+          perform public.accept_intake_order(v_id);
+          execute 'reset role';
+          update public.orders set updated_at = v_ts where id = v_id;
         end if;
 
       else

@@ -21,69 +21,93 @@ afterEach(() => {
   vi.clearAllMocks();
 });
 
+/**
+ * Comanda originala implicita e de tip `serviciu` (inchiriere). Testele care
+ * verifica reguli specifice altor tipuri (`material`, `aport` - vezi
+ * ALLOWED_RETURN_FLOWS_BY_ORDER_TYPE, migrarea 0030) dau explicit `order_type`.
+ */
 function orderRow(overrides: Record<string, unknown> = {}) {
   return {
     id: "order-orig",
     organization_id: "org-1",
     client_id: "client-1",
     order_number: "CMD-2026-0001",
+    order_type: "serviciu",
     status: "delivered",
     ...overrides,
   };
 }
 
+/** `createClient` care intoarce o singura comanda la `select(...).eq(...).maybeSingle()`. */
+function mockSelectOrder(data: unknown) {
+  const from = vi.fn().mockReturnValue({
+    select: vi.fn().mockReturnValue({
+      eq: vi
+        .fn()
+        .mockReturnValue({ maybeSingle: vi.fn().mockResolvedValue({ data, error: null }) }),
+    }),
+  });
+  createClient.mockResolvedValue({ from });
+}
+
 describe("loadOriginalOrderForReturn", () => {
   it("arunca ReturnNotFoundError cand comanda nu exista (sau nu e accesibila prin RLS)", async () => {
-    const from = vi.fn().mockReturnValue({
-      select: vi.fn().mockReturnValue({
-        eq: vi
-          .fn()
-          .mockReturnValue({ maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }) }),
-      }),
-    });
-    createClient.mockResolvedValue({ from });
+    mockSelectOrder(null);
 
-    await expect(loadOriginalOrderForReturn("order-x")).rejects.toBeInstanceOf(ReturnNotFoundError);
+    await expect(loadOriginalOrderForReturn("order-x", "return")).rejects.toBeInstanceOf(
+      ReturnNotFoundError,
+    );
   });
 
   it("arunca ReturnValidationError cand comanda nu e livrata/inchisa", async () => {
-    const from = vi.fn().mockReturnValue({
-      select: vi.fn().mockReturnValue({
-        eq: vi.fn().mockReturnValue({
-          maybeSingle: vi
-            .fn()
-            .mockResolvedValue({ data: orderRow({ status: "accepted" }), error: null }),
-        }),
-      }),
-    });
-    createClient.mockResolvedValue({ from });
+    mockSelectOrder(orderRow({ status: "accepted" }));
 
-    await expect(loadOriginalOrderForReturn("order-orig")).rejects.toBeInstanceOf(
+    await expect(loadOriginalOrderForReturn("order-orig", "return")).rejects.toBeInstanceOf(
       ReturnValidationError,
     );
   });
 
   it("returneaza comanda cand e livrata/inchisa", async () => {
-    const from = vi.fn().mockReturnValue({
-      select: vi.fn().mockReturnValue({
-        eq: vi.fn().mockReturnValue({
-          maybeSingle: vi
-            .fn()
-            .mockResolvedValue({ data: orderRow({ status: "closed" }), error: null }),
-        }),
-      }),
-    });
-    createClient.mockResolvedValue({ from });
+    mockSelectOrder(orderRow({ status: "closed" }));
 
-    const result = await loadOriginalOrderForReturn("order-orig");
+    const result = await loadOriginalOrderForReturn("order-orig", "return");
 
     expect(result).toEqual({
       id: "order-orig",
       organizationId: "org-1",
       clientId: "client-1",
       orderNumber: "CMD-2026-0001",
+      orderType: "serviciu",
       status: "closed",
     });
+  });
+
+  it("permite returul pur pe o comanda de tip material (retur ambalaj/surplus - vezi AGENTS.md §4)", async () => {
+    mockSelectOrder(orderRow({ order_type: "material" }));
+
+    const result = await loadOriginalOrderForReturn("order-orig", "return");
+
+    expect(result.orderType).toBe("material");
+  });
+
+  it("permite garanția pe o comanda de tip material", async () => {
+    mockSelectOrder(orderRow({ order_type: "material" }));
+
+    const result = await loadOriginalOrderForReturn("order-orig", "warranty");
+
+    expect(result.orderType).toBe("material");
+  });
+
+  it("respinge orice flux pe o comanda de tip aport", async () => {
+    mockSelectOrder(orderRow({ order_type: "aport" }));
+    await expect(loadOriginalOrderForReturn("order-orig", "warranty")).rejects.toBeInstanceOf(
+      ReturnValidationError,
+    );
+
+    mockSelectOrder(orderRow({ order_type: "aport" }));
+    await expect(loadOriginalOrderForReturn("order-orig", "return")).rejects.toBeInstanceOf(
+      ReturnValidationError,
+    );
   });
 });
 
@@ -220,6 +244,8 @@ describe("createReturnOrder", () => {
       expect.objectContaining({
         organization_id: "org-1",
         client_id: "client-1",
+        // Comanda-retur mosteneste tipul comenzii originale (vezi service.ts).
+        order_type: "serviciu",
         created_by_admin: false,
         status: "draft",
       }),

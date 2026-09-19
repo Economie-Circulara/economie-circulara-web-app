@@ -8,7 +8,7 @@ import type { RecipeDetail } from "@/features/recipes/types";
 import type { ItemOption } from "@/features/items/types";
 import type { FifoAllocation } from "@/features/stock/service";
 import { confirmProcessAction, getFifoPreview, getRecipeForItem } from "./actions";
-import { computeIdealOutput, roundQty, sumQty } from "./calc";
+import { computeIdealOutput, roundQty, sumQty, toRecipeUnit } from "./calc";
 import { SankeyDiagram } from "./sankey-diagram";
 import { buildProcessSankeyData } from "./sankey-data";
 import { PRODUCTION_KIND_LABELS, PRODUCTION_KIND_OPTIONS } from "./labels";
@@ -23,18 +23,37 @@ interface OutputRow {
   itemTitle: string;
   unit: UnitOfMeasure;
   percentage: number | null;
+  conversionFactor: number;
+  isTracked: boolean;
   idealQty: number | null;
   realQty: string;
 }
 
+export interface VariableOutputFormProps {
+  inputItems: ItemOption[];
+  inputItemId: string;
+  onInputItemIdChange: (itemId: string) => void;
+  /** Deschide acelasi item in fluxul 4a (cand rețeta lui e de compunere). */
+  onOpenInFixedFlow: (itemId: string) => void;
+}
+
 /**
  * 4b - Input fix / output variabil (reciclare): alegi materialul de input +
- * cantitatea, sistemul afișează outputul ideal (dacă itemul de input are o
- * "rețetă" - interpretata aici ca descompunere in fracții, vezi migrarea 0008),
- * apoi utilizatorul ajustează cantitățile reale intr-un tabel editabil.
+ * cantitatea, sistemul afișează outputul ideal pe baza rețetei de DESCOMPUNERE a
+ * itemului (`recipes.direction = 'descompunere'`, migrarea 0028), convertit in
+ * UM-ul fiecarei fracții, apoi utilizatorul ajustează cantitățile reale.
+ *
+ * Daca itemul ales are o rețetă de `compunere` (el e produsul, nu materia primă),
+ * fracțiile ar fi de fapt componentele lui consumate - afișarea lor ca output e
+ * exact inversarea raportata de utilizator. In cazul asta nu se genereaza randuri
+ * si se ofera trecerea in fluxul 4a.
  */
-export function VariableOutputForm({ inputItems }: { inputItems: ItemOption[] }) {
-  const [inputItemId, setInputItemId] = useState(inputItems[0]?.id ?? "");
+export function VariableOutputForm({
+  inputItems,
+  inputItemId,
+  onInputItemIdChange,
+  onOpenInFixedFlow,
+}: VariableOutputFormProps) {
   const [inputQty, setInputQty] = useState("");
   const [kind, setKind] = useState<ProductionKind>("reciclare");
   const [recipe, setRecipe] = useState<RecipeDetail | null>(null);
@@ -63,6 +82,11 @@ export function VariableOutputForm({ inputItems }: { inputItems: ItemOption[] })
 
   const selectedInput = inputItems.find((i) => i.id === inputItemId) ?? null;
   const qtyNum = Number(inputQty.replace(",", "."));
+  // Itemii nelimitati (apa, aer) nu au loturi - nu se cere preview FIFO pt. ei
+  // si nici RPC-ul nu ii consuma (migrarea 0029).
+  const inputIsTracked = selectedInput?.isTracked ?? true;
+  // Directia vine din reteta itemului, nu din tab-ul deschis (migrarea 0028).
+  const directionMismatch = recipe !== null && recipe.direction !== "descompunere";
 
   useEffect(() => {
     if (!inputItemId) return;
@@ -72,13 +96,13 @@ export function VariableOutputForm({ inputItems }: { inputItems: ItemOption[] })
   // Outputul ideal (fractii) e derivat pur din rețetă + cantitate - nu are
   // nevoie de state/efect propriu.
   const idealLines = useMemo(() => {
-    if (!recipe || recipe.components.length === 0 || !Number.isFinite(qtyNum) || qtyNum <= 0)
-      return [];
+    if (!recipe || recipe.direction !== "descompunere" || recipe.components.length === 0) return [];
+    if (!Number.isFinite(qtyNum) || qtyNum <= 0) return [];
     return computeIdealOutput(recipe.components, qtyNum);
   }, [recipe, qtyNum]);
 
   const rows: OutputRow[] = useMemo(() => {
-    if (!recipe) return [];
+    if (!recipe || recipe.direction !== "descompunere") return [];
     return recipe.components.map((c) => {
       const ideal = idealLines.find((l) => l.itemId === c.componentItemId);
       const override = realQtyOverrides[c.componentItemId];
@@ -87,6 +111,8 @@ export function VariableOutputForm({ inputItems }: { inputItems: ItemOption[] })
         itemTitle: c.componentItemTitle,
         unit: c.unit,
         percentage: c.percentage,
+        conversionFactor: c.conversionFactor,
+        isTracked: c.isTracked,
         idealQty: ideal?.qty ?? null,
         realQty: override !== undefined ? override : ideal ? String(ideal.qty) : "",
       };
@@ -95,13 +121,17 @@ export function VariableOutputForm({ inputItems }: { inputItems: ItemOption[] })
 
   const inputAllocation = fifoResult?.allocation ?? [];
   const inputAvailable = fifoResult?.availableQty ?? 0;
-  const inputError = fifoResult?.error ?? null;
+  const inputError = inputIsTracked ? (fifoResult?.error ?? null) : null;
   const previewKey = `${inputItemId}:${qtyNum}`;
   const loadingPreview =
-    Boolean(inputItemId) && Number.isFinite(qtyNum) && qtyNum > 0 && fifoResultKey !== previewKey;
+    inputIsTracked &&
+    Boolean(inputItemId) &&
+    Number.isFinite(qtyNum) &&
+    qtyNum > 0 &&
+    fifoResultKey !== previewKey;
 
   useEffect(() => {
-    if (!inputItemId || !Number.isFinite(qtyNum) || qtyNum <= 0) return;
+    if (!inputItemId || !inputIsTracked || !Number.isFinite(qtyNum) || qtyNum <= 0) return;
     let cancelled = false;
     const timeout = setTimeout(() => {
       getFifoPreview([{ itemId: inputItemId, qty: qtyNum }]).then(([result]) => {
@@ -119,21 +149,32 @@ export function VariableOutputForm({ inputItems }: { inputItems: ItemOption[] })
       clearTimeout(timeout);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- previewKey deriva din inputItemId+qtyNum
-  }, [inputItemId, qtyNum]);
+  }, [inputItemId, inputIsTracked, qtyNum]);
 
   function updateRealQty(itemId: string, value: string) {
     setRealQtyOverrides((prev) => ({ ...prev, [itemId]: value }));
   }
 
   const parsedRows = useMemo(
-    () => rows.map((row) => ({ ...row, realQtyNum: Number(row.realQty.replace(",", ".")) || 0 })),
+    () =>
+      rows.map((row) => {
+        const realQtyNum = Number(row.realQty.replace(",", ".")) || 0;
+        return {
+          ...row,
+          realQtyNum,
+          // Convertita in UM-ul itemului de input, ca totalul/balanta sa compare
+          // marimi omogene (migrarea 0028).
+          realQtyInInputUnit: toRecipeUnit(realQtyNum, row.conversionFactor),
+        };
+      }),
     [rows],
   );
-  const totalReal = sumQty(parsedRows.map((r) => ({ qty: r.realQtyNum })));
+  const totalReal = sumQty(parsedRows.map((r) => ({ qty: r.realQtyInInputUnit })));
   const balance = roundQty(qtyNum - totalReal);
 
   const canConfirm =
     Boolean(selectedInput) &&
+    !directionMismatch &&
     qtyNum > 0 &&
     !inputError &&
     !loadingPreview &&
@@ -143,7 +184,7 @@ export function VariableOutputForm({ inputItems }: { inputItems: ItemOption[] })
     () =>
       buildProcessSankeyData({
         inputs:
-          selectedInput && qtyNum > 0
+          selectedInput && qtyNum > 0 && !directionMismatch
             ? [
                 {
                   lotId: "preview-in",
@@ -162,9 +203,10 @@ export function VariableOutputForm({ inputItems }: { inputItems: ItemOption[] })
             itemTitle: r.itemTitle,
             unit: r.unit,
             quantity: r.realQtyNum,
+            baseQuantity: r.realQtyInInputUnit,
           })),
       }),
-    [selectedInput, qtyNum, parsedRows],
+    [selectedInput, qtyNum, parsedRows, directionMismatch],
   );
 
   function onConfirm() {
@@ -206,7 +248,7 @@ export function VariableOutputForm({ inputItems }: { inputItems: ItemOption[] })
                 id={id}
                 className={selectClassName}
                 value={inputItemId}
-                onChange={(e) => setInputItemId(e.target.value)}
+                onChange={(e) => onInputItemIdChange(e.target.value)}
               >
                 {inputItems.length === 0 ? <option value="">Niciun item</option> : null}
                 {inputItems.map((i) => (
@@ -231,6 +273,24 @@ export function VariableOutputForm({ inputItems }: { inputItems: ItemOption[] })
           )}
         </FormField>
 
+        {directionMismatch && selectedInput && recipe ? (
+          <div className="space-y-2 rounded-md border border-warn bg-warn/10 px-3 py-2 text-sm">
+            <p className="text-warn">
+              Rețeta itemului &quot;{selectedInput.title}&quot; este de <strong>compunere</strong>:
+              componentele ei sunt materialele CONSUMATE ca să îl obții, nu fracțiile care rezultă
+              din el. Afișarea lor ca output ar inversa fluxul, așa că nu propunem fracții aici.
+            </p>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => onOpenInFixedFlow(selectedInput.id)}
+            >
+              Deschide în &quot;Output fix - Fabricație&quot; {"->"}
+            </Button>
+          </div>
+        ) : null}
+
         <FormField label="Tip proces" required>
           {(id) => (
             <select
@@ -254,14 +314,25 @@ export function VariableOutputForm({ inputItems }: { inputItems: ItemOption[] })
           </div>
         ) : null}
 
+        {!inputIsTracked && selectedInput ? (
+          <p className="text-xs text-muted-foreground">
+            &quot;{selectedInput.title}&quot; este un material nelimitat - nu se consumă din stoc la
+            confirmare.
+          </p>
+        ) : null}
+
         <div>
           <div className="mb-2 font-mono text-[11px] tracking-wide text-muted-foreground uppercase">
             Output real - ajustează fracțiile
           </div>
-          {!recipe || recipe.components.length === 0 ? (
+          {directionMismatch ? (
             <p className="text-sm text-muted-foreground">
-              Itemul ales nu are o rețetă/descompunere definită - introdu manual outputul din
-              /retete pentru a vedea fracțiile ideale aici.
+              Folosește fluxul de fabricație pentru acest item (vezi mesajul de mai sus).
+            </p>
+          ) : rows.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              Itemul ales nu are o rețetă de descompunere definită - creeaz-o din /retete (direcție
+              &quot;Descompunere&quot;) pentru a vedea fracțiile ideale aici.
             </p>
           ) : (
             <table className="w-full border-collapse text-sm">
@@ -278,7 +349,10 @@ export function VariableOutputForm({ inputItems }: { inputItems: ItemOption[] })
                     <td className="py-2">
                       <div className="font-medium">{row.itemTitle}</div>
                       <div className="text-xs text-muted-foreground">
-                        {row.percentage}% teoretic
+                        {row.percentage}% teoretic · {row.unit}
+                        {row.unit === selectedInput?.unit
+                          ? null
+                          : ` (1 ${row.unit} = ${row.conversionFactor} ${selectedInput?.unit ?? ""})`}
                       </div>
                     </td>
                     <td className="py-2 text-right text-muted-foreground tabular-nums">
@@ -300,7 +374,8 @@ export function VariableOutputForm({ inputItems }: { inputItems: ItemOption[] })
           <div className="mt-3 flex items-center justify-between rounded-md bg-secondary/40 px-3 py-2 text-sm">
             <span className="text-muted-foreground">
               Total output{" "}
-              <span className="font-medium tabular-nums text-foreground">{totalReal}</span>
+              <span className="font-medium tabular-nums text-foreground">{totalReal}</span>{" "}
+              {selectedInput?.unit}
             </span>
             <span className={"font-semibold " + (balance === 0 ? "text-ok" : "text-warn")}>
               Balanță {balance}

@@ -60,6 +60,17 @@ function parseSellable(formData: FormData): boolean {
   return formData.get("sellable") === "on";
 }
 
+/**
+ * `items.is_tracked` (migrarea 0029). Comutatorul e afisat DOAR pentru itemii
+ * fizici (item-form.tsx), deci pentru servicii cheia lipseste din payload - acolo
+ * ramane `true` (irelevant: serviciile sunt sarite de la stoc pe ramura de `kind`).
+ * Pentru itemii fizici, un checkbox nebifat nu trimite nimic => `false`.
+ */
+function parseIsTracked(formData: FormData, kind: ItemKind): boolean {
+  if (kind !== "physical") return true;
+  return formData.get("is_tracked") === "on";
+}
+
 /** Creeaza un item nou in catalog (formularul /itemi/nou) - doar staff (admin/operator). */
 export async function createItemAction(
   _prev: ItemFormState,
@@ -74,7 +85,7 @@ export async function createItemAction(
 
   if (!title) return { error: "Titlul este obligatoriu." };
   if (!unit) return { error: "Alege o unitate de masura." };
-  if (!kind) return { error: "Alege tipul itemului." };
+  if (!kind) return { error: "Alege tipul materialului sau serviciului." };
 
   // Id pre-generat: uploadul pozei (daca exista) se face INAINTE de insert,
   // ca o eroare de upload sa nu creeze un item orfan fara poza.
@@ -97,11 +108,14 @@ export async function createItemAction(
       description: clean(formData.get("description")),
       unit,
       kind,
+      isTracked: parseIsTracked(formData, kind),
       sellable: parseSellable(formData),
       imageUrl,
     });
   } catch (err) {
-    return { error: err instanceof Error ? err.message : "Nu am putut crea itemul." };
+    return {
+      error: err instanceof Error ? err.message : "Nu am putut crea materialul sau serviciul.",
+    };
   }
 
   revalidatePath("/itemi");
@@ -120,10 +134,10 @@ export async function updateItemAction(
   const unit = parseUnit(formData.get("unit"));
   const kind = parseKind(formData.get("kind"));
 
-  if (!id) return { error: "Item invalid." };
+  if (!id) return { error: "Material sau serviciu invalid." };
   if (!title) return { error: "Titlul este obligatoriu." };
   if (!unit) return { error: "Alege o unitate de masura." };
-  if (!kind) return { error: "Alege tipul itemului." };
+  if (!kind) return { error: "Alege tipul materialului sau serviciului." };
 
   // Tri-state pentru poza: fisier nou -> inlocuieste; bifa "elimina" -> null;
   // altfel cheia lipseste din payload si `updateItem` nu atinge poza existenta.
@@ -146,11 +160,14 @@ export async function updateItemAction(
       description: clean(formData.get("description")),
       unit,
       kind,
+      isTracked: parseIsTracked(formData, kind),
       sellable: parseSellable(formData),
       ...imagePatch,
     });
   } catch (err) {
-    return { error: err instanceof Error ? err.message : "Nu am putut salva itemul." };
+    return {
+      error: err instanceof Error ? err.message : "Nu am putut salva materialul sau serviciul.",
+    };
   }
 
   revalidatePath("/itemi");

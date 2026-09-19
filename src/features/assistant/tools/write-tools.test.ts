@@ -136,13 +136,35 @@ describe("creeaza_comanda - validarea liniilor si adresa de livrare", () => {
     expect(presentation?.renderer).toBe("order_draft");
     if (presentation?.renderer !== "order_draft") throw new Error("unreachable");
     expect(presentation.draft).toEqual({
+      // Fara `tip_comanda` in argumente -> `material` (compatibilitate cu apelurile
+      // de dinaintea migrarii 0030, vezi DEFAULT_ORDER_TYPE).
+      orderType: "material",
       clientId: "c1",
       deliveryAddressId: "addr-1",
       deliveryDate: "",
+      expectedReturnDate: "",
       notes: "",
       lines: [{ itemId: "i1", quantity: 2 }],
     });
     expect(presentation.options.clients).toHaveLength(1);
+  });
+
+  it("parse() acceptă tip_comanda explicit si respinge o valoare necunoscuta", () => {
+    expect(
+      creeazaComanda.parse({
+        client_id: "c1",
+        tip_comanda: "aport",
+        linii: [{ item_id: "i1", cantitate: 2 }],
+      }).tip_comanda,
+    ).toBe("aport");
+
+    expect(() =>
+      creeazaComanda.parse({
+        client_id: "c1",
+        tip_comanda: "inchiriere",
+        linii: [{ item_id: "i1", cantitate: 2 }],
+      }),
+    ).toThrow(/tip_comanda/);
   });
 
   it("execute() trece adresa de livrare la createOrderWithItems", async () => {
@@ -159,7 +181,7 @@ describe("creeaza_comanda - validarea liniilor si adresa de livrare", () => {
     await creeazaComanda.execute(input, { organizationId: "org-1" } as never);
 
     expect(createOrderWithItems).toHaveBeenCalledWith(
-      expect.objectContaining({ deliveryAddressId: "addr-1" }),
+      expect.objectContaining({ deliveryAddressId: "addr-1", orderType: "material" }),
     );
   });
 });

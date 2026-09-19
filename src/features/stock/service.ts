@@ -64,6 +64,9 @@ function mapLot(row: LotRow): Lot {
     qualityStatus: row.quality_status,
     isBlocked: row.is_blocked,
     blockReason: row.block_reason,
+    // Null pe orice lot creat din acest serviciu (intrare manuala de stoc) -
+    // `client_id` se completeaza doar la acceptarea unui aport (migrarea 0031).
+    clientId: row.client_id,
     createdAt: row.created_at,
   };
 }
@@ -179,7 +182,7 @@ export async function recordStockEvent(input: RecordStockEventInput): Promise<vo
     .eq("id", input.itemId)
     .single();
   if (itemError || !item) {
-    throw new Error("Item inexistent sau fara acces.");
+    throw new Error("Material inexistent sau fara acces.");
   }
 
   const { error } = await supabase.from("stock_events").insert({

@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { buildInsufficientStockError } from "@/features/stock/service";
 import type { Database } from "@/lib/database.types";
-import type { Order, OrderLineInput, OrderStatus } from "./types";
+import type { Order, OrderLineInput, OrderStatus, OrderType } from "./types";
 
 type OrderRow = Database["public"]["Tables"]["orders"]["Row"];
 
@@ -12,6 +12,12 @@ const ERR_INVALID_TRANSITION = "OR001";
 const ERR_NOT_FOUND = "OR002";
 const ERR_FORBIDDEN = "OR004";
 const ERR_INSUFFICIENT_STOCK = "LT001";
+
+// Coduri AP00x - RPC `accept_intake_order` (0031_aport_intake.sql).
+const ERR_INTAKE_INVALID_TRANSITION = "AP001";
+const ERR_INTAKE_NOT_FOUND = "AP002";
+const ERR_INTAKE_NOT_APORT = "AP003";
+const ERR_INTAKE_FORBIDDEN = "AP004";
 
 /** Comanda nu exista sau nu e accesibila apelantului (RLS). */
 export class OrderNotFoundError extends Error {
@@ -42,6 +48,7 @@ function mapOrder(row: OrderRow): Order {
     id: row.id,
     clientId: row.client_id,
     orderNumber: row.order_number,
+    orderType: row.order_type,
     status: row.status,
     createdByAdmin: row.created_by_admin,
     deliveryAddressId: row.delivery_address_id,
@@ -158,12 +165,47 @@ export async function cancelOrder(orderId: string): Promise<Order> {
   return mapOrder(data);
 }
 
+/**
+ * Accepta o comanda de tip `aport` aflata in `draft`: creeaza cate un lot
+ * (provenance `aport_client`, `lots.client_id` = clientul comenzii) pentru fiecare
+ * linie si trece comanda in `accepted` - atomic, prin RPC-ul Postgres
+ * `accept_intake_order` (0031_aport_intake.sql). Simetricul lui
+ * `acceptReturnOrder` din features/returns/service.ts, pentru celalalt sens de
+ * flux; NU foloseste `acceptOrder` (acela CONSUMA stoc).
+ *
+ * Codurile de eroare AP00x sunt mapate pe aceleasi tipuri ca la comenzile
+ * obisnuite (`OrderNotFoundError`/`OrderTransitionError`/`OrderPermissionError`),
+ * ca UI-ul sa nu aiba nevoie de o a doua familie de erori.
+ */
+export async function acceptIntakeOrder(orderId: string): Promise<Order> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("accept_intake_order", { p_order_id: orderId });
+  if (error || !data) {
+    if (error?.code === ERR_INTAKE_NOT_FOUND) throw new OrderNotFoundError(orderId);
+    if (error?.code === ERR_INTAKE_FORBIDDEN) throw new OrderPermissionError(error.message);
+    if (error?.code === ERR_INTAKE_INVALID_TRANSITION || error?.code === ERR_INTAKE_NOT_APORT) {
+      throw new OrderTransitionError(error.message);
+    }
+    throw new Error(error?.message ?? "Nu am putut accepta aportul.");
+  }
+  return mapOrder(data);
+}
+
 export interface CreateOrderInput {
   organizationId: string;
   clientId: string;
+  /** Tipul comenzii - OBLIGATORIU (nu exista default implicit, vezi migrarea 0030). */
+  orderType: OrderType;
   createdByAdmin: boolean;
   deliveryAddressId?: string | null;
   deliveryDate?: string | null;
+  /**
+   * Data estimata de retur - are sens DOAR pentru `orderType === "serviciu"`
+   * (inchiriere/PaaS). Ignorata pentru celelalte tipuri, ca sa nu ramana o data de
+   * retur pe o vanzare simpla sau pe un aport daca UI-ul trimite un camp ramas
+   * completat dupa schimbarea tipului.
+   */
+  expectedReturnDate?: string | null;
   notes?: string | null;
   lines: OrderLineInput[];
 }
@@ -185,9 +227,12 @@ export async function createOrderWithItems(input: CreateOrderInput): Promise<Ord
     .insert({
       organization_id: input.organizationId,
       client_id: input.clientId,
+      order_type: input.orderType,
       created_by_admin: input.createdByAdmin,
       delivery_address_id: input.deliveryAddressId ?? null,
       delivery_date: input.deliveryDate ?? null,
+      expected_return_date:
+        input.orderType === "serviciu" ? (input.expectedReturnDate ?? null) : null,
       notes: input.notes ?? null,
       status: "draft",
     })
@@ -209,6 +254,94 @@ export async function createOrderWithItems(input: CreateOrderInput): Promise<Ord
 
   if (itemsError) {
     await supabase.from("orders").delete().eq("id", order.id);
+    throw new Error("Nu am putut salva liniile comenzii.");
+  }
+
+  return mapOrder(order);
+}
+
+export interface UpdateOrderInput {
+  orderId: string;
+  organizationId: string;
+  orderType: OrderType;
+  clientId: string;
+  deliveryAddressId?: string | null;
+  deliveryDate?: string | null;
+  /** Trimisa doar cand `orderType === "serviciu"` (vezi migrarea 0030). */
+  expectedReturnDate?: string | null;
+  notes?: string | null;
+  lines: OrderLineInput[];
+}
+
+/**
+ * Actualizeaza o comanda `draft` existenta (client/adresa/data/note) si
+ * INLOCUIESTE integral liniile ei (sterge liniile vechi, insereaza cele noi - fara
+ * diff linie-cu-linie, la fel de simplu ca `createOrderWithItems`). Permisa DOAR
+ * cat comanda e inca `draft` (verificat aici, server-side) - o comanda deja
+ * inaintata nu se mai poate edita retroactiv, trebuie anulata si recreata.
+ *
+ * Fara RPC dedicat: trei instructiuni separate (select status, update orders,
+ * delete+insert order_items), in stilul non-atomic al lui `createOrderWithItems`
+ * de mai sus (care are aceeasi limitare - vezi compensarea ei manuala). Un esec
+ * intre UPDATE-ul comenzii si DELETE/INSERT-ul liniilor ar lasa metadatele
+ * comenzii actualizate dar liniile vechi neatinse - o stare recuperabila (ecranul
+ * de editare poate fi reincercat), nu una goala/orfana, deci nu justifica un RPC
+ * nou doar pentru acest task.
+ */
+export async function updateOrder(input: UpdateOrderInput): Promise<Order> {
+  if (input.lines.length === 0) {
+    throw new Error("Comanda trebuie să aibă cel puțin o linie.");
+  }
+
+  const supabase = await createClient();
+
+  const { data: existing, error: existingError } = await supabase
+    .from("orders")
+    .select("status")
+    .eq("id", input.orderId)
+    .maybeSingle();
+  if (existingError) throw new Error(existingError.message ?? "Nu am putut încărca comanda.");
+  if (!existing) throw new OrderNotFoundError(input.orderId);
+  if (existing.status !== "draft") {
+    throw new OrderTransitionError('Doar o comandă în status "Ciornă" poate fi editată.');
+  }
+
+  const { data: order, error: orderError } = await supabase
+    .from("orders")
+    .update({
+      order_type: input.orderType,
+      client_id: input.clientId,
+      delivery_address_id: input.deliveryAddressId ?? null,
+      delivery_date: input.deliveryDate ?? null,
+      // La fel ca la creare: pastrata doar pt. `serviciu` (vezi migrarea 0030).
+      expected_return_date:
+        input.orderType === "serviciu" ? (input.expectedReturnDate ?? null) : null,
+      notes: input.notes ?? null,
+    })
+    .eq("id", input.orderId)
+    .select()
+    .single();
+  if (orderError || !order) {
+    throw new Error(orderError?.message ?? "Nu am putut actualiza comanda.");
+  }
+
+  const { error: deleteError } = await supabase
+    .from("order_items")
+    .delete()
+    .eq("order_id", input.orderId);
+  if (deleteError) {
+    throw new Error("Nu am putut actualiza liniile comenzii.");
+  }
+
+  const { error: itemsError } = await supabase.from("order_items").insert(
+    input.lines.map((line) => ({
+      organization_id: input.organizationId,
+      order_id: input.orderId,
+      item_id: line.itemId,
+      quantity: line.quantity,
+    })),
+  );
+  if (itemsError) {
     throw new Error("Nu am putut salva liniile comenzii.");
   }
 

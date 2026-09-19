@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -8,7 +8,7 @@ import { FormField } from "@/components/form-field";
 import { createItemAction, updateItemAction } from "./actions";
 import { initialItemFormState } from "./action-state";
 import { KIND_LABELS, KIND_OPTIONS, UNIT_LABELS, UNIT_OPTIONS } from "./labels";
-import type { Item } from "./types";
+import type { Item, ItemKind } from "./types";
 
 const selectClassName =
   "flex h-9 w-full rounded-md border border-input bg-card px-3 py-1 text-sm shadow-xs outline-none " +
@@ -22,13 +22,16 @@ const textareaClassName =
 export function ItemForm({ item }: { item?: Item }) {
   const action = item ? updateItemAction : createItemAction;
   const [state, formAction, pending] = useActionState(action, initialItemFormState);
+  // Tipul e in state (nu doar `defaultValue`) pentru ca de el depinde afisarea
+  // comutatorului "Urmărește stocul" - relevant doar la itemii fizici (0029).
+  const [kind, setKind] = useState<ItemKind>(item?.kind ?? "physical");
 
   return (
     <form action={formAction} className="max-w-2xl space-y-6">
       {item ? <input type="hidden" name="id" value={item.id} /> : null}
       <Card>
         <CardHeader>
-          <CardTitle>Detalii item</CardTitle>
+          <CardTitle>Detalii material/serviciu</CardTitle>
           <CardDescription>
             Titlu, unitate de măsură și tip - fizic (stoc + rețetă opțională) sau serviciu
             (abonament/serviciu PaaS, fără stoc).
@@ -73,7 +76,7 @@ export function ItemForm({ item }: { item?: Item }) {
               )}
             </FormField>
             <FormField
-              label="Tip item"
+              label="Tip"
               required
               hint="Fizic = stoc + rețetă opțională. Serviciu = abonament/serviciu PaaS, fără stoc."
             >
@@ -82,12 +85,13 @@ export function ItemForm({ item }: { item?: Item }) {
                   id={id}
                   name="kind"
                   required
-                  defaultValue={item?.kind ?? "physical"}
+                  value={kind}
+                  onChange={(e) => setKind(e.target.value as ItemKind)}
                   className={selectClassName}
                 >
-                  {KIND_OPTIONS.map((kind) => (
-                    <option key={kind} value={kind}>
-                      {KIND_LABELS[kind]}
+                  {KIND_OPTIONS.map((option) => (
+                    <option key={option} value={option}>
+                      {KIND_LABELS[option]}
                     </option>
                   ))}
                 </select>
@@ -133,6 +137,24 @@ export function ItemForm({ item }: { item?: Item }) {
             )}
           </FormField>
 
+          {kind === "physical" ? (
+            <div className="space-y-1">
+              <label className="flex items-center gap-2 text-sm font-medium">
+                <input
+                  type="checkbox"
+                  name="is_tracked"
+                  defaultChecked={item?.isTracked ?? true}
+                  className="size-4 rounded border-input"
+                />
+                Urmărește stocul
+              </label>
+              <p className="text-xs text-muted-foreground">
+                Dezactivează pentru materiale generice fără cantitate limitată (ex: apă, aer).
+                Astfel de itemi pot fi componente de rețetă, dar nu se consumă din stoc.
+              </p>
+            </div>
+          ) : null}
+
           <label className="flex items-center gap-2 text-sm font-medium">
             <input
               type="checkbox"
@@ -149,7 +171,11 @@ export function ItemForm({ item }: { item?: Item }) {
 
       <div className="flex gap-3">
         <Button type="submit" disabled={pending}>
-          {pending ? "Se salvează..." : item ? "Salvează modificările" : "Creează itemul"}
+          {pending
+            ? "Se salvează..."
+            : item
+              ? "Salvează modificările"
+              : "Creează materialul sau serviciul"}
         </Button>
       </div>
     </form>

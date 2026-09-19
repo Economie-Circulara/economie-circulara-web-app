@@ -27,9 +27,15 @@ const columns: ColumnDef<ItemListRow>[] = [
     accessorKey: "kind",
     header: "Tip",
     cell: ({ row }) => (
-      <Badge variant={KIND_BADGE_VARIANT[row.original.kind]}>
-        {KIND_LABELS[row.original.kind]}
-      </Badge>
+      <div className="flex flex-wrap items-center gap-1">
+        <Badge variant={KIND_BADGE_VARIANT[row.original.kind]}>
+          {KIND_LABELS[row.original.kind]}
+        </Badge>
+        {/* Itemii fizici fara urmarire de stoc (apa, aer) - migrarea 0029. */}
+        {row.original.kind === "physical" && !row.original.isTracked ? (
+          <Badge variant="neutral">Nelimitat</Badge>
+        ) : null}
+      </div>
     ),
   },
   {
@@ -54,13 +60,18 @@ export function ItemsTable({ items }: { items: ItemListRow[] }) {
     return (
       <EmptyState
         icon={<Package />}
-        title="Niciun item în catalog"
-        description="Adaugă primul item (produs sau serviciu) pentru a începe."
+        title="Niciun material sau serviciu în catalog"
+        description="Adaugă primul material sau serviciu pentru a începe."
       />
     );
   }
 
   return (
-    <DataTable columns={columns} data={items} pageSize={10} emptyMessage="Niciun item găsit." />
+    <DataTable
+      columns={columns}
+      data={items}
+      pageSize={10}
+      emptyMessage="Niciun material sau serviciu găsit."
+    />
   );
 }

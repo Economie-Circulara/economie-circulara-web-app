@@ -1,5 +1,10 @@
 import { createClient } from "@/lib/supabase/server";
-import { validateNotSelfReference, validatePercentage } from "./validation";
+import {
+  validateConversionFactor,
+  validateNotSelfReference,
+  validatePercentage,
+} from "./validation";
+import type { RecipeDirection } from "./types";
 
 export interface CreatedRecipe {
   id: string;
@@ -9,9 +14,17 @@ export interface CreatedRecipe {
 /**
  * Creeaza rețeta (goala) unui item - doar pentru itemi de tip `physical`
  * (retetele nu au sens pentru servicii/abonamente PaaS, vezi migrarea 0005).
- * O singura rețeta per item (constraint `unique(item_id)` din 0001).
+ * O singura rețetă per item (constraint `unique(item_id)` din 0001).
+ *
+ * `direction` (migrarea 0028) se alege EXPLICIT la creare: `compunere` = itemul e
+ * outputul si componentele sunt inputurile consumate; `descompunere` = itemul e
+ * inputul si componentele sunt fractiile rezultate (reciclare). Inainte, directia
+ * era dedusa din wizard-ul folosit, ceea ce inversa fluxurile.
  */
-export async function createRecipe(itemId: string): Promise<CreatedRecipe> {
+export async function createRecipe(
+  itemId: string,
+  direction: RecipeDirection = "compunere",
+): Promise<CreatedRecipe> {
   const supabase = await createClient();
 
   const { data: item, error: itemError } = await supabase
@@ -19,14 +32,14 @@ export async function createRecipe(itemId: string): Promise<CreatedRecipe> {
     .select("id, organization_id, kind")
     .eq("id", itemId)
     .maybeSingle();
-  if (itemError || !item) throw new Error("Item inexistent sau fără acces.");
+  if (itemError || !item) throw new Error("Material inexistent sau fără acces.");
   if (item.kind !== "physical") {
-    throw new Error("Rețetele se pot defini doar pentru itemi de tip fizic.");
+    throw new Error("Rețetele se pot defini doar pentru materiale de tip fizic.");
   }
 
   const { data, error } = await supabase
     .from("recipes")
-    .insert({ organization_id: item.organization_id, item_id: item.id })
+    .insert({ organization_id: item.organization_id, item_id: item.id, direction })
     .select("id, item_id")
     .single();
 
@@ -36,22 +49,45 @@ export async function createRecipe(itemId: string): Promise<CreatedRecipe> {
   return { id: data.id, itemId: data.item_id };
 }
 
+/**
+ * Schimba directia unei retete existente. Permisa (retetele nu au versionare -
+ * AGENTS.md §4), dar schimba semantica TUTUROR componentelor deja definite, asa ca
+ * UI-ul avertizeaza inainte de salvare (vezi recipe-editor.tsx).
+ */
+export async function updateRecipeDirection(
+  recipeId: string,
+  direction: RecipeDirection,
+): Promise<void> {
+  const supabase = await createClient();
+  const { error } = await supabase.from("recipes").update({ direction }).eq("id", recipeId);
+  if (error) throw new Error(error.message ?? "Nu am putut schimba direcția rețetei.");
+}
+
 export interface AddComponentInput {
   recipeId: string;
   componentItemId: string;
   percentage: number;
+  /**
+   * Cate unitati din UM-ul itemului retetei corespund unei unitati din UM-ul
+   * componentei (migrarea 0028). Implicit 1 - no-op cand UM-urile coincid.
+   */
+  conversionFactor?: number;
 }
 
 /**
- * Adauga o componenta a rețetei (sau actualizeaza procentul, daca acel item e deja
- * componenta - `unique(recipe_id, component_item_id)` din 0001, folosit ca upsert).
- * Valideaza procentul si non-auto-referinta fata de itemul propriu al rețetei -
- * itemul rețetei se preia din DB (nu din input extern), la fel ca in
- * `src/features/stock/service.ts#recordStockEvent`.
+ * Adauga o componenta a rețetei (sau actualizeaza procentul/factorul, daca acel
+ * item e deja componenta - `unique(recipe_id, component_item_id)` din 0001, folosit
+ * ca upsert). Valideaza procentul, factorul de conversie si non-auto-referinta fata
+ * de itemul propriu al rețetei - itemul rețetei se preia din DB (nu din input
+ * extern), la fel ca in `src/features/stock/service.ts#recordStockEvent`.
  */
 export async function addOrUpdateComponent(input: AddComponentInput): Promise<void> {
   const percentageError = validatePercentage(input.percentage);
   if (percentageError) throw new Error(percentageError);
+
+  const conversionFactor = input.conversionFactor ?? 1;
+  const conversionError = validateConversionFactor(conversionFactor);
+  if (conversionError) throw new Error(conversionError);
 
   const supabase = await createClient();
 
@@ -71,6 +107,7 @@ export async function addOrUpdateComponent(input: AddComponentInput): Promise<vo
       recipe_id: recipe.id,
       component_item_id: input.componentItemId,
       percentage: input.percentage,
+      conversion_factor: conversionFactor,
     },
     { onConflict: "recipe_id,component_item_id" },
   );

@@ -13,7 +13,7 @@ export async function listRecipes(): Promise<RecipeListRow[]> {
 
   const { data: recipeRows, error: recipeError } = await supabase
     .from("recipes")
-    .select("id, item_id, items(title, unit)")
+    .select("id, item_id, direction, items(title, unit)")
     .order("created_at", { ascending: false });
   if (recipeError) throw new Error("Nu am putut incarca lista de retete.");
 
@@ -37,6 +37,7 @@ export async function listRecipes(): Promise<RecipeListRow[]> {
       itemId: row.item_id,
       itemTitle: row.items?.title ?? "-",
       unit: row.items?.unit ?? "kg",
+      direction: row.direction ?? "compunere",
       componentCount: agg.count,
       percentageSum: agg.sum,
     };
@@ -49,7 +50,7 @@ export async function getRecipeByItemId(itemId: string): Promise<RecipeDetail | 
 
   const { data: recipe, error: recipeError } = await supabase
     .from("recipes")
-    .select("id, item_id, items(title, unit)")
+    .select("id, item_id, direction, items(title, unit)")
     .eq("item_id", itemId)
     .maybeSingle();
   if (recipeError) throw new Error("Nu am putut incarca rețeta.");
@@ -57,7 +58,7 @@ export async function getRecipeByItemId(itemId: string): Promise<RecipeDetail | 
 
   const { data: componentRows, error: componentError } = await supabase
     .from("recipe_components")
-    .select("id, component_item_id, percentage, items(title, unit)")
+    .select("id, component_item_id, percentage, conversion_factor, items(title, unit, is_tracked)")
     .eq("recipe_id", recipe.id)
     .order("percentage", { ascending: false });
   if (componentError) throw new Error("Nu am putut incarca componentele rețetei.");
@@ -68,6 +69,10 @@ export async function getRecipeByItemId(itemId: string): Promise<RecipeDetail | 
     componentItemTitle: row.items?.title ?? "-",
     unit: row.items?.unit ?? "kg",
     percentage: Number(row.percentage),
+    // `?? 1` acopera si randurile vechi (coloana are default 1 in DB - migrarea 0028)
+    // si testele care nu o includ in fixture.
+    conversionFactor: Number(row.conversion_factor ?? 1),
+    isTracked: row.items?.is_tracked ?? true,
   }));
 
   return {
@@ -75,6 +80,7 @@ export async function getRecipeByItemId(itemId: string): Promise<RecipeDetail | 
     itemId: recipe.item_id,
     itemTitle: recipe.items?.title ?? "-",
     unit: recipe.items?.unit ?? "kg",
+    direction: recipe.direction ?? "compunere",
     components,
     percentageSum: components.reduce((sum, c) => sum + c.percentage, 0),
   };

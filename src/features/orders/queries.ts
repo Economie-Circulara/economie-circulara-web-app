@@ -1,7 +1,15 @@
 import { createClient } from "@/lib/supabase/server";
 import type { ClientAddress } from "@/features/clients/types";
+import { getDeliveryGuardsForOrders } from "@/features/deliveries/queries";
 import type { ItemOption } from "@/features/items/types";
-import type { OrderDetail, OrderItemRow, OrderLinkType, OrderListRow, OrderStatus } from "./types";
+import type {
+  OrderDetail,
+  OrderItemRow,
+  OrderLinkType,
+  OrderListRow,
+  OrderStatus,
+  OrderType,
+} from "./types";
 
 type SupabaseClient = Awaited<ReturnType<typeof createClient>>;
 
@@ -12,6 +20,7 @@ interface OrderCoreRow {
   id: string;
   client_id: string;
   order_number: string | null;
+  order_type: OrderType;
   status: OrderStatus;
   created_by_admin: boolean;
   delivery_address_id: string | null;
@@ -24,11 +33,12 @@ interface OrderCoreRow {
 
 function mapOrderRow(
   row: OrderCoreRow,
-): Omit<OrderListRow, "clientName" | "itemsSummary" | "linkType"> {
+): Omit<OrderListRow, "clientName" | "itemsSummary" | "linkType" | "delivery"> {
   return {
     id: row.id,
     clientId: row.client_id,
     orderNumber: row.order_number,
+    orderType: row.order_type,
     status: row.status,
     createdByAdmin: row.created_by_admin,
     deliveryAddressId: row.delivery_address_id,
@@ -102,7 +112,7 @@ export async function listOrders(filters: ListOrdersFilters = {}): Promise<Order
   let query = supabase
     .from("orders")
     .select(
-      "id, client_id, order_number, status, created_by_admin, delivery_address_id, delivery_date, expected_return_date, notes, created_at, updated_at, clients(name)",
+      "id, client_id, order_number, order_type, status, created_by_admin, delivery_address_id, delivery_date, expected_return_date, notes, created_at, updated_at, clients(name)",
     )
     .order("created_at", { ascending: false });
 
@@ -112,9 +122,10 @@ export async function listOrders(filters: ListOrdersFilters = {}): Promise<Order
   if (error) throw new Error("Nu am putut incarca lista de comenzi.");
 
   const orderIds = (orderRows ?? []).map((row) => row.id);
-  const [summaries, linkTypes] = await Promise.all([
+  const [summaries, linkTypes, deliveryGuards] = await Promise.all([
     summarizeOrderItems(supabase, orderIds),
     getLinkTypesForOrders(supabase, orderIds),
+    getDeliveryGuardsForOrders(orderIds),
   ]);
 
   let rows: OrderListRow[] = (orderRows ?? []).map((row) => ({
@@ -122,6 +133,7 @@ export async function listOrders(filters: ListOrdersFilters = {}): Promise<Order
     clientName: row.clients?.name ?? "-",
     itemsSummary: summaries.get(row.id) ?? "-",
     linkType: linkTypes.get(row.id) ?? null,
+    delivery: deliveryGuards.get(row.id) ?? null,
   }));
 
   const search = filters.search?.trim().toLowerCase();
@@ -145,7 +157,7 @@ export async function listSellableItemOptions(): Promise<ItemOption[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("items")
-    .select("id, title, unit, kind")
+    .select("id, title, unit, kind, is_tracked")
     .eq("sellable", true)
     .order("title");
   if (error) throw new Error("Nu am putut incarca catalogul de itemi vandabili.");
@@ -155,6 +167,36 @@ export async function listSellableItemOptions(): Promise<ItemOption[]> {
     title: row.title,
     unit: row.unit,
     kind: row.kind,
+    isTracked: row.is_tracked,
+  }));
+}
+
+/**
+ * Itemii care pot aparea pe o comanda de tip `aport` (material adus de client):
+ * ORICE item fizic TRASAT din catalog, indiferent de `sellable`. Motivatie
+ * (migrarea 0030): ce aduce clientul (ex. moloz de demolare) e de regula o
+ * materie prima NEVANDABILA - filtrul `sellable` de la vanzare ar ascunde exact
+ * itemii relevanti. Serviciile (`kind = 'service'`) sunt excluse: nu au stoc,
+ * deci nu pot fi "aduse". Itemii netrasati (`is_tracked = false`, migrarea 0029 -
+ * ex. apa) sunt exclusi si ei: n-are sens sa "aduci" ceva declarat explicit fara
+ * cantitate limitata/fara stoc.
+ */
+export async function listIntakeItemOptions(): Promise<ItemOption[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("items")
+    .select("id, title, unit, kind, is_tracked")
+    .eq("kind", "physical")
+    .eq("is_tracked", true)
+    .order("title");
+  if (error) throw new Error("Nu am putut incarca itemii fizici pentru aport.");
+
+  return (data ?? []).map((row) => ({
+    id: row.id,
+    title: row.title,
+    unit: row.unit,
+    kind: row.kind,
+    isTracked: row.is_tracked,
   }));
 }
 
@@ -203,7 +245,7 @@ export async function getOrderDetail(id: string): Promise<OrderDetail | null> {
   const { data: order, error } = await supabase
     .from("orders")
     .select(
-      "id, client_id, order_number, status, created_by_admin, delivery_address_id, delivery_date, expected_return_date, notes, created_at, updated_at, clients(name, cui), client_addresses(address, label)",
+      "id, client_id, order_number, order_type, status, created_by_admin, delivery_address_id, delivery_date, expected_return_date, notes, created_at, updated_at, clients(name, cui), client_addresses(address, label)",
     )
     .eq("id", id)
     .maybeSingle();

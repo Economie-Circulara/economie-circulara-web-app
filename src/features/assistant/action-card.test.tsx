@@ -11,7 +11,7 @@ describe("ActionCard - randerul generic", () => {
       toolCallId: "call-1",
       tool: "trimite_comanda",
       toolVersion: 1,
-      summary: "Trimite comanda către acceptare",
+      summary: "Înaintează comanda spre aprobare",
       presentation: {
         renderer: "generic",
         fields: [
@@ -90,7 +90,7 @@ describe("ActionCard - randerul order_draft", () => {
   ];
   const ADDRESSES: Record<string, ClientAddress[]> = {};
   const ITEMS: ItemOption[] = [
-    { id: "i1", title: "Agregat reciclat", unit: "tona", kind: "physical" },
+    { id: "i1", title: "Agregat reciclat", unit: "tona", kind: "physical", isTracked: true },
   ];
 
   it("confirmarea trimite liniile ca ARRAY structurat, nu ca text serializat", () => {
@@ -103,9 +103,11 @@ describe("ActionCard - randerul order_draft", () => {
       presentation: {
         renderer: "order_draft",
         draft: {
+          orderType: "material",
           clientId: "c1",
           deliveryAddressId: "",
           deliveryDate: "",
+          expectedReturnDate: "",
           notes: "",
           lines: [{ itemId: "i1", quantity: 2 }],
         },
@@ -118,9 +120,11 @@ describe("ActionCard - randerul order_draft", () => {
     fireEvent.click(screen.getByRole("button", { name: "Confirmă și execută" }));
 
     expect(onConfirm).toHaveBeenCalledWith({
+      tip_comanda: "material",
       client_id: "c1",
       adresa_livrare_id: null,
       data_livrare: null,
+      data_retur_estimata: null,
       observatii: null,
       linii: [{ item_id: "i1", cantitate: 2 }],
     });

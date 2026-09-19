@@ -36,7 +36,7 @@ export function LotForm({
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <FormField label="Item" required>
+          <FormField label="Material" required>
             {(id) => (
               <select
                 id={id}
@@ -46,7 +46,7 @@ export function LotForm({
                 className={selectClassName}
               >
                 <option value="" disabled>
-                  Alege un item...
+                  Alege un material...
                 </option>
                 {items.map((item) => (
                   <option key={item.id} value={item.id}>

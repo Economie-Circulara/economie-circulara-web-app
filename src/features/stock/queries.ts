@@ -12,7 +12,7 @@ export async function listLots(filters: ListLotsFilters = {}): Promise<LotWithIt
   let query = supabase
     .from("lots")
     .select(
-      "id, item_id, entry_date, source, provenance, location, initial_qty, remaining_qty, quality_status, is_blocked, block_reason, created_at, items(title, unit)",
+      "id, item_id, entry_date, source, provenance, location, initial_qty, remaining_qty, quality_status, is_blocked, block_reason, client_id, created_at, items(title, unit), clients(name)",
     )
     .order("entry_date", { ascending: false })
     .order("created_at", { ascending: false });
@@ -37,6 +37,9 @@ export async function listLots(filters: ListLotsFilters = {}): Promise<LotWithIt
     qualityStatus: row.quality_status,
     isBlocked: row.is_blocked,
     blockReason: row.block_reason,
+    // Doar loturile de aport au client (migrarile 0030/0031).
+    clientId: row.client_id,
+    clientName: row.clients?.name ?? null,
     createdAt: row.created_at,
   }));
 }
@@ -45,7 +48,7 @@ export async function listLots(filters: ListLotsFilters = {}): Promise<LotWithIt
 export async function listItemOptions(): Promise<ItemOption[]> {
   const supabase = await createClient();
   const { data, error } = await supabase.from("items").select("id, title, unit").order("title");
-  if (error) throw new Error("Nu am putut incarca lista de itemi.");
+  if (error) throw new Error("Nu am putut incarca lista de materiale.");
 
   return (data ?? []).map((row) => ({ id: row.id, title: row.title, unit: row.unit }));
 }

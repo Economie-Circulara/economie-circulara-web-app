@@ -13,9 +13,11 @@ import type { PendingAction } from "./types";
 
 function toEditorValue(draft: OrderDraftPresentation["draft"]): OrderEditorValue {
   return {
+    orderType: draft.orderType,
     clientId: draft.clientId,
     deliveryAddressId: draft.deliveryAddressId,
     deliveryDate: draft.deliveryDate,
+    expectedReturnDate: draft.expectedReturnDate,
     notes: draft.notes,
     lines: draft.lines.map(
       (line, index): OrderEditorLine => ({
@@ -51,9 +53,13 @@ export function OrderDraftCard({
 
   function confirm() {
     onConfirm({
+      // Tipul e editabil in card (selectorul din `OrderEditor`) - se trimite inapoi
+      // ca override, deci utilizatorul poate corecta propunerea asistentului.
+      tip_comanda: draft.orderType || "material",
       client_id: draft.clientId,
       adresa_livrare_id: draft.deliveryAddressId || null,
       data_livrare: draft.deliveryDate || null,
+      data_retur_estimata: draft.expectedReturnDate || null,
       observatii: draft.notes || null,
       linii: draft.lines.map((line) => ({ item_id: line.itemId, cantitate: line.quantity })),
     });

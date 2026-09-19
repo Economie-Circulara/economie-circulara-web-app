@@ -29,8 +29,18 @@ describe("listRecipes", () => {
   it("agrega nr. de componente si suma procentelor per rețetă", async () => {
     const recipesBuilder = makeQueryBuilder({
       data: [
-        { id: "recipe-1", item_id: "item-1", items: { title: "Cărămidă eco", unit: "bucata" } },
-        { id: "recipe-2", item_id: "item-2", items: { title: "Beton", unit: "mc" } },
+        {
+          id: "recipe-1",
+          item_id: "item-1",
+          direction: "compunere",
+          items: { title: "Cărămidă eco", unit: "bucata" },
+        },
+        {
+          id: "recipe-2",
+          item_id: "item-2",
+          direction: "descompunere",
+          items: { title: "Beton", unit: "mc" },
+        },
       ],
       error: null,
     });
@@ -54,6 +64,7 @@ describe("listRecipes", () => {
         itemId: "item-1",
         itemTitle: "Cărămidă eco",
         unit: "bucata",
+        direction: "compunere",
         componentCount: 2,
         percentageSum: 100,
       },
@@ -62,6 +73,7 @@ describe("listRecipes", () => {
         itemId: "item-2",
         itemTitle: "Beton",
         unit: "mc",
+        direction: "descompunere",
         componentCount: 0,
         percentageSum: 0,
       },
@@ -86,7 +98,12 @@ describe("getRecipeByItemId", () => {
 
   it("mapeaza reteta cu componentele si suma procentelor", async () => {
     const recipeBuilder = makeQueryBuilder({
-      data: { id: "recipe-1", item_id: "item-1", items: { title: "Cărămidă eco", unit: "bucata" } },
+      data: {
+        id: "recipe-1",
+        item_id: "item-1",
+        direction: "compunere",
+        items: { title: "Cărămidă eco", unit: "bucata" },
+      },
       error: null,
     });
     const componentsBuilder = makeQueryBuilder({
@@ -95,7 +112,16 @@ describe("getRecipeByItemId", () => {
           id: "comp-1",
           component_item_id: "item-2",
           percentage: 40,
-          items: { title: "Argilă", unit: "kg" },
+          conversion_factor: 0.003,
+          items: { title: "Argilă", unit: "kg", is_tracked: true },
+        },
+        {
+          id: "comp-2",
+          component_item_id: "item-3",
+          percentage: 5,
+          // Randuri fara factor/flag (fixture "vechi"): se aplica valorile
+          // implicite - 1, respectiv `true`.
+          items: { title: "Apă", unit: "litru" },
         },
       ],
       error: null,
@@ -113,6 +139,7 @@ describe("getRecipeByItemId", () => {
       itemId: "item-1",
       itemTitle: "Cărămidă eco",
       unit: "bucata",
+      direction: "compunere",
       components: [
         {
           id: "comp-1",
@@ -120,9 +147,20 @@ describe("getRecipeByItemId", () => {
           componentItemTitle: "Argilă",
           unit: "kg",
           percentage: 40,
+          conversionFactor: 0.003,
+          isTracked: true,
+        },
+        {
+          id: "comp-2",
+          componentItemId: "item-3",
+          componentItemTitle: "Apă",
+          unit: "litru",
+          percentage: 5,
+          conversionFactor: 1,
+          isTracked: true,
         },
       ],
-      percentageSum: 40,
+      percentageSum: 45,
     });
   });
 });

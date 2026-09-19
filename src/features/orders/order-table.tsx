@@ -6,6 +6,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { DataTable } from "@/components/data-table";
 import { EmptyState } from "@/components/empty-state";
 import { StatusBadge } from "@/components/status-badge";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { ORDER_STATUS_BADGE_STATUS } from "./labels";
 import { OrderStatusActions } from "./order-status-actions";
@@ -84,7 +85,18 @@ const columns: ColumnDef<OrderListRow>[] = [
     id: "actions",
     header: "Acțiuni",
     cell: ({ row }) => (
-      <OrderStatusActions orderId={row.original.id} status={row.original.status} />
+      <div className="flex flex-wrap items-start justify-end gap-2">
+        {row.original.status === "accepted" && !row.original.delivery ? (
+          <Button asChild size="sm" variant="outline">
+            <Link href={`/livrari/nou?orderId=${row.original.id}`}>Planifică livrare</Link>
+          </Button>
+        ) : null}
+        <OrderStatusActions
+          orderId={row.original.id}
+          status={row.original.status}
+          delivery={row.original.delivery}
+        />
+      </div>
     ),
   },
 ];

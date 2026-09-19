@@ -63,6 +63,11 @@ export async function createClientOrderAction(
     const order = await createOrderWithItems({
       organizationId: user.organizationId,
       clientId: user.clientId,
+      // Portalul clientului comanda DOAR din catalogul vandabil, deci o comanda
+      // clasica de material (migrarea 0030). Serviciul/aportul raman initiate de
+      // staff: aportul (client -> organizatie) va primi un flux self-service
+      // separat, in afara scope-ului acestui task.
+      orderType: "material",
       createdByAdmin: false,
       deliveryAddressId: clean(formData.get("delivery_address_id")),
       deliveryDate: clean(formData.get("delivery_date")),

@@ -2,6 +2,9 @@ import { createElement } from "react";
 import { renderToBuffer } from "@react-pdf/renderer";
 import { createClient } from "@/lib/supabase/server";
 import type { Database, Json } from "@/lib/database.types";
+import { onOrderStatusChanged } from "@/features/orders/notifications";
+import { getOrderStatus } from "@/features/orders/queries";
+import { setOrderStatus } from "@/features/orders/service";
 import { pickBestRouteIndex } from "@/features/routing/rank";
 import { computeRouteBetween } from "@/features/routing/route-service";
 import { getSiteById } from "@/features/routing/site-queries";
@@ -288,6 +291,20 @@ export interface ConfirmReceiptInput {
  * Confirma receptia livrarii de catre client (caracteristica #4 din scrisoarea de
  * clarificari AM - inregistrare MANUALA, nu o noua integrare). `receivedByName` e
  * text liber (nu neaparat un cont din platforma - sofer, gestionar de santier etc.).
+ *
+ * Dupa ce receptia e salvata cu succes, tranzitioneaza AUTOMAT comanda parinte pe
+ * `delivered` (Task de legatura livrare<->status comanda - pana acum
+ * `confirmDeliveryReceipt` scria DOAR in `deliveries`, lasand `orders.status`
+ * dezactualizat daca livrarea era planificata). Reutilizeaza `setOrderStatus` +
+ * `onOrderStatusChanged` (acelasi mecanism ca `deliverOrderAction` din
+ * orders/actions.ts) in loc sa duplice logica de tranzitie/efecte secundare
+ * (notificare email etc.) - nu exista RPC unic care sa scrie ambele tabele
+ * intr-o singura tranzactie, asa ca sunt doua apeluri secventiale (livrarea
+ * intai). Idempotent: daca statusul comenzii nu mai poate trece pe "delivered"
+ * (deja `delivered`/`closed`, sau `cancelled` - desincronizare neasteptata), nu
+ * facem nimic silentios - jurnalizam vizibil, dar NU aruncam mai departe:
+ * receptia livrarii ramane salvata indiferent (starea ei e sursa de adevar aici,
+ * la fel ca certificatul/notificarea din `onOrderStatusChanged`).
  */
 export async function confirmDeliveryReceipt(input: ConfirmReceiptInput): Promise<DeliveryRecord> {
   const receivedByName = requireNonEmpty(input.receivedByName, "Numele persoanei care confirmă");
@@ -307,5 +324,33 @@ export async function confirmDeliveryReceipt(input: ConfirmReceiptInput): Promis
     throw new Error(error?.message ?? "Nu am putut salva confirmarea recepției.");
   }
 
-  return mapDelivery(updated);
+  const delivery = mapDelivery(updated);
+
+  try {
+    const currentStatus = await getOrderStatus(delivery.orderId);
+    if (currentStatus === "accepted") {
+      const order = await setOrderStatus(delivery.orderId, "delivered");
+      await onOrderStatusChanged({
+        orderId: order.id,
+        organizationId: delivery.organizationId,
+        clientId: order.clientId,
+        fromStatus: currentStatus,
+        toStatus: "delivered",
+      });
+    } else if (currentStatus && currentStatus !== "delivered" && currentStatus !== "closed") {
+      // Stare neasteptata (draft/sent/cancelled): receptia a fost confirmata pe o
+      // livrare a carei comanda nu era "accepted" - desincronizare demna de
+      // investigat, dar NU trebuie sa piarda confirmarea de receptie deja salvata.
+      console.error(
+        `[deliveries] receptie confirmata pentru livrarea ${delivery.id}, dar comanda ${delivery.orderId} e in status "${currentStatus}" (nu poate trece automat pe "delivered").`,
+      );
+    }
+  } catch (err) {
+    console.error(
+      `[deliveries] nu am putut actualiza automat statusul comenzii ${delivery.orderId} la "delivered" dupa confirmarea receptiei livrarii ${delivery.id}:`,
+      err,
+    );
+  }
+
+  return delivery;
 }

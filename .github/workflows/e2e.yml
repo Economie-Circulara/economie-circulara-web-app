@@ -45,10 +45,15 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      # Fara `version:` explicit - detecteaza versiunea din pnpm-lock.yaml (acelasi
-      # `supabase` fixat in package.json ca devDependency). Evita rezolvarea
-      # "latest" la fiecare rulare, care a picat cu rate limit (vezi db.yml).
+      # `version:` explicit, sincronizata manual cu `supabase` din package.json
+      # (devDependency) si cu db.yml - vezi comentariul din db.yml pentru de ce
+      # NU se poate lasa fara `version:` ("detecteaza automat din lockfile" era o
+      # presupunere gresita: setup-cli@v1 nu citeste pnpm-lock.yaml). Evita si
+      # `version: latest`, care rezolva extern la fiecare rulare si pica cu rate
+      # limit.
       - uses: supabase/setup-cli@v1
+        with:
+          version: 2.117.0
 
       - name: Porneste Supabase local (aplica migrarile)
         run: supabase start

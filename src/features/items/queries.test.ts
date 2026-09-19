@@ -78,7 +78,9 @@ describe("listItems", () => {
     const itemsBuilder = makeQueryBuilder({ data: null, error: { message: "db down" } });
     createClient.mockResolvedValue({ from: vi.fn().mockReturnValue(itemsBuilder) });
 
-    await expect(listItems()).rejects.toThrow("Nu am putut incarca lista de itemi.");
+    await expect(listItems()).rejects.toThrow(
+      "Nu am putut incarca lista de materiale si servicii.",
+    );
   });
 });
 

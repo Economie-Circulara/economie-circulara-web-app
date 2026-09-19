@@ -165,7 +165,30 @@ Testele unitare sunt **colocate** langa cod (`*.test.ts` / `*.test.tsx`).
 - **FIFO implicit** la consumul loturilor, cu optiune de selectie manuala la productie.
 - Toate miscarile de stoc se inregistreaza in `stock_events` (audit de la inceput).
 - Retetele sunt in **procente**; fara versionare (reteta noua = produs nou).
-- Un **UM unic** per produs; fara conversii intre unitati.
+- Un **UM unic per produs** (`items.unit`) - asta ramane. Ce s-a schimbat (migrarea
+  `0028`, dupa doua bug-uri din productie): reteta stie acum sa **traduca intre
+  UM-uri diferite**, prin `recipe_components.conversion_factor` = cate unitati din
+  UM-ul itemului retetei corespund unei unitati din UM-ul componentei (ex. reteta pe
+  kg de beton, componenta nisip in mc, 1 mc ≈ 1500 kg -> 1500; implicit `1`, no-op
+  cand UM-urile coincid). Calculul, identic pentru ambele directii:
+  `cantitate_componenta = (percentage / 100 * cantitate_totala) / conversion_factor`
+  (`src/features/production/calc.ts`). Totalurile/pierderile se insumeaza DOAR in
+  UM-ul itemului retetei (`sumQtyInRecipeUnit`) - nu se mai aduna kg cu litri.
+  Exceptie documentata: certificatul de trasabilitate ramane un mass-balance fara
+  conversii, pentru ca merge pe loturi, nu pe componente de reteta (motivele, in
+  `src/features/certificates/traceability.ts`).
+- **Reteta are o directie explicita** (`recipes.direction`, migrarea `0028`), nu
+  dedusa din ecranul folosit: `compunere` = itemul retetei e OUTPUT-ul, componentele
+  sunt INPUT-urile consumate (BOM: beton <- apa + nisip + ciment); `descompunere` =
+  itemul e INPUT-ul, componentele sunt OUTPUT-urile rezultate (moloz -> nisip +
+  pietris + balast). Ambele sunt suportate complet. Wizard-ul de productie citeste
+  directia si, daca nu se potriveste cu fluxul deschis, refuza sa calculeze si
+  trimite in fluxul corect - inainte, acelasi set de date producea fluxuri inversate
+  in cele doua tab-uri ("graficul de reciclare arata invers").
+- **Itemii fizici pot fi "nelimitati"** (`items.is_tracked = false`, migrarea `0029`):
+  materiale generice fara stoc real (apa, aer). Se comporta ca orice item fizic, dar
+  sunt sarite de la consumul/scaderea de stoc si de la FIFO - exact ca serviciile in
+  `accept_order` (0022), acum si in `confirm_process`.
 - Un **client = un singur utilizator**; clientii sunt doar firme juridice.
 - Certificatul PDF se genereaza **automat la inchiderea** comenzii.
 - Clientul **nu** vede stocul si procesele interne - doar comenzile, documentele si
@@ -214,6 +237,39 @@ Testele unitare sunt **colocate** langa cod (`*.test.ts` / `*.test.tsx`).
     de harta (termenii Google Maps Platform).
   - Cheia Google **nu ajunge niciodata in browser**: harta se randeaza server-side ca
     imagine (data-URI base64), nu ca URL trimis catre client (`route-service.ts`).
+
+- **Orice comanda are un TIP explicit (`orders.order_type`, migrarea `0030`)** -
+  `material` / `serviciu` / `aport` - ales de om la creare, niciodata implicit in UI
+  (default-ul `material` din DB exista doar pentru backfill si pentru insert-urile
+  care nu trec prin formular: seed-uri, comenzi-retur). Tipul da SENSUL miscarii de
+  stoc:
+  - `material` - vanzare clasica, organizatie -> client; scade stocul la acceptare.
+  - `serviciu` - inchiriere / product-as-a-service; singurul tip pentru care se
+    completeaza `expected_return_date`.
+  - `aport` - **sens invers: clientul aduce material** catre organizatie (ex. moloz
+    pentru reciclare). Creste stocul la acceptare, prin RPC-ul dedicat
+    `accept_intake_order` (migrarea `0031`): cate un lot per linie, provenienta
+    `aport_client`, `lots.client_id` completat (singura cale prin care un lot stie
+    de la ce CLIENT provine) si `quality_status = 'unchecked'` - materialul unui
+    tert nu e verificat in momentul receptiei, QC-ul se face dupa. Comanda-aport NU
+    intra in masina de stari de vanzare: `draft -> accepted` si se opreste acolo,
+    exact ca o comanda-retur; `accept_order` (fluxul de vanzare) o refuza explicit.
+- **Eligibilitatea de retur/garantie depinde de tipul comenzii, nu doar de status**
+  (decizie 2026-09, `ALLOWED_RETURN_FLOWS_BY_ORDER_TYPE` in
+  `src/features/returns/types.ts`): retur PUR (`order_links.link_type = 'return'`,
+  marfa reintra in stoc fara inlocuire) SI garantie (`warranty`, care creeaza si
+  comanda de inlocuire) sunt permise pe `material` SI `serviciu`; pe `aport` niciun
+  flux (materialul a venit de la client, nu catre el). Verificarea de status
+  (`delivered`/`closed`) ramane in plus, nu in locul acesteia.
+  - **De ce si `material` are retur pur, nu doar garantie**: decizia initiala
+    (retur pur doar pe `serviciu`) a fost relaxata dupa ce datele demo
+    (`supabase/demo/seed-demo.sql`, scenariile RT2/RT3/RT4) au aratat exceptii
+    reale de business pe vanzari clasice de material - retur de AMBALAJE (paleti
+    EURO, un sistem de garantie/schimb standard in materiale de constructii, nu
+    o vanzare a paletului) si retur de SURPLUS nefolosit. Diferenta reala fata de
+    `serviciu` nu e "poate avea retur", ci e ca la `serviciu` returul e ASTEPTAT
+    DE LA INCEPUT (`expected_return_date` completat la creare) - la `material` e
+    o exceptie de la fluxul normal, nu regula.
 
 ### 4.1 Limitari cunoscute / trade-off-uri acceptate
 

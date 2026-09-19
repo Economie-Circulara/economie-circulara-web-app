@@ -23,7 +23,8 @@ Set de date complet pentru recepție și prezentări, izolat într-o organizați
   ~33 de procese (reciclare, producție, recondiționare, plus procese planificate / în lucru /
   în așteptare / anulate), ~47 de comenzi în toate statusurile, livrări cu UIT declarat /
   eșuat / nedeclarat, închirieri (una cu termen de retur depășit), retururi, o garanție cu
-  comandă de înlocuire, loturi blocate, o ajustare de inventar.
+  comandă de înlocuire, loturi blocate, o ajustare de inventar, două **aporturi** de la clienți
+  (unul acceptat - material intrat în stoc cu trasabilitate spre client, unul încă în ciornă).
 - **Certificate PDF** pentru toate comenzile închise și **documente atașate** (contracte,
   fișe tehnice, procese-verbale), marcate vizibil ca demonstrative.
 
@@ -34,7 +35,7 @@ ca notificările declanșate în timpul unei demonstrații să nu ajungă la ter
 
 `seed-demo.sql` rulează fiecare operațiune prin RPC-urile reale ale aplicației
 (`create_lot`, `confirm_process`, `accept_order`, `cancel_order`, `accept_return_order`,
-`set_lot_block`, `consume_fifo`) cu identitatea utilizatorului care ar fi făcut-o în UI, deci
+`accept_intake_order`, `set_lot_block`, `consume_fifo`) cu identitatea utilizatorului care ar fi făcut-o în UI, deci
 FIFO, verificările de stoc, RLS și auditul sunt cele din producție. La final verifică
 consistența stocului și face rollback complet la orice eroare.
 
