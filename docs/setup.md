@@ -58,6 +58,16 @@ pnpm gen:types    # regenereaza src/lib/database.types.ts din schema
 ```
 
 ### 2.4 Publica schema in cloud (cand e gata)
+
+Automat: workflow-ul `.github/workflows/db-deploy.yml` ruleaza `supabase db push` pe
+proiectul cloud legat de fiecare data cand `supabase/migrations/**` ajunge pe `main`
+(dupa merge). Necesita 3 secrete in Settings -> Secrets and variables -> Actions:
+`SUPABASE_ACCESS_TOKEN` (Account -> Access Tokens), `SUPABASE_PROJECT_REF` (Project
+Settings -> General) si `SUPABASE_DB_PASSWORD` (parola DB, Project Settings -> Database).
+Fara aceste secrete configurate, jobul pica si migrarea ramane neaplicata - vezi
+tab-ul Actions pe repo dupa orice merge care atinge `supabase/migrations/`.
+
+Manual (fallback, sau pentru o aplicare imediata fara sa astepti CI):
 ```bash
 pnpm supabase db push     # aplica migrarile locale pe proiectul cloud legat
 ```
