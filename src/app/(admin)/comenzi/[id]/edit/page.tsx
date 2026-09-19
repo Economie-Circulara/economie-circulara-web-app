@@ -7,6 +7,7 @@ import type { OrderEditorValue } from "@/features/orders/order-editor";
 import {
   getOrderDetail,
   listClientAddressesGrouped,
+  listIntakeItemOptions,
   listSellableItemOptions,
 } from "@/features/orders/queries";
 
@@ -31,16 +32,19 @@ export default async function EditOrderPage({ params }: EditOrderPageProps) {
   if (!order) notFound();
   if (order.status !== "draft") redirect(`/comenzi/${id}`);
 
-  const [clients, addressesByClient, itemOptions] = await Promise.all([
+  const [clients, addressesByClient, itemOptions, intakeItemOptions] = await Promise.all([
     listClients(),
     listClientAddressesGrouped(),
     listSellableItemOptions(),
+    listIntakeItemOptions(),
   ]);
 
   const initialValue: OrderEditorValue = {
+    orderType: order.orderType,
     clientId: order.clientId,
     deliveryAddressId: order.deliveryAddressId ?? "",
     deliveryDate: order.deliveryDate ?? "",
+    expectedReturnDate: order.expectedReturnDate ?? "",
     notes: order.notes ?? "",
     lines: order.items.map((item) => ({
       key: item.id,
@@ -65,6 +69,7 @@ export default async function EditOrderPage({ params }: EditOrderPageProps) {
         clients={clients}
         addressesByClient={addressesByClient}
         itemOptions={itemOptions}
+        intakeItemOptions={intakeItemOptions}
         initialValue={initialValue}
       />
     </div>

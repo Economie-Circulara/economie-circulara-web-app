@@ -263,9 +263,12 @@ export async function createOrderWithItems(input: CreateOrderInput): Promise<Ord
 export interface UpdateOrderInput {
   orderId: string;
   organizationId: string;
+  orderType: OrderType;
   clientId: string;
   deliveryAddressId?: string | null;
   deliveryDate?: string | null;
+  /** Trimisa doar cand `orderType === "serviciu"` (vezi migrarea 0030). */
+  expectedReturnDate?: string | null;
   notes?: string | null;
   lines: OrderLineInput[];
 }
@@ -306,9 +309,13 @@ export async function updateOrder(input: UpdateOrderInput): Promise<Order> {
   const { data: order, error: orderError } = await supabase
     .from("orders")
     .update({
+      order_type: input.orderType,
       client_id: input.clientId,
       delivery_address_id: input.deliveryAddressId ?? null,
       delivery_date: input.deliveryDate ?? null,
+      // La fel ca la creare: pastrata doar pt. `serviciu` (vezi migrarea 0030).
+      expected_return_date:
+        input.orderType === "serviciu" ? (input.expectedReturnDate ?? null) : null,
       notes: input.notes ?? null,
     })
     .eq("id", input.orderId)

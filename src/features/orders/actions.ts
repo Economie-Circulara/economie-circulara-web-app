@@ -122,6 +122,9 @@ export async function updateOrderAction(
   const orderId = clean(formData.get("order_id"));
   if (!orderId) return { error: "Comandă invalidă." };
 
+  const orderType = readOrderType(formData);
+  if (!orderType) return { error: "Alege tipul comenzii (material, serviciu sau aport)." };
+
   const clientId = clean(formData.get("client_id"));
   if (!clientId) return { error: "Alege un client." };
 
@@ -134,9 +137,11 @@ export async function updateOrderAction(
     await updateOrder({
       orderId,
       organizationId: user.organizationId,
+      orderType,
       clientId,
       deliveryAddressId: clean(formData.get("delivery_address_id")),
       deliveryDate: clean(formData.get("delivery_date")),
+      expectedReturnDate: clean(formData.get("expected_return_date")),
       notes: clean(formData.get("notes")),
       lines,
     });

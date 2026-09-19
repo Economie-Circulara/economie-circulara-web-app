@@ -173,17 +173,21 @@ export async function listSellableItemOptions(): Promise<ItemOption[]> {
 
 /**
  * Itemii care pot aparea pe o comanda de tip `aport` (material adus de client):
- * ORICE item fizic din catalog, indiferent de `sellable`. Motivatie (migrarea
- * 0030): ce aduce clientul (ex. moloz de demolare) e de regula o materie prima
- * NEVANDABILA - filtrul `sellable` de la vanzare ar ascunde exact itemii relevanti.
- * Serviciile (`kind = 'service'`) sunt excluse: nu au stoc, deci nu pot fi "aduse".
+ * ORICE item fizic TRASAT din catalog, indiferent de `sellable`. Motivatie
+ * (migrarea 0030): ce aduce clientul (ex. moloz de demolare) e de regula o
+ * materie prima NEVANDABILA - filtrul `sellable` de la vanzare ar ascunde exact
+ * itemii relevanti. Serviciile (`kind = 'service'`) sunt excluse: nu au stoc,
+ * deci nu pot fi "aduse". Itemii netrasati (`is_tracked = false`, migrarea 0029 -
+ * ex. apa) sunt exclusi si ei: n-are sens sa "aduci" ceva declarat explicit fara
+ * cantitate limitata/fara stoc.
  */
 export async function listIntakeItemOptions(): Promise<ItemOption[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("items")
-    .select("id, title, unit, kind")
+    .select("id, title, unit, kind, is_tracked")
     .eq("kind", "physical")
+    .eq("is_tracked", true)
     .order("title");
   if (error) throw new Error("Nu am putut incarca itemii fizici pentru aport.");
 
@@ -192,6 +196,7 @@ export async function listIntakeItemOptions(): Promise<ItemOption[]> {
     title: row.title,
     unit: row.unit,
     kind: row.kind,
+    isTracked: row.is_tracked,
   }));
 }
 

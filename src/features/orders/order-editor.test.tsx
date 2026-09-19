@@ -46,7 +46,7 @@ const ITEMS: ItemOption[] = [
 ];
 /** Itemi fizici nevandabili - oferiti doar pe comenzile de tip `aport` (migrarea 0030). */
 const INTAKE_ITEMS: ItemOption[] = [
-  { id: "i9", title: "Moloz demolare", unit: "tona", kind: "physical" },
+  { id: "i9", title: "Moloz demolare", unit: "tona", kind: "physical", isTracked: true },
 ];
 
 /**

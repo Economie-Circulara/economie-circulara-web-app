@@ -13,8 +13,10 @@ interface OrderEditFormProps {
   clients: Client[];
   /** Adresele fiecarui client, precalculate - evita un fetch suplimentar la schimbarea clientului. */
   addressesByClient: Record<string, ClientAddress[]>;
-  /** Itemi vandabili (catalog client) - singurele linii permise intr-o comanda. */
+  /** Itemi vandabili (catalog client) - liniile unei comenzi `material`/`serviciu`. */
   itemOptions: ItemOption[];
+  /** Itemi fizici (si nevandabili) - liniile unei comenzi de tip `aport`. */
+  intakeItemOptions: ItemOption[];
   /** Valorile initiale, precompletate din comanda draft existenta. */
   initialValue: OrderEditorValue;
 }
@@ -31,6 +33,7 @@ export function OrderEditForm({
   clients,
   addressesByClient,
   itemOptions,
+  intakeItemOptions,
   initialValue,
 }: OrderEditFormProps) {
   const [state, formAction, pending] = useActionState(updateOrderAction, initialOrderFormState);
@@ -43,6 +46,7 @@ export function OrderEditForm({
         clients={clients}
         addressesByClient={addressesByClient}
         itemOptions={itemOptions}
+        intakeItemOptions={intakeItemOptions}
         value={draft}
         onChange={setDraft}
         nativeFormFields
@@ -51,7 +55,7 @@ export function OrderEditForm({
       {state.error ? <p className="text-sm text-danger">{state.error}</p> : null}
 
       <div className="flex gap-3">
-        <Button type="submit" disabled={pending || draft.lines.length === 0}>
+        <Button type="submit" disabled={pending || !draft.orderType || draft.lines.length === 0}>
           {pending ? "Se salvează..." : "Salvează modificările"}
         </Button>
       </div>
