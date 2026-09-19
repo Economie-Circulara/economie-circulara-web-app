@@ -87,6 +87,9 @@ describe("createItemAction", () => {
       description: "Abonament lunar",
       unit: "bucata",
       kind: "service",
+      // Serviciile nu au comutator de urmarire in formular - mereu `true`
+      // (irelevant: sunt sarite de la stoc pe ramura de `kind`). Migrarea 0029.
+      isTracked: true,
       sellable: true,
       imageUrl: null,
     });
@@ -105,6 +108,34 @@ describe("createItemAction", () => {
     ).rejects.toThrow("REDIRECT:/itemi");
 
     expect(createItem).toHaveBeenCalledWith(expect.objectContaining({ sellable: false }));
+  });
+
+  it("trateaza checkbox-ul 'Urmărește stocul' necompletat ca item nelimitat (fizic)", async () => {
+    requireRole.mockResolvedValue({ id: "u1", organizationId: "org-1" });
+    createItem.mockResolvedValue({ id: "item-1" });
+
+    await expect(
+      createItemAction(
+        initialItemFormState,
+        formData({ title: "Apă tehnologică", unit: "litru", kind: "physical" }),
+      ),
+    ).rejects.toThrow("REDIRECT:/itemi");
+
+    expect(createItem).toHaveBeenCalledWith(expect.objectContaining({ isTracked: false }));
+  });
+
+  it("pastreaza urmarirea stocului cand checkbox-ul e bifat", async () => {
+    requireRole.mockResolvedValue({ id: "u1", organizationId: "org-1" });
+    createItem.mockResolvedValue({ id: "item-1" });
+
+    await expect(
+      createItemAction(
+        initialItemFormState,
+        formData({ title: "Nisip", unit: "tona", kind: "physical", is_tracked: "on" }),
+      ),
+    ).rejects.toThrow("REDIRECT:/itemi");
+
+    expect(createItem).toHaveBeenCalledWith(expect.objectContaining({ isTracked: true }));
   });
 
   it("returneaza eroarea serviciului fara redirect", async () => {

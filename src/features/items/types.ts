@@ -10,6 +10,13 @@ export interface Item {
   description: string | null;
   unit: UnitOfMeasure;
   kind: ItemKind;
+  /**
+   * Doar pentru `kind = 'physical'` (migrarea 0029): `false` = material generic,
+   * fara cantitate limitata (apa, aer) - nu se consuma/scade din stoc si nu
+   * participa la consumul FIFO. Itemii `service` au mereu `true` (irelevant - ei
+   * sunt sariti oricum, pe ramura de `kind`).
+   */
+  isTracked: boolean;
   sellable: boolean;
   imageUrl: string | null;
   createdAt: string;
@@ -27,4 +34,6 @@ export interface ItemOption {
   title: string;
   unit: UnitOfMeasure;
   kind: ItemKind;
+  /** Vezi `Item.isTracked` - wizard-urile de productie sar itemii netrasati de la FIFO. */
+  isTracked: boolean;
 }

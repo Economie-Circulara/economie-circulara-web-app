@@ -60,6 +60,17 @@ function parseSellable(formData: FormData): boolean {
   return formData.get("sellable") === "on";
 }
 
+/**
+ * `items.is_tracked` (migrarea 0029). Comutatorul e afisat DOAR pentru itemii
+ * fizici (item-form.tsx), deci pentru servicii cheia lipseste din payload - acolo
+ * ramane `true` (irelevant: serviciile sunt sarite de la stoc pe ramura de `kind`).
+ * Pentru itemii fizici, un checkbox nebifat nu trimite nimic => `false`.
+ */
+function parseIsTracked(formData: FormData, kind: ItemKind): boolean {
+  if (kind !== "physical") return true;
+  return formData.get("is_tracked") === "on";
+}
+
 /** Creeaza un item nou in catalog (formularul /itemi/nou) - doar staff (admin/operator). */
 export async function createItemAction(
   _prev: ItemFormState,
@@ -97,6 +108,7 @@ export async function createItemAction(
       description: clean(formData.get("description")),
       unit,
       kind,
+      isTracked: parseIsTracked(formData, kind),
       sellable: parseSellable(formData),
       imageUrl,
     });
@@ -146,6 +158,7 @@ export async function updateItemAction(
       description: clean(formData.get("description")),
       unit,
       kind,
+      isTracked: parseIsTracked(formData, kind),
       sellable: parseSellable(formData),
       ...imagePatch,
     });

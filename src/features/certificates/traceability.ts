@@ -19,16 +19,33 @@ import type { DeliveredLotLine, MaterialOriginRow, RawLot, TraceabilityRawData }
  * unic - un certificat poate avea lanturi de adancimi diferite, ex.
  * recondiționare urmata de o noua productie).
  *
- * Alocarea cantitatilor (mass-balance simplificat, fara conversii de UM - vezi
- * AGENTS.md §4 "Un UM unic per produs; fara conversii intre unitati"): daca
- * dintr-un lot produs in cantitate `totalOutputQty` de un proces s-a consumat
- * doar `qty` pentru aceasta comanda, presupunem un amestec omogen si atribuim
- * fiecarui input al procesului o cota proportionala `qty / totalOutputQty`.
- * Aceeasi cota se propaga recursiv in adancime. Nu se valideaza randamentul
- * (pierderile de proces raman doar informative - AGENTS.md §4), deci suma
- * cantitatilor atribuite surselor poate sa nu acopere exact 100% din masa
- * initiala a proceselor intermediare; procentele din tabelul "Materiale și
- * origine" insumeaza mereu 100% intre ele (sunt normalizate la finalul livrat).
+ * Alocarea cantitatilor (mass-balance simplificat): daca dintr-un lot produs in
+ * cantitate `totalOutputQty` de un proces s-a consumat doar `qty` pentru aceasta
+ * comanda, presupunem un amestec omogen si atribuim fiecarui input al procesului
+ * o cota proportionala `qty / totalOutputQty`. Aceeasi cota se propaga recursiv in
+ * adancime. Nu se valideaza randamentul (pierderile de proces raman doar
+ * informative - AGENTS.md §4), deci suma cantitatilor atribuite surselor poate sa
+ * nu acopere exact 100% din masa initiala a proceselor intermediare; procentele
+ * din tabelul "Materiale și origine" insumeaza mereu 100% intre ele (sunt
+ * normalizate la finalul livrat).
+ *
+ * DECIZIE (migrarea 0028, conversii de UM pe componentele de rețetă): certificatul
+ * NU aplica `conversion_factor` si ramane, deliberat, un mass-balance fara
+ * conversii. Motive:
+ *   1. Traversarea merge pe LOTURI (`process_inputs`/`process_outputs`), nu pe
+ *      componente de rețetă - un lot consumat nu e legat de randul de
+ *      `recipe_components` care l-a "cerut" (procesele pot fi pornite si fara
+ *      rețetă, iar rețeta se poate schimba ulterior), deci nu exista un factor de
+ *      conversie pe care sa il aplici cu certitudine acelui lot.
+ *   2. Cotele calculate aici sunt RAPOARTE adimensionale (`qty / totalOutputQty`)
+ *      in interiorul aceluiasi item, deci conversia s-ar simplifica oricum -
+ *      procentele din tabelul de materiale raman corecte.
+ *   3. Singurul lucru afectat sunt cantitatile ABSOLUTE agregate pe un lant cu
+ *      UM-uri mixte (ex. 2 mc + 1 tona), afisate ca atare, cu unitatea fiecarui
+ *      item alaturi - nu ca un total unic.
+ * Follow-up posibil daca se cere un bilant masic strict pe certificat: persistarea
+ * `recipe_component_id` (sau direct a factorului aplicat) pe `process_inputs`, la
+ * confirmarea procesului.
  */
 
 interface BuildContext {

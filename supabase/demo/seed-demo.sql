@@ -226,25 +226,40 @@ begin
     v_ids := v_ids || jsonb_build_object(u.k, v_id);
   end loop;
 
-  -- Retete: pentru produse = compozitie (consum per unitate de output); pentru deseuri
-  -- = descompunerea in fractii la reciclare (vezi migrarea 0008).
+  -- Retete - fiecare cu DIRECTIA explicita (migrarea 0028):
+  --   * 'descompunere' = itemul retetei e materialul de INTRARE, componentele sunt
+  --     fractiile REZULTATE (deseurile concasate: R_MOLOZ, R_CERAMIC);
+  --   * 'compunere'    = itemul retetei e produsul OBTINUT, componentele sunt
+  --     materialele CONSUMATE (produsele: pavele, borduri, blocuri, beton).
+  -- Al treilea numar din fiecare componenta e `conversion_factor`: cate unitati din
+  -- UM-ul itemului retetei corespund unei unitati din UM-ul componentei. Deseurile
+  -- au totul in tone (factor 1); produsele au UM-uri mixte:
+  --   * pavele  - 1 palet ≈ 9 mp × 6 cm × 2,3 t/mc ≈ 1,24 t  -> 1 t ≈ 0,806452 paleti
+  --   * borduri - 1 palet = 24 buc × 0,0375 mc × 2,4 t/mc ≈ 2,16 t -> 1 t ≈ 0,462963
+  --   * blocuri - 1 palet ≈ 1,05 t                             -> 1 t ≈ 0,952381
+  --   * beton   - 1 mc ≈ 2,4 t                                 -> 1 t ≈ 0,416667 mc
   for u in
     select * from (values
-      ('R_MOLOZ',   'I_MOLOZ',   '[["I_AGR04",40],["I_AGR416",28],["I_AGR1631",22]]'),
-      ('R_CERAMIC', 'I_CERAMIC', '[["I_BALAST",88]]'),
-      ('R_PAVELE',  'I_PAVELE',  '[["I_AGR04",45],["I_NISIP",25],["I_CIMENT",15]]'),
-      ('R_BORDURI', 'I_BORDURI', '[["I_AGR416",50],["I_AGR04",30],["I_CIMENT",20]]'),
-      ('R_BLOCURI', 'I_BLOCURI', '[["I_AGR04",40],["I_BALAST",30],["I_CIMENT",15]]'),
-      ('R_BETON',   'I_BETON',   '[["I_AGR416",45],["I_AGR04",30],["I_CIMENT",15],["I_NISIP",10]]')
-    ) as t(k, item, components)
+      ('R_MOLOZ',   'I_MOLOZ',   'descompunere', '[["I_AGR04",40,1],["I_AGR416",28,1],["I_AGR1631",22,1]]'),
+      ('R_CERAMIC', 'I_CERAMIC', 'descompunere', '[["I_BALAST",88,1]]'),
+      ('R_PAVELE',  'I_PAVELE',  'compunere',    '[["I_AGR04",45,0.806452],["I_NISIP",25,0.806452],["I_CIMENT",15,0.806452]]'),
+      ('R_BORDURI', 'I_BORDURI', 'compunere',    '[["I_AGR416",50,0.462963],["I_AGR04",30,0.462963],["I_CIMENT",20,0.462963]]'),
+      ('R_BLOCURI', 'I_BLOCURI', 'compunere',    '[["I_AGR04",40,0.952381],["I_BALAST",30,0.952381],["I_CIMENT",15,0.952381]]'),
+      ('R_BETON',   'I_BETON',   'compunere',    '[["I_AGR416",45,0.416667],["I_AGR04",30,0.416667],["I_CIMENT",15,0.416667],["I_NISIP",10,0.416667]]')
+    ) as t(k, item, direction, components)
   loop
-    insert into public.recipes (organization_id, item_id, created_at, updated_at)
-    values (v_org, pg_temp.idof(v_ids, u.item), v_start - 20, v_start - 20)
+    insert into public.recipes (organization_id, item_id, direction, created_at, updated_at)
+    values (v_org, pg_temp.idof(v_ids, u.item), u.direction::public.recipe_direction,
+            v_start - 20, v_start - 20)
     returning id into v_id;
     v_ids := v_ids || jsonb_build_object(u.k, v_id);
     for l in select value from jsonb_array_elements(u.components::jsonb) loop
-      insert into public.recipe_components (organization_id, recipe_id, component_item_id, percentage, created_at, updated_at)
-      values (v_org, v_id, pg_temp.idof(v_ids, l->>0), (l->>1)::numeric, v_start - 20, v_start - 20);
+      insert into public.recipe_components (
+        organization_id, recipe_id, component_item_id, percentage, conversion_factor,
+        created_at, updated_at
+      )
+      values (v_org, v_id, pg_temp.idof(v_ids, l->>0), (l->>1)::numeric, (l->>2)::numeric,
+              v_start - 20, v_start - 20);
     end loop;
   end loop;
 

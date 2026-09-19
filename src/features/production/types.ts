@@ -39,7 +39,17 @@ export interface ProcessLotLine {
   itemId: string;
   itemTitle: string;
   unit: UnitOfMeasure;
+  /** Cantitatea in UM-ul PROPRIU al itemului (`unit`) - cea afisata ca text. */
   quantity: number;
+  /**
+   * Optional (migrarea 0028): aceeasi cantitate exprimata intr-o unitate COMUNA
+   * tuturor liniilor procesului (UM-ul itemului rețetei), folosita DOAR pentru
+   * dimensionarea nodurilor/panglicilor din Sankey. Fara ea, un proces cu
+   * componente in kg, litri si mc ar desena grosimi incomparabile. Lipsa =>
+   * se foloseste `quantity` (procesele deja salvate, unde toate liniile provin
+   * din loturi si nu mai stim reteta).
+   */
+  baseQuantity?: number;
   /** Doar pt. outputuri: proveniența lotului nou creat. */
   provenance?: LotProvenance;
 }

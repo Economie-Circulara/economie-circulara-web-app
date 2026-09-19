@@ -165,7 +165,30 @@ Testele unitare sunt **colocate** langa cod (`*.test.ts` / `*.test.tsx`).
 - **FIFO implicit** la consumul loturilor, cu optiune de selectie manuala la productie.
 - Toate miscarile de stoc se inregistreaza in `stock_events` (audit de la inceput).
 - Retetele sunt in **procente**; fara versionare (reteta noua = produs nou).
-- Un **UM unic** per produs; fara conversii intre unitati.
+- Un **UM unic per produs** (`items.unit`) - asta ramane. Ce s-a schimbat (migrarea
+  `0028`, dupa doua bug-uri din productie): reteta stie acum sa **traduca intre
+  UM-uri diferite**, prin `recipe_components.conversion_factor` = cate unitati din
+  UM-ul itemului retetei corespund unei unitati din UM-ul componentei (ex. reteta pe
+  kg de beton, componenta nisip in mc, 1 mc ≈ 1500 kg -> 1500; implicit `1`, no-op
+  cand UM-urile coincid). Calculul, identic pentru ambele directii:
+  `cantitate_componenta = (percentage / 100 * cantitate_totala) / conversion_factor`
+  (`src/features/production/calc.ts`). Totalurile/pierderile se insumeaza DOAR in
+  UM-ul itemului retetei (`sumQtyInRecipeUnit`) - nu se mai aduna kg cu litri.
+  Exceptie documentata: certificatul de trasabilitate ramane un mass-balance fara
+  conversii, pentru ca merge pe loturi, nu pe componente de reteta (motivele, in
+  `src/features/certificates/traceability.ts`).
+- **Reteta are o directie explicita** (`recipes.direction`, migrarea `0028`), nu
+  dedusa din ecranul folosit: `compunere` = itemul retetei e OUTPUT-ul, componentele
+  sunt INPUT-urile consumate (BOM: beton <- apa + nisip + ciment); `descompunere` =
+  itemul e INPUT-ul, componentele sunt OUTPUT-urile rezultate (moloz -> nisip +
+  pietris + balast). Ambele sunt suportate complet. Wizard-ul de productie citeste
+  directia si, daca nu se potriveste cu fluxul deschis, refuza sa calculeze si
+  trimite in fluxul corect - inainte, acelasi set de date producea fluxuri inversate
+  in cele doua tab-uri ("graficul de reciclare arata invers").
+- **Itemii fizici pot fi "nelimitati"** (`items.is_tracked = false`, migrarea `0029`):
+  materiale generice fara stoc real (apa, aer). Se comporta ca orice item fizic, dar
+  sunt sarite de la consumul/scaderea de stoc si de la FIFO - exact ca serviciile in
+  `accept_order` (0022), acum si in `confirm_process`.
 - Un **client = un singur utilizator**; clientii sunt doar firme juridice.
 - Certificatul PDF se genereaza **automat la inchiderea** comenzii.
 - Clientul **nu** vede stocul si procesele interne - doar comenzile, documentele si

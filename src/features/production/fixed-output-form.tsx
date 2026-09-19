@@ -4,10 +4,11 @@ import { useEffect, useMemo, useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { FormField } from "@/components/form-field";
+import { DIRECTION_SHORT_LABELS } from "@/features/recipes/labels";
 import type { RecipeDetail, RecipeListRow } from "@/features/recipes/types";
 import type { FifoAllocation } from "@/features/stock/service";
 import { confirmProcessAction, getFifoPreview, getRecipeForItem } from "./actions";
-import { computeRequiredConsumption, sumQty } from "./calc";
+import { computeRequiredConsumption, sumQtyInRecipeUnit } from "./calc";
 import { SankeyDiagram } from "./sankey-diagram";
 import { buildProcessSankeyData } from "./sankey-data";
 import { PRODUCTION_KIND_LABELS, PRODUCTION_KIND_OPTIONS } from "./labels";
@@ -22,6 +23,10 @@ interface PreviewLine {
   itemTitle: string;
   unit: UnitOfMeasure;
   qty: number;
+  /** Aceeasi cantitate in UM-ul produsului (reteta) - singura comparabila intre linii. */
+  qtyInRecipeUnit: number;
+  /** `items.is_tracked` - itemii nelimitati (apa, aer) nu se consuma din stoc (0029). */
+  isTracked: boolean;
   allocation: FifoAllocation[];
   availableQty: number;
   error: string | null;
@@ -33,12 +38,30 @@ interface FifoResult {
   error: string | null;
 }
 
+export interface FixedOutputFormProps {
+  recipes: RecipeListRow[];
+  recipeItemId: string;
+  onRecipeItemIdChange: (itemId: string) => void;
+  /** Deschide acelasi item in fluxul 4b (cand rețeta lui e de descompunere). */
+  onOpenInVariableFlow: (itemId: string) => void;
+}
+
 /**
  * 4a - Output fix (fabricație): alegi rețeta/produsul + cantitatea de output
- * dorită, sistemul calculează automat consumul FIFO pe fiecare componentă.
+ * dorită, sistemul calculează automat consumul FIFO pe fiecare componentă,
+ * convertit in UM-ul propriu al componentei (`conversion_factor`, migrarea 0028).
+ *
+ * Fluxul are sens DOAR pentru rețete de `compunere` (itemul rețetei = output,
+ * componentele = input). Daca rețeta aleasa e de `descompunere`, formularul NU
+ * calculeaza nimic (ar inversa input-ul cu output-ul) si trimite utilizatorul in
+ * fluxul 4b.
  */
-export function FixedOutputForm({ recipes }: { recipes: RecipeListRow[] }) {
-  const [recipeItemId, setRecipeItemId] = useState(recipes[0]?.itemId ?? "");
+export function FixedOutputForm({
+  recipes,
+  recipeItemId,
+  onRecipeItemIdChange,
+  onOpenInVariableFlow,
+}: FixedOutputFormProps) {
   const [qty, setQty] = useState("");
   const [kind, setKind] = useState<ProductionKind>("productie");
   const [components, setComponents] = useState<RecipeDetail | null>(null);
@@ -52,6 +75,8 @@ export function FixedOutputForm({ recipes }: { recipes: RecipeListRow[] }) {
 
   const selectedRecipe = recipes.find((r) => r.itemId === recipeItemId) ?? null;
   const desiredQty = Number(qty.replace(",", "."));
+  // Directia vine din reteta (DB), nu din tab-ul deschis - vezi process-wizard.tsx.
+  const directionMismatch = selectedRecipe?.direction === "descompunere";
 
   useEffect(() => {
     if (!recipeItemId) return;
@@ -59,7 +84,8 @@ export function FixedOutputForm({ recipes }: { recipes: RecipeListRow[] }) {
   }, [recipeItemId]);
 
   const requiredLines = useMemo(() => {
-    if (!components || !Number.isFinite(desiredQty) || desiredQty <= 0) return [];
+    if (!components || components.direction !== "compunere") return [];
+    if (!Number.isFinite(desiredQty) || desiredQty <= 0) return [];
     try {
       return computeRequiredConsumption(components.components, desiredQty);
     } catch {
@@ -67,7 +93,11 @@ export function FixedOutputForm({ recipes }: { recipes: RecipeListRow[] }) {
     }
   }, [components, desiredQty]);
 
-  const requiredLinesKey = useMemo(() => JSON.stringify(requiredLines), [requiredLines]);
+  // Doar componentele urmarite in stoc ajung la preview-ul FIFO: un item
+  // `is_tracked = false` (apa, aer) nu are loturi, iar `consume_fifo` ar raporta
+  // "stoc insuficient" - exact ce sare si RPC-ul la confirmare (migrarea 0029).
+  const trackedLines = useMemo(() => requiredLines.filter((l) => l.isTracked), [requiredLines]);
+  const trackedLinesKey = useMemo(() => JSON.stringify(trackedLines), [trackedLines]);
 
   // Preview-ul FIFO se calculeaza server-side (planFifoConsumption ruleaza in
   // stock/service.ts, cu acces la loturile din DB) - aici doar il combinam cu
@@ -76,10 +106,10 @@ export function FixedOutputForm({ recipes }: { recipes: RecipeListRow[] }) {
   // fiecare schimbare (evitam setState sincron in corpul efectului - singurele
   // apeluri de setState de mai jos sunt in interiorul `.then()`, dupa fetch).
   useEffect(() => {
-    if (requiredLines.length === 0) return;
+    if (trackedLines.length === 0) return;
     let cancelled = false;
     const timeout = setTimeout(() => {
-      getFifoPreview(requiredLines.map((l) => ({ itemId: l.itemId, qty: l.qty }))).then(
+      getFifoPreview(trackedLines.map((l) => ({ itemId: l.itemId, qty: l.qty }))).then(
         (results) => {
           if (cancelled) return;
           const next: Record<string, FifoResult> = {};
@@ -91,7 +121,7 @@ export function FixedOutputForm({ recipes }: { recipes: RecipeListRow[] }) {
             };
           });
           setFifoResults(next);
-          setFifoResultsKey(requiredLinesKey);
+          setFifoResultsKey(trackedLinesKey);
         },
       );
     }, 250);
@@ -99,20 +129,22 @@ export function FixedOutputForm({ recipes }: { recipes: RecipeListRow[] }) {
       cancelled = true;
       clearTimeout(timeout);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- requiredLines e derivat, comparam continutul prin requiredLinesKey
-  }, [requiredLinesKey]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- trackedLines e derivat, comparam continutul prin trackedLinesKey
+  }, [trackedLinesKey]);
 
-  const loadingPreview = requiredLines.length > 0 && fifoResultsKey !== requiredLinesKey;
+  const loadingPreview = trackedLines.length > 0 && fifoResultsKey !== trackedLinesKey;
 
   const preview: PreviewLine[] = useMemo(
     () =>
       requiredLines.map((line) => {
-        const result = fifoResults[line.itemId];
+        const result = line.isTracked ? fifoResults[line.itemId] : undefined;
         return {
           itemId: line.itemId,
           itemTitle: line.itemTitle,
           unit: line.unit,
           qty: line.qty,
+          qtyInRecipeUnit: line.qtyInRecipeUnit,
+          isTracked: line.isTracked,
           allocation: result?.allocation ?? [],
           availableQty: result?.availableQty ?? 0,
           error: result?.error ?? null,
@@ -122,9 +154,12 @@ export function FixedOutputForm({ recipes }: { recipes: RecipeListRow[] }) {
   );
 
   const hasErrors = preview.some((p) => p.error);
-  const totalIn = sumQty(preview.map((p) => ({ qty: p.qty })));
+  // Totalul de intrare se insumeaza in UM-ul produsului (conversie aplicata),
+  // altfel s-ar aduna kg cu litri si mc - migrarea 0028.
+  const totalIn = sumQtyInRecipeUnit(preview);
   const canConfirm =
     Boolean(selectedRecipe) &&
+    !directionMismatch &&
     desiredQty > 0 &&
     preview.length > 0 &&
     !hasErrors &&
@@ -139,9 +174,10 @@ export function FixedOutputForm({ recipes }: { recipes: RecipeListRow[] }) {
           itemTitle: p.itemTitle,
           unit: p.unit,
           quantity: p.qty,
+          baseQuantity: p.qtyInRecipeUnit,
         })),
         outputs:
-          selectedRecipe && desiredQty > 0
+          selectedRecipe && desiredQty > 0 && !directionMismatch
             ? [
                 {
                   lotId: "preview-out",
@@ -153,7 +189,7 @@ export function FixedOutputForm({ recipes }: { recipes: RecipeListRow[] }) {
               ]
             : [],
       }),
-    [preview, selectedRecipe, desiredQty],
+    [preview, selectedRecipe, desiredQty, directionMismatch],
   );
 
   function onConfirm() {
@@ -164,6 +200,8 @@ export function FixedOutputForm({ recipes }: { recipes: RecipeListRow[] }) {
         type: "output_fixed",
         outputItemId: selectedRecipe.itemId,
         recipeId: selectedRecipe.recipeId,
+        // Itemii nelimitati se trimit oricum (documenteaza reteta folosita), dar
+        // RPC-ul `confirm_process` ii sare la consum - migrarea 0029.
         inputs: preview.map((p) => ({
           itemId: p.itemId,
           lotIds: p.allocation.map((a) => a.lotId),
@@ -184,23 +222,49 @@ export function FixedOutputForm({ recipes }: { recipes: RecipeListRow[] }) {
   return (
     <div className="grid grid-cols-1 gap-0 rounded-b-lg border border-t-0 bg-card md:grid-cols-[380px_1fr]">
       <div className="space-y-4 border-b p-6 md:border-b-0 md:border-r">
-        <FormField label="Rețetă / produs" required>
+        <FormField
+          label="Rețetă / produs"
+          required
+          hint={
+            selectedRecipe
+              ? `Direcție: ${DIRECTION_SHORT_LABELS[selectedRecipe.direction]}`
+              : undefined
+          }
+        >
           {(id) => (
             <select
               id={id}
               className={selectClassName}
               value={recipeItemId}
-              onChange={(e) => setRecipeItemId(e.target.value)}
+              onChange={(e) => onRecipeItemIdChange(e.target.value)}
             >
               {recipes.length === 0 ? <option value="">Nicio rețetă definită</option> : null}
               {recipes.map((r) => (
                 <option key={r.itemId} value={r.itemId}>
-                  {r.itemTitle}
+                  {r.itemTitle} ({DIRECTION_SHORT_LABELS[r.direction]})
                 </option>
               ))}
             </select>
           )}
         </FormField>
+
+        {directionMismatch && selectedRecipe ? (
+          <div className="space-y-2 rounded-md border border-warn bg-warn/10 px-3 py-2 text-sm">
+            <p className="text-warn">
+              Rețeta &quot;{selectedRecipe.itemTitle}&quot; este de <strong>descompunere</strong>:
+              itemul ei este materialul de INTRARE, iar componentele sunt fracțiile REZULTATE.
+              Fabricația cu output fix ar inversa fluxul, așa că nu calculăm nimic aici.
+            </p>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => onOpenInVariableFlow(selectedRecipe.itemId)}
+            >
+              Deschide în &quot;Output variabil - Reciclare&quot; {"->"}
+            </Button>
+          </div>
+        ) : null}
 
         <FormField label="Tip proces" required>
           {(id) => (
@@ -231,6 +295,7 @@ export function FixedOutputForm({ recipes }: { recipes: RecipeListRow[] }) {
               value={qty}
               onChange={(e) => setQty(e.target.value)}
               placeholder="0"
+              disabled={directionMismatch}
             />
           )}
         </FormField>
@@ -261,8 +326,14 @@ export function FixedOutputForm({ recipes }: { recipes: RecipeListRow[] }) {
                     </span>
                   </div>
                   <div className="flex items-baseline justify-between text-xs text-muted-foreground">
-                    <span>{line.allocation.length} lot(uri)</span>
-                    <span>disponibil {line.availableQty}</span>
+                    {line.isTracked ? (
+                      <>
+                        <span>{line.allocation.length} lot(uri)</span>
+                        <span>disponibil {line.availableQty}</span>
+                      </>
+                    ) : (
+                      <span>nelimitat - nu se consumă din stoc</span>
+                    )}
                   </div>
                   {line.error ? <p className="mt-1 text-xs text-danger">{line.error}</p> : null}
                 </li>
@@ -291,7 +362,8 @@ export function FixedOutputForm({ recipes }: { recipes: RecipeListRow[] }) {
         <div className="flex items-center justify-between gap-4 border-t pt-4">
           <p className="text-sm text-muted-foreground">
             Total intrare{" "}
-            <span className="font-medium tabular-nums text-foreground">{totalIn}</span> {"->"}{" "}
+            <span className="font-medium tabular-nums text-foreground">{totalIn}</span>{" "}
+            {selectedRecipe?.unit} {"->"}{" "}
             <span className="font-medium text-foreground">
               {desiredQty > 0 ? desiredQty : 0} {selectedRecipe?.unit}
             </span>{" "}

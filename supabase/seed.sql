@@ -121,6 +121,7 @@ declare
   v_item_beton      uuid;
   v_item_umplutura  uuid;
   v_item_abonament  uuid;
+  v_item_apa        uuid;
 
   v_recipe_moloz    uuid;
   v_recipe_caramizi uuid;
@@ -214,35 +215,63 @@ begin
     'bucata', 'service', true
   ) returning id into v_item_abonament;
 
+  -- Item fizic FARA urmarire de stoc (migrarea 0029): apa de la retea intra in
+  -- reteta de beton, dar nu are loturi si nu se consuma din stoc.
+  insert into public.items (organization_id, title, description, unit, kind, sellable, is_tracked)
+  values (
+    v_org, 'Apă tehnologică', 'Apă de rețea pentru prepararea betonului - material nelimitat, fără stoc.',
+    'litru', 'physical', false, false
+  ) returning id into v_item_apa;
+
   -- ---------------------------------------------------------------------------
-  -- 3. Rețete (procente; "reteta" e folosita atat pentru compozitia unui produs
-  --    finit - 4a output fix - cat si pentru descompunerea in fractii a unui
-  --    material la reciclare - 4b input fix, vezi migrarea 0008 si
-  --    src/features/production/variable-output-form.tsx)
+  -- 3. Rețete - fiecare cu DIRECTIA explicita (migrarea 0028):
+  --      * `descompunere` = itemul retetei e materialul de INTRARE, componentele
+  --        sunt fractiile REZULTATE (reciclare) - fluxul 4b, input fix;
+  --      * `compunere`    = itemul retetei e produsul OBTINUT, componentele sunt
+  --        materialele CONSUMATE (BOM) - fluxul 4a, output fix.
+  --    `conversion_factor` = cate unitati din UM-ul itemului retetei corespund
+  --    unei unitati din UM-ul componentei. Aici se vede la carămizi (bucata <-
+  --    tonă) si la beton (mc <- tonă / litru); la moloz toate UM-urile sunt tone,
+  --    deci factorul ramane 1.
   -- ---------------------------------------------------------------------------
-  insert into public.recipes (organization_id, item_id) values (v_org, v_item_moloz)
+  insert into public.recipes (organization_id, item_id, direction)
+  values (v_org, v_item_moloz, 'descompunere')
   returning id into v_recipe_moloz;
-  insert into public.recipe_components (organization_id, recipe_id, component_item_id, percentage)
+  insert into public.recipe_components (
+    organization_id, recipe_id, component_item_id, percentage, conversion_factor
+  )
   values
-    (v_org, v_recipe_moloz, v_item_nisip, 45),
-    (v_org, v_recipe_moloz, v_item_pietris, 35),
-    (v_org, v_recipe_moloz, v_item_balast, 15); -- 5% pierdere la concasare (informativ, nevalidat)
+    (v_org, v_recipe_moloz, v_item_nisip, 45, 1),
+    (v_org, v_recipe_moloz, v_item_pietris, 35, 1),
+    (v_org, v_recipe_moloz, v_item_balast, 15, 1); -- 5% pierdere la concasare (informativ, nevalidat)
 
-  insert into public.recipes (organization_id, item_id) values (v_org, v_item_caramizi)
+  -- Cărămizi: UM-ul produsului e `bucata`, componentele sunt in tone. O cărămidă
+  -- eco cantareste ~3 kg => 1 tonă de material ≈ 333,333 cărămizi.
+  insert into public.recipes (organization_id, item_id, direction)
+  values (v_org, v_item_caramizi, 'compunere')
   returning id into v_recipe_caramizi;
-  insert into public.recipe_components (organization_id, recipe_id, component_item_id, percentage)
+  insert into public.recipe_components (
+    organization_id, recipe_id, component_item_id, percentage, conversion_factor
+  )
   values
-    (v_org, v_recipe_caramizi, v_item_nisip, 60),
-    (v_org, v_recipe_caramizi, v_item_pietris, 30),
-    (v_org, v_recipe_caramizi, v_item_balast, 10);
+    (v_org, v_recipe_caramizi, v_item_nisip, 60, 333.333333333),
+    (v_org, v_recipe_caramizi, v_item_pietris, 30, 333.333333333),
+    (v_org, v_recipe_caramizi, v_item_balast, 10, 333.333333333);
 
-  insert into public.recipes (organization_id, item_id) values (v_org, v_item_beton)
+  -- Beton: UM-ul produsului e `mc`, agregatele sunt in tone si apa in litri.
+  -- Densitate ~2,4 t/mc => 1 tonă ≈ 0,416667 mc; 1 litru de apa (1 kg) ≈
+  -- 0,000417 mc. Procentele raman cote masice, factorul face doar traducerea UM.
+  insert into public.recipes (organization_id, item_id, direction)
+  values (v_org, v_item_beton, 'compunere')
   returning id into v_recipe_beton;
-  insert into public.recipe_components (organization_id, recipe_id, component_item_id, percentage)
+  insert into public.recipe_components (
+    organization_id, recipe_id, component_item_id, percentage, conversion_factor
+  )
   values
-    (v_org, v_recipe_beton, v_item_pietris, 50),
-    (v_org, v_recipe_beton, v_item_nisip, 30),
-    (v_org, v_recipe_beton, v_item_balast, 20);
+    (v_org, v_recipe_beton, v_item_pietris, 45, 0.416666667),
+    (v_org, v_recipe_beton, v_item_nisip, 28, 0.416666667),
+    (v_org, v_recipe_beton, v_item_balast, 19, 0.416666667),
+    (v_org, v_recipe_beton, v_item_apa, 7.5, 0.000416667);
 
   -- ---------------------------------------------------------------------------
   -- 4. Loturi + procese, in ordine cronologica (fiecare pas reflecta EXACT ce ar

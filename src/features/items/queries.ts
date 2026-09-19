@@ -7,6 +7,7 @@ function mapItem(row: {
   description: string | null;
   unit: Item["unit"];
   kind: ItemKind;
+  is_tracked: boolean;
   sellable: boolean;
   image_url: string | null;
   created_at: string;
@@ -18,6 +19,7 @@ function mapItem(row: {
     description: row.description,
     unit: row.unit,
     kind: row.kind,
+    isTracked: row.is_tracked,
     sellable: row.sellable,
     imageUrl: row.image_url,
     createdAt: row.created_at,
@@ -37,7 +39,9 @@ export async function listItems(filters: ListItemsFilters = {}): Promise<ItemLis
   const supabase = await createClient();
   let query = supabase
     .from("items")
-    .select("id, title, description, unit, kind, sellable, image_url, created_at, updated_at")
+    .select(
+      "id, title, description, unit, kind, is_tracked, sellable, image_url, created_at, updated_at",
+    )
     .order("title");
 
   if (filters.kind) query = query.eq("kind", filters.kind);
@@ -63,7 +67,9 @@ export async function getItemById(id: string): Promise<Item | null> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("items")
-    .select("id, title, description, unit, kind, sellable, image_url, created_at, updated_at")
+    .select(
+      "id, title, description, unit, kind, is_tracked, sellable, image_url, created_at, updated_at",
+    )
     .eq("id", id)
     .maybeSingle();
 
@@ -80,7 +86,7 @@ export interface ListItemOptionsFilters {
 /** Optiuni de item pentru select-uri (stoc, componente de reteta). */
 export async function listItemOptions(filters: ListItemOptionsFilters = {}): Promise<ItemOption[]> {
   const supabase = await createClient();
-  let query = supabase.from("items").select("id, title, unit, kind").order("title");
+  let query = supabase.from("items").select("id, title, unit, kind, is_tracked").order("title");
 
   if (filters.kind) query = query.eq("kind", filters.kind);
   if (filters.excludeId) query = query.neq("id", filters.excludeId);
@@ -93,5 +99,6 @@ export async function listItemOptions(filters: ListItemOptionsFilters = {}): Pro
     title: row.title,
     unit: row.unit,
     kind: row.kind,
+    isTracked: row.is_tracked,
   }));
 }

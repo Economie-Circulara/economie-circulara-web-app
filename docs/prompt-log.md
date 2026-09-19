@@ -4,6 +4,39 @@ Jurnal al sarcinilor lucrate de agenti AI in acest repo. Conform regulii 1.2 din
 [`AGENTS.md`](../AGENTS.md), la **fiecare commit** se adauga o intrare aici.
 Cele mai noi intrari sus.
 
+## 2026-09-19 — Claude Opus 5 — Rețete: direcție explicită + conversii de UM + itemi fara stoc
+
+- **Cerut:** doua bug-uri din productie cu aceeasi radacina: (1) retetele aplicau
+  procente peste cantitati brute, fara constiinta unitatilor de masura (1 kg tratat
+  ca 1 litru si ca 1 mc - o reteta de beton cu apa/nisip/ciment dadea cantitati
+  gresite); (2) aceeasi reteta era interpretata in doua feluri opuse, dupa
+  wizard-ul deschis ("graficul de reciclare arata invers"). Cerut si un mod de a
+  modela materiale nelimitate (apa, aer) care nu se consuma din stoc.
+- **Facut:**
+  - `0028_recipe_direction_and_um_conversion.sql`: enum nou `recipe_direction`
+    (`compunere` / `descompunere`) + `recipes.direction` (implicit `compunere`,
+    backfill `descompunere` pe retetele deja folosite in procese `input_fixed`) si
+    `recipe_components.conversion_factor numeric(18,9) default 1 check (> 0)`.
+    Plafonul de 100% eliminat in 0027 NU e reintrodus.
+  - `0029_untracked_items.sql`: `items.is_tracked` (implicit `true`) + index;
+    `accept_order` si `confirm_process` rescrise ca sa sara itemii netrasati (si
+    serviciile, la fel ca in 0022) de la `consume_fifo`/creare de lot.
+  - Calcul: `distributeByPercentage` imparte la `conversion_factor` si intoarce si
+    `qtyInRecipeUnit`; `sumQtyInRecipeUnit`/`toRecipeUnit` pentru totaluri si
+    balante omogene; `computeLoss` documentat ca "like-for-like".
+  - UI: selector de directie la crearea/editarea retetei (cu avertisment la
+    schimbare), input de factor de conversie cu ajutor "1 <UM componenta> = ?
+    <UM produs>", text de procent dependent de directie; comutator "Urmărește
+    stocul" la itemii fizici; wizard-ul de productie citeste `recipes.direction` si
+    refuza sa calculeze pe directia gresita, oferind trecerea in fluxul corect.
+  - Seed + demo seed: directii reale si factori de conversie pe retetele cu UM-uri
+    mixte; item nou "Apă tehnologică" (fizic, `is_tracked = false`).
+  - AGENTS.md §4: regula "un UM unic per produs; fara conversii intre unitati"
+    inlocuita cu documentatia noului sistem (conversii + directie + itemi nelimitati).
+- **Verificat:** `pnpm run typecheck`, `pnpm run lint`, `pnpm run test`
+  (796 teste, inclusiv fixture-uri actualizate + teste noi pentru conversii,
+  directie si `is_tracked`), `pnpm run format:check`.
+
 ## 2026-09-14 — Claude Sonnet 5 — Fix e2e/db CI: `supabase/setup-cli` pica pe rate limit la `version: latest`
 
 - **Cerut:** userul a raportat esecul e2e-ului: `supabase/setup-cli@v1` -> "Failed
