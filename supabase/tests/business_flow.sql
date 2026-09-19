@@ -64,8 +64,12 @@ select quote_literal(id) as lot_beton_blk   from public.lots
   where organization_id = :org and item_id = :item_beton and is_blocked = true                \gset
 select quote_literal(id) as lot_nisip       from public.lots
   where organization_id = :org and item_id = :item_nisip                                      \gset
+-- filtrat pe provenance = 'purchase': dupa migrarea 0031 (Task X8) seed.sql
+-- adauga si un al doilea lot de moloz, cu provenance = 'aport_client' (linia
+-- 572+, demonstreaza fluxul de aport) - fara filtru, query-ul de mai jos
+-- intoarce 2 randuri si pica la \gset ("more than one row returned").
 select quote_literal(id) as lot_moloz       from public.lots
-  where organization_id = :org and item_id = :item_moloz                                      \gset
+  where organization_id = :org and item_id = :item_moloz and provenance = 'purchase'           \gset
 
 -- Comenzi din seed - cautate dupa `order_number` (stabil), nu dupa UUID.
 --   order_sent   = CMD-2026-0002, status 'sent', o linie de 10 Nisip reciclat
@@ -425,8 +429,14 @@ begin;
       where organization_id = 'a0000000-0000-0000-0000-0000000000a1' and title = 'Moloz';
     select id into v_item_pietris from public.items
       where organization_id = 'a0000000-0000-0000-0000-0000000000a1' and title = 'Pietriș reciclat';
+    -- provenance = 'purchase': dupa migrarea 0031 (Task X8), seed.sql adauga si
+    -- un al doilea lot de moloz (provenance = 'aport_client', 80 ramase) - fara
+    -- filtru, "select into" cu mai multe randuri nu da eroare in PL/pgSQL (spre
+    -- deosebire de \gset), dar ar putea alege nedeterminist lotul gresit si ar
+    -- rupe asertarea de mai jos (200 -> 180, valabila doar pt. lotul original).
     select id into v_lot_moloz from public.lots
-      where organization_id = 'a0000000-0000-0000-0000-0000000000a1' and item_id = v_item_moloz;
+      where organization_id = 'a0000000-0000-0000-0000-0000000000a1' and item_id = v_item_moloz
+        and provenance = 'purchase';
 
     v_proc := public.confirm_process(
       p_type => 'input_fixed'::public.process_type,
