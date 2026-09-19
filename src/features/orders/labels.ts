@@ -1,4 +1,23 @@
-import type { OrderStatus } from "./types";
+import type { OrderStatus, OrderType } from "./types";
+
+/** Etichete RO pentru tipul comenzii (enum DB `order_type`, migrarea 0030). */
+export const ORDER_TYPE_LABELS: Record<OrderType, string> = {
+  material: "Material",
+  serviciu: "Serviciu",
+  aport: "Aport",
+};
+
+/**
+ * Explicatia fiecarui tip, aratata langa selector la creare - tipul nu poate fi
+ * ghicit din denumire (mai ales "aport", care inverseaza sensul stocului).
+ */
+export const ORDER_TYPE_DESCRIPTIONS: Record<OrderType, string> = {
+  material: "Vânzare de produse fizice către client. Scade stocul la acceptare.",
+  serviciu: "Închiriere / serviciu (product-as-a-service), cu dată estimată de retur.",
+  aport: "Clientul aduce material către organizație (ex. moloz). Crește stocul la acceptare.",
+};
+
+export const ORDER_TYPE_OPTIONS: OrderType[] = ["material", "serviciu", "aport"];
 
 /** Etichete RO pentru statusul unei comenzi (folosite in select-uri de filtrare). */
 export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {

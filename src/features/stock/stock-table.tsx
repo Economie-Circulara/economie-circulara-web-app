@@ -24,6 +24,23 @@ function formatDate(iso: string): string {
   return dateFormatter.format(new Date(iso));
 }
 
+/**
+ * Proveniența lotului + clientul care l-a adus, cand exista (doar loturile de
+ * aport au `clientName` - migrarile 0030/0031). Trasabilitatea "de la cine a venit
+ * materialul" e chiar motivul pentru care s-a adaugat `lots.client_id`, deci apare
+ * langa provenienta, nu ascunsa intr-un ecran separat.
+ */
+function ProvenanceCell({ lot }: { lot: LotWithItem }) {
+  return (
+    <div className="flex flex-col items-start gap-0.5">
+      <StatusBadge group="provenance" status={PROVENANCE_BADGE_STATUS[lot.provenance]} />
+      {lot.clientName ? (
+        <span className="text-xs text-muted-foreground">{lot.clientName}</span>
+      ) : null}
+    </div>
+  );
+}
+
 const columns: ColumnDef<LotWithItem>[] = [
   { accessorKey: "itemTitle", header: "Item" },
   {
@@ -34,9 +51,7 @@ const columns: ColumnDef<LotWithItem>[] = [
   {
     accessorKey: "provenance",
     header: "Proveniență",
-    cell: ({ row }) => (
-      <StatusBadge group="provenance" status={PROVENANCE_BADGE_STATUS[row.original.provenance]} />
-    ),
+    cell: ({ row }) => <ProvenanceCell lot={row.original} />,
   },
   {
     id: "quantity",
@@ -121,7 +136,7 @@ function LotsDetail({ lots }: { lots: LotWithItem[] }) {
             <TableRow key={lot.id} className="hover:bg-secondary/40">
               <TableCell className="text-muted-foreground">{formatDate(lot.entryDate)}</TableCell>
               <TableCell>
-                <StatusBadge group="provenance" status={PROVENANCE_BADGE_STATUS[lot.provenance]} />
+                <ProvenanceCell lot={lot} />
               </TableCell>
               <TableCell>
                 <span className="font-medium tabular-nums">

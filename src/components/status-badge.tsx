@@ -25,6 +25,9 @@ export const STATUS_REGISTRY = {
     // sa apara separat in trasabilitate/rapoarte, nu confundata cu reciclarea.
     reconditionare: { label: "Recondiționare", variant: "secondary" },
     retur: { label: "Retur", variant: "warn" },
+    // Aport: material ADUS de client (comanda de tip `aport`, migrarea 0030) -
+    // distinct de achizitie (furnizor) si de retur (marfa proprie care se intoarce).
+    aport: { label: "Aport client", variant: "accent" },
     ajustare: { label: "Ajustare", variant: "neutral" },
   },
   // Status lot in stoc

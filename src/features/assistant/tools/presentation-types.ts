@@ -1,5 +1,6 @@
 import type { Client, ClientAddress } from "@/features/clients/types";
 import type { ItemOption } from "@/features/items/types";
+import type { OrderType } from "@/features/orders/types";
 
 /**
  * Cardul de confirmare (docs/plans/asistent-contract-capabilitati.md) - doi
@@ -29,9 +30,13 @@ export interface GenericPresentation {
 
 /** Starea editabila a unui draft de comanda - acelasi shape in `/comenzi/nou` si card. */
 export interface OrderDraftValue {
+  /** Tipul comenzii (migrarea 0030). Asistentul propune `material` daca nu s-a cerut altceva. */
+  orderType: OrderType;
   clientId: string;
   deliveryAddressId: string;
   deliveryDate: string;
+  /** Data estimata de retur - relevanta doar pentru `orderType === "serviciu"`. */
+  expectedReturnDate: string;
   notes: string;
   lines: { itemId: string; quantity: number }[];
 }

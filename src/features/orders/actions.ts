@@ -7,7 +7,9 @@ import { InsufficientStockError } from "@/features/stock/service";
 import type { OrderFormState, OrderTransitionState } from "./action-state";
 import { onOrderStatusChanged } from "./notifications";
 import { getOrderStatus } from "./queries";
+import { ORDER_TYPE_OPTIONS } from "./labels";
 import {
+  acceptIntakeOrder,
   acceptOrder,
   cancelOrder,
   createOrderWithItems,
@@ -15,7 +17,7 @@ import {
   setOrderStatus,
 } from "./service";
 import { assertOrderTransition } from "./state-machine";
-import type { OrderLineInput, OrderStatus } from "./types";
+import type { OrderLineInput, OrderStatus, OrderType } from "./types";
 
 function clean(value: FormDataEntryValue | null): string | null {
   const s = String(value ?? "").trim();
@@ -49,6 +51,15 @@ function readLines(formData: FormData): OrderLineInput[] {
   return lines;
 }
 
+/**
+ * Tipul comenzii, citit din formular. Fara default: comanda trebuie sa declare
+ * explicit sensul stocului (vezi migrarea 0030 si `OrderEditorValue.orderType`).
+ */
+function readOrderType(formData: FormData): OrderType | null {
+  const raw = clean(formData.get("order_type"));
+  return ORDER_TYPE_OPTIONS.find((type) => type === raw) ?? null;
+}
+
 /** Creeaza o comanda noua in numele unui client (`created_by_admin=true`) - doar staff. */
 export async function createOrderAction(
   _prev: OrderFormState,
@@ -59,12 +70,15 @@ export async function createOrderAction(
     return { error: "Utilizatorul curent nu are o organizație asociată." };
   }
 
+  const orderType = readOrderType(formData);
+  if (!orderType) return { error: "Alege tipul comenzii (material, serviciu sau aport)." };
+
   const clientId = clean(formData.get("client_id"));
   if (!clientId) return { error: "Alege un client." };
 
   const lines = readLines(formData);
   if (lines.length === 0) {
-    return { error: "Adaugă cel puțin o linie (item vandabil + cantitate)." };
+    return { error: "Adaugă cel puțin o linie (item + cantitate)." };
   }
 
   let orderId: string;
@@ -72,9 +86,11 @@ export async function createOrderAction(
     const order = await createOrderWithItems({
       organizationId: user.organizationId,
       clientId,
+      orderType,
       createdByAdmin: true,
       deliveryAddressId: clean(formData.get("delivery_address_id")),
       deliveryDate: clean(formData.get("delivery_date")),
+      expectedReturnDate: clean(formData.get("expected_return_date")),
       notes: clean(formData.get("notes")),
       lines,
     });
@@ -243,4 +259,32 @@ export async function closeOrderAction(
   return runPlainTransition(orderId, user.organizationId, "closed", () =>
     setOrderStatus(orderId, "closed"),
   );
+}
+
+/**
+ * Accepta o comanda de tip `aport` (`draft` -> `accepted`): materialul adus de
+ * client intra in stoc ca loturi noi (`accept_intake_order`, migrarea 0031).
+ * Primeste direct `orderId` (nu `FormData`), ca `acceptReturnAction` - e apelata
+ * din `onClick`, nu dintr-un submit de formular.
+ *
+ * NU trece prin `assertOrderTransition`/`onOrderStatusChanged`, exact ca acceptarea
+ * unui retur (vezi features/returns/actions.ts): comanda-aport nu parcurge masina
+ * de stari de vanzare (draft -> sent -> ... -> closed), iar notificarile existente
+ * ("Comanda ta a fost acceptată/livrată") descriu o livrare catre client, ceea ce
+ * nu se intampla aici. Validarea completa (tip, status, rol) e in RPC.
+ */
+export async function acceptIntakeAction(orderId: string): Promise<OrderTransitionState> {
+  await requireRole(["admin", "operator"]);
+  if (!orderId) return { error: "Comandă invalidă." };
+
+  try {
+    await acceptIntakeOrder(orderId);
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : "Nu am putut accepta aportul." };
+  }
+
+  revalidatePath("/comenzi");
+  revalidatePath(`/comenzi/${orderId}`);
+  revalidatePath("/stoc");
+  return { error: null };
 }

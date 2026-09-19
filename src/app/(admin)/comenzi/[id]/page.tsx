@@ -7,13 +7,20 @@ import { StatusBadge } from "@/components/status-badge";
 import { requireRole } from "@/features/auth/session";
 import { getCertificateByOrderId } from "@/features/certificates/service";
 import { getDeliveryByOrderId } from "@/features/deliveries/queries";
-import { ORDER_STATUS_BADGE_STATUS, ORDER_STATUS_LABELS } from "@/features/orders/labels";
+import { AcceptIntakeButton } from "@/features/orders/accept-intake-button";
+import {
+  ORDER_STATUS_BADGE_STATUS,
+  ORDER_STATUS_LABELS,
+  ORDER_TYPE_DESCRIPTIONS,
+  ORDER_TYPE_LABELS,
+} from "@/features/orders/labels";
 import { OrderStatusActions } from "@/features/orders/order-status-actions";
 import { getOrderDetail } from "@/features/orders/queries";
 import { AcceptReturnButton } from "@/features/returns/accept-return-button";
 import { ORDER_LINK_TYPE_LABELS } from "@/features/returns/labels";
 import { getReturnableItems, getReturnLinkForOrder } from "@/features/returns/queries";
 import { ReturnActions } from "@/features/returns/return-actions";
+import { ALLOWED_RETURN_FLOWS_BY_ORDER_TYPE } from "@/features/returns/types";
 
 export const metadata = { title: "Detalii comandă - Lot cu Lot" };
 
@@ -43,6 +50,13 @@ const ORDER_JOURNEY: readonly ("draft" | "sent" | "accepted" | "delivered" | "cl
   "closed",
 ];
 
+/**
+ * Traseul comenzilor care intra in stoc in loc sa iasa (aport - migrarea 0030, si
+ * retur): `draft -> accepted`, prin RPC-ul dedicat. Nu trec prin sent/delivered/
+ * closed - nu se livreaza nimic catre client.
+ */
+const INTAKE_JOURNEY: readonly ("draft" | "accepted")[] = ["draft", "accepted"];
+
 /** Ecranul de detaliu comandă (doar staff): client, livrare, linii, istoric status. */
 export default async function OrderDetailPage({ params }: OrderDetailPageProps) {
   await requireRole(["admin", "operator"]);
@@ -65,18 +79,32 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
   // acceptata, in ecranul dedicat /livrari/nou (nu inline aici - vezi acel ecran).
   const delivery = await getDeliveryByOrderId(id);
 
+  // Comanda de tip `aport` (migrarea 0030) NU parcurge masina de stari de vanzare:
+  // are o singura actiune, "Acceptă aport", care creste stocul (`accept_intake_order`)
+  // si o lasa in `accepted` - exact tiparul comenzii-retur de mai jos.
+  const isIntakeOrder = order.orderType === "aport";
+
   const returnLink = await getReturnLinkForOrder(id);
   // "replacement" (comanda de inlocuire la garanție) e o comanda de vanzare
   // obișnuită - parcurge fluxul normal (send/accept/deliver/close); doar
   // "return"/"warranty" au acceptare dedicata (creeaza stoc, nu-l consuma).
   const isReturnOrder = returnLink?.linkType === "return" || returnLink?.linkType === "warranty";
+  // Fluxurile retur/garantie depind acum SI de tipul comenzii (vezi
+  // ALLOWED_RETURN_FLOWS_BY_ORDER_TYPE): retur pur doar pe `serviciu`, garantie si
+  // pe `material`, nimic pe `aport`.
+  const allowedReturnFlows = ALLOWED_RETURN_FLOWS_BY_ORDER_TYPE[order.orderType];
   const returnableItems =
-    !returnLink && (order.status === "delivered" || order.status === "closed")
+    !returnLink &&
+    allowedReturnFlows.length > 0 &&
+    (order.status === "delivered" || order.status === "closed")
       ? await getReturnableItems(id)
       : [];
 
   const isCancelled = order.status === "cancelled";
-  const currentStepIndex = ORDER_JOURNEY.indexOf(order.status as (typeof ORDER_JOURNEY)[number]);
+  // Aportul si returul se opresc la `accepted` (nu se livreaza nimic clientului),
+  // deci traseul afisat e scurtat - altfel ar arata permanent "incomplet".
+  const journey = isIntakeOrder || isReturnOrder ? INTAKE_JOURNEY : ORDER_JOURNEY;
+  const currentStepIndex = journey.indexOf(order.status as (typeof journey)[number]);
 
   return (
     <div className="space-y-8">
@@ -103,7 +131,11 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
                 <Link href={`/livrari/nou?orderId=${order.id}`}>Planifică livrare</Link>
               </Button>
             ) : null}
-            {isReturnOrder ? (
+            {isIntakeOrder ? (
+              order.status === "draft" ? (
+                <AcceptIntakeButton orderId={order.id} />
+              ) : null
+            ) : isReturnOrder ? (
               order.status === "draft" ? (
                 <AcceptReturnButton returnOrderId={order.id} />
               ) : null
@@ -111,13 +143,22 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
               <>
                 <OrderStatusActions orderId={order.id} status={order.status} />
                 {returnableItems.length > 0 ? (
-                  <ReturnActions originalOrderId={order.id} returnableItems={returnableItems} />
+                  <ReturnActions
+                    originalOrderId={order.id}
+                    returnableItems={returnableItems}
+                    allowedFlows={allowedReturnFlows}
+                  />
                 ) : null}
               </>
             )}
           </>
         }
       />
+
+      <p className="text-sm text-muted-foreground">
+        <span className="font-medium text-foreground">{ORDER_TYPE_LABELS[order.orderType]}</span> -{" "}
+        {ORDER_TYPE_DESCRIPTIONS[order.orderType]}
+      </p>
 
       {returnLink ? (
         <p className="text-sm text-muted-foreground">
@@ -147,7 +188,7 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Livrare</CardTitle>
+            <CardTitle className="text-base">{isIntakeOrder ? "Aport" : "Livrare"}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-1 text-sm">
             <p>
@@ -157,7 +198,9 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
                 : "Neprecizată"}
             </p>
             <p>
-              <span className="text-muted-foreground">Data livrare: </span>
+              <span className="text-muted-foreground">
+                {isIntakeOrder ? "Data aportului: " : "Data livrare: "}
+              </span>
               {formatDate(order.deliveryDate)}
             </p>
             {order.expectedReturnDate ? (
@@ -208,7 +251,7 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
           </div>
         ) : (
           <ol className="flex flex-wrap items-center gap-2">
-            {ORDER_JOURNEY.map((step, index) => {
+            {journey.map((step, index) => {
               const reached = index <= currentStepIndex;
               return (
                 <li key={step} className="flex items-center gap-2">

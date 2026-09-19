@@ -64,6 +64,9 @@ function mapLot(row: LotRow): Lot {
     qualityStatus: row.quality_status,
     isBlocked: row.is_blocked,
     blockReason: row.block_reason,
+    // Null pe orice lot creat din acest serviciu (intrare manuala de stoc) -
+    // `client_id` se completeaza doar la acceptarea unui aport (migrarea 0031).
+    clientId: row.client_id,
     createdAt: row.created_at,
   };
 }

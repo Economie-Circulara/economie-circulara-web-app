@@ -9,6 +9,7 @@ import {
   OrderNotFoundError,
   OrderPermissionError,
   OrderTransitionError,
+  acceptIntakeOrder,
   acceptOrder,
   cancelOrder,
   createOrderWithItems,
@@ -22,6 +23,7 @@ function orderRow(overrides: Record<string, unknown> = {}) {
     id: "order-1",
     client_id: "client-1",
     order_number: "CMD-2026-0001",
+    order_type: "material",
     status: "sent",
     created_by_admin: true,
     delivery_address_id: null,
@@ -220,6 +222,52 @@ describe("acceptOrder", () => {
   });
 });
 
+describe("acceptIntakeOrder", () => {
+  it("apeleaza RPC accept_intake_order si returneaza comanda-aport acceptata", async () => {
+    const rpc = vi.fn().mockResolvedValue({
+      data: orderRow({ status: "accepted", order_type: "aport" }),
+      error: null,
+    });
+    createClient.mockResolvedValue({ rpc });
+
+    const order = await acceptIntakeOrder("order-1");
+
+    expect(rpc).toHaveBeenCalledWith("accept_intake_order", { p_order_id: "order-1" });
+    expect(order.status).toBe("accepted");
+    expect(order.orderType).toBe("aport");
+  });
+
+  it("arunca OrderTransitionError cand comanda nu e de tip aport (AP003)", async () => {
+    const rpc = vi
+      .fn()
+      .mockResolvedValue({ data: null, error: { code: "AP003", message: "nu e aport" } });
+    createClient.mockResolvedValue({ rpc });
+
+    await expect(acceptIntakeOrder("order-1")).rejects.toBeInstanceOf(OrderTransitionError);
+  });
+
+  it("arunca OrderTransitionError cand aportul nu mai e in draft (AP001)", async () => {
+    const rpc = vi
+      .fn()
+      .mockResolvedValue({ data: null, error: { code: "AP001", message: "status invalid" } });
+    createClient.mockResolvedValue({ rpc });
+
+    await expect(acceptIntakeOrder("order-1")).rejects.toBeInstanceOf(OrderTransitionError);
+  });
+
+  it("arunca OrderNotFoundError (AP002) si OrderPermissionError (AP004)", async () => {
+    createClient.mockResolvedValue({
+      rpc: vi.fn().mockResolvedValue({ data: null, error: { code: "AP002", message: "lipsa" } }),
+    });
+    await expect(acceptIntakeOrder("order-x")).rejects.toBeInstanceOf(OrderNotFoundError);
+
+    createClient.mockResolvedValue({
+      rpc: vi.fn().mockResolvedValue({ data: null, error: { code: "AP004", message: "interzis" } }),
+    });
+    await expect(acceptIntakeOrder("order-1")).rejects.toBeInstanceOf(OrderPermissionError);
+  });
+});
+
 describe("cancelOrder", () => {
   it("apeleaza RPC cancel_order si returneaza comanda anulata (reface stocul intern, in SQL)", async () => {
     const rpc = vi.fn().mockResolvedValue({ data: orderRow({ status: "cancelled" }), error: null });
@@ -248,6 +296,7 @@ describe("createOrderWithItems", () => {
       createOrderWithItems({
         organizationId: "org-1",
         clientId: "client-1",
+        orderType: "material",
         createdByAdmin: true,
         lines: [],
       }),
@@ -274,8 +323,11 @@ describe("createOrderWithItems", () => {
     const order = await createOrderWithItems({
       organizationId: "org-1",
       clientId: "client-1",
+      orderType: "material",
       createdByAdmin: true,
       deliveryDate: "2026-08-01",
+      // Data de retur e ignorata pentru orice tip in afara de `serviciu`.
+      expectedReturnDate: "2026-09-01",
       lines: [{ itemId: "item-1", quantity: 4 }],
     });
 
@@ -283,9 +335,11 @@ describe("createOrderWithItems", () => {
       expect.objectContaining({
         organization_id: "org-1",
         client_id: "client-1",
+        order_type: "material",
         created_by_admin: true,
         status: "draft",
         delivery_date: "2026-08-01",
+        expected_return_date: null,
       }),
     );
     expect(itemsInsert).toHaveBeenCalledWith([
@@ -318,6 +372,7 @@ describe("createOrderWithItems", () => {
       createOrderWithItems({
         organizationId: "org-1",
         clientId: "client-1",
+        orderType: "material",
         createdByAdmin: true,
         lines: [{ itemId: "item-1", quantity: 4 }],
       }),

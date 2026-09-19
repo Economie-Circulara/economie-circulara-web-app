@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { buildInsufficientStockError } from "@/features/stock/service";
 import type { Database } from "@/lib/database.types";
-import type { Order, OrderLineInput, OrderStatus } from "./types";
+import type { Order, OrderLineInput, OrderStatus, OrderType } from "./types";
 
 type OrderRow = Database["public"]["Tables"]["orders"]["Row"];
 
@@ -12,6 +12,12 @@ const ERR_INVALID_TRANSITION = "OR001";
 const ERR_NOT_FOUND = "OR002";
 const ERR_FORBIDDEN = "OR004";
 const ERR_INSUFFICIENT_STOCK = "LT001";
+
+// Coduri AP00x - RPC `accept_intake_order` (0031_aport_intake.sql).
+const ERR_INTAKE_INVALID_TRANSITION = "AP001";
+const ERR_INTAKE_NOT_FOUND = "AP002";
+const ERR_INTAKE_NOT_APORT = "AP003";
+const ERR_INTAKE_FORBIDDEN = "AP004";
 
 /** Comanda nu exista sau nu e accesibila apelantului (RLS). */
 export class OrderNotFoundError extends Error {
@@ -42,6 +48,7 @@ function mapOrder(row: OrderRow): Order {
     id: row.id,
     clientId: row.client_id,
     orderNumber: row.order_number,
+    orderType: row.order_type,
     status: row.status,
     createdByAdmin: row.created_by_admin,
     deliveryAddressId: row.delivery_address_id,
@@ -158,12 +165,47 @@ export async function cancelOrder(orderId: string): Promise<Order> {
   return mapOrder(data);
 }
 
+/**
+ * Accepta o comanda de tip `aport` aflata in `draft`: creeaza cate un lot
+ * (provenance `aport_client`, `lots.client_id` = clientul comenzii) pentru fiecare
+ * linie si trece comanda in `accepted` - atomic, prin RPC-ul Postgres
+ * `accept_intake_order` (0031_aport_intake.sql). Simetricul lui
+ * `acceptReturnOrder` din features/returns/service.ts, pentru celalalt sens de
+ * flux; NU foloseste `acceptOrder` (acela CONSUMA stoc).
+ *
+ * Codurile de eroare AP00x sunt mapate pe aceleasi tipuri ca la comenzile
+ * obisnuite (`OrderNotFoundError`/`OrderTransitionError`/`OrderPermissionError`),
+ * ca UI-ul sa nu aiba nevoie de o a doua familie de erori.
+ */
+export async function acceptIntakeOrder(orderId: string): Promise<Order> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("accept_intake_order", { p_order_id: orderId });
+  if (error || !data) {
+    if (error?.code === ERR_INTAKE_NOT_FOUND) throw new OrderNotFoundError(orderId);
+    if (error?.code === ERR_INTAKE_FORBIDDEN) throw new OrderPermissionError(error.message);
+    if (error?.code === ERR_INTAKE_INVALID_TRANSITION || error?.code === ERR_INTAKE_NOT_APORT) {
+      throw new OrderTransitionError(error.message);
+    }
+    throw new Error(error?.message ?? "Nu am putut accepta aportul.");
+  }
+  return mapOrder(data);
+}
+
 export interface CreateOrderInput {
   organizationId: string;
   clientId: string;
+  /** Tipul comenzii - OBLIGATORIU (nu exista default implicit, vezi migrarea 0030). */
+  orderType: OrderType;
   createdByAdmin: boolean;
   deliveryAddressId?: string | null;
   deliveryDate?: string | null;
+  /**
+   * Data estimata de retur - are sens DOAR pentru `orderType === "serviciu"`
+   * (inchiriere/PaaS). Ignorata pentru celelalte tipuri, ca sa nu ramana o data de
+   * retur pe o vanzare simpla sau pe un aport daca UI-ul trimite un camp ramas
+   * completat dupa schimbarea tipului.
+   */
+  expectedReturnDate?: string | null;
   notes?: string | null;
   lines: OrderLineInput[];
 }
@@ -185,9 +227,12 @@ export async function createOrderWithItems(input: CreateOrderInput): Promise<Ord
     .insert({
       organization_id: input.organizationId,
       client_id: input.clientId,
+      order_type: input.orderType,
       created_by_admin: input.createdByAdmin,
       delivery_address_id: input.deliveryAddressId ?? null,
       delivery_date: input.deliveryDate ?? null,
+      expected_return_date:
+        input.orderType === "serviciu" ? (input.expectedReturnDate ?? null) : null,
       notes: input.notes ?? null,
       status: "draft",
     })

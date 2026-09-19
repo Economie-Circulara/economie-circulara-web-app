@@ -103,9 +103,11 @@ describe("ActionCard - randerul order_draft", () => {
       presentation: {
         renderer: "order_draft",
         draft: {
+          orderType: "material",
           clientId: "c1",
           deliveryAddressId: "",
           deliveryDate: "",
+          expectedReturnDate: "",
           notes: "",
           lines: [{ itemId: "i1", quantity: 2 }],
         },
@@ -118,9 +120,11 @@ describe("ActionCard - randerul order_draft", () => {
     fireEvent.click(screen.getByRole("button", { name: "Confirmă și execută" }));
 
     expect(onConfirm).toHaveBeenCalledWith({
+      tip_comanda: "material",
       client_id: "c1",
       adresa_livrare_id: null,
       data_livrare: null,
+      data_retur_estimata: null,
       observatii: null,
       linii: [{ item_id: "i1", cantitate: 2 }],
     });

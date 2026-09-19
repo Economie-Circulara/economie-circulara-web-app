@@ -143,6 +143,8 @@ declare
 
   v_order1 uuid;
   v_order2 uuid;
+  v_order3 uuid;          -- comanda de tip `aport` (migrarea 0030), deja acceptata
+  v_lot_moloz_aport uuid; -- lotul intrat in stoc la acceptarea aportului
 begin
   -- ---------------------------------------------------------------------------
   -- 1. Clienti (firme de constructii reale ca profil, date fictive)
@@ -444,11 +446,12 @@ begin
   -- creata acum 6 zile -> acceptata acum 5 -> livrata acum 3 (= delivery_date)
   -- -> inchisa acum 2, toate in trecut.
   insert into public.orders (
-    organization_id, client_id, order_number, status, created_by_admin,
+    organization_id, client_id, order_number, order_type, status, created_by_admin,
     delivery_address_id, delivery_date, created_by,
     created_at, updated_at, accepted_at, delivered_at, closed_at
   ) values (
-    v_org, v_client_bravo, 'CMD-2026-0001', 'closed', true,
+    -- `order_type = 'material'` (migrarea 0030): vanzare clasica de produse.
+    v_org, v_client_bravo, 'CMD-2026-0001', 'material', 'closed', true,
     v_addr_bravo, current_date - 3, v_admin,
     now() - interval '6 days', now() - interval '2 days',
     now() - interval '5 days', now() - interval '3 days', now() - interval '2 days'
@@ -503,15 +506,50 @@ begin
   -- inca prin tranzitiile respective), dar cu `created_at` in trecut, ca lista de
   -- comenzi sa nu arate toate comenzile demo create "acum".
   insert into public.orders (
-    organization_id, client_id, order_number, status, created_by_admin, created_by,
+    organization_id, client_id, order_number, order_type, status, created_by_admin, created_by,
     created_at, updated_at
   ) values (
-    v_org, v_client_demo, 'CMD-2026-0002', 'sent', false, v_client_user,
+    v_org, v_client_demo, 'CMD-2026-0002', 'material', 'sent', false, v_client_user,
     now() - interval '1 day', now() - interval '1 day'
   ) returning id into v_order2;
 
   insert into public.order_items (organization_id, order_id, item_id, quantity)
   values (v_org, v_order2, v_item_nisip, 10);
+
+  -- 5.3 Comanda 3 (Bravo Construct SRL): APORT (migrarea 0030) deja acceptat -
+  -- clientul a adus moloz de pe santier, materialul a intrat in stoc ca lot nou.
+  -- Comanda-aport nu are numar de comanda in fluxul real (numarul se aloca la
+  -- "trimitere", pas prin care aportul nu trece) si se opreste in `accepted` -
+  -- nu ajunge niciodata `sent`/`delivered`/`closed`.
+  insert into public.orders (
+    organization_id, client_id, order_type, status, created_by_admin, notes, created_by,
+    created_at, updated_at, accepted_at
+  ) values (
+    v_org, v_client_bravo, 'aport', 'accepted', true,
+    'Aport moloz - demolare Bloc B, adus de client.', v_operator,
+    now() - interval '4 days', now() - interval '4 days', now() - interval '4 days'
+  ) returning id into v_order3;
+
+  insert into public.order_items (organization_id, order_id, item_id, quantity)
+  values (v_org, v_order3, v_item_moloz, 80);
+
+  -- Lotul creat de `accept_intake_order`: provenance `aport_client`, `client_id`
+  -- completat (singura cale prin care un lot are client), calitate `unchecked`
+  -- (materialul adus de un client extern nu a trecut inca prin QC).
+  insert into public.lots (
+    organization_id, item_id, entry_date, source, provenance, location,
+    initial_qty, remaining_qty, quality_status, client_id
+  ) values (
+    v_org, v_item_moloz, current_date - 4,
+    'Aport client - Bravo Construct SRL', 'aport_client',
+    'Depozit principal', 80, 80, 'unchecked', v_client_bravo
+  ) returning id into v_lot_moloz_aport;
+
+  insert into public.stock_events (organization_id, item_id, lot_id, event_type, quantity, reason, order_id, created_by)
+  values (
+    v_org, v_item_moloz, v_lot_moloz_aport, 'intake', 80,
+    'Acceptare aport ' || v_order3::text, v_order3, v_operator
+  );
 
   -- ---------------------------------------------------------------------------
   -- 6. Contoare - sincronizate cu numerele deja alocate mai sus, ca urmatoarea

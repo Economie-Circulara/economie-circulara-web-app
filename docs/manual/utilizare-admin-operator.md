@@ -258,7 +258,24 @@ Click pe un proces din listă deschide ecranul de detaliu, cu:
 Meniul **"Comenzi"** listează comenzile clienților, cu filtrare după **Status**
 și **Căutare** (client sau număr comandă).
 
-### 7.1 Mașina de stări a unei comenzi
+### 7.1 Tipul comenzii (Material / Serviciu / Aport)
+
+Orice comandă are un **tip**, ales explicit la creare (nu există o valoare
+implicită) - el dă sensul mișcării de stoc:
+
+| Tip          | Sens               | Efect la acceptare                                   |
+| ------------ | ------------------ | ---------------------------------------------------- |
+| **Material** | organizație → client | **scade** stocul (consum FIFO)                       |
+| **Serviciu** | organizație → client | ca la material, plus câmpul **"Retur estimat"**      |
+| **Aport**    | **client → organizație** | **crește** stocul: materialul adus de client intră ca lot nou |
+
+**Aportul** acoperă cazul în care clientul aduce material către organizație (ex.
+moloz din demolări, pentru reciclare). La linii se pot alege **orice itemi fizici**,
+inclusiv cei nevandabili (materiile prime nu apar în catalogul de vânzare). O
+comandă de aport nu se "trimite" și nu se "livrează": are o singură acțiune,
+**"Acceptă aport"** (vezi 7.4), după care rămâne **Acceptată**.
+
+### 7.2 Mașina de stări a unei comenzi
 
 ```
 Draft -> Trimisă -> Acceptată -> Livrată -> Închisă
@@ -274,37 +291,46 @@ statusul curent, atât în listă cât și în ecranul de detaliu):
   (consum FIFO din loturile disponibile pentru fiecare linie a comenzii). La
   **"Anulează"**, dacă stocul fusese deja scăzut, acesta **se reface**.
 - **"Închide"** generează **automat** certificatul de trasabilitate PDF al
-  comenzii (secțiunea 7.4) - nu există un buton separat "Generează certificat".
+  comenzii - nu există un buton separat "Generează certificat".
 
-### 7.2 Crearea unei comenzi în numele clientului
+### 7.3 Crearea unei comenzi în numele clientului
 
 Organizația poate crea o comandă în numele unui client (flag intern
 "creată de organizație"), util pentru fluxul dominant real (comenzi preluate prin
 telefon/WhatsApp și înregistrate în platformă):
 
 1. Din lista "Comenzi", apasă **"+ Comandă nouă"** -> ecranul **"Comandă nouă"**.
-2. Alege **Client**, opțional o **Adresă de livrare** (dependentă de client) și o
-   **Dată livrare**, opțional **Note**.
-3. În secțiunea **"Linii comandă"**, alege un item vandabil și o cantitate, apasă
+2. Alege **Tipul comenzii** (Material / Serviciu / Aport - vezi 7.1). Abia după
+   această alegere se poate completa lista de itemi, pentru că ea depinde de tip.
+3. Alege **Client**, opțional o **Adresă de livrare** (dependentă de client) și o
+   **Dată livrare**, opțional **Note**. La tipul **Serviciu** apare în plus
+   **"Retur estimat"** (data la care se așteaptă bunul înapoi).
+4. În secțiunea **"Linii comandă"**, alege un item și o cantitate, apasă
    adaugă-linie; repetă pentru fiecare produs; poți șterge o linie adăugată.
-4. Trimite formularul - comanda se creează ca **Draft**.
+5. Trimite formularul - comanda se creează ca **Draft**.
 
 Notificările prin email se trimit identic indiferent dacă e comandă creată de
 client sau de organizație.
 
 ![ecranul "Comandă nouă" cu selectorul de client și liniile de comandă](img/admin-order-new.png)
 
-### 7.3 Detaliul unei comenzi
+### 7.4 Detaliul unei comenzi
 
-Ecranul de detaliu (`/comenzi/[id]`) afișează: client (CUI, notă "Creată de
-organizație în numele clientului" dacă e cazul), livrare (adresă, dată livrare,
-eventual "Retur estimat (închiriere)" pentru fluxul de închiriere ca serviciu),
-linii de comandă, și un **traseu vizual al statusului** (Draft -> Trimisă ->
-Acceptată -> Livrată -> Închisă, sau "Anulată").
+Ecranul de detaliu (`/comenzi/[id]`) afișează: **tipul comenzii** (cu o scurtă
+explicație), client (CUI, notă "Creată de organizație în numele clientului" dacă e
+cazul), livrare (adresă, dată livrare, eventual "Retur estimat (închiriere)" pentru
+fluxul de închiriere ca serviciu), linii de comandă, și un **traseu vizual al
+statusului** (Draft -> Trimisă -> Acceptată -> Livrată -> Închisă, sau "Anulată").
 
 Dacă o comandă a fost livrată/închisă, pot apărea butoanele **"Retur"** și
 **"Garanție"** (secțiunea 8). Dacă certificatul există deja, apare butonul
 **"Vezi certificat"**.
+
+Pe o comandă de tip **Aport** aflată în Draft, în locul butoanelor de tranziție apare
+**"Acceptă aport"**: materialul adus de client intră în stoc ca lot nou, cu
+proveniența "Aport client", cu **clientul care l-a adus** păstrat pe lot
+(trasabilitate) și cu calitatea **"Neverificat"** - controlul de calitate se face
+ulterior, din ecranul de Stoc. Traseul afișat se oprește la "Acceptată".
 
 ![ecranul de detaliu comandă, cu traseul de status](img/admin-order-detail.png)
 
@@ -313,7 +339,19 @@ Dacă o comandă a fost livrată/închisă, pot apărea butoanele **"Retur"** ș
 ## 8. Retur și garanție
 
 După ce o comandă e finalizată (livrată/închisă), din ecranul ei de detaliu pot
-apărea două butoane:
+apărea două butoane - **care dintre ele apare depinde de tipul comenzii** (7.1):
+
+| Tipul comenzii | "Retur" | "Garanție" |
+| -------------- | ------- | ---------- |
+| Material       | nu      | da         |
+| Serviciu       | da      | da         |
+| Aport          | nu      | nu         |
+
+Motivul: un **retur pur** (materialul se întoarce în stoc, fără înlocuire) are sens
+pe o **închiriere** care se încheie, nu pe o vânzare de material, care e o
+tranzacție într-un singur sens; **garanția** rămâne posibilă și pe material, pentru
+că un produs defect trebuie înlocuit. Pe un **aport** nu se aplică niciunul -
+materialul a venit de la client, nu către el.
 
 - **"Retur"** - clientul (sau organizația, în numele lui) aduce materialele
   înapoi. Se deschide un formular cu o linie per produs livrat, cu maximul
@@ -440,7 +478,7 @@ acceptare. Orice acțiune se arată întâi într-un **card de confirmare**, nee
 - Câmpurile se afișează cu **denumiri**, nu cu identificatori interni (ex. la
   trimiterea unei comenzi vezi numărul și clientul ei, nu un cod tehnic).
 - La o comandă propusă, cardul arată **același editor** ca ecranul "Comandă nouă"
-  (secțiunea 7.2): poți schimba clientul, adresa de livrare, adăuga/șterge linii,
+  (secțiunea 7.3): poți schimba clientul, tipul comenzii, adresa de livrare, adăuga/șterge linii,
   înainte de a confirma.
 - Apasă **"Confirmă și execută"** ca acțiunea să se producă efectiv, sau
   **"Renunță"** ca să o anulezi fără niciun efect.

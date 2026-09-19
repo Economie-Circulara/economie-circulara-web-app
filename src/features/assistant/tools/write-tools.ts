@@ -1,6 +1,7 @@
 import { normalizeCui } from "@/features/clients/cui-lookup";
 import { createClientRecord } from "@/features/clients/service";
 import { listClientAddressesGrouped, listSellableItemOptions } from "@/features/orders/queries";
+import type { OrderType } from "@/features/orders/types";
 import { listClients } from "@/features/clients/queries";
 import { createOrderWithItems, sendOrder } from "@/features/orders/service";
 import { getOrderDetail } from "@/features/orders/queries";
@@ -167,11 +168,24 @@ export const creeazaClient: AssistantTool<CreateClientToolInput> = {
 
 interface CreateOrderToolInput {
   client_id: string;
+  tip_comanda: OrderType;
   linii: { item_id: string; cantitate: number }[];
   adresa_livrare_id: string | null;
   data_livrare: string | null;
+  data_retur_estimata: string | null;
   observatii: string | null;
 }
+
+/**
+ * Tipul implicit cand modelul nu il precizeaza. Diferit fata de ecranul
+ * `/comenzi/nou` (unde alegerea e OBLIGATORIE): tool-ul exista de dinaintea
+ * migrarii 0030 si trebuie sa ramana compatibil cu conversatiile care nu stiu de
+ * tipuri - `material` (vanzare clasica) e comportamentul de pana acum. Utilizatorul
+ * vede si poate corecta tipul in cardul de confirmare inainte de executie.
+ */
+const DEFAULT_ORDER_TYPE: OrderType = "material";
+
+const ORDER_TYPE_VALUES: OrderType[] = ["material", "serviciu", "aport"];
 
 /** Cate linii accepta o comanda propusa de asistent - suficient pentru orice comanda reala, apara modelul sa produca un array uriaș. */
 const MAX_ORDER_LINES = 50;
@@ -188,6 +202,15 @@ export const creeazaComanda: AssistantTool<CreateOrderToolInput> = {
     additionalProperties: false,
     properties: {
       client_id: { type: "string", description: "ID-ul clientului." },
+      tip_comanda: {
+        type: "string",
+        enum: ["material", "serviciu", "aport"],
+        description:
+          "Tipul comenzii: `material` (vânzare de produse, implicit), `serviciu` " +
+          "(închiriere/abonament, permite `data_retur_estimata`) sau `aport` " +
+          "(clientul aduce material către organizație - crește stocul). " +
+          "Dacă utilizatorul nu precizează, lasă gol (se folosește `material`).",
+      },
       linii: {
         type: "array",
         description: "Liniile comenzii.",
@@ -205,12 +228,20 @@ export const creeazaComanda: AssistantTool<CreateOrderToolInput> = {
       },
       adresa_livrare_id: { type: "string", description: "ID-ul adresei de livrare a clientului." },
       data_livrare: { type: "string", description: "Data livrării, format YYYY-MM-DD." },
+      data_retur_estimata: {
+        type: "string",
+        description:
+          "Data estimată de retur (doar pentru `tip_comanda = serviciu`), format YYYY-MM-DD.",
+      },
       observatii: { type: "string" },
     },
     required: ["client_id", "linii"],
   },
   roles: ["admin", "operator"],
-  version: 1,
+  // v2 (migrarea 0030): schema are `tip_comanda`/`data_retur_estimata`, iar o
+  // comanda are acum obligatoriu un tip. Un apel vechi (v1, fara `tip_comanda`) se
+  // interpreteaza ca `material` - vezi DEFAULT_ORDER_TYPE.
+  version: 2,
   kind: "write",
   parse: (args) => {
     const raw = asObject(args);
@@ -229,8 +260,24 @@ export const creeazaComanda: AssistantTool<CreateOrderToolInput> = {
       throw new InvalidToolArgumentsError('„data_livrare" trebuie să fie în formatul YYYY-MM-DD.');
     }
 
+    const returnDate = optionalString(raw, "data_retur_estimata");
+    if (returnDate && !/^\d{4}-\d{2}-\d{2}$/.test(returnDate)) {
+      throw new InvalidToolArgumentsError(
+        '„data_retur_estimata" trebuie să fie în formatul YYYY-MM-DD.',
+      );
+    }
+
+    const rawType = optionalString(raw, "tip_comanda");
+    const orderType = ORDER_TYPE_VALUES.find((type) => type === rawType);
+    if (rawType && !orderType) {
+      throw new InvalidToolArgumentsError(
+        '„tip_comanda" trebuie să fie „material", „serviciu" sau „aport".',
+      );
+    }
+
     return {
       client_id: requiredString(raw, "client_id"),
+      tip_comanda: orderType ?? DEFAULT_ORDER_TYPE,
       linii: lines.map((line) => {
         const item = asObject(line);
         return {
@@ -240,6 +287,7 @@ export const creeazaComanda: AssistantTool<CreateOrderToolInput> = {
       }),
       adresa_livrare_id: optionalString(raw, "adresa_livrare_id"),
       data_livrare: date,
+      data_retur_estimata: returnDate,
       observatii: optionalString(raw, "observatii"),
     };
   },
@@ -255,9 +303,11 @@ export const creeazaComanda: AssistantTool<CreateOrderToolInput> = {
     return {
       renderer: "order_draft",
       draft: {
+        orderType: input.tip_comanda,
         clientId: input.client_id,
         deliveryAddressId: input.adresa_livrare_id ?? "",
         deliveryDate: input.data_livrare ?? "",
+        expectedReturnDate: input.data_retur_estimata ?? "",
         notes: input.observatii ?? "",
         lines: input.linii.map((line) => ({ itemId: line.item_id, quantity: line.cantitate })),
       },
@@ -271,9 +321,11 @@ export const creeazaComanda: AssistantTool<CreateOrderToolInput> = {
     const order = await createOrderWithItems({
       organizationId: ctx.organizationId,
       clientId: input.client_id,
+      orderType: input.tip_comanda,
       createdByAdmin: true,
       deliveryAddressId: input.adresa_livrare_id,
       deliveryDate: input.data_livrare,
+      expectedReturnDate: input.data_retur_estimata,
       notes: input.observatii,
       lines: input.linii.map((line) => ({ itemId: line.item_id, quantity: line.cantitate })),
     });
