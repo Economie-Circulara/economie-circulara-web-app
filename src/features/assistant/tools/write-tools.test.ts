@@ -5,21 +5,32 @@ vi.mock("@/features/clients/queries", () => ({ listClients: vi.fn().mockResolved
 vi.mock("@/features/orders/queries", () => ({
   listClientAddressesGrouped: vi.fn().mockResolvedValue({}),
   listSellableItemOptions: vi.fn().mockResolvedValue([]),
+  listIntakeItemOptions: vi.fn().mockResolvedValue([]),
   getOrderDetail: vi.fn(),
 }));
 vi.mock("@/features/orders/service", () => ({
   createOrderWithItems: vi.fn(),
   sendOrder: vi.fn(),
 }));
+vi.mock("@/features/deliveries/service", () => ({ planDelivery: vi.fn() }));
+vi.mock("@/features/routing/route-service", () => ({ computeRouteBetween: vi.fn() }));
+vi.mock("@/features/routing/site-queries", () => ({
+  getDefaultSite: vi.fn().mockResolvedValue(null),
+  getSiteById: vi.fn().mockResolvedValue(null),
+}));
 
 import {
   getOrderDetail,
   listClientAddressesGrouped,
+  listIntakeItemOptions,
   listSellableItemOptions,
 } from "@/features/orders/queries";
 import { listClients } from "@/features/clients/queries";
 import { createOrderWithItems } from "@/features/orders/service";
-import { creeazaClient, creeazaComanda, trimiteComanda } from "./write-tools";
+import { planDelivery } from "@/features/deliveries/service";
+import { computeRouteBetween } from "@/features/routing/route-service";
+import { getDefaultSite, getSiteById } from "@/features/routing/site-queries";
+import { creeazaClient, creeazaComanda, planificaLivrare, trimiteComanda } from "./write-tools";
 import { InvalidToolArgumentsError } from "./types";
 
 afterEach(() => {
@@ -149,6 +160,36 @@ describe("creeaza_comanda - validarea liniilor si adresa de livrare", () => {
     expect(presentation.options.clients).toHaveLength(1);
   });
 
+  it("presentation() trimite si catalogul de APORT, ca liniile nevandabile sa fie afisabile", async () => {
+    // Regresie: pana acum cardul primea doar itemii vandabili, asa ca o comanda
+    // `aport` cu un item nevandabil (ex. moloz - exista tocmai ca sa fie ADUS)
+    // ajungea intr-un editor care nu-i stia denumirea si nu-l mai putea re-adauga.
+    const moloz = {
+      id: "i-moloz",
+      title: "Moloz",
+      unit: "tona",
+      kind: "physical",
+      isTracked: true,
+    };
+    vi.mocked(listClients).mockResolvedValue([]);
+    vi.mocked(listClientAddressesGrouped).mockResolvedValue({});
+    vi.mocked(listSellableItemOptions).mockResolvedValue([]);
+    vi.mocked(listIntakeItemOptions).mockResolvedValue([moloz as never]);
+
+    const input = creeazaComanda.parse({
+      client_id: "c1",
+      tip_comanda: "aport",
+      linii: [{ item_id: "i-moloz", cantitate: 5 }],
+    });
+    const presentation = await creeazaComanda.presentation?.(input, {} as never);
+
+    expect(presentation?.renderer).toBe("order_draft");
+    if (presentation?.renderer !== "order_draft") throw new Error("unreachable");
+    expect(presentation.draft.orderType).toBe("aport");
+    expect(presentation.options.itemOptions).toEqual([]);
+    expect(presentation.options.intakeItemOptions).toEqual([moloz]);
+  });
+
   it("parse() acceptă tip_comanda explicit si respinge o valoare necunoscuta", () => {
     expect(
       creeazaComanda.parse({
@@ -207,5 +248,152 @@ describe("trimite_comanda - rezolvarea etichetei comenzii (fara ID brut in UI)",
         kind: "text",
       },
     ]);
+  });
+});
+
+describe("planifica_livrare - propunerea unei livrari pentru o comanda acceptata", () => {
+  const ORDER = {
+    id: "o1",
+    orderNumber: "CMD-2026-0003",
+    clientName: "Client Demo SRL",
+    deliveryAddress: "Str. Livrării 10, București",
+  };
+  const SITE = {
+    id: "site-1",
+    name: "Stația Otopeni",
+    address: "DN1 km 12, Otopeni",
+    isDefault: true,
+  };
+
+  it("cere campurile obligatorii si valideaza formatul datei", () => {
+    expect(() => planificaLivrare.parse({ order_id: "o1", data_programata: "2026-10-01" })).toThrow(
+      InvalidToolArgumentsError,
+    );
+    expect(() =>
+      planificaLivrare.parse({
+        order_id: "o1",
+        data_programata: "01.10.2026",
+        transportator: "Transport SRL",
+        nr_inmatriculare: "B 123 ABC",
+        sofer: "Ion Pop",
+      }),
+    ).toThrow(/data_programata/);
+
+    const input = planificaLivrare.parse({
+      order_id: "o1",
+      data_programata: "2026-10-01",
+      transportator: " Transport SRL ",
+      nr_inmatriculare: "B 123 ABC",
+      sofer: "Ion Pop",
+    });
+    expect(input.transportator).toBe("Transport SRL");
+    expect(input.punct_plecare_id).toBeNull();
+    expect(input.punct_sosire).toBeNull();
+  });
+
+  it("presentation() completeaza plecarea cu statia implicita si sosirea cu adresa comenzii", async () => {
+    vi.mocked(getOrderDetail).mockResolvedValue(ORDER as never);
+    vi.mocked(getDefaultSite).mockResolvedValue(SITE as never);
+
+    const input = planificaLivrare.parse({
+      order_id: "o1",
+      data_programata: "2026-10-01",
+      transportator: "Transport SRL",
+      nr_inmatriculare: "B 123 ABC",
+      sofer: "Ion Pop",
+    });
+    const presentation = await planificaLivrare.presentation?.(input, {} as never);
+
+    expect(presentation?.renderer).toBe("generic");
+    if (presentation?.renderer !== "generic") throw new Error("unreachable");
+    const byName = (name: string) => presentation.fields.find((field) => field.name === name);
+    // Comanda ramane needitabila (ca la `trimite_comanda`), restul se poate corecta.
+    expect(byName("order_id")?.editable).toBe(false);
+    expect(byName("order_id")?.displayValue).toBe("CMD-2026-0003 · Client Demo SRL");
+    expect(byName("punct_plecare")?.value).toBe("DN1 km 12, Otopeni");
+    expect(byName("punct_sosire")?.value).toBe("Str. Livrării 10, București");
+    expect(byName("statie_plecare")?.displayValue).toBe("Stația Otopeni");
+  });
+
+  it("execute() calculeaza ruta din statia aleasa si o salveaza pe livrare", async () => {
+    vi.mocked(getOrderDetail).mockResolvedValue(ORDER as never);
+    vi.mocked(getSiteById).mockResolvedValue(SITE as never);
+    vi.mocked(computeRouteBetween).mockResolvedValue({
+      routes: [
+        { distanceMeters: 20000, durationSeconds: 1800, polyline: "abc", label: "Ruta 1" },
+        { distanceMeters: 30000, durationSeconds: 2400, polyline: "def", label: "Ruta 2" },
+      ],
+      bestIndex: 0,
+    } as never);
+    vi.mocked(planDelivery).mockResolvedValue({
+      id: "d1",
+      scheduledDate: "2026-10-01",
+      routeOrigin: "DN1 km 12, Otopeni",
+      routeDestination: "Str. Livrării 10, București",
+    } as never);
+
+    const input = planificaLivrare.parse({
+      order_id: "o1",
+      data_programata: "2026-10-01",
+      transportator: "Transport SRL",
+      nr_inmatriculare: "B 123 ABC",
+      sofer: "Ion Pop",
+      punct_plecare_id: "site-1",
+    });
+    const result = await planificaLivrare.execute(input, {
+      organizationId: "org-1",
+      userId: "u1",
+    } as never);
+
+    expect(planDelivery).toHaveBeenCalledWith(
+      expect.objectContaining({
+        orderId: "o1",
+        scheduledDate: "2026-10-01",
+        carrierName: "Transport SRL",
+        vehiclePlate: "B 123 ABC",
+        driverName: "Ion Pop",
+        routeOrigin: "DN1 km 12, Otopeni",
+        routeDestination: "Str. Livrării 10, București",
+        createdBy: "u1",
+        route: expect.objectContaining({
+          originSiteId: "site-1",
+          distanceMeters: 20000,
+          selectedIndex: 0,
+          selection: "auto",
+        }),
+      }),
+    );
+    expect(result).toMatchObject({ livrare_id: "d1", ruta_calculata: true, distanta_km: 20 });
+  });
+
+  it("execute() planifica livrarea si daca furnizorul de rute esueaza (best-effort)", async () => {
+    vi.mocked(getOrderDetail).mockResolvedValue(ORDER as never);
+    vi.mocked(getSiteById).mockResolvedValue(SITE as never);
+    vi.mocked(computeRouteBetween).mockRejectedValue(
+      new Error("Planificarea rutelor nu este configurată (cheie API lipsă)."),
+    );
+    vi.mocked(planDelivery).mockResolvedValue({
+      id: "d2",
+      scheduledDate: "2026-10-01",
+      routeOrigin: "DN1 km 12, Otopeni",
+      routeDestination: "Str. Livrării 10, București",
+    } as never);
+
+    const input = planificaLivrare.parse({
+      order_id: "o1",
+      data_programata: "2026-10-01",
+      transportator: "Transport SRL",
+      nr_inmatriculare: "B 123 ABC",
+      sofer: "Ion Pop",
+      punct_plecare_id: "site-1",
+    });
+    const result = await planificaLivrare.execute(input, {
+      organizationId: "org-1",
+      userId: "u1",
+    } as never);
+
+    expect(planDelivery).toHaveBeenCalledWith(expect.objectContaining({ route: null }));
+    expect(result).toMatchObject({ livrare_id: "d2", ruta_calculata: false });
+    expect((result as { ruta_eroare: string }).ruta_eroare).toContain("cheie API");
   });
 });

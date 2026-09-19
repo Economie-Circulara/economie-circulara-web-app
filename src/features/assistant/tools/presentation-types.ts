@@ -45,7 +45,16 @@ export interface OrderDraftValue {
 export interface OrderDraftOptions {
   clients: Client[];
   addressesByClient: Record<string, ClientAddress[]>;
+  /** Catalogul vandabil - liniile permise pe o comanda `material`/`serviciu`. */
   itemOptions: ItemOption[];
+  /**
+   * Catalogul de APORT (itemi fizici trasati, inclusiv NEVANDABILI - vezi
+   * `listIntakeItemOptions`). Fara el, o comanda `aport` propusa de asistent cu un
+   * item nevandabil (ex. moloz) ajungea intr-un card care nu-i stia denumirea si
+   * nu-l mai putea re-adauga. Optional doar din compatibilitate cu prezentarile
+   * care nu-l trimit (cad inapoi pe `itemOptions`, ca `OrderEditor`).
+   */
+  intakeItemOptions?: ItemOption[];
 }
 
 export interface OrderDraftPresentation {

@@ -67,9 +67,12 @@ actiune concreta, iar utilizatorul o confirma dintr-un singur click.
 | `listeaza_clienti` / `detalii_client` | staff | `features/clients/queries.ts` | read |
 | `itemi_vandabili` / `stoc_disponibil` | staff | `features/items`, `features/stock/queries.ts` | read |
 | `comenzile_mele` | client | `features/client-portal` | read |
+| `itemi_aport` | staff | `orders/queries.ts` → `listIntakeItemOptions` | read |
+| `context_livrare` | staff | `routing/site-queries.ts`, `deliveries/queries.ts` | read |
 | `creeaza_client` | staff | `createClientRecord` | **write** |
 | `creeaza_comanda` | staff | `createOrderWithItems` | **write** |
 | `trimite_comanda` | staff | `sendOrder` | **write** |
+| `planifica_livrare` | staff | `deliveries/service.ts` → `planDelivery` (+ `computeRouteBetween`) | **write** |
 
 Regula: un singur tool de scriere per tura. Tranzitiile cu efect de stoc
 (`acceptOrder`, `cancelOrder`, `deliverOrder`) raman **in afara** asistentului in v1.

@@ -48,8 +48,13 @@ export class DeliveryNotFoundError extends Error {
   }
 }
 
-/** Doar comenzile ACCEPTATE pot avea o livrare planificata (docs/plans/implementation-plan.md, Task X5). */
-const PLANNABLE_ORDER_STATUS: OrderStatus = "accepted";
+/**
+ * Doar comenzile ACCEPTATE pot avea o livrare planificata (docs/plans/implementation-plan.md,
+ * Task X5). Exportata ca sa NU se rescrie literalul "accepted" in fiecare garda din
+ * afara serviciului (butonul din /comenzi/[id], tool-urile asistentului) - regula
+ * de business ramane intr-un singur loc.
+ */
+export const PLANNABLE_ORDER_STATUS: OrderStatus = "accepted";
 
 function requireNonEmpty(value: string, field: string): string {
   const trimmed = value.trim();

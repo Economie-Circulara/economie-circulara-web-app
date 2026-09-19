@@ -168,3 +168,70 @@ renderer + intrare în manual + caz de regresie testat.
   scurtă a secțiunii de asistent (card tipat, adresă de livrare disponibilă la
   comanda propusă de asistent).
 - `docs/prompt-log.md`: o intrare per commit (regula 1.2).
+
+---
+
+## Extensie - aport corect + planificarea livrării (AGENTS.md §2.4: `read` + `write`)
+
+### Bug confirmat: `creeaza_comanda` cu `tip_comanda = "aport"`
+
+`presentation()` încărca DOAR `listSellableItemOptions()`, indiferent de tip, iar
+`OrderDraftCard` nu trimitea `intakeItemOptions` mai departe către `OrderEditor`. O
+comandă de aport propusă cu un item **nevandabil** (ex. moloz - există tocmai ca să fie
+ADUS, nu vândut) ajungea într-un card care nu-i știa denumirea (`"-"`, fără UM) și nu-l
+mai putea re-adăuga din selector. Fix: `presentation()` încarcă **ambele** cataloage
+(`listSellableItemOptions` + `listIntakeItemOptions`, ca `/comenzi/nou`),
+`OrderDraftOptions.intakeItemOptions` le duce în card, iar `OrderEditor` comută deja
+singur pe tip. Ambele, nu doar cel al tipului propus: tipul e editabil în card.
+Regresie: `write-tools.test.ts` - "presentation() trimite si catalogul de APORT".
+
+### Tool-uri noi
+
+| Tool | Rol | Renderer card | Serviciu refolosit |
+| --- | --- | --- | --- |
+| `itemi_aport` | staff | - (read) | `orders/queries.ts#listIntakeItemOptions` |
+| `context_livrare` | staff | - (read) | `routing/site-queries.ts#listSites`, `orders/queries.ts#getOrderDetail`, `deliveries/queries.ts#getDeliveryByOrderId` |
+| `planifica_livrare` | staff | `generic` | `deliveries/service.ts#planDelivery`, `routing/route-service.ts#computeRouteBetween` |
+
+- `itemi_aport` completează golul lăsat de `itemi_vandabili` (filtrează `sellable`):
+  fără el modelul nu putea afla `item_id`-ul unui item de aport, deci fluxul
+  aport nu era parcurgibil cap-coadă.
+- `context_livrare` (opțional `order_id`) întoarce punctele de plecare ale
+  organizației + starea comenzii: `poate_fi_planificata` aplică aceeași regulă ca
+  butonul "Planifică livrare" din `/comenzi/[id]` - status `accepted`
+  (`PLANNABLE_ORDER_STATUS`, acum exportată din `deliveries/service.ts`) și fără
+  livrare existentă.
+- `planifica_livrare(order_id, data_programata, transportator, nr_inmatriculare,
+  sofer, punct_plecare_id?, punct_plecare?, punct_sosire?)` → `planDelivery`.
+  Câmpurile pe care modelul n-are de unde să le știe se completează ca în
+  `/livrari/nou`: punctul de plecare din stația implicită (`getDefaultSite`), cel
+  de sosire din adresa de livrare a comenzii. Cardul `generic` le arată editabile,
+  cu `order_id` doar-afișare (ca la `trimite_comanda`).
+
+### Decizii de scop (planificarea rutelor, Task X7)
+
+1. **Se expune calculul rutei, NU selecția manuală de variantă.** Cu
+   `punct_plecare_id` prezent, `execute` calculează rutele și păstrează varianta
+   recomandată (`pickBestRouteIndex` prin `computeRouteBetween`, `selection:
+   "auto"`) - exact scopul redus al lui `recalculateDeliveryRoute`. Alegerea
+   manuală dintre alternative rămâne în UI (`RoutePreview`, ecranul `/livrari/nou`):
+   un card de confirmare cu hartă și N variante ar cere un renderer nou, fără
+   beneficiu proporțional.
+2. **Calculul rutei e BEST-EFFORT.** Dacă furnizorul nu e configurat
+   (`RoutingNotConfiguredError`) sau adresa nu se geocodează, livrarea se
+   planifică oricum cu text liber (comportamentul de dinainte de X7), iar motivul
+   se întoarce modelului în rezultat (`ruta_calculata`, `ruta_eroare`), ca
+   utilizatorul să afle - nu se pierde silențios.
+3. **Nu se expun** acceptarea comenzii, declararea e-Transport, confirmarea
+   recepției și recalcularea rutei: tranzițiile cu efect de stoc / apelurile către
+   ANAF rămân în afara asistentului (regula din `task-asistent-ai.md`).
+
+### Teste
+
+- `read-tools.test.ts`: `itemi_aport` folosește catalogul de aport și filtrează
+  după denumire; `context_livrare` - planificabilă / livrare deja existentă /
+  status greșit.
+- `write-tools.test.ts`: câmpuri obligatorii + format dată; `presentation()`
+  completează plecarea/sosirea; `execute()` trimite ruta calculată la
+  `planDelivery`; eșecul furnizorului de rute nu blochează planificarea.
+- `registry.test.ts`: tool-urile noi apar la staff și NU la rolul `client`.
