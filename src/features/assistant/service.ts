@@ -118,6 +118,8 @@ export async function saveProposal(input: {
   arguments: Record<string, unknown>;
   /** Id-ul tool-call-ului dat de furnizorul LLM - vezi coloana `provider_call_id`. */
   providerCallId: string;
+  /** CoT-ul modelului la propunere (thinking mode DeepSeek) - vezi coloana `reasoning_content`. */
+  reasoningContent?: string;
 }): Promise<string> {
   const db = await assistantDb();
   const { data, error } = await db
@@ -132,6 +134,7 @@ export async function saveProposal(input: {
       error: null,
       confirmed_by: null,
       provider_call_id: input.providerCallId,
+      reasoning_content: input.reasoningContent ?? null,
       resolved_at: null,
     })
     .select("id")
@@ -166,7 +169,7 @@ export async function logReadCall(input: {
 }
 
 const PROPOSAL_COLUMNS =
-  "id, conversation_id, tool, tool_version, arguments, status, result, error, provider_call_id, created_at";
+  "id, conversation_id, tool, tool_version, arguments, status, result, error, provider_call_id, reasoning_content, created_at";
 
 export async function getProposal(toolCallId: string): Promise<AssistantToolCall | null> {
   const db = await assistantDb();
@@ -188,6 +191,7 @@ export async function getProposal(toolCallId: string): Promise<AssistantToolCall
     result: row.result,
     error: row.error,
     providerCallId: row.provider_call_id,
+    reasoningContent: row.reasoning_content,
     createdAt: row.created_at,
   };
 }
