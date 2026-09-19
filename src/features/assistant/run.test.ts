@@ -283,6 +283,7 @@ describe("confirmAction / rejectAction", () => {
     result: null,
     error: null,
     providerCallId: "t1",
+    reasoningContent: null,
     createdAt: "2026-09-13T10:00:00Z",
   };
 
@@ -385,6 +386,22 @@ describe("confirmAction / rejectAction", () => {
     expect(provider.calls).toHaveLength(1);
     expect(turn.reply).toContain("Gata");
     expect(turn.reply).toContain("Acum pregătesc comanda pentru ACME.");
+  });
+
+  it("continuarea retrimite reasoning_content-ul propunerii salvate (thinking mode DeepSeek)", async () => {
+    const tool = writeTool();
+    vi.mocked(findTool).mockReturnValue(tool as never);
+    vi.mocked(service.getProposal).mockResolvedValue({
+      ...proposal,
+      reasoningContent: "utilizatorul vrea clientul ACME, CUI valid",
+    });
+
+    const provider = new ScriptedProvider([{ content: "gata" }], "openai-compatible");
+    await confirmAction({ toolCallId: "call-1", ctx: CTX, provider });
+
+    const sent = provider.calls[0].messages as { toolCalls?: unknown; reasoningContent?: string }[];
+    const assistantCallMsg = sent.find((message) => message.toolCalls);
+    expect(assistantCallMsg?.reasoningContent).toBe("utilizatorul vrea clientul ACME, CUI valid");
   });
 
   it("continuare DEZACTIVATA pe furnizorul mock - nu se mai apeleaza providerul", async () => {

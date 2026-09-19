@@ -55,6 +55,81 @@ describe("OpenAiCompatibleProvider", () => {
     expect(completion.usage).toEqual({ inputTokens: 100, outputTokens: 20 });
   });
 
+  it("pentru DeepSeek, activeaza thinking mode si citeste reasoning_content din raspuns", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        choices: [
+          {
+            message: {
+              content: "9.8 e mai mare.",
+              reasoning_content: "9.11 < 9.8 pentru ca 11 sutimi < 80 sutimi.",
+            },
+          },
+        ],
+        usage: { prompt_tokens: 10, completion_tokens: 5 },
+      }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const provider = new OpenAiCompatibleProvider(
+      "https://api.deepseek.com",
+      "cheie",
+      "deepseek-chat",
+    );
+    const completion = await provider.complete({
+      messages: [{ role: "user", content: "9.11 sau 9.8, ce e mai mare?" }],
+      tools: [],
+    });
+
+    const [, init] = fetchMock.mock.calls[0];
+    const body = JSON.parse((init as { body: string }).body);
+    expect(body.thinking).toEqual({ type: "enabled" });
+    expect(completion.reasoningContent).toBe("9.11 < 9.8 pentru ca 11 sutimi < 80 sutimi.");
+  });
+
+  it("pentru DeepSeek, retrimite reasoning_content al mesajelor assistant anterioare", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ choices: [{ message: { content: "ok" } }] }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const provider = new OpenAiCompatibleProvider("https://api.deepseek.com", "cheie", "model");
+    await provider.complete({
+      messages: [
+        { role: "user", content: "cauta beton" },
+        {
+          role: "assistant",
+          content: "",
+          toolCalls: [{ id: "t1", name: "cauta", arguments: "{}" }],
+          reasoningContent: "trebuie sa caut beton",
+        },
+        { role: "tool", content: "{}", toolCallId: "t1" },
+      ],
+      tools: TOOLS,
+    });
+
+    const [, init] = fetchMock.mock.calls[0];
+    const body = JSON.parse((init as { body: string }).body);
+    expect(body.messages[1].reasoning_content).toBe("trebuie sa caut beton");
+  });
+
+  it("pentru alti furnizori, NU trimite `thinking` (parametru necunoscut la DeepSeek)", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ choices: [{ message: { content: "ok" } }] }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const provider = new OpenAiCompatibleProvider("https://api.mistral.ai/v1", "cheie", "model");
+    await provider.complete({ messages: [{ role: "user", content: "salut" }], tools: [] });
+
+    const [, init] = fetchMock.mock.calls[0];
+    const body = JSON.parse((init as { body: string }).body);
+    expect(body.thinking).toBeUndefined();
+  });
+
   it("transforma erorile furnizorului in mesaj afisabil", async () => {
     vi.stubGlobal(
       "fetch",

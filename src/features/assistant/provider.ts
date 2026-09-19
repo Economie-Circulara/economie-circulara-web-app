@@ -8,8 +8,10 @@
  *    -> confirmare -> executie) sa fie demonstrabil si testabil offline, si spune clar
  *    ca nu e configurata nicio cheie.
  *  - `OpenAiCompatibleProvider`: un singur cod pentru Mistral / Groq / OpenRouter /
- *    OpenAI - toate expun `POST /chat/completions` cu `tools`. Configurare:
+ *    OpenAI / DeepSeek - toate expun `POST /chat/completions` cu `tools`. Configurare:
  *    `ASSISTANT_API_URL`, `ASSISTANT_API_KEY`, `ASSISTANT_MODEL` (vezi `.env.example`).
+ *    Pentru DeepSeek (`ASSISTANT_API_URL` contine `deepseek.com`) se activeaza automat
+ *    thinking mode - vezi comentariul din `complete()`.
  *
  * Alegerea furnizorului e o variabila de mediu, nu o decizie de arhitectura: daca
  * modelul se dovedeste slab la tool calling, se schimba `ASSISTANT_MODEL`, nu codul.
@@ -29,6 +31,12 @@ export interface ChatMessage {
   toolCalls?: ProviderToolCall[];
   /** Doar pentru `role: "tool"` - apelul la care raspunde acest mesaj. */
   toolCallId?: string;
+  /**
+   * Doar pentru `role: "assistant"` - CoT-ul modelului (thinking mode). Trebuie
+   * retrimis EXACT cum a fost primit pe orice mesaj `assistant` cu `toolCalls` cat timp
+   * cererea are `tools`, altfel DeepSeek raspunde cu eroare 400 (vezi `OpenAiCompatibleProvider`).
+   */
+  reasoningContent?: string;
 }
 
 export interface ToolDefinition {
@@ -42,6 +50,8 @@ export interface ChatCompletion {
   content: string;
   toolCalls: ProviderToolCall[];
   usage: { inputTokens: number; outputTokens: number };
+  /** CoT-ul modelului, daca furnizorul suporta thinking mode (ex. DeepSeek). */
+  reasoningContent?: string;
 }
 
 export interface ChatProvider {
@@ -103,7 +113,13 @@ interface OpenAiToolCall {
 }
 
 interface OpenAiResponse {
-  choices?: { message?: { content?: string | null; tool_calls?: OpenAiToolCall[] } }[];
+  choices?: {
+    message?: {
+      content?: string | null;
+      tool_calls?: OpenAiToolCall[];
+      reasoning_content?: string | null;
+    };
+  }[];
   usage?: { prompt_tokens?: number; completion_tokens?: number };
   error?: { message?: string };
 }
@@ -124,6 +140,12 @@ export class OpenAiCompatibleProvider implements ChatProvider {
     messages: ChatMessage[];
     tools: ToolDefinition[];
   }): Promise<ChatCompletion> {
+    // DeepSeek e singurul furnizor din lista (Mistral/Groq/OpenRouter/OpenAI) cu thinking
+    // mode: https://api-docs.deepseek.com/guides/thinking_mode/. Cand are `tools`, cere
+    // *obligatoriu* `reasoning_content` inapoi pe fiecare mesaj `assistant` din cererile
+    // urmatoare - altfel raspunde cu 400 - de-aia mesajele mai jos il retrimit mereu.
+    const isDeepSeek = /(?:^|\.)deepseek\.com(?:\/|$)/i.test(this.baseUrl);
+
     const response = await fetch(`${this.baseUrl.replace(/\/$/, "")}/chat/completions`, {
       method: "POST",
       headers: {
@@ -132,8 +154,10 @@ export class OpenAiCompatibleProvider implements ChatProvider {
       },
       body: JSON.stringify({
         model: this.model,
-        // Temperatura mica: vrem argumente corecte, nu creativitate.
+        // Temperatura mica: vrem argumente corecte, nu creativitate. (Ignorata de
+        // DeepSeek in thinking mode, dar celelalte furnizoare tot o folosesc.)
         temperature: 0.1,
+        ...(isDeepSeek ? { thinking: { type: "enabled" } } : {}),
         messages: messages.map((message) => ({
           role: message.role,
           content: message.content,
@@ -147,6 +171,7 @@ export class OpenAiCompatibleProvider implements ChatProvider {
               }
             : {}),
           ...(message.toolCallId ? { tool_call_id: message.toolCallId } : {}),
+          ...(message.reasoningContent ? { reasoning_content: message.reasoningContent } : {}),
         })),
         ...(tools.length
           ? {
@@ -194,6 +219,7 @@ export class OpenAiCompatibleProvider implements ChatProvider {
         inputTokens: payload.usage?.prompt_tokens ?? 0,
         outputTokens: payload.usage?.completion_tokens ?? 0,
       },
+      ...(message?.reasoning_content ? { reasoningContent: message.reasoning_content } : {}),
     };
   }
 }

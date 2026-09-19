@@ -51,8 +51,8 @@ function toolResultMessage(toolCallId: string, payload: unknown): ChatMessage {
   return { role: "tool", toolCallId, content: JSON.stringify(payload).slice(0, 6000) };
 }
 
-function assistantCallMessage(call: ProviderToolCall): ChatMessage {
-  return { role: "assistant", content: "", toolCalls: [call] };
+function assistantCallMessage(call: ProviderToolCall, reasoningContent?: string): ChatMessage {
+  return { role: "assistant", content: "", toolCalls: [call], reasoningContent };
 }
 
 async function pendingActionFrom(
@@ -159,7 +159,7 @@ async function converse(input: {
 
     const tool = findTool(call.name, ctx.role);
     if (!tool) {
-      messages.push(assistantCallMessage(call));
+      messages.push(assistantCallMessage(call, completion.reasoningContent));
       messages.push(
         toolResultMessage(call.id, { eroare: `Tool necunoscut sau nepermis: ${call.name}.` }),
       );
@@ -172,7 +172,7 @@ async function converse(input: {
       parsed = tool.parse(rawArgs) as never;
     } catch (err) {
       const reason = err instanceof InvalidToolArgumentsError ? err.message : "Argumente invalide.";
-      messages.push(assistantCallMessage(call));
+      messages.push(assistantCallMessage(call, completion.reasoningContent));
       messages.push(toolResultMessage(call.id, { eroare: reason }));
       continue;
     }
@@ -184,6 +184,7 @@ async function converse(input: {
         toolVersion: tool.version,
         arguments: rawArgs,
         providerCallId: call.id,
+        reasoningContent: completion.reasoningContent,
       });
       return {
         reply:
@@ -202,7 +203,7 @@ async function converse(input: {
         arguments: rawArgs,
         ok: true,
       });
-      messages.push(assistantCallMessage(call));
+      messages.push(assistantCallMessage(call, completion.reasoningContent));
       messages.push(toolResultMessage(call.id, result));
     } catch (err) {
       const reason = err instanceof Error ? err.message : "Eroare la execuția tool-ului.";
@@ -214,7 +215,7 @@ async function converse(input: {
         ok: false,
         error: reason,
       });
-      messages.push(assistantCallMessage(call));
+      messages.push(assistantCallMessage(call, completion.reasoningContent));
       messages.push(toolResultMessage(call.id, { eroare: reason }));
     }
   }
@@ -240,6 +241,8 @@ async function messagesForContinuation(input: {
   toolCallId: string;
   args: Record<string, unknown>;
   result: unknown;
+  /** CoT-ul original al propunerii - vezi `ChatMessage.reasoningContent`. */
+  reasoningContent?: string | null;
 }): Promise<ChatMessage[]> {
   const org = await getCurrentOrg();
   const history = (await listMessages(input.conversationId)).slice(-HISTORY_LIMIT);
@@ -255,7 +258,7 @@ async function messagesForContinuation(input: {
       role: entry.role === "tool" ? ("assistant" as const) : entry.role,
       content: entry.content,
     })),
-    assistantCallMessage(call),
+    assistantCallMessage(call, input.reasoningContent ?? undefined),
     toolResultMessage(input.toolCallId, input.result),
   ];
 }
@@ -367,6 +370,7 @@ export async function confirmAction(input: {
           toolCallId: proposal.providerCallId ?? proposal.id,
           args,
           result,
+          reasoningContent: proposal.reasoningContent,
         });
         const continuation = await converse({
           id: proposal.conversationId,

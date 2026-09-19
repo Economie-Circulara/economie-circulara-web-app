@@ -44,6 +44,8 @@ export interface AssistantToolCallRow {
   confirmed_by: string | null;
   /** Id-ul tool-call-ului dat de furnizorul LLM - reconstruieste mesajele la continuare (run.ts). */
   provider_call_id: string | null;
+  /** CoT-ul modelului la propunere (thinking mode DeepSeek) - migrarea 0032_assistant_reasoning_content.sql. */
+  reasoning_content: string | null;
   created_at: string;
   resolved_at: string | null;
 }

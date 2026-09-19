@@ -27,6 +27,8 @@ export interface AssistantToolCall {
   error: string | null;
   /** Id-ul tool-call-ului dat de furnizorul LLM - vezi coloana `provider_call_id`. */
   providerCallId: string | null;
+  /** CoT-ul modelului la propunere (thinking mode DeepSeek) - vezi coloana `reasoning_content`. */
+  reasoningContent: string | null;
   createdAt: string;
 }
 
