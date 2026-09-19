@@ -9,16 +9,23 @@ vi.mock("./queries", () => ({ getOrderStatus }));
 const { onOrderStatusChanged } = vi.hoisted(() => ({ onOrderStatusChanged: vi.fn() }));
 vi.mock("./notifications", () => ({ onOrderStatusChanged }));
 
-const { acceptOrder, cancelOrder, createOrderWithItems, sendOrder, setOrderStatus } = vi.hoisted(
-  () => ({
-    acceptOrder: vi.fn(),
-    cancelOrder: vi.fn(),
-    createOrderWithItems: vi.fn(),
-    sendOrder: vi.fn(),
-    setOrderStatus: vi.fn(),
-  }),
-);
+const {
+  acceptIntakeOrder,
+  acceptOrder,
+  cancelOrder,
+  createOrderWithItems,
+  sendOrder,
+  setOrderStatus,
+} = vi.hoisted(() => ({
+  acceptIntakeOrder: vi.fn(),
+  acceptOrder: vi.fn(),
+  cancelOrder: vi.fn(),
+  createOrderWithItems: vi.fn(),
+  sendOrder: vi.fn(),
+  setOrderStatus: vi.fn(),
+}));
 vi.mock("./service", () => ({
+  acceptIntakeOrder,
   acceptOrder,
   cancelOrder,
   createOrderWithItems,
@@ -38,6 +45,7 @@ vi.mock("next/cache", () => ({ revalidatePath }));
 
 import { InsufficientStockError } from "@/features/stock/service";
 import {
+  acceptIntakeAction,
   acceptOrderAction,
   cancelOrderAction,
   closeOrderAction,
@@ -63,12 +71,36 @@ function formData(fields: Record<string, string | string[]>): FormData {
 }
 
 describe("createOrderAction", () => {
+  it("respinge cererea fara tip de comanda (nu exista default in UI)", async () => {
+    requireRole.mockResolvedValue({ id: "u1", organizationId: "org-1" });
+
+    const state = await createOrderAction(
+      { error: null },
+      formData({ client_id: "client-1", item_id: ["item-1"], quantity: ["2"] }),
+    );
+
+    expect(state.error).toMatch(/tipul comenzii/i);
+    expect(createOrderWithItems).not.toHaveBeenCalled();
+  });
+
+  it("respinge un tip de comanda necunoscut", async () => {
+    requireRole.mockResolvedValue({ id: "u1", organizationId: "org-1" });
+
+    const state = await createOrderAction(
+      { error: null },
+      formData({ order_type: "altceva", client_id: "client-1", item_id: ["item-1"] }),
+    );
+
+    expect(state.error).toMatch(/tipul comenzii/i);
+    expect(createOrderWithItems).not.toHaveBeenCalled();
+  });
+
   it("respinge cererea cand lipseste clientul", async () => {
     requireRole.mockResolvedValue({ id: "u1", organizationId: "org-1" });
 
     const state = await createOrderAction(
       { error: null },
-      formData({ item_id: ["item-1"], quantity: ["2"] }),
+      formData({ order_type: "material", item_id: ["item-1"], quantity: ["2"] }),
     );
 
     expect(state.error).toMatch(/client/i);
@@ -78,7 +110,10 @@ describe("createOrderAction", () => {
   it("respinge cererea fara nicio linie valida", async () => {
     requireRole.mockResolvedValue({ id: "u1", organizationId: "org-1" });
 
-    const state = await createOrderAction({ error: null }, formData({ client_id: "client-1" }));
+    const state = await createOrderAction(
+      { error: null },
+      formData({ order_type: "material", client_id: "client-1" }),
+    );
 
     expect(state.error).toMatch(/linie/i);
     expect(createOrderWithItems).not.toHaveBeenCalled();
@@ -92,6 +127,7 @@ describe("createOrderAction", () => {
       createOrderAction(
         { error: null },
         formData({
+          order_type: "material",
           client_id: "client-1",
           item_id: ["item-1", "", "item-3"],
           quantity: ["2", "5", "0"],
@@ -112,9 +148,11 @@ describe("createOrderAction", () => {
       createOrderAction(
         { error: null },
         formData({
+          order_type: "serviciu",
           client_id: "client-1",
           delivery_address_id: "addr-1",
           delivery_date: "2026-08-01",
+          expected_return_date: "2026-09-01",
           notes: "livrare rapidă",
           item_id: ["item-1", "item-2"],
           quantity: ["4", "2,5"],
@@ -125,9 +163,11 @@ describe("createOrderAction", () => {
     expect(createOrderWithItems).toHaveBeenCalledWith({
       organizationId: "org-1",
       clientId: "client-1",
+      orderType: "serviciu",
       createdByAdmin: true,
       deliveryAddressId: "addr-1",
       deliveryDate: "2026-08-01",
+      expectedReturnDate: "2026-09-01",
       notes: "livrare rapidă",
       lines: [
         { itemId: "item-1", quantity: 4 },
@@ -143,11 +183,40 @@ describe("createOrderAction", () => {
 
     const state = await createOrderAction(
       { error: null },
-      formData({ client_id: "client-x", item_id: ["item-1"], quantity: ["1"] }),
+      formData({
+        order_type: "material",
+        client_id: "client-x",
+        item_id: ["item-1"],
+        quantity: ["1"],
+      }),
     );
 
     expect(state.error).toBe("Client inexistent.");
     expect(redirect).not.toHaveBeenCalled();
+  });
+});
+
+describe("acceptIntakeAction", () => {
+  it("accepta aportul prin RPC-ul dedicat (fara masina de stari / notificari)", async () => {
+    requireRole.mockResolvedValue({ id: "u1", organizationId: "org-1" });
+    acceptIntakeOrder.mockResolvedValue({ id: "order-aport", status: "accepted" });
+
+    const state = await acceptIntakeAction("order-aport");
+
+    expect(state.error).toBeNull();
+    expect(acceptIntakeOrder).toHaveBeenCalledWith("order-aport");
+    expect(getOrderStatus).not.toHaveBeenCalled();
+    expect(onOrderStatusChanged).not.toHaveBeenCalled();
+    expect(revalidatePath).toHaveBeenCalledWith("/stoc");
+  });
+
+  it("intoarce mesajul de eroare al RPC-ului (ex. comanda nu e de tip aport)", async () => {
+    requireRole.mockResolvedValue({ id: "u1", organizationId: "org-1" });
+    acceptIntakeOrder.mockRejectedValue(new Error("Comanda nu este de tip aport."));
+
+    const state = await acceptIntakeAction("order-1");
+
+    expect(state.error).toBe("Comanda nu este de tip aport.");
   });
 });
 

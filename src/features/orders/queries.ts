@@ -2,7 +2,14 @@ import { createClient } from "@/lib/supabase/server";
 import type { ClientAddress } from "@/features/clients/types";
 import { getDeliveryGuardsForOrders } from "@/features/deliveries/queries";
 import type { ItemOption } from "@/features/items/types";
-import type { OrderDetail, OrderItemRow, OrderLinkType, OrderListRow, OrderStatus } from "./types";
+import type {
+  OrderDetail,
+  OrderItemRow,
+  OrderLinkType,
+  OrderListRow,
+  OrderStatus,
+  OrderType,
+} from "./types";
 
 type SupabaseClient = Awaited<ReturnType<typeof createClient>>;
 
@@ -13,6 +20,7 @@ interface OrderCoreRow {
   id: string;
   client_id: string;
   order_number: string | null;
+  order_type: OrderType;
   status: OrderStatus;
   created_by_admin: boolean;
   delivery_address_id: string | null;
@@ -30,6 +38,7 @@ function mapOrderRow(
     id: row.id,
     clientId: row.client_id,
     orderNumber: row.order_number,
+    orderType: row.order_type,
     status: row.status,
     createdByAdmin: row.created_by_admin,
     deliveryAddressId: row.delivery_address_id,
@@ -103,7 +112,7 @@ export async function listOrders(filters: ListOrdersFilters = {}): Promise<Order
   let query = supabase
     .from("orders")
     .select(
-      "id, client_id, order_number, status, created_by_admin, delivery_address_id, delivery_date, expected_return_date, notes, created_at, updated_at, clients(name)",
+      "id, client_id, order_number, order_type, status, created_by_admin, delivery_address_id, delivery_date, expected_return_date, notes, created_at, updated_at, clients(name)",
     )
     .order("created_at", { ascending: false });
 
@@ -163,6 +172,30 @@ export async function listSellableItemOptions(): Promise<ItemOption[]> {
 }
 
 /**
+ * Itemii care pot aparea pe o comanda de tip `aport` (material adus de client):
+ * ORICE item fizic din catalog, indiferent de `sellable`. Motivatie (migrarea
+ * 0030): ce aduce clientul (ex. moloz de demolare) e de regula o materie prima
+ * NEVANDABILA - filtrul `sellable` de la vanzare ar ascunde exact itemii relevanti.
+ * Serviciile (`kind = 'service'`) sunt excluse: nu au stoc, deci nu pot fi "aduse".
+ */
+export async function listIntakeItemOptions(): Promise<ItemOption[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("items")
+    .select("id, title, unit, kind")
+    .eq("kind", "physical")
+    .order("title");
+  if (error) throw new Error("Nu am putut incarca itemii fizici pentru aport.");
+
+  return (data ?? []).map((row) => ({
+    id: row.id,
+    title: row.title,
+    unit: row.unit,
+    kind: row.kind,
+  }));
+}
+
+/**
  * Toate adresele de livrare ale organizatiei, grupate pe client - evita N
  * interogari (una per client) la incarcarea formularului de creare comanda.
  * `client_addresses` are RLS pe `organization_id`, deci un singur select intoarce
@@ -207,7 +240,7 @@ export async function getOrderDetail(id: string): Promise<OrderDetail | null> {
   const { data: order, error } = await supabase
     .from("orders")
     .select(
-      "id, client_id, order_number, status, created_by_admin, delivery_address_id, delivery_date, expected_return_date, notes, created_at, updated_at, clients(name, cui), client_addresses(address, label)",
+      "id, client_id, order_number, order_type, status, created_by_admin, delivery_address_id, delivery_date, expected_return_date, notes, created_at, updated_at, clients(name, cui), client_addresses(address, label)",
     )
     .eq("id", id)
     .maybeSingle();

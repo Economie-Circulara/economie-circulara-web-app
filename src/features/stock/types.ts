@@ -18,6 +18,11 @@ export interface Lot {
   qualityStatus: QualityStatus;
   isBlocked: boolean;
   blockReason: string | null;
+  /**
+   * Clientul care a adus materialul - completat DOAR pe loturile venite dintr-un
+   * aport (`provenance = 'aport_client'`, migrarile 0030/0031), null in rest.
+   */
+  clientId: string | null;
   createdAt: string;
 }
 
@@ -25,6 +30,8 @@ export interface Lot {
 export interface LotWithItem extends Lot {
   itemTitle: string;
   unit: UnitOfMeasure;
+  /** Denumirea clientului din `clientId` (aport), altfel null. */
+  clientName: string | null;
 }
 
 /** Un item, pe cat e nevoie in formularele de stoc (select). */

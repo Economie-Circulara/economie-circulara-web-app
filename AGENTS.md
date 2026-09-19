@@ -238,6 +238,32 @@ Testele unitare sunt **colocate** langa cod (`*.test.ts` / `*.test.tsx`).
   - Cheia Google **nu ajunge niciodata in browser**: harta se randeaza server-side ca
     imagine (data-URI base64), nu ca URL trimis catre client (`route-service.ts`).
 
+- **Orice comanda are un TIP explicit (`orders.order_type`, migrarea `0030`)** -
+  `material` / `serviciu` / `aport` - ales de om la creare, niciodata implicit in UI
+  (default-ul `material` din DB exista doar pentru backfill si pentru insert-urile
+  care nu trec prin formular: seed-uri, comenzi-retur). Tipul da SENSUL miscarii de
+  stoc:
+  - `material` - vanzare clasica, organizatie -> client; scade stocul la acceptare.
+  - `serviciu` - inchiriere / product-as-a-service; singurul tip pentru care se
+    completeaza `expected_return_date`.
+  - `aport` - **sens invers: clientul aduce material** catre organizatie (ex. moloz
+    pentru reciclare). Creste stocul la acceptare, prin RPC-ul dedicat
+    `accept_intake_order` (migrarea `0031`): cate un lot per linie, provenienta
+    `aport_client`, `lots.client_id` completat (singura cale prin care un lot stie
+    de la ce CLIENT provine) si `quality_status = 'unchecked'` - materialul unui
+    tert nu e verificat in momentul receptiei, QC-ul se face dupa. Comanda-aport NU
+    intra in masina de stari de vanzare: `draft -> accepted` si se opreste acolo,
+    exact ca o comanda-retur; `accept_order` (fluxul de vanzare) o refuza explicit.
+- **Eligibilitatea de retur/garantie depinde de tipul comenzii, nu doar de status**
+  (decizie 2026-09, `ALLOWED_RETURN_FLOWS_BY_ORDER_TYPE` in
+  `src/features/returns/types.ts`): retur PUR (`order_links.link_type = 'return'`,
+  marfa reintra in stoc fara inlocuire) doar pe `serviciu` - o vanzare de material e
+  o tranzactie intr-un singur sens; GARANTIE (`warranty`, care creeaza si comanda de
+  inlocuire) pe `material` SI `serviciu` - un produs fizic defect trebuie inlocuit
+  indiferent cum a fost dat clientului; pe `aport` niciun flux (materialul a venit de
+  la client, nu catre el). Verificarea de status (`delivered`/`closed`) ramane in
+  plus, nu in locul acesteia.
+
 ### 4.1 Limitari cunoscute / trade-off-uri acceptate
 
 - **`stock_events` audit trail**: pentru acum, nicio reconciliere automata cu `lots.remaining_qty`;

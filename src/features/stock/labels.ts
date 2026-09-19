@@ -8,9 +8,17 @@ export const PROVENANCE_LABELS: Record<LotProvenance, string> = {
   // Task D: recondiționare - distincta de reciclare (Anexa 1 d).
   reconditioning: "Recondiționare",
   return: "Retur",
+  // Migrarea 0030: material adus de client printr-o comanda de tip `aport`.
+  aport_client: "Aport client",
   inventory_adjustment: "Ajustare inventar",
 };
 
+/**
+ * Provenientele alegibile MANUAL in formularul de adaugare lot. `aport_client`
+ * lipseste INTENTIONAT: un lot de aport se creeaza doar prin `accept_intake_order`
+ * (migrarea 0031), care completeaza si `lots.client_id` - ales manual aici, ar
+ * produce un lot "de la client" fara sa se stie de la care.
+ */
 export const PROVENANCE_OPTIONS: LotProvenance[] = [
   "purchase",
   "internal_production",
@@ -31,6 +39,7 @@ export const PROVENANCE_BADGE_STATUS: Record<LotProvenance, string> = {
   recycling: "reciclare",
   reconditioning: "reconditionare",
   return: "retur",
+  aport_client: "aport",
   inventory_adjustment: "ajustare",
 };
 

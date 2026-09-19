@@ -43,8 +43,11 @@ describe("listLots", () => {
           quality_status: "passed",
           is_blocked: false,
           block_reason: null,
+          client_id: null,
           created_at: "2026-07-01T10:00:00.000Z",
           items: { title: "Argila reciclata", unit: "kg" },
+          // Lot de achizitie -> fara client (doar aportul are, vezi migrarea 0030).
+          clients: null,
         },
       ],
       error: null,
@@ -71,9 +74,42 @@ describe("listLots", () => {
         qualityStatus: "passed",
         isBlocked: false,
         blockReason: null,
+        clientId: null,
+        clientName: null,
         createdAt: "2026-07-01T10:00:00.000Z",
       },
     ]);
+  });
+
+  it("expune clientul care a adus materialul, pentru loturile de aport", async () => {
+    const builder = makeQueryBuilder({
+      data: [
+        {
+          id: "lot-aport",
+          item_id: "item-1",
+          entry_date: "2026-07-02",
+          source: "Aport client - Bravo Construct SRL",
+          provenance: "aport_client",
+          location: null,
+          initial_qty: 80,
+          remaining_qty: 80,
+          quality_status: "unchecked",
+          is_blocked: false,
+          block_reason: null,
+          client_id: "client-1",
+          created_at: "2026-07-02T10:00:00.000Z",
+          items: { title: "Moloz", unit: "tona" },
+          clients: { name: "Bravo Construct SRL" },
+        },
+      ],
+      error: null,
+    });
+    createClient.mockResolvedValue({ from: vi.fn().mockReturnValue(builder) });
+
+    const [lot] = await listLots();
+
+    expect(lot.clientId).toBe("client-1");
+    expect(lot.clientName).toBe("Bravo Construct SRL");
   });
 
   it("aplica filtrele de item si proveniență", async () => {

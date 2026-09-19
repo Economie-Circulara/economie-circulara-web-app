@@ -650,6 +650,7 @@ export type Database = {
       lots: {
         Row: {
           block_reason: string | null
+          client_id: string | null
           created_at: string
           entry_date: string
           id: string
@@ -666,6 +667,7 @@ export type Database = {
         }
         Insert: {
           block_reason?: string | null
+          client_id?: string | null
           created_at?: string
           entry_date?: string
           id?: string
@@ -682,6 +684,7 @@ export type Database = {
         }
         Update: {
           block_reason?: string | null
+          client_id?: string | null
           created_at?: string
           entry_date?: string
           id?: string
@@ -697,6 +700,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "lots_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "lots_item_id_fkey"
             columns: ["item_id"]
@@ -915,6 +925,7 @@ export type Database = {
           id: string
           notes: string | null
           order_number: string | null
+          order_type: Database["public"]["Enums"]["order_type"]
           organization_id: string
           status: Database["public"]["Enums"]["order_status"]
           updated_at: string
@@ -933,6 +944,7 @@ export type Database = {
           id?: string
           notes?: string | null
           order_number?: string | null
+          order_type?: Database["public"]["Enums"]["order_type"]
           organization_id: string
           status?: Database["public"]["Enums"]["order_status"]
           updated_at?: string
@@ -951,6 +963,7 @@ export type Database = {
           id?: string
           notes?: string | null
           order_number?: string | null
+          order_type?: Database["public"]["Enums"]["order_type"]
           organization_id?: string
           status?: Database["public"]["Enums"]["order_status"]
           updated_at?: string
@@ -1544,6 +1557,34 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      accept_intake_order: {
+        Args: { p_order_id: string }
+        Returns: {
+          accepted_at: string | null
+          client_id: string
+          closed_at: string | null
+          created_at: string
+          created_by: string | null
+          created_by_admin: boolean
+          delivered_at: string | null
+          delivery_address_id: string | null
+          delivery_date: string | null
+          expected_return_date: string | null
+          id: string
+          notes: string | null
+          order_number: string | null
+          order_type: Database["public"]["Enums"]["order_type"]
+          organization_id: string
+          status: Database["public"]["Enums"]["order_status"]
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "orders"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       accept_order: {
         Args: { p_order_id: string }
         Returns: {
@@ -1560,6 +1601,7 @@ export type Database = {
           id: string
           notes: string | null
           order_number: string | null
+          order_type: Database["public"]["Enums"]["order_type"]
           organization_id: string
           status: Database["public"]["Enums"]["order_status"]
           updated_at: string
@@ -1587,6 +1629,7 @@ export type Database = {
           id: string
           notes: string | null
           order_number: string | null
+          order_type: Database["public"]["Enums"]["order_type"]
           organization_id: string
           status: Database["public"]["Enums"]["order_status"]
           updated_at: string
@@ -1622,6 +1665,7 @@ export type Database = {
           id: string
           notes: string | null
           order_number: string | null
+          order_type: Database["public"]["Enums"]["order_type"]
           organization_id: string
           status: Database["public"]["Enums"]["order_status"]
           updated_at: string
@@ -1703,6 +1747,7 @@ export type Database = {
       }
       create_lot: {
         Args: {
+          p_client_id?: string
           p_entry_date?: string
           p_item_id: string
           p_location?: string
@@ -1714,6 +1759,7 @@ export type Database = {
         }
         Returns: {
           block_reason: string | null
+          client_id: string | null
           created_at: string
           entry_date: string
           id: string
@@ -1753,6 +1799,7 @@ export type Database = {
         Args: { p_blocked: boolean; p_lot_id: string; p_reason?: string }
         Returns: {
           block_reason: string | null
+          client_id: string | null
           created_at: string
           entry_date: string
           id: string
@@ -1786,6 +1833,7 @@ export type Database = {
         | "return"
         | "inventory_adjustment"
         | "reconditioning"
+        | "aport_client"
       notification_status: "queued" | "sent" | "failed"
       notification_type:
         | "order_sent"
@@ -1802,6 +1850,7 @@ export type Database = {
         | "delivered"
         | "closed"
         | "cancelled"
+      order_type: "material" | "serviciu" | "aport"
       org_status: "active" | "suspended"
       process_status:
         | "planned"

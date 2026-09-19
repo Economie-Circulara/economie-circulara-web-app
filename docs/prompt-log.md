@@ -4,6 +4,26 @@ Jurnal al sarcinilor lucrate de agenti AI in acest repo. Conform regulii 1.2 din
 [`AGENTS.md`](../AGENTS.md), la **fiecare commit** se adauga o intrare aici.
 Cele mai noi intrari sus.
 
+## 2026-09-19 — Claude Sonnet 5 — Tipuri explicite de comandă (material / serviciu / aport)
+
+- **Cerut:** epicul "tipuri de comandă": `orders.order_type` NOT NULL
+  (`material|serviciu|aport`), `expected_return_date` doar pentru `serviciu`,
+  direcție nouă `aport` (clientul aduce material -> crește stocul, cu trasabilitate
+  spre client), restrângerea eligibilității de retur/garanție în funcție de tip.
+- **Făcut:** migrările `0030_order_types.sql` (enum `order_type` + coloana cu
+  backfill `material`, `lots.client_id`, valoarea de provenieanță `aport_client`) și
+  `0031_aport_intake.sql` (`create_lot` + `p_client_id`, RPC nou
+  `accept_intake_order`, gardă anti-`aport` în `accept_order`); selector de tip
+  obligatoriu în `OrderEditor` cu catalog de itemi comutat pe tip, buton
+  "Acceptă aport", regula `ALLOWED_RETURN_FLOWS_BY_ORDER_TYPE` (retur pur doar pe
+  `serviciu`, garanție și pe `material`, nimic pe `aport`), `creeaza_comanda` v2
+  (`tip_comanda` opțional, implicit `material`), tipuri DB actualizate manual,
+  seed-uri + test SQL `B14`, `AGENTS.md` §4 și
+  `docs/plans/task-x8-tipuri-comanda-aport.md`.
+- **Verificat:** `pnpm run typecheck`, `pnpm run lint`, `pnpm run test`
+  (788 de teste) - toate verzi. Testele SQL (`business_flow.sql` B14) nu au putut fi
+  rulate: nu există Supabase local în acest worktree.
+
 ## 2026-09-19 — Claude Opus 5 — Rețete: direcție explicită + conversii de UM + itemi fara stoc
 
 - **Cerut:** doua bug-uri din productie cu aceeasi radacina: (1) retetele aplicau

@@ -554,7 +554,11 @@ begin
    {"d":181,"k":"order","key":"O32","client":"C_ARCADA","by":"U_ARCADA","addr":"A_ARCADA_SUD","dd":186,"lines":[["I_PAVELE",30],["I_BORDURI",20]],"notes":"Etapa II - spații verzi"},
    {"d":181,"k":"order","key":"O33","client":"C_DRUMURI","by":"U_DRUMURI","addr":"A_DRUMURI_DJ606","dd":185,"lines":[["I_AGR1631",80]]},
    {"d":181,"k":"order","key":"O34","client":"C_VERESTI","addr":"A_VERESTI_CENTRU","send":false,"lines":[["I_BLOCURI",20]],"notes":"Ofertă în lucru - în așteptarea aprobării bugetului local"},
-   {"d":181,"k":"order","key":"O35","client":"C_BRAVO","by":"U_BRAVO","addr":"A_BRAVO_MILITARI","send":false,"lines":[["I_BETON",15]]}
+   {"d":181,"k":"order","key":"O35","client":"C_BRAVO","by":"U_BRAVO","addr":"A_BRAVO_MILITARI","send":false,"lines":[["I_BETON",15]]},
+   {"d":182,"k":"aport","key":"AP1","client":"C_BRAVO","addr":"A_BRAVO_MILITARI","dd":182,"lines":[["I_MOLOZ",95]],
+    "notes":"Aport client - moloz din demolarea corpului C, adus de Bravo Construct pe platforma de recepție"},
+   {"d":182,"k":"aport","key":"AP2","client":"C_CASAVERDE","addr":"A_CV_CORBEANCA","dd":184,"accept":false,"lines":[["I_CERAMIC",22]],
+    "notes":"Aport anunțat - deșeu ceramic sortat, se recepționează săptămâna viitoare"}
   ]'::jsonb;
 
   for e in
@@ -656,9 +660,18 @@ begin
       when 'order' then
         v_actor := pg_temp.idof(v_ids, coalesce(j ->> 'by', 'U_ADMIN'));
         v_is_client := coalesce(j ->> 'by', '') like 'U\_%' and j ->> 'by' not in ('U_ADMIN', 'U_OP', 'U_PROD');
-        insert into public.orders (organization_id, client_id, status, created_by_admin, delivery_address_id,
+        -- `order_type` (migrarea 0030): explicit din scenariu (`"tip"`), altfel
+        -- dedus - o comanda cu data de retur (`"ret"`) e o inchiriere (`serviciu`),
+        -- restul sunt vanzari de material.
+        insert into public.orders (organization_id, client_id, order_type, status, created_by_admin,
+                                   delivery_address_id,
                                    delivery_date, expected_return_date, notes, created_by, created_at, updated_at)
-        values (v_org, pg_temp.idof(v_ids, j ->> 'client'), 'draft', not v_is_client,
+        values (v_org, pg_temp.idof(v_ids, j ->> 'client'),
+                coalesce(
+                  (j ->> 'tip')::public.order_type,
+                  case when j ? 'ret' then 'serviciu' else 'material' end
+                ),
+                'draft', not v_is_client,
                 case when j ? 'addr' then pg_temp.idof(v_ids, j ->> 'addr') end,
                 case when j ? 'dd' then v_start + (j ->> 'dd')::int end,
                 case when j ? 'ret' then v_start + (j ->> 'ret')::int end,
@@ -750,8 +763,16 @@ begin
         v_actor := pg_temp.idof(v_ids, coalesce(j ->> 'by', 'U_ADMIN'));
         v_is_client := coalesce(j ->> 'by', '') not in ('', 'U_ADMIN', 'U_OP', 'U_PROD');
         v_id2 := pg_temp.idof(v_ids, j ->> 'original');
-        insert into public.orders (organization_id, client_id, status, created_by_admin, notes, created_by, created_at, updated_at)
-        select v_org, client_id, 'draft', not v_is_client, j ->> 'notes', v_actor, v_ts, v_ts
+        -- Comanda-retur mosteneste `order_type` de la comanda originala (ca in
+        -- returns/service.ts#createReturnOrder).
+        -- ATENTIE (migrarea 0030): scenariul contine si retururi PURE pe comenzi de
+        -- material (surplus nefolosit, paleti), care azi nu ar mai putea fi create
+        -- din UI - regula noua permite `return` doar pe `serviciu`. Datele raman
+        -- asa (insert direct, fara validare) pana la o decizie explicita: fie se
+        -- relaxeaza regula, fie aceste evenimente devin `warranty`.
+        insert into public.orders (organization_id, client_id, order_type, status, created_by_admin,
+                                   notes, created_by, created_at, updated_at)
+        select v_org, client_id, order_type, 'draft', not v_is_client, j ->> 'notes', v_actor, v_ts, v_ts
         from public.orders where id = v_id2
         returning id into v_id;
         for l in select value from jsonb_array_elements(j -> 'lines') loop
@@ -763,9 +784,10 @@ begin
         v_ids := v_ids || jsonb_build_object(j ->> 'key', v_id);
 
         if j ->> 'type' = 'warranty' then
-          insert into public.orders (organization_id, client_id, status, created_by_admin, notes, created_by,
+          insert into public.orders (organization_id, client_id, order_type, status, created_by_admin,
+                                     notes, created_by,
                                      delivery_address_id, created_at, updated_at)
-          select v_org, client_id, 'draft', not v_is_client,
+          select v_org, client_id, order_type, 'draft', not v_is_client,
                  'Comandă de înlocuire (garanție) pentru ' || coalesce(order_number, id::text),
                  v_actor, delivery_address_id, v_ts, v_ts
           from public.orders where id = v_id2
@@ -795,6 +817,33 @@ begin
             if v_id2 is null then raise exception 'accept_return: lotul de retur % negasit', l ->> 0; end if;
             v_ids := v_ids || jsonb_build_object(l ->> 1, v_id2);
           end loop;
+        end if;
+
+      -- Aport (migrarea 0030): clientul aduce material catre organizatie. Comanda
+      -- de tip `aport` in `draft` + acceptarea ei prin RPC-ul dedicat, care creeaza
+      -- loturile (provenance `aport_client`, `client_id` completat) - exact fluxul
+      -- din UI ("Acceptă aport"). Cu `"accept": false` ramane in draft.
+      when 'aport' then
+        v_actor := pg_temp.idof(v_ids, coalesce(j ->> 'by', 'U_OP'));
+        insert into public.orders (organization_id, client_id, order_type, status, created_by_admin,
+                                   delivery_address_id, delivery_date, notes, created_by,
+                                   created_at, updated_at)
+        values (v_org, pg_temp.idof(v_ids, j ->> 'client'), 'aport', 'draft', true,
+                case when j ? 'addr' then pg_temp.idof(v_ids, j ->> 'addr') end,
+                case when j ? 'dd' then v_start + (j ->> 'dd')::int end,
+                j ->> 'notes', v_actor, v_ts, v_ts)
+        returning id into v_id;
+        for l in select value from jsonb_array_elements(j -> 'lines') loop
+          insert into public.order_items (organization_id, order_id, item_id, quantity, created_at, updated_at)
+          values (v_org, v_id, pg_temp.idof(v_ids, l ->> 0), (l ->> 1)::numeric, v_ts, v_ts);
+        end loop;
+        v_ids := v_ids || jsonb_build_object(j ->> 'key', v_id);
+
+        if coalesce((j ->> 'accept')::boolean, true) then
+          perform pg_temp.become(v_actor);
+          perform public.accept_intake_order(v_id);
+          execute 'reset role';
+          update public.orders set updated_at = v_ts where id = v_id;
         end if;
 
       else

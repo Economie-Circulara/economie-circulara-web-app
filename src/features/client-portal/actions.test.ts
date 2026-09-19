@@ -81,6 +81,8 @@ describe("createClientOrderAction", () => {
     expect(createOrderWithItems).toHaveBeenCalledWith({
       organizationId: "org-1",
       clientId: "client-1",
+      // Portalul clientului comanda din catalogul vandabil -> vanzare de material.
+      orderType: "material",
       createdByAdmin: false,
       deliveryAddressId: "addr-1",
       deliveryDate: "2026-08-01",

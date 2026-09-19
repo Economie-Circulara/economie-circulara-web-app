@@ -10,6 +10,13 @@ import type { OrderStatus } from "./types";
 const JOURNEY: readonly OrderStatus[] = ["draft", "sent", "accepted", "delivered", "closed"];
 
 /**
+ * Traseul comenzilor care intra in stoc in loc sa iasa (aport - migrarea 0030, si
+ * retur/garanție - migrarea 0010): `draft -> accepted`, prin RPC-ul dedicat. Nu
+ * trec prin sent/delivered/closed - nu se livreaza nimic catre client.
+ */
+export const INTAKE_JOURNEY: readonly OrderStatus[] = ["draft", "accepted"];
+
+/**
  * Explicatii RO in limbaj simplu pentru fiecare status - afisate la hover (desktop,
  * `title`) SI la tap (mobil, expandare inline sub stepper - vezi comentariul
  * componentei mai jos).
@@ -36,11 +43,18 @@ const STATUS_EXPLANATIONS: Record<OrderStatus, string> = {
  * pretindem ca stim din ce status exact a fost anulata (schema 0001 nu retine un
  * istoric de tranzitii, vezi comentariul din comenzi/[id]/page.tsx).
  */
-export function OrderStatusTimeline({ status }: { status: OrderStatus }) {
+export function OrderStatusTimeline({
+  status,
+  journey = JOURNEY,
+}: {
+  status: OrderStatus;
+  /** Traseul de afisat - implicit cel de vanzare; foloseste `INTAKE_JOURNEY` pt. aport/retur. */
+  journey?: readonly OrderStatus[];
+}) {
   const [expanded, setExpanded] = useState<OrderStatus | null>(null);
   const isCancelled = status === "cancelled";
-  const currentIndex = JOURNEY.indexOf(status as (typeof JOURNEY)[number]);
-  const steps: readonly OrderStatus[] = isCancelled ? [...JOURNEY, "cancelled"] : JOURNEY;
+  const currentIndex = journey.indexOf(status as (typeof journey)[number]);
+  const steps: readonly OrderStatus[] = isCancelled ? [...journey, "cancelled"] : journey;
 
   return (
     <div className="space-y-2">
