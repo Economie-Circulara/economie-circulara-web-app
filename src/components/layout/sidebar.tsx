@@ -17,6 +17,7 @@ import {
   MapPin,
   Menu,
   Package,
+  Recycle,
   ScrollText,
   Settings,
   ShoppingCart,
@@ -65,6 +66,7 @@ const NAV_ICONS: Record<NavIconName, LucideIcon> = {
   assistant: Bot,
   "users-admin": UserCog,
   stations: MapPin,
+  aport: Recycle,
 };
 
 export interface SidebarProps {
