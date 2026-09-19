@@ -1,6 +1,7 @@
 "use client";
 
 import { Fragment, useState } from "react";
+import Link from "next/link";
 import { Boxes, ChevronDown, ChevronRight } from "lucide-react";
 import type { ColumnDef } from "@tanstack/react-table";
 import { DataTable } from "@/components/data-table";
@@ -41,7 +42,25 @@ function ProvenanceCell({ lot }: { lot: LotWithItem }) {
   );
 }
 
+/**
+ * Codul lotului (migrarea 0033), afisat ca link catre ecranul de detaliu
+ * `/stoc/loturi/[id]` - inainte, `lot.id` (UUID) nu era vizibil nicaieri in UI,
+ * doar folosit intern (React key / camp ascuns de formular).
+ */
+function LotCodeCell({ lot }: { lot: LotWithItem }) {
+  return (
+    <Link href={`/stoc/loturi/${lot.id}`} className="font-mono text-xs underline">
+      {lot.lotCode}
+    </Link>
+  );
+}
+
 const columns: ColumnDef<LotWithItem>[] = [
+  {
+    accessorKey: "lotCode",
+    header: "Cod lot",
+    cell: ({ row }) => <LotCodeCell lot={row.original} />,
+  },
   { accessorKey: "itemTitle", header: "Material" },
   {
     accessorKey: "entryDate",
@@ -123,6 +142,7 @@ function LotsDetail({ lots }: { lots: LotWithItem[] }) {
       <Table>
         <TableHeader>
           <TableRow className="hover:bg-transparent">
+            <TableHead>Cod lot</TableHead>
             <TableHead>Data intrare</TableHead>
             <TableHead>Proveniență</TableHead>
             <TableHead>Cantitate rămasă</TableHead>
@@ -134,6 +154,9 @@ function LotsDetail({ lots }: { lots: LotWithItem[] }) {
         <TableBody>
           {lots.map((lot) => (
             <TableRow key={lot.id} className="hover:bg-secondary/40">
+              <TableCell>
+                <LotCodeCell lot={lot} />
+              </TableCell>
               <TableCell className="text-muted-foreground">{formatDate(lot.entryDate)}</TableCell>
               <TableCell>
                 <ProvenanceCell lot={lot} />

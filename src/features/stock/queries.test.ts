@@ -3,12 +3,12 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 const { createClient } = vi.hoisted(() => ({ createClient: vi.fn() }));
 vi.mock("@/lib/supabase/server", () => ({ createClient }));
 
-import { listItemOptions, listLots, listStockEvents } from "./queries";
+import { getLotById, getLotTraceability, listItemOptions, listLots, listStockEvents } from "./queries";
 
 /**
- * Query builder Supabase fals: chainable (select/order/eq/gte/lte/limit intorc
- * `this`) si "thenable" (`await query` rezolva direct rezultatul final), la fel ca
- * PostgrestFilterBuilder-ul real.
+ * Query builder Supabase fals: chainable (select/order/eq/gte/lte/limit/maybeSingle
+ * intorc `this`) si "thenable" (`await query` rezolva direct rezultatul final), la
+ * fel ca PostgrestFilterBuilder-ul real.
  */
 function makeQueryBuilder(finalResult: { data: unknown; error: unknown }) {
   const methods = ["select", "order", "eq", "gte", "lte", "limit"] as const;
@@ -18,7 +18,8 @@ function makeQueryBuilder(finalResult: { data: unknown; error: unknown }) {
   for (const m of methods) {
     builder[m] = vi.fn(() => builder);
   }
-  return builder as Record<(typeof methods)[number] | "then", ReturnType<typeof vi.fn>> & {
+  builder.maybeSingle = vi.fn(() => finalResult);
+  return builder as Record<(typeof methods)[number] | "then" | "maybeSingle", ReturnType<typeof vi.fn>> & {
     then: (resolve: (v: unknown) => void) => void;
   };
 }
@@ -44,6 +45,7 @@ describe("listLots", () => {
           is_blocked: false,
           block_reason: null,
           client_id: null,
+          lot_code: "LOT-2026-000001",
           created_at: "2026-07-01T10:00:00.000Z",
           items: { title: "Argila reciclata", unit: "kg" },
           // Lot de achizitie -> fara client (doar aportul are, vezi migrarea 0030).
@@ -62,6 +64,7 @@ describe("listLots", () => {
     expect(result).toEqual([
       {
         id: "lot-1",
+        lotCode: "LOT-2026-000001",
         itemId: "item-1",
         itemTitle: "Argila reciclata",
         unit: "kg",
@@ -97,6 +100,7 @@ describe("listLots", () => {
           is_blocked: false,
           block_reason: null,
           client_id: "client-1",
+          lot_code: "LOT-2026-000002",
           created_at: "2026-07-02T10:00:00.000Z",
           items: { title: "Moloz", unit: "tona" },
           clients: { name: "Bravo Construct SRL" },
@@ -127,6 +131,119 @@ describe("listLots", () => {
     createClient.mockResolvedValue({ from: vi.fn().mockReturnValue(builder) });
 
     await expect(listLots()).rejects.toThrow("Nu am putut incarca loturile.");
+  });
+});
+
+describe("getLotById", () => {
+  it("mapeaza lotul gasit (ecranul de detaliu /stoc/loturi/[id])", async () => {
+    const builder = makeQueryBuilder({
+      data: {
+        id: "lot-1",
+        item_id: "item-1",
+        entry_date: "2026-07-01",
+        source: "Furnizor X",
+        provenance: "purchase",
+        location: "Depozit A",
+        initial_qty: 100,
+        remaining_qty: 40,
+        quality_status: "passed",
+        is_blocked: false,
+        block_reason: null,
+        client_id: null,
+        lot_code: "LOT-2026-000001",
+        created_at: "2026-07-01T10:00:00.000Z",
+        items: { title: "Argila reciclata", unit: "kg" },
+        clients: null,
+      },
+      error: null,
+    });
+    const from = vi.fn().mockReturnValue(builder);
+    createClient.mockResolvedValue({ from });
+
+    const result = await getLotById("lot-1");
+
+    expect(from).toHaveBeenCalledWith("lots");
+    expect(builder.eq).toHaveBeenCalledWith("id", "lot-1");
+    expect(result?.lotCode).toBe("LOT-2026-000001");
+    expect(result?.itemTitle).toBe("Argila reciclata");
+  });
+
+  it("intoarce null cand lotul nu exista (sau nu e accesibil - RLS)", async () => {
+    const builder = makeQueryBuilder({ data: null, error: null });
+    createClient.mockResolvedValue({ from: vi.fn().mockReturnValue(builder) });
+
+    const result = await getLotById("lot-necunoscut");
+
+    expect(result).toBeNull();
+  });
+
+  it("arunca eroare cand query-ul esueaza", async () => {
+    const builder = makeQueryBuilder({ data: null, error: { message: "db down" } });
+    createClient.mockResolvedValue({ from: vi.fn().mockReturnValue(builder) });
+
+    await expect(getLotById("lot-1")).rejects.toThrow("Nu am putut incarca lotul.");
+  });
+});
+
+describe("getLotTraceability", () => {
+  it("intoarce procesul care a produs lotul si procesele care l-au consumat", async () => {
+    const outputBuilder = makeQueryBuilder({
+      data: [
+        {
+          quantity: 40,
+          processes: { id: "proc-1", type: "output_fixed", status: "completed", created_at: "2026-07-01T09:00:00.000Z" },
+        },
+      ],
+      error: null,
+    });
+    const inputBuilder = makeQueryBuilder({
+      data: [
+        {
+          quantity: 10,
+          processes: { id: "proc-2", type: "input_fixed", status: "in_progress", created_at: "2026-07-03T09:00:00.000Z" },
+        },
+      ],
+      error: null,
+    });
+    const from = vi.fn((table: string) => (table === "process_outputs" ? outputBuilder : inputBuilder));
+    createClient.mockResolvedValue({ from });
+
+    const result = await getLotTraceability("lot-1");
+
+    expect(result.producedBy).toEqual({
+      processId: "proc-1",
+      type: "output_fixed",
+      status: "completed",
+      quantity: 40,
+      createdAt: "2026-07-01T09:00:00.000Z",
+    });
+    expect(result.consumedBy).toEqual([
+      {
+        processId: "proc-2",
+        type: "input_fixed",
+        status: "in_progress",
+        quantity: 10,
+        createdAt: "2026-07-03T09:00:00.000Z",
+      },
+    ]);
+  });
+
+  it("intoarce liste goale pentru un lot de intrare directa, nefolosit inca", async () => {
+    const emptyBuilder = makeQueryBuilder({ data: [], error: null });
+    createClient.mockResolvedValue({ from: vi.fn().mockReturnValue(emptyBuilder) });
+
+    const result = await getLotTraceability("lot-1");
+
+    expect(result).toEqual({ producedBy: null, consumedBy: [] });
+  });
+
+  it("arunca eroare cand oricare dintre query-uri esueaza", async () => {
+    const failingBuilder = makeQueryBuilder({ data: null, error: { message: "db down" } });
+    createClient.mockResolvedValue({ from: vi.fn().mockReturnValue(failingBuilder) });
+
+    await expect(getLotTraceability("lot-1")).rejects.toThrow(
+      "Nu am putut incarca trasabilitatea lotului.",
+    );
   });
 });
 
@@ -205,6 +322,15 @@ describe("listStockEvents", () => {
     await listStockEvents({ limit: 5000 });
 
     expect(builder.limit).toHaveBeenCalledWith(5000);
+  });
+
+  it("aplica filtrul de lot (ecranul de detaliu /stoc/loturi/[id])", async () => {
+    const builder = makeQueryBuilder({ data: [], error: null });
+    createClient.mockResolvedValue({ from: vi.fn().mockReturnValue(builder) });
+
+    await listStockEvents({ lotId: "lot-1" });
+
+    expect(builder.eq).toHaveBeenCalledWith("lot_id", "lot-1");
   });
 
   it("arunca eroare cand query-ul esueaza", async () => {
