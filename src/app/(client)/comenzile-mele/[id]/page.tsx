@@ -34,6 +34,14 @@ function isFinished(status: string): boolean {
  * (`orders_client_select`) - un client care incearca id-ul unei comenzi straine
  * primeste `null` -> 404, fara logica suplimentara de autorizare aici. Nu se
  * afiseaza nimic despre stoc/loturi/procese (doar itemul, UM, cantitatea).
+ *
+ * Comenzile de tip `aport` (client -> organizatie, initiate din /aport-nou) merg
+ * pe alt sens de miscare a stocului decat `material`/`serviciu` - `isIntakeOrder`
+ * adapteaza framing-ul (card "Aport" in loc de "Livrare", eticheta datei), in
+ * oglinda cu `isIntakeOrder` din /comenzi/[id] (ecranul staff). Nu se afiseaza
+ * "Repetă comanda" pe un aport: cosul (`useCart`/`/catalog`) creeaza doar comenzi
+ * `material` din catalogul vandabil, deci "repetarea" unui aport ar duce catre un
+ * cos care nu poate contine liniile lui (itemi de aport, adesea nevandabili).
  */
 export default async function ClientOrderDetailPage({ params }: OrderDetailPageProps) {
   await requireRole(["client"]);
@@ -41,6 +49,8 @@ export default async function ClientOrderDetailPage({ params }: OrderDetailPageP
 
   const order = await getOrderDetail(id);
   if (!order) notFound();
+
+  const isIntakeOrder = order.orderType === "aport";
 
   // Retur/garantie: doar pe comenzile finalizate. `getReturnableItems` e RLS-scoped
   // (clientul vede doar comenzile proprii), deci nu e nevoie de autorizare aici.
@@ -67,7 +77,7 @@ export default async function ClientOrderDetailPage({ params }: OrderDetailPageP
                 <Link href={`/comenzile-mele/${order.id}/certificat`}>Vezi certificat</Link>
               </Button>
             ) : null}
-            <RepeatOrderButton items={order.items} />
+            {isIntakeOrder ? null : <RepeatOrderButton items={order.items} />}
           </>
         }
       />
@@ -78,7 +88,7 @@ export default async function ClientOrderDetailPage({ params }: OrderDetailPageP
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Livrare</CardTitle>
+          <CardTitle className="text-base">{isIntakeOrder ? "Aport" : "Livrare"}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-1 text-sm">
           <p>
@@ -88,7 +98,9 @@ export default async function ClientOrderDetailPage({ params }: OrderDetailPageP
               : "Neprecizată"}
           </p>
           <p>
-            <span className="text-muted-foreground">Data livrare: </span>
+            <span className="text-muted-foreground">
+              {isIntakeOrder ? "Data aportului: " : "Data livrare: "}
+            </span>
             {formatDate(order.deliveryDate)}
           </p>
           {order.notes ? (
@@ -101,7 +113,9 @@ export default async function ClientOrderDetailPage({ params }: OrderDetailPageP
       </Card>
 
       <section className="space-y-3">
-        <h2 className="text-lg font-semibold">Produse comandate</h2>
+        <h2 className="text-lg font-semibold">
+          {isIntakeOrder ? "Materiale aduse" : "Produse comandate"}
+        </h2>
         {order.items.length === 0 ? (
           <p className="text-sm text-muted-foreground">Comanda nu are linii.</p>
         ) : (

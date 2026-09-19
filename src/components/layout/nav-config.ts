@@ -26,7 +26,8 @@ export type NavIconName =
   | "help"
   | "assistant"
   | "users-admin"
-  | "stations";
+  | "stations"
+  | "aport";
 
 export interface NavItem {
   label: string;
@@ -121,6 +122,7 @@ export const STAFF_NAV: NavEntry[] = [
 /** Navigatie portal client. */
 export const CLIENT_NAV: NavItem[] = [
   { label: "Catalog", href: "/catalog", icon: "catalog", roles: ["client"] },
+  { label: "Aport material", href: "/aport-nou", icon: "aport", roles: ["client"] },
   { label: "Comenzile mele", href: "/comenzile-mele", icon: "orders", roles: ["client"] },
   {
     label: "Documente & Certificate",
