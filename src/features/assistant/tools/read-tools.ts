@@ -4,7 +4,11 @@ import {
   isValidCuiFormat,
   normalizeCui,
 } from "@/features/clients/cui-lookup";
+import { getDeliveryByOrderId } from "@/features/deliveries/queries";
+import { PLANNABLE_ORDER_STATUS } from "@/features/deliveries/service";
 import { listItems } from "@/features/items/queries";
+import { getOrderDetail, listIntakeItemOptions } from "@/features/orders/queries";
+import { listSites } from "@/features/routing/site-queries";
 import { globalSearch } from "@/features/search/service";
 import { listLots } from "@/features/stock/queries";
 import { searchManual } from "../docs-search";
@@ -149,6 +153,105 @@ export const itemiVandabili: AssistantTool<{ cautare: string | null }> = {
   },
 };
 
+export const itemiAport: AssistantTool<{ cautare: string | null }> = {
+  name: "itemi_aport",
+  description:
+    "Listează itemii care pot fi ADUȘI de client într-o comandă de tip `aport` (itemi " +
+    "fizici trasați, inclusiv cei NEVANDABILI - ex. moloz). Folosește-l în locul lui " +
+    "`itemi_vandabili` când pregătești o comandă cu `tip_comanda = aport`.",
+  parameters: {
+    type: "object",
+    additionalProperties: false,
+    properties: { cautare: { type: "string", description: "Filtru după denumire." } },
+  },
+  roles: ["super_admin", "admin", "operator"],
+  version: 1,
+  kind: "read",
+  parse: (args) => ({ cautare: optionalString(asObject(args), "cautare") }),
+  execute: async (input) => {
+    // Acelasi catalog ca selectorul de linii din /comenzi/nou la tipul `aport`
+    // (`listIntakeItemOptions`) - filtrarea dupa denumire se face aici, interogarea
+    // neavand parametru de cautare.
+    const items = await listIntakeItemOptions();
+    const search = input.cautare?.toLowerCase();
+    const filtered = search
+      ? items.filter((item) => item.title.toLowerCase().includes(search))
+      : items;
+
+    return filtered.slice(0, LIMIT).map((item) => ({
+      item_id: item.id,
+      denumire: item.title,
+      um: item.unit,
+      link: `/itemi/${item.id}`,
+    }));
+  },
+};
+
+export const contextLivrare: AssistantTool<{ order_id: string | null }> = {
+  name: "context_livrare",
+  description:
+    "Arată contextul necesar planificării unei livrări: punctele de plecare ale organizației " +
+    "(stații/depozite) și, dacă dai `order_id`, starea comenzii - dacă poate fi planificată " +
+    "(doar comenzile acceptate, fără livrare existentă), adresa de livrare și livrarea deja " +
+    "planificată, dacă există. Folosește-l ÎNAINTE de `planifica_livrare`.",
+  parameters: {
+    type: "object",
+    additionalProperties: false,
+    properties: {
+      order_id: {
+        type: "string",
+        description: "ID-ul comenzii de verificat. Lipsă = doar punctele de plecare.",
+      },
+    },
+  },
+  roles: ["super_admin", "admin", "operator"],
+  version: 1,
+  kind: "read",
+  parse: (args) => ({ order_id: optionalString(asObject(args), "order_id") }),
+  execute: async (input) => {
+    const sites = await listSites();
+    const puncte_plecare = sites.map((site) => ({
+      punct_plecare_id: site.id,
+      denumire: site.name,
+      adresa: site.address,
+      implicit: site.isDefault,
+    }));
+
+    if (!input.order_id) return { puncte_plecare, comanda: null };
+
+    const [order, delivery] = await Promise.all([
+      getOrderDetail(input.order_id),
+      getDeliveryByOrderId(input.order_id),
+    ]);
+    if (!order) {
+      throw new InvalidToolArgumentsError("Comanda nu există sau nu este accesibilă.");
+    }
+
+    return {
+      puncte_plecare,
+      comanda: {
+        order_id: order.id,
+        numar: order.orderNumber,
+        client: order.clientName,
+        status: order.status,
+        // Aceeasi regula ca butonul "Planifică livrare" din /comenzi/[id] si ca
+        // `planDelivery` (a doua linie de aparare, server-side).
+        poate_fi_planificata: order.status === PLANNABLE_ORDER_STATUS && !delivery,
+        adresa_livrare: order.deliveryAddress,
+        link: `/comenzi/${order.id}`,
+      },
+      livrare: delivery
+        ? {
+            livrare_id: delivery.id,
+            data_programata: delivery.scheduledDate,
+            transportator: delivery.carrierName,
+            link: `/livrari/${delivery.id}`,
+          }
+        : null,
+    };
+  },
+};
+
 export const stocDisponibil: AssistantTool<{ item: string | null }> = {
   name: "stoc_disponibil",
   description: "Arată loturile din stoc și cantitățile rămase, opțional filtrate după item.",
@@ -184,5 +287,7 @@ export const READ_TOOLS: AssistantTool<never>[] = [
   cautaFirmaDupaCui,
   listeazaClienti,
   itemiVandabili,
+  itemiAport,
   stocDisponibil,
+  contextLivrare,
 ] as unknown as AssistantTool<never>[];

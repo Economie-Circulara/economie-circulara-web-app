@@ -1,10 +1,19 @@
 import { normalizeCui } from "@/features/clients/cui-lookup";
 import { createClientRecord } from "@/features/clients/service";
-import { listClientAddressesGrouped, listSellableItemOptions } from "@/features/orders/queries";
+import {
+  listClientAddressesGrouped,
+  listIntakeItemOptions,
+  listSellableItemOptions,
+} from "@/features/orders/queries";
 import type { OrderType } from "@/features/orders/types";
 import { listClients } from "@/features/clients/queries";
 import { createOrderWithItems, sendOrder } from "@/features/orders/service";
 import { getOrderDetail } from "@/features/orders/queries";
+import { planDelivery } from "@/features/deliveries/service";
+import type { PlanDeliveryRouteChoice } from "@/features/deliveries/types";
+import { computeRouteBetween } from "@/features/routing/route-service";
+import { getDefaultSite, getSiteById } from "@/features/routing/site-queries";
+import type { OrganizationSite } from "@/features/routing/site-types";
 import type { ToolContext } from "../types";
 import type { CardPresentation } from "./presentation-types";
 import {
@@ -294,10 +303,16 @@ export const creeazaComanda: AssistantTool<CreateOrderToolInput> = {
   summary: (input) =>
     `Creează o comandă cu ${input.linii.length} ${input.linii.length === 1 ? "linie" : "linii"}`,
   presentation: async (input): Promise<CardPresentation> => {
-    const [clients, addressesByClient, itemOptions] = await Promise.all([
+    // AMBELE cataloage, ca ecranul /comenzi/nou: `material`/`serviciu` folosesc
+    // itemii vandabili, `aport` itemii fizici trasati (inclusiv nevandabili - ex.
+    // moloz, care exista tocmai ca sa fie ADUS, nu vandut). Incarcate mereu
+    // amandoua, nu doar cel al tipului propus: tipul e editabil in card, iar la
+    // schimbarea lui liniile deja propuse trebuie sa ramana afisabile.
+    const [clients, addressesByClient, itemOptions, intakeItemOptions] = await Promise.all([
       listClients(),
       listClientAddressesGrouped(),
       listSellableItemOptions(),
+      listIntakeItemOptions(),
     ]);
 
     return {
@@ -311,7 +326,7 @@ export const creeazaComanda: AssistantTool<CreateOrderToolInput> = {
         notes: input.observatii ?? "",
         lines: input.linii.map((line) => ({ itemId: line.item_id, quantity: line.cantitate })),
       },
-      options: { clients, addressesByClient, itemOptions },
+      options: { clients, addressesByClient, itemOptions, intakeItemOptions },
     };
   },
   execute: async (input, ctx) => {
@@ -371,8 +386,247 @@ export const trimiteComanda: AssistantTool<{ order_id: string }> = {
   },
 };
 
+interface PlanDeliveryToolInput {
+  order_id: string;
+  data_programata: string;
+  transportator: string;
+  nr_inmatriculare: string;
+  sofer: string;
+  punct_plecare_id: string | null;
+  punct_plecare: string | null;
+  punct_sosire: string | null;
+}
+
+/** Ce s-a putut rezolva din DB pt. o propunere de livrare - partajat de `presentation` si `execute`. */
+interface ResolvedPlanDelivery {
+  orderLabel: string;
+  /** Punctul de plecare ales explicit (`punct_plecare_id`) sau cel implicit al organizatiei. */
+  site: OrganizationSite | null;
+  routeOrigin: string;
+  routeDestination: string;
+}
+
+/**
+ * Completeaza golurile pe care modelul n-are de unde sa le stie: punctul de plecare
+ * (statia implicita a organizatiei, ca preselectia din /livrari/nou) si punctul de
+ * sosire (adresa de livrare a comenzii). Nu ARUNCA daca lipsesc - cardul de
+ * confirmare arata campurile goale si utilizatorul le completeaza; validarea dura
+ * ramane in `planDelivery` (`DeliveryValidationError`).
+ */
+async function resolvePlanDelivery(input: PlanDeliveryToolInput): Promise<ResolvedPlanDelivery> {
+  const [order, site] = await Promise.all([
+    getOrderDetail(input.order_id),
+    input.punct_plecare_id ? getSiteById(input.punct_plecare_id) : getDefaultSite(),
+  ]);
+
+  return {
+    orderLabel: order
+      ? `${order.orderNumber ?? "Comandă fără număr"} · ${order.clientName}`
+      : "Comandă indisponibilă",
+    site,
+    routeOrigin: input.punct_plecare ?? site?.address ?? "",
+    routeDestination: input.punct_sosire ?? order?.deliveryAddress ?? "",
+  };
+}
+
+export const planificaLivrare: AssistantTool<PlanDeliveryToolInput> = {
+  name: "planifica_livrare",
+  description:
+    "Propune planificarea livrării unei comenzi ACCEPTATE care nu are deja o livrare " +
+    "(verifică întâi cu `context_livrare`). Ai nevoie de dată, transportator, nr. de " +
+    "înmatriculare și șofer - cere-le utilizatorului dacă nu le-a spus. Punctul de plecare " +
+    "(`punct_plecare_id`, din `context_livrare`) și punctul de sosire se completează automat " +
+    "cu stația implicită, respectiv adresa de livrare a comenzii, dacă nu le dai. " +
+    "Acțiunea NU se execută până la confirmare.",
+  parameters: {
+    type: "object",
+    additionalProperties: false,
+    properties: {
+      order_id: { type: "string", description: "ID-ul comenzii (status Acceptată)." },
+      data_programata: { type: "string", description: "Data livrării, format YYYY-MM-DD." },
+      transportator: { type: "string", description: "Firma de transport." },
+      nr_inmatriculare: { type: "string", description: "Nr. de înmatriculare al vehiculului." },
+      sofer: { type: "string", description: "Numele șoferului." },
+      punct_plecare_id: {
+        type: "string",
+        description:
+          "ID-ul punctului de plecare al organizației (din `context_livrare`). " +
+          "Dacă e dat, ruta se calculează automat și se salvează pe livrare.",
+      },
+      punct_plecare: {
+        type: "string",
+        description: "Adresa de plecare ca text liber - doar dacă nu se potrivește nicio stație.",
+      },
+      punct_sosire: {
+        type: "string",
+        description: "Adresa de sosire. Lipsă = adresa de livrare a comenzii.",
+      },
+    },
+    required: ["order_id", "data_programata", "transportator", "nr_inmatriculare", "sofer"],
+  },
+  roles: ["admin", "operator"],
+  version: 1,
+  kind: "write",
+  parse: (args) => {
+    const raw = asObject(args);
+    const date = requiredString(raw, "data_programata");
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      throw new InvalidToolArgumentsError(
+        '„data_programata" trebuie să fie în formatul YYYY-MM-DD.',
+      );
+    }
+
+    return {
+      order_id: requiredString(raw, "order_id"),
+      data_programata: date,
+      transportator: requiredString(raw, "transportator"),
+      nr_inmatriculare: requiredString(raw, "nr_inmatriculare"),
+      sofer: requiredString(raw, "sofer"),
+      punct_plecare_id: optionalString(raw, "punct_plecare_id"),
+      punct_plecare: optionalString(raw, "punct_plecare"),
+      punct_sosire: optionalString(raw, "punct_sosire"),
+    };
+  },
+  summary: (input) => `Planifică livrarea comenzii pe ${input.data_programata}`,
+  presentation: async (input): Promise<CardPresentation> => {
+    const resolved = await resolvePlanDelivery(input);
+    return {
+      renderer: "generic",
+      fields: [
+        // Ca la `trimite_comanda`: comanda tinta e o valoare interna, afisata
+        // rezolvata si NEeditabila - alta comanda inseamna alta propunere.
+        {
+          name: "order_id",
+          label: "Comandă",
+          displayValue: resolved.orderLabel,
+          editable: false,
+          kind: "text",
+        },
+        {
+          name: "data_programata",
+          label: "Data programată",
+          displayValue: input.data_programata,
+          editable: true,
+          kind: "text",
+          value: input.data_programata,
+        },
+        {
+          name: "transportator",
+          label: "Transportator",
+          displayValue: input.transportator,
+          editable: true,
+          kind: "text",
+          value: input.transportator,
+        },
+        {
+          name: "nr_inmatriculare",
+          label: "Nr. înmatriculare",
+          displayValue: input.nr_inmatriculare,
+          editable: true,
+          kind: "text",
+          value: input.nr_inmatriculare,
+        },
+        {
+          name: "sofer",
+          label: "Șofer",
+          displayValue: input.sofer,
+          editable: true,
+          kind: "text",
+          value: input.sofer,
+        },
+        {
+          name: "punct_plecare",
+          label: "Punct de plecare",
+          displayValue: resolved.routeOrigin || "-",
+          editable: true,
+          kind: "text",
+          value: resolved.routeOrigin,
+        },
+        {
+          name: "punct_sosire",
+          label: "Punct de sosire",
+          displayValue: resolved.routeDestination || "-",
+          editable: true,
+          kind: "text",
+          value: resolved.routeDestination,
+        },
+        // Statia aleasa nu e editabila ca text (ar rupe legatura cu `origin_site_id`):
+        // se vede doar ca informatie, iar ruta se calculeaza pornind de la ea.
+        {
+          name: "statie_plecare",
+          label: "Stație (calcul rută)",
+          displayValue: resolved.site ? resolved.site.name : "fără calcul de rută",
+          editable: false,
+          kind: "text",
+        },
+      ],
+    };
+  },
+  execute: async (input, ctx) => {
+    if (!ctx.organizationId) {
+      throw new InvalidToolArgumentsError("Utilizatorul curent nu are o organizație asociată.");
+    }
+    const resolved = await resolvePlanDelivery(input);
+
+    // Planificarea optimizata a rutei (Task X7) - posibila DOAR cu o statie de
+    // plecare (`deliveries.origin_site_id` e obligatoriu in `PlanDeliveryRouteChoice`).
+    // Fara pas de selectie manuala, ca la `recalculateDeliveryRoute`: se pastreaza
+    // varianta recomandata (`selection: "auto"`). BEST-EFFORT: daca furnizorul de
+    // rutare nu e configurat sau adresa nu se poate geocoda, livrarea se planifica
+    // oricum (text liber, ca inainte de X7), iar motivul se intoarce modelului.
+    let route: PlanDeliveryRouteChoice | null = null;
+    let routeError: string | null = null;
+    if (resolved.site && resolved.routeOrigin && resolved.routeDestination) {
+      try {
+        const computation = await computeRouteBetween(
+          { address: resolved.routeOrigin },
+          { address: resolved.routeDestination },
+        );
+        const best = computation.routes[computation.bestIndex];
+        if (best) {
+          route = {
+            originSiteId: resolved.site.id,
+            distanceMeters: best.distanceMeters,
+            durationSeconds: best.durationSeconds,
+            polyline: best.polyline,
+            selectedIndex: computation.bestIndex,
+            selection: "auto",
+            alternatives: computation.routes,
+          };
+        }
+      } catch (err) {
+        routeError = err instanceof Error ? err.message : "Nu am putut calcula ruta.";
+      }
+    }
+
+    const delivery = await planDelivery({
+      orderId: input.order_id,
+      scheduledDate: input.data_programata,
+      carrierName: input.transportator,
+      vehiclePlate: input.nr_inmatriculare,
+      driverName: input.sofer,
+      routeOrigin: resolved.routeOrigin,
+      routeDestination: resolved.routeDestination,
+      route,
+      createdBy: ctx.userId,
+    });
+
+    return {
+      livrare_id: delivery.id,
+      data_programata: delivery.scheduledDate,
+      punct_plecare: delivery.routeOrigin,
+      punct_sosire: delivery.routeDestination,
+      ruta_calculata: route !== null,
+      distanta_km: route ? Math.round(route.distanceMeters / 100) / 10 : null,
+      ruta_eroare: routeError,
+      link: `/livrari/${delivery.id}`,
+    };
+  },
+};
+
 export const WRITE_TOOLS = [
   creeazaClient,
   creeazaComanda,
   trimiteComanda,
+  planificaLivrare,
 ] as unknown as AssistantTool<never>[];

@@ -15,6 +15,7 @@ const SUGGESTIONS: Record<string, string[]> = {
     "Caută firma cu CUI 12345678",
     "Ce materiale și servicii vandabile am?",
     "Cât stoc mai am la agregate?",
+    "Planifică livrarea pentru comanda acceptată a clientului X",
   ],
   client: ["Cum plasez o comandă?", "Unde îmi găsesc certificatele?", "Cum fac un retur?"],
 };

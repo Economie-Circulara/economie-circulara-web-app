@@ -64,9 +64,10 @@ export interface OrderEditorProps {
   itemOptions: ItemOption[];
   /**
    * Itemii oferiti pe o comanda de tip `aport` (orice item FIZIC, si nevandabil -
-   * vezi `listIntakeItemOptions`). Optional: cand lipseste (ex. cardul
-   * asistentului, care incarca doar catalogul vandabil), se cade inapoi pe
-   * `itemOptions` - aportul ramane creabil, doar cu o lista mai restransa.
+   * vezi `listIntakeItemOptions`). Trimis atat de /comenzi/nou cat si de cardul
+   * asistentului (`order-draft-card.tsx`). Ramane optional pt. apelanti care n-au
+   * catalogul: se cade inapoi pe `itemOptions` - aportul ramane creabil, doar cu o
+   * lista mai restransa.
    */
   intakeItemOptions?: ItemOption[];
   value: OrderEditorValue;

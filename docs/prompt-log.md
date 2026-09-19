@@ -4,6 +4,34 @@ Jurnal al sarcinilor lucrate de agenti AI in acest repo. Conform regulii 1.2 din
 [`AGENTS.md`](../AGENTS.md), la **fiecare commit** se adauga o intrare aici.
 Cele mai noi intrari sus.
 
+## 2026-09-20 — Claude Sonnet 5 — Asistent: fix catalog aport + planificarea livrarii
+
+- **Cerut:** doua adaugiri la asistent - (1) fixul bug-ului de catalog la comenzile
+  de tip `aport` propuse de asistent, (2) expunerea planificarii livrarii (Task X5)
+  si a rutelor optimizate (Task X7), pana acum inaccesibile asistentului.
+- **Depistat:** `creeaza_comanda#presentation()` incarca DOAR
+  `listSellableItemOptions()`, indiferent de `tip_comanda`, iar `OrderDraftCard` nu
+  trimitea `intakeItemOptions` catre `OrderEditor` - o comanda de aport cu un item
+  NEVANDABIL (ex. moloz) ajungea intr-un card care nu-i stia denumirea si nu-l mai
+  putea re-adauga. In plus, `itemi_vandabili` (singurul tool de catalog) filtreaza
+  `sellable = true`, deci modelul nici nu putea afla `item_id`-ul unui item de aport.
+- **Facut:**
+  - `presentation()` incarca AMBELE cataloage (ca `/comenzi/nou`) si le duce in card
+    prin `OrderDraftOptions.intakeItemOptions`.
+  - Tool-uri noi: `itemi_aport` si `context_livrare` (read), `planifica_livrare`
+    (write, card `generic`, peste `planDelivery`). Cu `punct_plecare_id` se
+    calculeaza si se salveaza ruta recomandata (`computeRouteBetween` +
+    `pickBestRouteIndex`, `selection: "auto"`), best-effort - un furnizor de rutare
+    neconfigurat nu blocheaza planificarea.
+  - `PLANNABLE_ORDER_STATUS` exportata din `deliveries/service.ts` (regula
+    "doar comenzile acceptate" intr-un singur loc), `prompt.ts` + manual + contractul
+    de capabilitati actualizate, sugestie noua in `/asistent`.
+- **Verificat:** `pnpm typecheck`, `pnpm lint`, `pnpm test` (838 teste), `prettier --check`.
+- **Impact asistent AI (regula 2.4):** `read` (`itemi_aport`, `context_livrare`) +
+  `write` (`planifica_livrare`, renderer `generic`). Ramane in afara asistentului:
+  acceptarea comenzii, declararea e-Transport, confirmarea receptiei, selectia
+  manuala intre variantele de ruta.
+
 ## 2026-09-19 — Claude Sonnet 5 — Fix /comenzi (500) + automatizare deploy migrari DB
 
 - **Cerut:** dupa PR #42, pagina `/comenzi` din productie da eroare de server
