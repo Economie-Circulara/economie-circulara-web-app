@@ -24,8 +24,21 @@ export type ReturnFlowType = Extract<OrderLinkType, "return" | "warranty">;
  * `delivered`/`closed` accepta ambele fluxuri); verificarea de status ramane in
  * plus, nu in locul acesteia.
  */
+/**
+ * Ce fluxuri de retur/garanție sunt permise, in functie de tipul comenzii
+ * originale (migrarea 0030). Decizie initiala (Task X8): `return` pur doar pe
+ * `serviciu` - dar datele demo (supabase/demo/seed-demo.sql) au aratat ca
+ * exceptii legitime de "retur" exista si pe `material`: retur de AMBALAJE
+ * (paleti EURO - un sistem de garantie/schimb standard in materiale de
+ * constructii, nu o vanzare a paletului insusi) si retur de SURPLUS nefolosit.
+ * Diferenta reala fata de `serviciu` nu e "poate avea retur", ci e ca la
+ * `serviciu` returul e AsTEPTAT DE LA INCEPUT (`expectedReturnDate` completat la
+ * creare) - la `material` e o exceptie de la fluxul normal (o singura data,
+ * ambalaj sau surplus), nu regula. `aport` ramane exclus din ambele: e deja un
+ * flux de intrare, "returul" unui aport n-ar avea sens fara o comanda noua.
+ */
 export const ALLOWED_RETURN_FLOWS_BY_ORDER_TYPE: Record<OrderType, ReturnFlowType[]> = {
-  material: ["warranty"],
+  material: ["return", "warranty"],
   serviciu: ["return", "warranty"],
   aport: [],
 };

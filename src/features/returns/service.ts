@@ -76,9 +76,11 @@ interface OriginalOrderForReturn {
  *
  *   1. STATUS: `delivered`/`closed` (AGENTS.md/plan: "pe o comanda finalizata").
  *   2. TIP: fluxul cerut trebuie sa fie permis pentru `order_type`-ul comenzii -
- *      vezi `ALLOWED_RETURN_FLOWS_BY_ORDER_TYPE` (retur pur doar pe `serviciu`,
- *      garantie si pe `material`, nimic pe `aport`). Regula a fost adaugata odata
- *      cu migrarea 0030; pana atunci eligibilitatea era pur statusuala.
+ *      vezi `ALLOWED_RETURN_FLOWS_BY_ORDER_TYPE` (retur si garantie pe
+ *      `material`/`serviciu`, nimic pe `aport`). Regula a fost adaugata odata cu
+ *      migrarea 0030 (initial `return` pur doar pe `serviciu`, relaxata la
+ *      `material` dupa ce datele demo au aratat exceptii reale - retur de
+ *      ambalaj/surplus).
  *
  * Aruncă `ReturnNotFoundError`/`ReturnValidationError` altfel.
  */

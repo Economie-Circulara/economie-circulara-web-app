@@ -765,11 +765,14 @@ begin
         v_id2 := pg_temp.idof(v_ids, j ->> 'original');
         -- Comanda-retur mosteneste `order_type` de la comanda originala (ca in
         -- returns/service.ts#createReturnOrder).
-        -- ATENTIE (migrarea 0030): scenariul contine si retururi PURE pe comenzi de
-        -- material (surplus nefolosit, paleti), care azi nu ar mai putea fi create
-        -- din UI - regula noua permite `return` doar pe `serviciu`. Datele raman
-        -- asa (insert direct, fara validare) pana la o decizie explicita: fie se
-        -- relaxeaza regula, fie aceste evenimente devin `warranty`.
+        -- Scenariul contine si retururi pe comenzi de tip `material` (surplus
+        -- nefolosit RT2, retur ambalaje/paleti EURO RT3/RT4) - initial regula
+        -- permitea `return` pur doar pe `serviciu`, dar exact aceste cazuri au
+        -- aratat ca exceptia e reala (retur de ambalaj/surplus e uzual la
+        -- vanzarea de materiale, spre deosebire de un retur "asteptat de la
+        -- inceput" ca la inchiriere). Regula a fost relaxata sa permita `return`
+        -- si pe `material` (vezi ALLOWED_RETURN_FLOWS_BY_ORDER_TYPE) - aceste
+        -- evenimente sunt acum create si prin UI, nu doar prin acest insert direct.
         insert into public.orders (organization_id, client_id, order_type, status, created_by_admin,
                                    notes, created_by, created_at, updated_at)
         select v_org, client_id, order_type, 'draft', not v_is_client, j ->> 'notes', v_actor, v_ts, v_ts

@@ -38,9 +38,13 @@ formularul manual, fără nicio legătură cu clientul (`lots` nu avea `client_i
   de itemi comutat pe tip (`listIntakeItemOptions` - itemi fizici, inclusiv
   nevandabili - pentru `aport`), `acceptIntakeOrder`/`acceptIntakeAction` +
   `AcceptIntakeButton` (pattern identic cu `AcceptReturnButton`).
-- `returns`: `ALLOWED_RETURN_FLOWS_BY_ORDER_TYPE` - retur pur doar pe `serviciu`,
-  garanție pe `material`+`serviciu`, nimic pe `aport`. Impus în
-  `loadOriginalOrderForReturn` (server) și reflectat în butoanele `ReturnActions`.
+- `returns`: `ALLOWED_RETURN_FLOWS_BY_ORDER_TYPE` - inițial retur pur doar pe
+  `serviciu`, garanție pe `material`+`serviciu`, nimic pe `aport`. **Update
+  ulterior**: regula relaxată să permită retur pur și pe `material` - datele demo
+  (RT2/RT3/RT4) conțineau exceptii reale (retur ambalaje/paleți EURO, surplus
+  nefolosit) pe care regula inițială le-ar fi respins; vezi AGENTS.md §4 pentru
+  motivația completă. Impus în `loadOriginalOrderForReturn` (server) și reflectat
+  în butoanele `ReturnActions`.
 - Comenzile-retur și cele de înlocuire moștenesc `order_type` de la comanda originală.
 
 ### Ciclul de viață al unei comenzi `aport`

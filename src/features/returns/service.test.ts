@@ -22,10 +22,9 @@ afterEach(() => {
 });
 
 /**
- * Comanda originala implicita e de tip `serviciu` (inchiriere): singurul tip pe
- * care e permis fluxul `return` pur - vezi ALLOWED_RETURN_FLOWS_BY_ORDER_TYPE
- * (migrarea 0030). Testele care verifica restrictia pe `material` dau explicit
- * `order_type`.
+ * Comanda originala implicita e de tip `serviciu` (inchiriere). Testele care
+ * verifica reguli specifice altor tipuri (`material`, `aport` - vezi
+ * ALLOWED_RETURN_FLOWS_BY_ORDER_TYPE, migrarea 0030) dau explicit `order_type`.
  */
 function orderRow(overrides: Record<string, unknown> = {}) {
   return {
@@ -83,12 +82,12 @@ describe("loadOriginalOrderForReturn", () => {
     });
   });
 
-  it("respinge returul pur pe o comanda de tip material (doar garanția e permisă acolo)", async () => {
+  it("permite returul pur pe o comanda de tip material (retur ambalaj/surplus - vezi AGENTS.md §4)", async () => {
     mockSelectOrder(orderRow({ order_type: "material" }));
 
-    await expect(loadOriginalOrderForReturn("order-orig", "return")).rejects.toBeInstanceOf(
-      ReturnValidationError,
-    );
+    const result = await loadOriginalOrderForReturn("order-orig", "return");
+
+    expect(result.orderType).toBe("material");
   });
 
   it("permite garanția pe o comanda de tip material", async () => {

@@ -27,8 +27,8 @@ export function ReturnActions({
   returnableItems: ReturnableItem[];
   /**
    * Fluxurile permise pentru TIPUL comenzii originale - calculate de pagina
-   * (server) din `ALLOWED_RETURN_FLOWS_BY_ORDER_TYPE`: retur pur doar pe
-   * `serviciu`, garantie si pe `material`. Sursa de adevar ramane
+   * (server) din `ALLOWED_RETURN_FLOWS_BY_ORDER_TYPE`: retur si garantie pe
+   * `material`/`serviciu`, nimic pe `aport`. Sursa de adevar ramane
    * `loadOriginalOrderForReturn` (server); aici doar nu aratam un buton care ar
    * esua garantat.
    */

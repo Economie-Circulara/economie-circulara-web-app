@@ -67,8 +67,8 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
   // "return"/"warranty" au acceptare dedicata (creeaza stoc, nu-l consuma).
   const isReturnOrder = returnLink?.linkType === "return" || returnLink?.linkType === "warranty";
   // Fluxurile retur/garantie depind acum SI de tipul comenzii (vezi
-  // ALLOWED_RETURN_FLOWS_BY_ORDER_TYPE): retur pur doar pe `serviciu`, garantie si
-  // pe `material`, nimic pe `aport`.
+  // ALLOWED_RETURN_FLOWS_BY_ORDER_TYPE): retur si garantie pe `material`/
+  // `serviciu`, nimic pe `aport`.
   const allowedReturnFlows = ALLOWED_RETURN_FLOWS_BY_ORDER_TYPE[order.orderType];
   const returnableItems =
     !returnLink &&

@@ -257,12 +257,19 @@ Testele unitare sunt **colocate** langa cod (`*.test.ts` / `*.test.tsx`).
 - **Eligibilitatea de retur/garantie depinde de tipul comenzii, nu doar de status**
   (decizie 2026-09, `ALLOWED_RETURN_FLOWS_BY_ORDER_TYPE` in
   `src/features/returns/types.ts`): retur PUR (`order_links.link_type = 'return'`,
-  marfa reintra in stoc fara inlocuire) doar pe `serviciu` - o vanzare de material e
-  o tranzactie intr-un singur sens; GARANTIE (`warranty`, care creeaza si comanda de
-  inlocuire) pe `material` SI `serviciu` - un produs fizic defect trebuie inlocuit
-  indiferent cum a fost dat clientului; pe `aport` niciun flux (materialul a venit de
-  la client, nu catre el). Verificarea de status (`delivered`/`closed`) ramane in
-  plus, nu in locul acesteia.
+  marfa reintra in stoc fara inlocuire) SI garantie (`warranty`, care creeaza si
+  comanda de inlocuire) sunt permise pe `material` SI `serviciu`; pe `aport` niciun
+  flux (materialul a venit de la client, nu catre el). Verificarea de status
+  (`delivered`/`closed`) ramane in plus, nu in locul acesteia.
+  - **De ce si `material` are retur pur, nu doar garantie**: decizia initiala
+    (retur pur doar pe `serviciu`) a fost relaxata dupa ce datele demo
+    (`supabase/demo/seed-demo.sql`, scenariile RT2/RT3/RT4) au aratat exceptii
+    reale de business pe vanzari clasice de material - retur de AMBALAJE (paleti
+    EURO, un sistem de garantie/schimb standard in materiale de constructii, nu
+    o vanzare a paletului) si retur de SURPLUS nefolosit. Diferenta reala fata de
+    `serviciu` nu e "poate avea retur", ci e ca la `serviciu` returul e ASTEPTAT
+    DE LA INCEPUT (`expected_return_date` completat la creare) - la `material` e
+    o exceptie de la fluxul normal, nu regula.
 
 ### 4.1 Limitari cunoscute / trade-off-uri acceptate
 

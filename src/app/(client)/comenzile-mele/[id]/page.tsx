@@ -45,7 +45,7 @@ export default async function ClientOrderDetailPage({ params }: OrderDetailPageP
   // Retur/garantie: doar pe comenzile finalizate. `getReturnableItems` e RLS-scoped
   // (clientul vede doar comenzile proprii), deci nu e nevoie de autorizare aici.
   // ...si doar pe tipurile de comanda care permit fluxul cerut (migrarea 0030:
-  // retur pur doar pe `serviciu`, garantie si pe `material`, nimic pe `aport`).
+  // retur si garantie pe `material`/`serviciu`, nimic pe `aport`).
   const allowedReturnFlows = ALLOWED_RETURN_FLOWS_BY_ORDER_TYPE[order.orderType];
   const returnableItems =
     isFinished(order.status) && allowedReturnFlows.length > 0
