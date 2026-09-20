@@ -19,13 +19,27 @@ function formatDate(iso: string | null): string {
 }
 
 /**
- * Indicator vizual al sensului stocului: "return"/"warranty" (`linkType`)
- * creează un lot nou (intake, stocul crește); orice altă comandă - inclusiv
- * "replacement", care e o vanzare obisnuita - consumă FIFO (stocul scade).
+ * Indicator vizual al sensului stocului: comenzile de tip "aport" (client -> org)
+ * si legaturile "return"/"warranty" (`linkType`) creează un lot nou (intake,
+ * stocul crește); orice altă comandă - inclusiv "replacement", care e o vanzare
+ * obisnuita - consumă FIFO (stocul scade).
  */
-function StockDirectionIndicator({ linkType }: { linkType: OrderListRow["linkType"] }) {
-  const increasesStock = linkType === "return" || linkType === "warranty";
-  const label = linkType === "warranty" ? "Garanție" : linkType === "return" ? "Retur" : "Vânzare";
+function StockDirectionIndicator({
+  orderType,
+  linkType,
+}: {
+  orderType: OrderListRow["orderType"];
+  linkType: OrderListRow["linkType"];
+}) {
+  const increasesStock = orderType === "aport" || linkType === "return" || linkType === "warranty";
+  const label =
+    orderType === "aport"
+      ? "Aport"
+      : linkType === "warranty"
+        ? "Garanție"
+        : linkType === "return"
+          ? "Retur"
+          : "Vânzare";
   const title = increasesStock ? `${label} — stocul crește` : `${label} — stocul scade`;
 
   return (
@@ -59,7 +73,12 @@ const columns: ColumnDef<OrderListRow>[] = [
   {
     id: "direction",
     header: "Sens stoc",
-    cell: ({ row }) => <StockDirectionIndicator linkType={row.original.linkType} />,
+    cell: ({ row }) => (
+      <StockDirectionIndicator
+        orderType={row.original.orderType}
+        linkType={row.original.linkType}
+      />
+    ),
   },
   { accessorKey: "clientName", header: "Client" },
   {
