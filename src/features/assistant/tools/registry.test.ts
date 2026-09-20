@@ -16,6 +16,17 @@ describe("registry de tool-uri", () => {
     expect(names).toContain("creeaza_client");
     expect(names).toContain("creeaza_comanda");
     expect(names).toContain("stoc_disponibil");
+    expect(names).toContain("planifica_livrare");
+    expect(names).toContain("context_livrare");
+    expect(names).toContain("itemi_aport");
+  });
+
+  it("clientul nu vede tool-urile de organizatie (aport, livrari)", () => {
+    const names = toolsForRole("client").map((tool) => tool.name);
+
+    expect(names).not.toContain("itemi_aport");
+    expect(names).not.toContain("context_livrare");
+    expect(names).not.toContain("planifica_livrare");
   });
 
   it("findTool respecta rolul, nu doar numele", () => {

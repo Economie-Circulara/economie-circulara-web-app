@@ -474,8 +474,9 @@ managementul utilizatorilor sunt descrise în detaliu în
 ## 13. Asistent AI
 
 Meniul **"Asistent AI"** răspunde la întrebări despre aplicație și poate **propune**
-acțiuni - creează un client nou, creează o comandă, trimite o comandă spre
-acceptare. Orice acțiune se arată întâi într-un **card de confirmare**, neexecutată:
+acțiuni - creează un client nou, creează o comandă (inclusiv de tip **aport**, cu
+materialele aduse de client), trimite o comandă spre acceptare, **planifică o
+livrare**. Orice acțiune se arată întâi într-un **card de confirmare**, neexecutată:
 
 - Câmpurile se afișează cu **denumiri**, nu cu identificatori interni (ex. la
   trimiterea unei comenzi vezi numărul și clientul ei, nu un cod tehnic).
@@ -489,3 +490,10 @@ acceptare. Orice acțiune se arată întâi într-un **card de confirmare**, nee
 - După o confirmare reușită, asistentul poate continua singur spre pasul următor
   al cererii inițiale (ex. "adaugă clientul X și o comandă cu Y" - după ce
   confirmi clientul, propune imediat comanda).
+- La **planificarea unei livrări** (secțiunea 9), asistentul cere data,
+  transportatorul, nr. de înmatriculare și șoferul; punctul de plecare (stația
+  implicită a organizației) și cel de sosire (adresa de livrare a comenzii) se
+  completează singure și rămân editabile în card. Dacă pleci dintr-o stație
+  configurată, **ruta recomandată se calculează automat** și se salvează pe livrare
+  (o poți recalcula sau schimba oricând din ecranul livrării). Ca și în aplicație,
+  se pot planifica doar comenzile **acceptate** care nu au deja o livrare.

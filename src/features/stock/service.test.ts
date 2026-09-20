@@ -30,6 +30,7 @@ function lotRow(overrides: Record<string, unknown> = {}) {
     quality_status: "unchecked",
     is_blocked: false,
     block_reason: null,
+    lot_code: "LOT-2026-000001",
     created_at: "2026-07-01T00:00:00.000Z",
     updated_at: "2026-07-01T00:00:00.000Z",
     ...overrides,
@@ -64,6 +65,7 @@ describe("createLot", () => {
     });
     expect(result).toEqual({
       id: "lot-1",
+      lotCode: "LOT-2026-000001",
       itemId: "item-1",
       entryDate: "2026-07-01",
       source: "Furnizor X",

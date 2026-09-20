@@ -13,7 +13,7 @@ const { revalidatePath } = vi.hoisted(() => ({ revalidatePath: vi.fn() }));
 vi.mock("next/cache", () => ({ revalidatePath }));
 
 import { initialClientOrderFormState } from "./action-state";
-import { createClientOrderAction } from "./actions";
+import { createClientAportAction, createClientOrderAction } from "./actions";
 
 afterEach(() => {
   vi.clearAllMocks();
@@ -137,5 +137,91 @@ describe("createClientOrderAction", () => {
 
     expect(state.orderId).toBe("order-1");
     expect(state.error).toMatch(/salvată/i);
+  });
+});
+
+describe("createClientAportAction", () => {
+  it("respinge o cerere fara materiale fara sa atinga serviciul de comenzi", async () => {
+    requireRole.mockResolvedValue(CLIENT_USER);
+
+    const state = await createClientAportAction(initialClientOrderFormState, formData({}));
+
+    expect(state.error).toMatch(/material/i);
+    expect(createOrderWithItems).not.toHaveBeenCalled();
+  });
+
+  it("respinge un cont client fara clientId/organizationId asociat", async () => {
+    requireRole.mockResolvedValue({ ...CLIENT_USER, clientId: null });
+
+    const state = await createClientAportAction(
+      initialClientOrderFormState,
+      formData({ item_id: "item-1", quantity: "2" }),
+    );
+
+    expect(state.error).toMatch(/firm/i);
+    expect(createOrderWithItems).not.toHaveBeenCalled();
+  });
+
+  it("creeaza comanda aport draft, created_by_admin=false, si NU o trimite", async () => {
+    requireRole.mockResolvedValue(CLIENT_USER);
+    createOrderWithItems.mockResolvedValue({ id: "order-2", status: "draft" });
+
+    const state = await createClientAportAction(
+      initialClientOrderFormState,
+      formData({
+        item_id: ["item-1"],
+        quantity: ["500"],
+        delivery_address_id: "addr-1",
+        delivery_date: "2026-10-01",
+        notes: "Moloz de demolare",
+      }),
+    );
+
+    expect(createOrderWithItems).toHaveBeenCalledWith({
+      organizationId: "org-1",
+      clientId: "client-1",
+      orderType: "aport",
+      createdByAdmin: false,
+      deliveryAddressId: "addr-1",
+      deliveryDate: "2026-10-01",
+      notes: "Moloz de demolare",
+      lines: [{ itemId: "item-1", quantity: 500 }],
+    });
+    // Spre deosebire de createClientOrderAction, aportul ramane draft - nu se
+    // trimite (nu exista pas "sent" separat, staff-ul accepta direct din draft).
+    expect(sendOrder).not.toHaveBeenCalled();
+    expect(revalidatePath).toHaveBeenCalledWith("/comenzile-mele");
+    expect(state).toEqual({ error: null, orderId: "order-2" });
+  });
+
+  it("suporta mai multe linii (materiale diferite)", async () => {
+    requireRole.mockResolvedValue(CLIENT_USER);
+    createOrderWithItems.mockResolvedValue({ id: "order-2", status: "draft" });
+
+    await createClientAportAction(
+      initialClientOrderFormState,
+      formData({ item_id: ["item-1", "item-2"], quantity: ["500", "12"] }),
+    );
+
+    expect(createOrderWithItems).toHaveBeenCalledWith(
+      expect.objectContaining({
+        lines: [
+          { itemId: "item-1", quantity: 500 },
+          { itemId: "item-2", quantity: 12 },
+        ],
+      }),
+    );
+  });
+
+  it("propaga eroarea daca createOrderWithItems esueaza", async () => {
+    requireRole.mockResolvedValue(CLIENT_USER);
+    createOrderWithItems.mockRejectedValue(new Error("Nu am putut crea comanda."));
+
+    const state = await createClientAportAction(
+      initialClientOrderFormState,
+      formData({ item_id: "item-1", quantity: "1" }),
+    );
+
+    expect(state).toEqual({ error: "Nu am putut crea comanda.", orderId: null });
   });
 });

@@ -101,3 +101,53 @@ export async function createClientOrderAction(
   revalidatePath("/comenzile-mele");
   return { error: null, orderId };
 }
+
+/**
+ * Creeaza o cerere de aport (client -> organizatie, materialul e adus DE CATRE
+ * client, ex. moloz de demolare) in numele clientului curent: comanda de tip
+ * `aport`, `created_by_admin: false`. Spre deosebire de `createClientOrderAction`
+ * de mai sus, comanda RAMANE `draft` - nu se apeleaza `sendOrder` (aportul nu are
+ * un pas "trimisa" separat, vezi comentariul din 0031_aport_intake.sql: staff-ul
+ * accepta direct din draft, cu `AcceptIntakeButton`/`accept_intake_order`).
+ * Acceptarea (care CRESTE stocul) ramane exclusiv la staff - portalul clientului
+ * nu apeleaza niciodata `accept_intake_order`, doar creeaza cererea; RPC-ul are
+ * oricum propria garda `app.is_staff_of` (AP004) daca ar fi apelat direct prin
+ * Data API.
+ */
+export async function createClientAportAction(
+  _prev: ClientOrderFormState,
+  formData: FormData,
+): Promise<ClientOrderFormState> {
+  const user = await requireRole(["client"]);
+  if (!user.organizationId || !user.clientId) {
+    return { error: "Contul curent nu este asociat unei firme client.", orderId: null };
+  }
+
+  const lines = readLines(formData);
+  if (lines.length === 0) {
+    return {
+      error: "Adaugă cel puțin un material, cu o cantitate estimată.",
+      orderId: null,
+    };
+  }
+
+  try {
+    const order = await createOrderWithItems({
+      organizationId: user.organizationId,
+      clientId: user.clientId,
+      orderType: "aport",
+      createdByAdmin: false,
+      deliveryAddressId: clean(formData.get("delivery_address_id")),
+      deliveryDate: clean(formData.get("delivery_date")),
+      notes: clean(formData.get("notes")),
+      lines,
+    });
+    revalidatePath("/comenzile-mele");
+    return { error: null, orderId: order.id };
+  } catch (err) {
+    return {
+      error: err instanceof Error ? err.message : "Nu am putut trimite cererea de aport.",
+      orderId: null,
+    };
+  }
+}

@@ -283,10 +283,10 @@ begin
 
   -- 4.1 Intrare stoc: achiziție moloz (materie primă) -------------------------
   insert into public.lots (
-    organization_id, item_id, entry_date, source, provenance, location,
+    lot_code, organization_id, item_id, entry_date, source, provenance, location,
     initial_qty, remaining_qty, quality_status
   ) values (
-    v_org, v_item_moloz, current_date - 20,
+    public.generate_lot_code(v_org), v_org, v_item_moloz, current_date - 20,
     'Achiziție moloz - șantier demolare Bloc A, Edilamo Trading SRL', 'purchase',
     'Depozit principal', 500, 200, 'passed'
   ) returning id into v_lot_moloz;
@@ -309,9 +309,9 @@ begin
   values (v_org, v_proc_recycling, v_lot_moloz, v_item_moloz, 300);
 
   insert into public.lots (
-    organization_id, item_id, entry_date, source, provenance, location, initial_qty, remaining_qty, quality_status
+    lot_code, organization_id, item_id, entry_date, source, provenance, location, initial_qty, remaining_qty, quality_status
   ) values (
-    v_org, v_item_nisip, current_date - 18, 'Proces reciclare moloz #1', 'recycling',
+    public.generate_lot_code(v_org), v_org, v_item_nisip, current_date - 18, 'Proces reciclare moloz #1', 'recycling',
     'Depozit principal', 150, 54, 'passed'
   ) returning id into v_lot_nisip;
   insert into public.stock_events (organization_id, item_id, lot_id, event_type, quantity, reason, process_id, created_by)
@@ -320,9 +320,9 @@ begin
   values (v_org, v_proc_recycling, v_lot_nisip, v_item_nisip, 150);
 
   insert into public.lots (
-    organization_id, item_id, entry_date, source, provenance, location, initial_qty, remaining_qty, quality_status
+    lot_code, organization_id, item_id, entry_date, source, provenance, location, initial_qty, remaining_qty, quality_status
   ) values (
-    v_org, v_item_pietris, current_date - 18, 'Proces reciclare moloz #1', 'recycling',
+    public.generate_lot_code(v_org), v_org, v_item_pietris, current_date - 18, 'Proces reciclare moloz #1', 'recycling',
     'Depozit principal', 100, 5, 'passed'
   ) returning id into v_lot_pietris;
   insert into public.stock_events (organization_id, item_id, lot_id, event_type, quantity, reason, process_id, created_by)
@@ -331,9 +331,9 @@ begin
   values (v_org, v_proc_recycling, v_lot_pietris, v_item_pietris, 100);
 
   insert into public.lots (
-    organization_id, item_id, entry_date, source, provenance, location, initial_qty, remaining_qty, quality_status
+    lot_code, organization_id, item_id, entry_date, source, provenance, location, initial_qty, remaining_qty, quality_status
   ) values (
-    v_org, v_item_balast, current_date - 18, 'Proces reciclare moloz #1', 'recycling',
+    public.generate_lot_code(v_org), v_org, v_item_balast, current_date - 18, 'Proces reciclare moloz #1', 'recycling',
     'Depozit principal', 40, 21, 'passed'
   ) returning id into v_lot_balast;
   insert into public.stock_events (organization_id, item_id, lot_id, event_type, quantity, reason, process_id, created_by)
@@ -357,9 +357,9 @@ begin
   values (v_org, v_proc_recond, v_lot_pietris, v_item_pietris, 40);
 
   insert into public.lots (
-    organization_id, item_id, entry_date, source, provenance, location, initial_qty, remaining_qty, quality_status
+    lot_code, organization_id, item_id, entry_date, source, provenance, location, initial_qty, remaining_qty, quality_status
   ) values (
-    v_org, v_item_pietris, current_date - 15, 'Proces recondiționare #1', 'reconditioning',
+    public.generate_lot_code(v_org), v_org, v_item_pietris, current_date - 15, 'Proces recondiționare #1', 'reconditioning',
     'Depozit principal', 38, 38, 'passed'
   ) returning id into v_lot_pietris_recond;
   insert into public.stock_events (organization_id, item_id, lot_id, event_type, quantity, reason, process_id, created_by)
@@ -391,9 +391,9 @@ begin
   values (v_org, v_proc_caramizi, v_lot_balast, v_item_balast, 15);
 
   insert into public.lots (
-    organization_id, item_id, entry_date, source, provenance, location, initial_qty, remaining_qty, quality_status
+    lot_code, organization_id, item_id, entry_date, source, provenance, location, initial_qty, remaining_qty, quality_status
   ) values (
-    v_org, v_item_caramizi, current_date - 10, 'Proces fabricație #1', 'internal_production',
+    public.generate_lot_code(v_org), v_org, v_item_caramizi, current_date - 10, 'Proces fabricație #1', 'internal_production',
     'Depozit principal', 150, 100, 'passed'
   ) returning id into v_lot_caramizi;
   insert into public.stock_events (organization_id, item_id, lot_id, event_type, quantity, reason, process_id, created_by)
@@ -425,9 +425,9 @@ begin
   values (v_org, v_proc_beton, v_lot_balast, v_item_balast, 4);
 
   insert into public.lots (
-    organization_id, item_id, entry_date, source, provenance, location, initial_qty, remaining_qty, quality_status
+    lot_code, organization_id, item_id, entry_date, source, provenance, location, initial_qty, remaining_qty, quality_status
   ) values (
-    v_org, v_item_beton, current_date - 8, 'Proces fabricație #2', 'internal_production',
+    public.generate_lot_code(v_org), v_org, v_item_beton, current_date - 8, 'Proces fabricație #2', 'internal_production',
     'Depozit principal', 20, 15, 'passed'
   ) returning id into v_lot_beton;
   insert into public.stock_events (organization_id, item_id, lot_id, event_type, quantity, reason, process_id, created_by)
@@ -438,9 +438,9 @@ begin
   -- 4.6 Retur material neconsumat (proveniența "retur", fara flux formal de
   --     retur/garanție - doar o intrare de stoc cu aceasta proveniență)
   insert into public.lots (
-    organization_id, item_id, entry_date, source, provenance, location, initial_qty, remaining_qty, quality_status
+    lot_code, organization_id, item_id, entry_date, source, provenance, location, initial_qty, remaining_qty, quality_status
   ) values (
-    v_org, v_item_umplutura, current_date - 5, 'Retur material neconsumat - șantier Bravo Construct SRL',
+    public.generate_lot_code(v_org), v_org, v_item_umplutura, current_date - 5, 'Retur material neconsumat - șantier Bravo Construct SRL',
     'return', 'Depozit principal', 25, 25, 'passed'
   ) returning id into v_lot_umplutura;
   insert into public.stock_events (organization_id, item_id, lot_id, event_type, quantity, reason, created_by)
@@ -448,10 +448,10 @@ begin
 
   -- 4.7 Lot BLOCAT (control calitate esuat) -- demonstreaza `set_lot_block`
   insert into public.lots (
-    organization_id, item_id, entry_date, source, provenance, location,
+    lot_code, organization_id, item_id, entry_date, source, provenance, location,
     initial_qty, remaining_qty, quality_status, is_blocked, block_reason
   ) values (
-    v_org, v_item_beton, current_date - 2, 'Proces fabricație #3 (test)', 'internal_production',
+    public.generate_lot_code(v_org), v_org, v_item_beton, current_date - 2, 'Proces fabricație #3 (test)', 'internal_production',
     'Depozit principal', 3, 3, 'failed', true,
     'Rezistență la compresiune sub pragul minim - în așteptare retestare.'
   ) returning id into v_lot_beton_blocat;
@@ -566,10 +566,10 @@ begin
   -- completat (singura cale prin care un lot are client), calitate `unchecked`
   -- (materialul adus de un client extern nu a trecut inca prin QC).
   insert into public.lots (
-    organization_id, item_id, entry_date, source, provenance, location,
+    lot_code, organization_id, item_id, entry_date, source, provenance, location,
     initial_qty, remaining_qty, quality_status, client_id
   ) values (
-    v_org, v_item_moloz, current_date - 4,
+    public.generate_lot_code(v_org), v_org, v_item_moloz, current_date - 4,
     'Aport client - Bravo Construct SRL', 'aport_client',
     'Depozit principal', 80, 80, 'unchecked', v_client_bravo
   ) returning id into v_lot_moloz_aport;

@@ -79,6 +79,7 @@ export function OrderDraftCard({
           clients={presentation.options.clients}
           addressesByClient={presentation.options.addressesByClient}
           itemOptions={presentation.options.itemOptions}
+          intakeItemOptions={presentation.options.intakeItemOptions}
           value={draft}
           onChange={setDraft}
         />

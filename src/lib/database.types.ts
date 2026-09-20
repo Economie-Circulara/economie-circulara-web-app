@@ -647,6 +647,35 @@ export type Database = {
           },
         ]
       }
+      lot_counters: {
+        Row: {
+          organization_id: string
+          seq: number
+          updated_at: string
+          year: number
+        }
+        Insert: {
+          organization_id: string
+          seq?: number
+          updated_at?: string
+          year: number
+        }
+        Update: {
+          organization_id?: string
+          seq?: number
+          updated_at?: string
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lot_counters_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lots: {
         Row: {
           block_reason: string | null
@@ -658,6 +687,7 @@ export type Database = {
           is_blocked: boolean
           item_id: string
           location: string | null
+          lot_code: string
           organization_id: string
           provenance: Database["public"]["Enums"]["lot_provenance"]
           quality_status: Database["public"]["Enums"]["quality_status"]
@@ -675,6 +705,7 @@ export type Database = {
           is_blocked?: boolean
           item_id: string
           location?: string | null
+          lot_code: string
           organization_id: string
           provenance: Database["public"]["Enums"]["lot_provenance"]
           quality_status?: Database["public"]["Enums"]["quality_status"]
@@ -692,6 +723,7 @@ export type Database = {
           is_blocked?: boolean
           item_id?: string
           location?: string | null
+          lot_code?: string
           organization_id?: string
           provenance?: Database["public"]["Enums"]["lot_provenance"]
           quality_status?: Database["public"]["Enums"]["quality_status"]
@@ -1767,6 +1799,7 @@ export type Database = {
           is_blocked: boolean
           item_id: string
           location: string | null
+          lot_code: string
           organization_id: string
           provenance: Database["public"]["Enums"]["lot_provenance"]
           quality_status: Database["public"]["Enums"]["quality_status"]
@@ -1782,6 +1815,7 @@ export type Database = {
         }
       }
       generate_certificate_number: { Args: { p_org: string }; Returns: string }
+      generate_lot_code: { Args: { p_org: string }; Returns: string }
       generate_order_number: { Args: { p_org: string }; Returns: string }
       org_branding: {
         Args: { p_domain?: string; p_slug?: string }
@@ -1807,6 +1841,7 @@ export type Database = {
           is_blocked: boolean
           item_id: string
           location: string | null
+          lot_code: string
           organization_id: string
           provenance: Database["public"]["Enums"]["lot_provenance"]
           quality_status: Database["public"]["Enums"]["quality_status"]

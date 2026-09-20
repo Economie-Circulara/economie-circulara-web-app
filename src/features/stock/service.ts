@@ -54,6 +54,7 @@ export class LotNotFoundError extends Error {
 function mapLot(row: LotRow): Lot {
   return {
     id: row.id,
+    lotCode: row.lot_code,
     itemId: row.item_id,
     entryDate: row.entry_date,
     source: row.source,

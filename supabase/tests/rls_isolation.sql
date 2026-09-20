@@ -67,7 +67,16 @@ begin;
   set local role authenticated;
   set local request.jwt.claims = '{"sub":"22222222-2222-2222-2222-222222222222"}';
   select pg_temp.assert('T2 client A own client', count(*), 1) from public.clients;
-  select pg_temp.assert('T2 client A catalog (sellable only)', count(*), 1) from public.items;
+  -- 2 itemi vizibili: `items_client_catalog` (0001/0014, sellable=true) + noua
+  -- `items_client_intake` (0034, catalogul de aport: kind=physical + is_tracked=true)
+  -- se combina cu OR (politici RLS permisive) - "Caramida eco A" (sellable) SI
+  -- "Lot intern A (nevandabil)" (fizic, trasat, dar nevandabil) sunt ambele vizibile.
+  select pg_temp.assert('T2 client A catalog total (vanzare + aport)', count(*), 2)
+    from public.items;
+  select pg_temp.assert('T2 client A catalog vanzare (sellable)', count(*), 1)
+    from public.items where sellable = true;
+  select pg_temp.assert('T2 client A catalog aport (fizic, trasat, nevandabil)', count(*), 1)
+    from public.items where sellable = false;
   select pg_temp.assert('T2 client A own orders (sent + accepted)', count(*), 2) from public.orders;
   select pg_temp.assert('T2 client A NU vede loturi', count(*), 0) from public.lots;
 rollback;
