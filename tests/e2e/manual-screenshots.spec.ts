@@ -62,7 +62,7 @@ test("A. login + dashboard + sidebar + cautare globala (admin)", async ({ page }
 
   await login(page, "admin@demo.local");
   await expect(page).toHaveURL(/\/dashboard/);
-  await expect(page.getByRole("heading", { name: "Dashboard", level: 1 })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Panou de control", level: 1 })).toBeVisible();
   await shot(page, "admin-dashboard");
   await shotOf(page, "aside", "admin-sidebar");
 
