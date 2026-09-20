@@ -1,7 +1,9 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { requireUser } from "@/features/auth/session";
 import { confirmAction, rejectAction, runAssistantTurn } from "./run";
+import { deleteConversation } from "./service";
 import type { AssistantTurn, ToolContext } from "./types";
 
 /** Contextul de tool pentru utilizatorul autentificat curent. */
@@ -48,4 +50,14 @@ export async function rejectAssistantActionAction(input: {
 }): Promise<AssistantTurn> {
   const ctx = await currentContext();
   return rejectAction({ toolCallId: input.toolCallId, ctx });
+}
+
+/**
+ * Sterge soft conversatia curenta (buton din `conversation-sidebar.tsx`) - ramane in
+ * baza pentru audit, doar ascunsa din listare (vezi `service.ts#deleteConversation`).
+ */
+export async function deleteConversationAction(conversationId: string): Promise<void> {
+  const user = await requireUser();
+  await deleteConversation(conversationId, user.id);
+  revalidatePath("/asistent", "layout");
 }

@@ -38,14 +38,14 @@ import type { AssistantTurn, PendingAction, ToolContext } from "./types";
  * Cate runde de model acceptam intr-o tura (citire -> citire -> raspuns). Fiecare
  * tool de CITIRE e sigur (nu scrie nimic) si primul tool de SCRIERE opreste oricum
  * bucla, pt. confirmare umana - deci un plafon mai mare afecteaza doar cost/latenta
- * la cereri complexe legitime, nu siguranta. Crescut de la 5 la 10 (catalogul de
+ * la cereri complexe legitime, nu siguranta. Crescut de la 5 la 10, apoi la 20 (catalogul de
  * tool-uri a crescut: cautare CUI, cataloage separate vanzare/aport, verificare
  * stoc, planificare livrare) - un scenariu real cu mai multe entitati (ex. cauta
  * firma -> verifica stoc -> propune comanda aport -> propune si o comanda
  * separata de vanzare) putea epuiza plafonul vechi doar din pasii de citire,
  * inainte sa ajunga la vreo propunere.
  */
-const MAX_STEPS = 10;
+const MAX_STEPS = 20;
 
 function toolArguments(call: ProviderToolCall): Record<string, unknown> {
   try {

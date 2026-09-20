@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useState } from "react";
-import { Menu, MessageSquarePlus } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { useState, useTransition } from "react";
+import { Menu, MessageSquarePlus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -13,6 +13,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
+import { deleteConversationAction } from "./actions";
 import type { AssistantConversation } from "./types";
 
 export interface ConversationSidebarProps {
@@ -59,6 +60,53 @@ function NewConversationButton({
   );
 }
 
+/**
+ * Buton de stergere (soft delete, vezi actions.ts#deleteConversationAction) - un
+ * `<button>` SIBLING langa `<Link>`-ul conversatiei, nu imbricat in el (un buton
+ * imbricat intr-un link ar declansa si navigarea la click). Confirmare nativa
+ * (`window.confirm`) - codebase-ul nu are un primitiv de dialog, acelasi tipar ca la
+ * alte actiuni distructive ireversibile din UI (ex. "Livrează" fara livrare planificată).
+ */
+function DeleteConversationButton({
+  conversationId,
+  active,
+  onNavigate,
+}: {
+  conversationId: string;
+  active: boolean;
+  onNavigate?: () => void;
+}) {
+  const router = useRouter();
+  const [pending, startTransition] = useTransition();
+
+  return (
+    <button
+      type="button"
+      aria-label="Șterge conversația"
+      title="Șterge conversația"
+      disabled={pending}
+      onClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (!window.confirm("Ștergi această conversație? Nu va mai apărea în listă.")) return;
+        startTransition(async () => {
+          await deleteConversationAction(conversationId);
+          onNavigate?.();
+          if (active) router.push("/asistent");
+          router.refresh();
+        });
+      }}
+      className={cn(
+        "shrink-0 rounded-md p-1.5 opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100",
+        "hover:bg-danger/10 hover:text-danger disabled:pointer-events-none disabled:opacity-50",
+        active ? "text-primary-foreground/80" : "text-muted-foreground",
+      )}
+    >
+      <Trash2 className="size-3.5" />
+    </button>
+  );
+}
+
 function ConversationList({
   conversations,
   activeId,
@@ -77,32 +125,41 @@ function ConversationList({
       {conversations.map((conversation) => {
         const active = conversation.id === activeId;
         return (
-          <Link
+          <div
             key={conversation.id}
-            href={`/asistent/${conversation.id}`}
-            onClick={onNavigate}
-            aria-current={active ? "page" : undefined}
             className={cn(
-              "block rounded-md px-3 py-2 text-sm transition-colors",
+              "group flex items-center gap-1 rounded-md transition-colors",
               active
                 ? "bg-primary text-primary-foreground"
                 : "text-muted-foreground hover:bg-secondary hover:text-foreground",
             )}
           >
-            <p className="truncate font-medium">{conversation.title ?? "Conversație"}</p>
-            <p
-              className={cn(
-                "text-xs",
-                active ? "text-primary-foreground/80" : "text-muted-foreground/80",
-              )}
-              // Textul depinde de `Date.now()`: randarea pe server si hidratarea pe client
-              // se intampla la momente diferite, deci pot iesi valori diferite ("acum" vs
-              // "acum 1 minut") - e asteptat, nu o eroare reala de hidratare.
-              suppressHydrationWarning
+            <Link
+              href={`/asistent/${conversation.id}`}
+              onClick={onNavigate}
+              aria-current={active ? "page" : undefined}
+              className="block min-w-0 flex-1 px-3 py-2 text-sm"
             >
-              {relativeDate(conversation.updatedAt)}
-            </p>
-          </Link>
+              <p className="truncate font-medium">{conversation.title ?? "Conversație"}</p>
+              <p
+                className={cn(
+                  "text-xs",
+                  active ? "text-primary-foreground/80" : "text-muted-foreground/80",
+                )}
+                // Textul depinde de `Date.now()`: randarea pe server si hidratarea pe client
+                // se intampla la momente diferite, deci pot iesi valori diferite ("acum" vs
+                // "acum 1 minut") - e asteptat, nu o eroare reala de hidratare.
+                suppressHydrationWarning
+              >
+                {relativeDate(conversation.updatedAt)}
+              </p>
+            </Link>
+            <DeleteConversationButton
+              conversationId={conversation.id}
+              active={active}
+              onNavigate={onNavigate}
+            />
+          </div>
         );
       })}
     </nav>

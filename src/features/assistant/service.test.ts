@@ -3,7 +3,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 vi.mock("./db", () => ({ assistantDb: vi.fn() }));
 
 const { assistantDb } = await import("./db");
-const { appendMessage, getConversation, listConversations } = await import("./service");
+const { appendMessage, deleteConversation, getConversation, listConversations } =
+  await import("./service");
 
 const CONVERSATIONS = [
   {
@@ -29,7 +30,8 @@ describe("listConversations", () => {
     const order = vi.fn().mockReturnValue({
       limit: vi.fn().mockResolvedValue({ data: CONVERSATIONS }),
     });
-    const select = vi.fn().mockReturnValue({ order });
+    const is = vi.fn().mockReturnValue({ order });
+    const select = vi.fn().mockReturnValue({ is });
     vi.mocked(assistantDb).mockResolvedValue({
       from: vi.fn().mockReturnValue({ select }),
     } as never);
@@ -50,6 +52,7 @@ describe("listConversations", () => {
         updatedAt: "2026-09-12T10:00:00Z",
       },
     ]);
+    expect(is).toHaveBeenCalledWith("deleted_at", null);
     expect(order).toHaveBeenCalledWith("updated_at", { ascending: false });
   });
 });
@@ -57,7 +60,8 @@ describe("listConversations", () => {
 describe("getConversation", () => {
   it("intoarce conversatia gasita", async () => {
     const maybeSingle = vi.fn().mockResolvedValue({ data: CONVERSATIONS[0] });
-    const eq = vi.fn().mockReturnValue({ maybeSingle });
+    const is = vi.fn().mockReturnValue({ maybeSingle });
+    const eq = vi.fn().mockReturnValue({ is });
     const select = vi.fn().mockReturnValue({ eq });
     vi.mocked(assistantDb).mockResolvedValue({
       from: vi.fn().mockReturnValue({ select }),
@@ -75,13 +79,48 @@ describe("getConversation", () => {
 
   it("intoarce null cand nu exista (sau nu e a userului curent, via RLS)", async () => {
     const maybeSingle = vi.fn().mockResolvedValue({ data: null });
-    const eq = vi.fn().mockReturnValue({ maybeSingle });
+    const is = vi.fn().mockReturnValue({ maybeSingle });
+    const eq = vi.fn().mockReturnValue({ is });
     const select = vi.fn().mockReturnValue({ eq });
     vi.mocked(assistantDb).mockResolvedValue({
       from: vi.fn().mockReturnValue({ select }),
     } as never);
 
     expect(await getConversation("altcineva")).toBeNull();
+  });
+});
+
+describe("deleteConversation", () => {
+  it("marcheaza conversatia ca stearsa (deleted_at) doar pt. proprietarul ei", async () => {
+    const maybeSingle = vi.fn().mockResolvedValue({ data: { id: "conv-1" }, error: null });
+    const is = vi.fn().mockReturnValue({ select: vi.fn().mockReturnValue({ maybeSingle }) });
+    const eqUser = vi.fn().mockReturnValue({ is });
+    const eqId = vi.fn().mockReturnValue({ eq: eqUser });
+    const update = vi.fn().mockReturnValue({ eq: eqId });
+    vi.mocked(assistantDb).mockResolvedValue({
+      from: vi.fn().mockReturnValue({ update }),
+    } as never);
+
+    await expect(deleteConversation("conv-1", "user-1")).resolves.toBeUndefined();
+
+    expect(update).toHaveBeenCalledWith({ deleted_at: expect.any(String) });
+    expect(eqId).toHaveBeenCalledWith("id", "conv-1");
+    expect(eqUser).toHaveBeenCalledWith("user_id", "user-1");
+  });
+
+  it("arunca daca nu exista/nu apartine userului (0 randuri afectate)", async () => {
+    const maybeSingle = vi.fn().mockResolvedValue({ data: null, error: null });
+    const is = vi.fn().mockReturnValue({ select: vi.fn().mockReturnValue({ maybeSingle }) });
+    const eqUser = vi.fn().mockReturnValue({ is });
+    const eqId = vi.fn().mockReturnValue({ eq: eqUser });
+    const update = vi.fn().mockReturnValue({ eq: eqId });
+    vi.mocked(assistantDb).mockResolvedValue({
+      from: vi.fn().mockReturnValue({ update }),
+    } as never);
+
+    await expect(deleteConversation("straina", "user-1")).rejects.toThrow(
+      "Conversația nu există sau nu îți aparține.",
+    );
   });
 });
 

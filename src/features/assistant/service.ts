@@ -35,12 +35,16 @@ export async function createConversation(input: {
   return data.id;
 }
 
-/** Conversatiile utilizatorului curent, cele mai recent active primele (pentru sidebar). */
+/**
+ * Conversatiile utilizatorului curent, cele mai recent active primele (pentru sidebar).
+ * Exclude cele sterse soft (`deleted_at` - migrarea 0035).
+ */
 export async function listConversations(): Promise<AssistantConversation[]> {
   const db = await assistantDb();
   const { data } = await db
     .from("assistant_conversations")
     .select("id, title, created_at, updated_at")
+    .is("deleted_at", null)
     .order("updated_at", { ascending: false })
     .limit(50);
 
@@ -54,12 +58,16 @@ export async function listConversations(): Promise<AssistantConversation[]> {
   }));
 }
 
+/** O conversatie sterse soft se comporta ca inexistenta pentru UI (vezi `notFound()` in
+ * `assistant-page-content.tsx`) - randul/mesajele raman in baza, doar ascunse.
+ */
 export async function getConversation(id: string): Promise<AssistantConversation | null> {
   const db = await assistantDb();
   const { data } = await db
     .from("assistant_conversations")
     .select("id, title, created_at, updated_at")
     .eq("id", id)
+    .is("deleted_at", null)
     .maybeSingle();
 
   const row = data as Pick<
@@ -68,6 +76,27 @@ export async function getConversation(id: string): Promise<AssistantConversation
   > | null;
   if (!row) return null;
   return { id: row.id, title: row.title, createdAt: row.created_at, updatedAt: row.updated_at };
+}
+
+/**
+ * Sterge soft o conversatie a utilizatorului curent (`deleted_at = now()`) - RLS
+ * (`assistant_conversations_own`, 0020) restrictioneaza oricum UPDATE-ul la propriile
+ * randuri, dar verificam explicit `user_id` aici, ca `error`-ul sa fie clar daca cineva
+ * incearca sa stearga conversatia altcuiva (0 randuri afectate, nu o exceptie RLS opaca).
+ */
+export async function deleteConversation(id: string, userId: string): Promise<void> {
+  const db = await assistantDb();
+  const { data, error } = await db
+    .from("assistant_conversations")
+    .update({ deleted_at: new Date().toISOString() })
+    .eq("id", id)
+    .eq("user_id", userId)
+    .is("deleted_at", null)
+    .select("id")
+    .maybeSingle();
+
+  if (error) throw new Error("Nu am putut șterge conversația.");
+  if (!data) throw new Error("Conversația nu există sau nu îți aparține.");
 }
 
 export async function appendMessage(input: {

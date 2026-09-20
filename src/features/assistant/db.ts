@@ -21,6 +21,8 @@ export interface AssistantConversationRow {
   title: string | null;
   created_at: string;
   updated_at: string;
+  /** Soft delete (migrarea 0035) - null = activa. */
+  deleted_at: string | null;
 }
 
 export interface AssistantMessageRow {

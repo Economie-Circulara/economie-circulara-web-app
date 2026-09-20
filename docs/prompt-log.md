@@ -4,6 +4,32 @@ Jurnal al sarcinilor lucrate de agenti AI in acest repo. Conform regulii 1.2 din
 [`AGENTS.md`](../AGENTS.md), la **fiecare commit** se adauga o intrare aici.
 Cele mai noi intrari sus.
 
+## 2026-09-20 — Claude Sonnet 5 — Asistent: plafon de pasi marit + stergere (soft) conversatii
+
+- **Cerut:** testat live (dupa fix-ul aport + livrare de mai jos): un scenariu real cu
+  mai multe entitati (cauta firma dupa CUI, verifica stoc, propune o comanda de aport SI
+  una separata de vanzare) epuiza `MAX_STEPS` (raspuns generic "Nu am reusit sa duc
+  cererea la capat..."). Cerut si un delete/remove (soft) pentru conversatiile cu
+  asistentul, care pana acum nu se puteau sterge deloc din UI.
+- **Facut:**
+  - `MAX_STEPS` (`run.ts`) crescut 5 -> 10 -> 20 (calibrat direct pe scenariul care a
+    picat). Fara risc de siguranta: tool-urile de citire nu scriu nimic, iar primul tool
+    de scriere opreste oricum bucla pt. confirmare umana - plafonul mai mare afecteaza
+    doar cost/latenta la cereri complexe legitime, nu si cota de mesaje (contorizata per
+    TURA, nu per pas - vezi `quota.ts`).
+  - `0035_assistant_conversation_soft_delete.sql`: `assistant_conversations.deleted_at`
+    (nullable). La fel ca restul aplicatiei (loturi, comenzi) - nicio stergere hard, ca
+    sa nu se piarda auditul din `assistant_tool_calls` (propuneri de scriere confirmate).
+  - `service.ts`: `listConversations`/`getConversation` filtreaza `deleted_at is null`;
+    `deleteConversation` nou (UPDATE cu verificare explicita de owner, pe langa RLS).
+  - `actions.ts`: `deleteConversationAction`. `conversation-sidebar.tsx`: buton de
+    stergere (icon, hover-reveal) langa fiecare conversatie - `<button>` SIBLING langa
+    `<Link>`, nu imbricat (ar fi declansat si navigarea), cu `window.confirm` (fara
+    primitiv de dialog in codebase) si redirect la `/asistent` daca se sterge conversatia
+    activa.
+- **Verificat:** `pnpm run typecheck`, `pnpm run lint`, `pnpm run test` (852 teste,
+  inclusiv 2 noi pentru `deleteConversation`).
+
 ## 2026-09-20 — Claude Sonnet 5 — Asistent: fix catalog aport + planificarea livrarii
 
 - **Cerut:** doua adaugiri la asistent - (1) fixul bug-ului de catalog la comenzile
