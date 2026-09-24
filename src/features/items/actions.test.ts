@@ -63,7 +63,7 @@ describe("createItemAction", () => {
     expect(createItem).not.toHaveBeenCalled();
   });
 
-  it("creeaza itemul si redirectioneaza la /itemi cand datele sunt valide", async () => {
+  it("creeaza un abonament si redirectioneaza la /abonamente cand datele sunt valide", async () => {
     requireRole.mockResolvedValue({ id: "u1", organizationId: "org-1" });
     createItem.mockResolvedValue({ id: "item-1" });
 
@@ -78,7 +78,7 @@ describe("createItemAction", () => {
           description: "Abonament lunar",
         }),
       ),
-    ).rejects.toThrow("REDIRECT:/itemi");
+    ).rejects.toThrow("REDIRECT:/abonamente");
 
     expect(createItem).toHaveBeenCalledWith({
       id: expect.any(String),
@@ -93,7 +93,7 @@ describe("createItemAction", () => {
       sellable: true,
       imageUrl: null,
     });
-    expect(revalidatePath).toHaveBeenCalledWith("/itemi");
+    expect(revalidatePath).toHaveBeenCalledWith("/abonamente");
   });
 
   it("trateaza checkbox-ul necompletat (vandabil) ca false", async () => {

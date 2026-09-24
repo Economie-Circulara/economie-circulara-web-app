@@ -67,6 +67,7 @@ describe("listRecipes", () => {
         direction: "compunere",
         componentCount: 2,
         percentageSum: 100,
+        archivedAt: null,
       },
       {
         recipeId: "recipe-2",
@@ -76,6 +77,7 @@ describe("listRecipes", () => {
         direction: "descompunere",
         componentCount: 0,
         percentageSum: 0,
+        archivedAt: null,
       },
     ]);
   });
@@ -140,6 +142,8 @@ describe("getRecipeByItemId", () => {
       itemTitle: "Cărămidă eco",
       unit: "bucata",
       direction: "compunere",
+      archivedAt: null,
+      recipeArchivedAt: null,
       components: [
         {
           id: "comp-1",

@@ -18,6 +18,7 @@ function mapClient(row: ClientRow): Client {
     contactPerson: row.contact_person,
     isSupplier: row.is_supplier,
     notes: row.notes,
+    archivedAt: row.archived_at ?? null,
     createdAt: row.created_at,
   };
 }
@@ -36,12 +37,19 @@ function mapAddress(row: ClientAddressRow): ClientAddress {
 export interface ListClientsFilters {
   /** Cauta in denumire SAU CUI (case-insensitive, substring). */
   search?: string;
+  /**
+   * Include si clientii arhivati (comutatorul "Arată arhivați" de pe /clienti).
+   * Implicit `false` - arhivatii sunt ascunsi din orice lista/select (migrarea 0035):
+   * formularul de comanda, invitari, cautare, asistent.
+   */
+  includeArchived?: boolean;
 }
 
 /** Lista clientilor (ecranul /clienti), cei mai recenti primii. */
 export async function listClients(filters: ListClientsFilters = {}): Promise<Client[]> {
   const supabase = await createClient();
   let query = supabase.from("clients").select("*").order("created_at", { ascending: false });
+  if (!filters.includeArchived) query = query.is("archived_at", null);
 
   const search = filters.search?.trim();
   if (search) {

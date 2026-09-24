@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ConfirmActionButton } from "@/components/confirm-action-button";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageHeader } from "@/components/page-header";
 import { StatusBadge } from "@/components/status-badge";
 import { requireRole } from "@/features/auth/session";
+import { deleteOwnDraftOrderAction } from "@/features/client-portal/actions";
 import { RepeatOrderButton } from "@/features/client-portal/repeat-order-button";
 import { ORDER_STATUS_BADGE_STATUS, ORDER_STATUS_LABELS } from "@/features/orders/labels";
 import { getOrderDetail } from "@/features/orders/queries";
@@ -78,6 +80,17 @@ export default async function ClientOrderDetailPage({ params }: OrderDetailPageP
               </Button>
             ) : null}
             {isIntakeOrder ? null : <RepeatOrderButton items={order.items} />}
+            {/* Doar ciornele proprii se pot sterge (migrarea 0035). */}
+            {order.status === "draft" ? (
+              <ConfirmActionButton
+                triggerLabel="Șterge ciorna"
+                title="Ștergi această ciornă?"
+                description="Ciorna nu a fost trimisă, deci organizația nu a primit-o. După ștergere nu mai apare în lista ta de comenzi."
+                confirmLabel="Da, șterge ciorna"
+                pendingLabel="Se șterge..."
+                action={deleteOwnDraftOrderAction.bind(null, order.id)}
+              />
+            ) : null}
           </>
         }
       />

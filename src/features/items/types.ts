@@ -19,6 +19,12 @@ export interface Item {
   isTracked: boolean;
   sellable: boolean;
   imageUrl: string | null;
+  /**
+   * Arhivat (migrarea 0035) - soft-delete reversibil: ascuns din liste si din
+   * TOATE selecturile, dar istoricul (loturi, comenzi, retete) il afiseaza in
+   * continuare. `null` = activ.
+   */
+  archivedAt: string | null;
   createdAt: string;
   updatedAt: string;
 }

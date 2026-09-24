@@ -48,6 +48,10 @@ export class DeliveryNotFoundError extends Error {
   }
 }
 
+// Coduri de eroare din 0035_soft_delete.sql (`cancel_delivery`).
+const ERR_DELIVERY_DEPARTED = "DL001";
+const ERR_DELIVERY_NOT_FOUND = "DL002";
+
 /**
  * Doar comenzile ACCEPTATE pot avea o livrare planificata (docs/plans/implementation-plan.md,
  * Task X5). Exportata ca sa NU se rescrie literalul "accepted" in fiecare garda din
@@ -358,4 +362,30 @@ export async function confirmDeliveryReceipt(input: ConfirmReceiptInput): Promis
   }
 
   return delivery;
+}
+
+/**
+ * Anuleaza o livrare INAINTE de plecare (migrarea 0035) - prin RPC-ul
+ * `cancel_delivery` (singura cale: RLS ascunde livrarile anulate si interzice
+ * setarea coloanelor de anulare printr-un UPDATE simplu). Livrarea anulata dispare
+ * din liste, iar comanda (inca `accepted`) poate fi replanificata. Motivul e
+ * obligatoriu si ramane pe rand.
+ */
+export async function cancelDelivery(deliveryId: string, reason: string): Promise<void> {
+  const trimmed = reason.trim();
+  if (!trimmed) throw new DeliveryValidationError("Motivul anulării este obligatoriu.");
+
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("cancel_delivery", {
+    p_delivery_id: deliveryId,
+    p_reason: trimmed,
+  });
+  if (!error) return;
+  if (error.code === ERR_DELIVERY_NOT_FOUND) throw new DeliveryNotFoundError();
+  if (error.code === ERR_DELIVERY_DEPARTED) {
+    throw new DeliveryValidationError(
+      "Livrarea a plecat deja (declarată la e-Transport sau recepționată) - nu mai poate fi anulată.",
+    );
+  }
+  throw new Error(error.message ?? "Nu am putut anula livrarea.");
 }

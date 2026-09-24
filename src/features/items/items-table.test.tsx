@@ -16,6 +16,7 @@ function makeItem(overrides: Partial<ItemListRow> = {}): ItemListRow {
     createdAt: "2026-01-01T00:00:00Z",
     updatedAt: "2026-01-01T00:00:00Z",
     hasRecipe: false,
+    archivedAt: null,
     ...overrides,
   };
 }
@@ -50,5 +51,20 @@ describe("ItemsTable", () => {
     render(<ItemsTable items={[]} kind="service" />);
 
     expect(screen.getByText("Niciun abonament în catalog")).toBeInTheDocument();
+  });
+});
+
+describe("ItemsTable - arhivate", () => {
+  it("afiseaza eticheta Arhivat doar pentru itemii arhivati", () => {
+    render(
+      <ItemsTable
+        items={[
+          makeItem({ id: "a", title: "Activ" }),
+          makeItem({ id: "b", title: "Vechi", archivedAt: "2026-09-01T00:00:00Z" }),
+        ]}
+        kind="physical"
+      />,
+    );
+    expect(screen.getAllByText("Arhivat")).toHaveLength(1);
   });
 });

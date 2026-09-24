@@ -389,4 +389,39 @@ begin;
     from public.orders where id = '0d0d0d0d-0000-0000-0000-00000000000d';
 rollback;
 
+-- ===== TEST 20: delete_draft_order (0035) - clientul NU poate sterge ciorna altui
+-- tenant, iar un UPDATE direct pe `deleted_at` e respins de RLS =====================
+insert into public.orders (id, organization_id, client_id, status) values
+  ('0d0d0d0d-0000-0000-0000-0000000000e1','bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb','c2c2c2c2-c2c2-c2c2-c2c2-c2c2c2c2c2c2','draft'),
+  ('0d0d0d0d-0000-0000-0000-0000000000e2','aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa','c1c1c1c1-c1c1-c1c1-c1c1-c1c1c1c1c1c1','draft');
+
+begin;
+  set local role authenticated;
+  set local request.jwt.claims = '{"sub":"22222222-2222-2222-2222-222222222222"}';
+
+  do $$
+  begin
+    begin
+      perform public.delete_draft_order('0d0d0d0d-0000-0000-0000-0000000000e1'::uuid);
+      raise exception 'FAIL: T20 client A a sters ciorna unui client din Org B';
+    exception
+      when sqlstate 'OR002' then raise notice 'PASS: T20 ciorna din alt tenant respinsa (OR002)';
+    end;
+
+    -- Propria ciorna: stergerea "pe ocolite" (UPDATE direct) e respinsa de RLS.
+    begin
+      update public.orders set deleted_at = now()
+      where id = '0d0d0d0d-0000-0000-0000-0000000000e2';
+      raise exception 'FAIL: T20 client A a setat deleted_at printr-un UPDATE direct';
+    exception
+      when insufficient_privilege then raise notice 'PASS: T20 UPDATE direct pe deleted_at respins';
+    end;
+  end $$;
+
+  -- Calea corecta (RPC) merge pentru propria ciorna.
+  select public.delete_draft_order('0d0d0d0d-0000-0000-0000-0000000000e2');
+  select pg_temp.assert('T20 client A: ciorna proprie stearsa (invizibila)', count(*), 0)
+    from public.orders where id = '0d0d0d0d-0000-0000-0000-0000000000e2';
+rollback;
+
 select '*** TOATE TESTELE RLS AU TRECUT ***' as result;

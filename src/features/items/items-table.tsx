@@ -19,9 +19,13 @@ const baseColumns: ColumnDef<ItemListRow>[] = [
     accessorKey: "title",
     header: "Titlu",
     cell: ({ row }) => (
-      <Link href={itemHref(row.original)} className="font-medium hover:underline">
-        {row.original.title}
-      </Link>
+      <div className="flex flex-wrap items-center gap-1.5">
+        <Link href={itemHref(row.original)} className="font-medium hover:underline">
+          {row.original.title}
+        </Link>
+        {/* Vizibil doar cu "Arată arhivate" (migrarea 0035). */}
+        {row.original.archivedAt ? <Badge variant="neutral">Arhivat</Badge> : null}
+      </div>
     ),
   },
   {

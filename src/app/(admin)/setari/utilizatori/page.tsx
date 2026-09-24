@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ConfirmActionButton } from "@/components/confirm-action-button";
 import { PageHeader } from "@/components/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -13,6 +14,11 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { requireRole } from "@/features/auth/session";
 import { ROLE_LABELS } from "@/features/auth/roles";
+import {
+  deactivateUserAction,
+  reactivateUserAction,
+} from "@/features/settings/deactivation-actions";
+import { deactivationError } from "@/features/settings/deactivation";
 import { listAvailableClientsForInvite, listOrgUsers } from "@/features/settings/queries";
 import { InviteStaffForm } from "@/features/settings/invite-staff-form";
 import { InviteClientForm } from "@/features/settings/invite-client-form";
@@ -20,7 +26,7 @@ import { InviteClientForm } from "@/features/settings/invite-client-form";
 export const metadata = { title: "Utilizatori - Lot cu Lot" };
 
 export default async function UsersPage() {
-  await requireRole(["admin"]);
+  const currentUser = await requireRole(["admin"]);
   const [users, availableClients] = await Promise.all([
     listOrgUsers(),
     listAvailableClientsForInvite(),
@@ -31,7 +37,7 @@ export default async function UsersPage() {
       <PageHeader
         title="Utilizatori"
         breadcrumbs={[{ label: "Setari", href: "/setari" }, { label: "Utilizatori" }]}
-        description="Invita operatori, administratori si clienti in organizatie."
+        description="Invita operatori, administratori si clienti in organizatie. Conturile de staff pot fi dezactivate (nu sterse - raman autori in istoric)."
         actions={
           <Button asChild variant="outline">
             <Link href="/setari">Inapoi la setari</Link>
@@ -65,6 +71,7 @@ export default async function UsersPage() {
             <TableHead>Rol</TableHead>
             <TableHead>Firma</TableHead>
             <TableHead>Status</TableHead>
+            <TableHead className="text-right">Acțiuni</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -76,8 +83,35 @@ export default async function UsersPage() {
               <TableCell>{u.role === "client" ? (u.clientName ?? "-") : "-"}</TableCell>
               <TableCell>
                 <Badge variant={u.status === "active" ? "ok" : "neutral"}>
-                  {u.status === "active" ? "Activ" : "Suspendat"}
+                  {u.status === "active" ? "Activ" : "Dezactivat"}
                 </Badge>
+              </TableCell>
+              <TableCell className="text-right">
+                {/* Doar conturi de staff, niciodata propriul cont (migrarea 0035). */}
+                {deactivationError(currentUser, {
+                  id: u.id,
+                  role: u.role,
+                  organizationId: currentUser.organizationId,
+                }) !== null ? null : u.status === "active" ? (
+                  <ConfirmActionButton
+                    triggerLabel="Dezactivează"
+                    triggerSize="sm"
+                    title={`Dezactivezi contul ${u.email ?? u.fullName ?? ""}?`}
+                    description="Persoana nu se va mai putea loga în platformă. Contul nu se șterge: tot ce a făcut rămâne în istoric pe numele ei. Îl poți reactiva oricând."
+                    confirmLabel="Da, dezactivează"
+                    action={deactivateUserAction.bind(null, u.id)}
+                  />
+                ) : (
+                  <ConfirmActionButton
+                    triggerLabel="Reactivează"
+                    triggerSize="sm"
+                    title={`Reactivezi contul ${u.email ?? u.fullName ?? ""}?`}
+                    description="Persoana se va putea loga din nou, cu același rol."
+                    confirmLabel="Da, reactivează"
+                    confirmVariant="default"
+                    action={reactivateUserAction.bind(null, u.id)}
+                  />
+                )}
               </TableCell>
             </TableRow>
           ))}

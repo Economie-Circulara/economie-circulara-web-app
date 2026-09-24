@@ -14,7 +14,7 @@ function makeQueryBuilder(finalResult: { data: unknown; error: unknown }) {
   const builder: Record<string, unknown> & { then: (resolve: (v: unknown) => void) => void } = {
     then: (resolve) => resolve(finalResult),
   };
-  for (const m of ["select", "order", "eq", "ilike", "neq"]) {
+  for (const m of ["select", "order", "eq", "ilike", "neq", "is"]) {
     builder[m] = vi.fn(() => builder);
   }
   builder.maybeSingle = vi.fn().mockResolvedValue(finalResult);

@@ -14,7 +14,7 @@ function makeQueryBuilder(finalResult: { data: unknown; error: unknown }) {
   const builder: Record<string, unknown> & { then: (resolve: (v: unknown) => void) => void } = {
     then: (resolve) => resolve(finalResult),
   };
-  for (const m of ["select", "order", "eq", "ilike"]) {
+  for (const m of ["select", "order", "eq", "ilike", "is"]) {
     builder[m] = vi.fn(() => builder);
   }
   return builder;
@@ -84,5 +84,16 @@ describe("listCatalogItems", () => {
     createClient.mockResolvedValue({ from: vi.fn().mockReturnValue(builder) });
 
     await expect(listCatalogItems()).rejects.toThrow("Nu am putut încărca catalogul.");
+  });
+});
+
+describe("listCatalogItems - itemi arhivati (migrarea 0035)", () => {
+  it("nu mai arata in catalog itemii arhivati", async () => {
+    const builder = makeQueryBuilder({ data: [], error: null });
+    createClient.mockResolvedValue({ from: vi.fn().mockReturnValue(builder) });
+
+    await listCatalogItems();
+
+    expect(builder.is).toHaveBeenCalledWith("archived_at", null);
   });
 });

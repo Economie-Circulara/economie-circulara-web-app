@@ -19,6 +19,12 @@ const PUBLIC_PREFIXES = ["/login", "/forgot-password", "/set-password", "/auth",
  */
 const SUSPENDED_ORG_PATH = "/organizatie-suspendata";
 
+/**
+ * Pagina dedicata conturilor dezactivate (migrarea 0035) - exclusa din verificare
+ * din acelasi motiv (bucla de redirect).
+ */
+const DEACTIVATED_ACCOUNT_PATH = "/cont-dezactivat";
+
 function isPublicPath(pathname: string): boolean {
   if (pathname === "/") return true;
   return PUBLIC_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`));
@@ -100,10 +106,18 @@ export async function updateSession(request: NextRequest) {
   // client) nu mai ajung in shell-ul lor. Super_admin nu are `organization_id` => scapa
   // neatins. Excludem explicit pagina dedicata (evita bucla) si rutele publice (deja
   // accesibile fara sesiune, deci nu au nevoie de verificare de tenant).
-  if (user && pathname !== SUSPENDED_ORG_PATH && !isPublicPath(pathname)) {
+  if (
+    user &&
+    pathname !== SUSPENDED_ORG_PATH &&
+    pathname !== DEACTIVATED_ACCOUNT_PATH &&
+    !isPublicPath(pathname)
+  ) {
+    // Relatie dezambiguizata explicit (ca in session.ts#getCurrentUser): exista mai
+    // multe cai profiles -> organizations (ex. via assistant_usage), iar embed-ul
+    // scurt `organizations(status)` e refuzat de PostgREST (PGRST201).
     const { data: profile } = await supabase
       .from("profiles")
-      .select("organization_id, organizations(status)")
+      .select("organization_id, status, organizations!profiles_organization_id_fkey(status)")
       .eq("id", user.id)
       .single();
 
@@ -112,6 +126,15 @@ export async function updateSession(request: NextRequest) {
       suspendedUrl.pathname = SUSPENDED_ORG_PATH;
       suspendedUrl.search = "";
       return NextResponse.redirect(suspendedUrl);
+    }
+
+    // Cont dezactivat (migrarea 0035): staff dezactivat sau client al unei firme
+    // arhivate. A doua linie e `requireUser`, a treia `app.role()` in RLS.
+    if (profile?.status === "suspended") {
+      const deactivatedUrl = request.nextUrl.clone();
+      deactivatedUrl.pathname = DEACTIVATED_ACCOUNT_PATH;
+      deactivatedUrl.search = "";
+      return NextResponse.redirect(deactivatedUrl);
     }
   }
 

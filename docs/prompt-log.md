@@ -4,6 +4,15 @@ Jurnal al sarcinilor lucrate de agenti AI in acest repo. Conform regulii 1.2 din
 [`AGENTS.md`](../AGENTS.md), la **fiecare commit** se adauga o intrare aici.
 Cele mai noi intrari sus.
 
+## 2026-09-24 — Claude (Claude Code) — Integrare arhivare (PR #50) cu ecranul Abonamente (PR #48)
+
+- **Cerut:** merge in ordine al PR-urilor din runda "ultima suta de metri".
+- **Facut:** la aducerea `main` in PR-ul de arhivare, butoanele Arhivează/Restaurează
+  si comutatorul "Arată arhivate" au fost puse si pe ecranele `/abonamente` (nu doar
+  `/itemi`); helper nou `itemListHref(kind)`. Fix bug din #48: crearea/salvarea unui
+  abonament redirectiona la lista Materiale (unde nu apare) - acum merge la
+  `/abonamente`; arhivarea invalideaza ambele ecrane.
+
 ## 2026-09-24 — Claude (Claude Code) — Fix cast enum in seed-ul demo
 
 - **Cerut:** repararea `supabase/demo/seed-demo.sql`, care cadea la evenimentul #14
@@ -69,6 +78,66 @@ Cele mai noi intrari sus.
 - **Regula noua adaugata in AGENTS.md §4:** denumirea "Abonament" pentru
   `kind = "service"` in UI, cu ecran/rute separate si helper-ul `itemHref()`
   obligatoriu pentru orice link catre un item existent.
+
+## 2026-09-24 — Claude (Claude Code) — Soft-delete: ciorne șterse de client + retur pe itemi arhivați
+
+- **Cerut:** răspunsuri la întrebările deschise din PR #50: (1) clientul își poate
+  șterge propriile ciorne din portal; (2) itemii arhivați pot reveni prin
+  retur/garanție - ambele ca reguli de business în AGENTS.md §4.
+- **Facut:** `delete_draft_order` (0035) acceptă și clientul proprietar (doar
+  firma lui, organizația lui, `draft`); acțiunea `deleteOwnDraftOrderAction` + buton
+  cu confirmare în `/comenzile-mele/[id]`. Trigger-ul `reject_archived_references`
+  lasă clientul să pună pe o comandă un item arhivat deja livrat lui - altfel
+  cererile de retur/garanție din portal pe itemi arhivați ar fi fost blocate (bug
+  prins la implementarea regulii 2). Teste: unitare (acțiunea client), B22/B23 în
+  `business_flow.sql`, T20 în `rls_isolation.sql`. Manual client + plan +
+  AGENTS.md actualizate.
+- **Verificat:** `pnpm typecheck`, `pnpm lint`, `pnpm test`, `pnpm format:check`;
+  testele SQL rulate pe Postgres 16 local cu shim Supabase (nu pe stack-ul real).
+- **Impact asistent AI (regula 2.4):** `none` - asistentul nu e disponibil
+  rolului client pentru această acțiune; niciun tool nou.
+
+## 2026-09-24 — Claude (Claude Code) — Arhivare / ștergere logică (soft-delete)
+
+- **Cerut:** utilizatorii nu pot șterge nimic creat din greșeală. Lista aprobată:
+  arhivare pentru materiale/servicii, rețete și clienți (+ blocarea logării
+  clientului), ștergere logică pentru comenzile `draft`, "Anulează lotul" doar dacă
+  nimic nu s-a consumat (corecție în audit), anularea livrărilor înainte de plecare,
+  dezactivarea utilizatorilor de staff; `stock_events`, certificate, procese
+  finalizate și comenzi livrate/închise rămân neștergibile.
+- **Facut:**
+  - Migrarea `0035_soft_delete.sql` (coloane `archived_at/by`, `deleted_at/by`,
+    `cancelled_at/by/cancel_reason`; RPC-uri `delete_draft_order`, `cancel_lot`,
+    `cancel_delivery`; RLS spartă pe `orders`/`deliveries` ca să ascundă ștersele;
+    triggere `stamp_archive`, `reject_archived_references` (AR001/AR002),
+    `guard_lot_cancellation`, `enforce_profile_deactivation` (US001),
+    `sync_client_profile_status`; `app.role()` întoarce null pentru conturi blocate;
+    unicitatea livrării per comandă devine parțială). Poate necesita renumerotare la
+    merge dacă alt PR adaugă tot o `0035`.
+  - Aplicație: `ConfirmActionButton` (dialog de confirmare, Radix), acțiuni +
+    butoane pe `/itemi/[id]`, `/retete/[itemId]`, `/clienti/[id]`, `/comenzi/[id]`,
+    `/stoc/loturi/[id]`, `/livrari/[id]`, `/setari/utilizatori`; comutatoare
+    "Arată arhivate/anulate"; toate selecturile filtrează arhivatele; garda de server
+    `assertActiveOrderReferences` la creare/editare comandă; pagina
+    `/cont-dezactivat` + gărzi în middleware/`requireUser`; ban best-effort în
+    Supabase Auth; rapoartele/dashboard-ul ignoră loturile anulate.
+  - Fix colateral: embed-uri PostgREST dezambiguizate (`clients!profiles_client_id_fkey`
+    în lista de utilizatori - devenea ambiguu prin FK-ul nou; `organizations!…` în
+    middleware - aceeași ambiguitate PGRST201 documentată în `session.ts`, care ar
+    fi făcut ca guard-ul de organizație suspendată să fie ocolit silențios).
+  - `database.types.ts` actualizat manual; teste SQL B15-B21 în `business_flow.sql`;
+    plan `docs/plans/soft-delete.md`; manual (admin/operator, administrare, client);
+    AGENTS.md §4 + §4.2.
+- **Verificat:** `pnpm typecheck`, `pnpm lint`, `pnpm test`, `pnpm format:check`.
+  Migrările + `business_flow.sql`, `rls_isolation.sql`, `assistant_rls.sql` rulate pe
+  un Postgres 16 local cu un shim minimal Supabase (roluri, `auth.uid()`, `storage`) -
+  toate trec; NU pe stack-ul Supabase real (Docker indisponibil).
+- **Impact asistent AI (regula 2.4):** `read` - doar excludere: tool-urile de citire
+  și cataloagele din `creeaza_comanda` folosesc interogările partajate, care exclud
+  acum arhivatele / loturile anulate / ciornele șterse. Fără tool-uri noi de scriere
+  (arhivarea/ștergerea rămân acțiuni conștiente din UI). Test de regresie în
+  `read-tools.test.ts`.
+
 
 ## 2026-09-20 — Claude Sonnet 5 — Asistent: fix catalog aport + planificarea livrarii
 

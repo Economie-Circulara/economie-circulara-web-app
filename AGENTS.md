@@ -283,6 +283,55 @@ Testele unitare sunt **colocate** langa cod (`*.test.ts` / `*.test.tsx`).
   s-au schimbat - e cost de migrare, nu regula de business; schimbarea e strict de
   etichetare (`KIND_LABELS`, `ORDER_TYPE_LABELS`), ecran si navigare.
 
+- **Nimic cu istoric nu se sterge fizic - arhivare / stergere logica / anulare /
+  dezactivare** (decizie 2026-09, migrarea `0035_soft_delete.sql`,
+  `docs/plans/soft-delete.md`). Comportamentul per entitate:
+  - `items`, `recipes`, `clients` -> **arhivare reversibila** (`archived_at`,
+    `archived_by` stampilat de trigger din sesiune). Arhivatele sunt ascunse din
+    liste (comutator "Arată arhivate") si din **TOATE** selecturile/pickerele
+    (comenzi, catalog client, aport, retete, stoc nou, productie, cautare,
+    asistent), dar paginile de istoric le afiseaza in continuare. **Orice
+    interogare noua care alimenteaza un select trebuie sa filtreze
+    `archived_at is null`** (`listItems`/`listClients`/`listRecipes` o fac implicit;
+    `includeArchived` doar pentru ecranele de lista). O reteta e "arhivata" si cand
+    itemul ei e arhivat; nu mai poate porni procese (garda DB `AR002`).
+  - Arhivarea unui **client** blocheaza si **logarea utilizatorului-client** legat
+    (trigger -> `profiles.status = 'suspended'`); restaurarea il deblocheaza.
+  - Comenzi: **doar `draft` se sterge** (logic, `deleted_at`, RPC
+    `delete_draft_order`, ascunse prin RLS); `sent`/`accepted` se ANULEAZA;
+    `delivered`/`closed` nu se sterg si nu se anuleaza.
+  - **Clientul isi poate sterge propriile CIORNE din portal** (decizie 2026-09,
+    `/comenzile-mele/[id]`): acelasi RPC `delete_draft_order`, care accepta pe
+    langa staff si utilizatorul-client, DOAR pentru comenzile propriei firme
+    (`client_id = app.client_id()`), din organizatia lui (activa), in `draft`. O
+    ciorna a altui client da aceeasi eroare ca una inexistenta (`OR002`).
+  - **Un item ARHIVAT poate reveni in stoc prin retur/garantie** (decizie
+    2026-09, intentionat): arhivarea opreste doar lucrurile NOI construite peste
+    item (vanzari, retete, productie, intrari manuale), nu intoarcerea marfii deja
+    livrate. Staff-ul nu e restrictionat pe `order_items`/`lots`; clientul poate
+    pune un item arhivat pe o comanda doar daca i-a fost deja livrat (apare pe o
+    comanda proprie `delivered`/`closed`) - criteriul folosit de trigger-ul
+    `app.reject_archived_references` pentru cererile de retur/garantie din portal.
+  - Loturi: **"Anulează lotul" doar daca nimic nu s-a consumat** si lotul e o
+    intrare manuala (nu output de proces / retur / aport). Nu sterge nimic: scrie un
+    eveniment de corectie `adjustment` (`-initial_qty`) in `stock_events`,
+    `remaining_qty = 0`, lot marcat `cancelled_at`. Loturile anulate nu intra in
+    stoc, FIFO, rapoarte de reintegrare si dashboard.
+  - Livrari: **anulare doar inainte de plecare** = nedeclarata la e-Transport (fara
+    UIT) si fara receptie confirmata; comanda ramane `accepted` si se poate
+    replanifica (unicitatea "o livrare per comanda" e acum pe livrarile ACTIVE).
+  - Utilizatori (staff): **dezactivare**, nu stergere (sunt autori in audit) -
+    `profiles.status = 'suspended'`; doar adminul, **niciodata propriul cont**
+    (`US001`). Contul unui client se blocheaza arhivand clientul.
+  - **NICIODATA stergibile**: `stock_events`, certificate, procese
+    confirmate/finalizate, comenzi livrate/inchise.
+  - Un cont blocat e oprit pe TREI linii: `middleware.ts` + `requireUser`
+    (redirect `/cont-dezactivat`), `app.role()` intoarce `null` in RLS (profil
+    `suspended` sau client arhivat), plus ban best-effort in Supabase Auth.
+  - Orice actiune distructiva din UI trece prin `ConfirmActionButton`
+    (`src/components/confirm-action-button.tsx`) - dialog de confirmare cu text
+    romanesc simplu (ce se intampla si ce NU se pierde).
+
 ### 4.1 Limitari cunoscute / trade-off-uri acceptate
 
 - **`stock_events` audit trail**: pentru acum, nicio reconciliere automata cu `lots.remaining_qty`;
@@ -339,4 +388,23 @@ modificata primeste un test aici**, nu doar un test unitar cu RPC-ul mock-uit.
   (vezi `NavIconName` in `src/components/layout/nav-config.ts` +
   `NAV_ICONS` in `sidebar.tsx`). Plasa de siguranta:
   `tests/e2e/routes-smoke.spec.ts` - orice ruta noua adaugata in sidebar intra automat
-  in smoke test.
+  in smoke test. Exceptie permisa: un **server action legat cu `.bind(null, id)`**
+  (ex. `archiveItemAction.bind(null, item.id)` pasat lui `ConfirmActionButton`) -
+  server actions sunt serializabile peste granita, functiile obisnuite nu.
+
+- **Soft-delete ascuns prin RLS => coloana se seteaza DOAR prin RPC `security
+definer`.** Daca politica de SELECT/UPDATE cere `deleted_at is null` (ca la
+  `orders`/`deliveries` din 0035), un `UPDATE ... SET deleted_at = now()` al
+  utilizatorului pica pe WITH CHECK (randul nou nu mai e "vizibil") - e exact ce
+  vrem (nimeni nu sterge ocolind regulile), deci stergerea/anularea trece printr-un
+  RPC `security definer` care verifica EXPLICIT `app.is_staff_of` + regula de
+  business. Pentru coloane care NU ascund randul (ex. `lots.cancelled_at`) folosim
+  RPC `security invoker` + un flag de sesiune (`set_config('app.cancel_lot', ...)`)
+  verificat de un trigger.
+- **Un FK nou catre `profiles` (sau alt tabel deja legat) poate rupe embed-uri
+  PostgREST existente.** Ex.: `clients.archived_by -> profiles` a facut ambiguu
+  `profiles.select("clients(name)")` (acum exista si `profiles.client_id -> clients`)
+  => PGRST201 la RUNTIME, nu la typecheck. Cand adaugi un FK, cauta embed-urile
+  intre cele doua tabele si dezambiguizeaza (`clients!profiles_client_id_fkey(name)`,
+  `organizations!profiles_organization_id_fkey(status)`) + actualizeaza
+  `Relationships` in `database.types.ts`.

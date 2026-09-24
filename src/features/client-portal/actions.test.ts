@@ -3,17 +3,33 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 const { requireRole } = vi.hoisted(() => ({ requireRole: vi.fn() }));
 vi.mock("@/features/auth/session", () => ({ requireRole }));
 
-const { createOrderWithItems, sendOrder } = vi.hoisted(() => ({
+const { createOrderWithItems, sendOrder, deleteDraftOrder } = vi.hoisted(() => ({
   createOrderWithItems: vi.fn(),
   sendOrder: vi.fn(),
+  deleteDraftOrder: vi.fn(),
 }));
-vi.mock("@/features/orders/service", () => ({ createOrderWithItems, sendOrder }));
+vi.mock("@/features/orders/service", () => ({
+  createOrderWithItems,
+  sendOrder,
+  deleteDraftOrder,
+}));
 
 const { revalidatePath } = vi.hoisted(() => ({ revalidatePath: vi.fn() }));
 vi.mock("next/cache", () => ({ revalidatePath }));
 
+const { redirect } = vi.hoisted(() => ({
+  redirect: vi.fn((path: string) => {
+    throw new Error(`REDIRECT:${path}`);
+  }),
+}));
+vi.mock("next/navigation", () => ({ redirect }));
+
 import { initialClientOrderFormState } from "./action-state";
-import { createClientAportAction, createClientOrderAction } from "./actions";
+import {
+  createClientAportAction,
+  createClientOrderAction,
+  deleteOwnDraftOrderAction,
+} from "./actions";
 
 afterEach(() => {
   vi.clearAllMocks();
@@ -223,5 +239,36 @@ describe("createClientAportAction", () => {
     );
 
     expect(state).toEqual({ error: "Nu am putut crea comanda.", orderId: null });
+  });
+});
+
+describe("deleteOwnDraftOrderAction (migrarea 0035)", () => {
+  it("doar rolul client; la succes sterge ciorna si duce la /comenzile-mele", async () => {
+    requireRole.mockResolvedValue({ id: "u-client", role: "client", clientId: "c1" });
+    deleteDraftOrder.mockResolvedValue(undefined);
+
+    await expect(deleteOwnDraftOrderAction("order-1")).rejects.toThrow("REDIRECT:/comenzile-mele");
+    expect(requireRole).toHaveBeenCalledWith(["client"]);
+    expect(deleteDraftOrder).toHaveBeenCalledWith("order-1");
+    expect(revalidatePath).toHaveBeenCalledWith("/comenzile-mele");
+  });
+
+  it("comanda straina / non-ciorna: intoarce eroarea serviciului, fara redirect", async () => {
+    requireRole.mockResolvedValue({ id: "u-client", role: "client", clientId: "c1" });
+    deleteDraftOrder.mockRejectedValue(
+      new Error('Doar o comandă în status "Ciornă" poate fi ștearsă.'),
+    );
+
+    const result = await deleteOwnDraftOrderAction("order-2");
+
+    expect(result.error).toMatch(/Ciornă/);
+    expect(redirect).not.toHaveBeenCalled();
+  });
+
+  it("id lipsa => eroare, fara apel la serviciu", async () => {
+    requireRole.mockResolvedValue({ id: "u-client", role: "client", clientId: "c1" });
+    const result = await deleteOwnDraftOrderAction("");
+    expect(result.error).toMatch(/invalidă/);
+    expect(deleteDraftOrder).not.toHaveBeenCalled();
   });
 });

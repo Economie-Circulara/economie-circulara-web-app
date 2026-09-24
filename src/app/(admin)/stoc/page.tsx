@@ -13,7 +13,12 @@ const selectClassName =
   "flex h-9 w-full rounded-md border border-input bg-card px-3 py-1 text-sm shadow-xs outline-none sm:w-56";
 
 interface StocPageProps {
-  searchParams: Promise<{ item_id?: string; provenance?: string; view?: string }>;
+  searchParams: Promise<{
+    item_id?: string;
+    provenance?: string;
+    view?: string;
+    anulate?: string;
+  }>;
 }
 
 /** Ecranul Stoc - lista loturilor (doar staff), cu filtre pe item si proveniență. */
@@ -28,13 +33,20 @@ export default async function StocPage({ searchParams }: StocPageProps) {
   const itemId = params.item_id || undefined;
   const view = params.view === "lots" ? "lots" : "grouped";
 
-  const [lots, items] = await Promise.all([listLots({ itemId, provenance }), listItemOptions()]);
+  // Loturile anulate (introduse din greseala, migrarea 0035) sunt ascunse implicit.
+  const includeCancelled = params.anulate === "1";
 
-  const hasFilters = Boolean(itemId || provenance);
+  const [lots, items] = await Promise.all([
+    listLots({ itemId, provenance, includeCancelled }),
+    listItemOptions(),
+  ]);
+
+  const hasFilters = Boolean(itemId || provenance || includeCancelled);
 
   const otherViewParams = new URLSearchParams();
   if (itemId) otherViewParams.set("item_id", itemId);
   if (provenance) otherViewParams.set("provenance", provenance);
+  if (includeCancelled) otherViewParams.set("anulate", "1");
   if (view === "grouped") otherViewParams.set("view", "lots");
   const otherViewHref = `/stoc${otherViewParams.size ? `?${otherViewParams.toString()}` : ""}`;
 
@@ -87,6 +99,17 @@ export default async function StocPage({ searchParams }: StocPageProps) {
             ))}
           </select>
         </div>
+        <label className="flex h-9 items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            name="anulate"
+            value="1"
+            defaultChecked={includeCancelled}
+            className="size-4"
+          />
+          Arată loturile anulate
+        </label>
+        {view === "lots" ? <input type="hidden" name="view" value="lots" /> : null}
         <Button type="submit" variant="outline">
           Filtrează
         </Button>

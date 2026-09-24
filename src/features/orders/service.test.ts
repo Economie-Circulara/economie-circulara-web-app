@@ -290,6 +290,34 @@ describe("cancelOrder", () => {
   });
 });
 
+/**
+ * Mock-urile pentru garda `assertActiveOrderReferences` (migrarea 0035): citirea
+ * clientului si a itemilor comenzii, cu `archived_at` controlabil.
+ */
+function activeReferencesTable(
+  table: string,
+  opts: { clientArchived?: boolean; archivedItemTitles?: string[] } = {},
+) {
+  if (table === "clients") {
+    const maybeSingle = vi.fn().mockResolvedValue({
+      data: { id: "client-1", archived_at: opts.clientArchived ? "2026-09-01" : null },
+      error: null,
+    });
+    return { select: vi.fn(() => ({ eq: vi.fn(() => ({ maybeSingle })) })) };
+  }
+  if (table === "items") {
+    const rows = (opts.archivedItemTitles ?? []).map((title, index) => ({
+      id: `archived-${index}`,
+      title,
+      archived_at: "2026-09-01",
+    }));
+    return {
+      select: vi.fn(() => ({ in: vi.fn().mockResolvedValue({ data: rows, error: null }) })),
+    };
+  }
+  return null;
+}
+
 describe("createOrderWithItems", () => {
   it("respinge o comanda fara linii, fara sa atinga baza de date", async () => {
     await expect(
@@ -316,6 +344,8 @@ describe("createOrderWithItems", () => {
     const from = vi.fn((table: string) => {
       if (table === "orders") return { insert: ordersInsert };
       if (table === "order_items") return { insert: itemsInsert };
+      const guard = activeReferencesTable(table);
+      if (guard) return guard;
       throw new Error(`tabel neasteptat in test: ${table}`);
     });
     createClient.mockResolvedValue({ from });
@@ -364,6 +394,8 @@ describe("createOrderWithItems", () => {
     const from = vi.fn((table: string) => {
       if (table === "orders") return { insert: ordersInsert, delete: ordersDelete };
       if (table === "order_items") return { insert: itemsInsert };
+      const guard = activeReferencesTable(table);
+      if (guard) return guard;
       throw new Error(`tabel neasteptat in test: ${table}`);
     });
     createClient.mockResolvedValue({ from });
@@ -380,5 +412,47 @@ describe("createOrderWithItems", () => {
 
     expect(ordersDelete).toHaveBeenCalled();
     expect(deleteEq).toHaveBeenCalledWith("id", "order-1");
+  });
+});
+
+describe("createOrderWithItems - referinte arhivate (migrarea 0035)", () => {
+  it("refuza un client arhivat, fara sa insereze comanda", async () => {
+    const ordersInsert = vi.fn();
+    const from = vi.fn((table: string) => {
+      if (table === "orders") return { insert: ordersInsert };
+      return activeReferencesTable(table, { clientArchived: true });
+    });
+    createClient.mockResolvedValue({ from });
+
+    await expect(
+      createOrderWithItems({
+        organizationId: "org-1",
+        clientId: "client-1",
+        orderType: "material",
+        createdByAdmin: true,
+        lines: [{ itemId: "item-1", quantity: 1 }],
+      }),
+    ).rejects.toThrow(/Clientul ales este arhivat/);
+    expect(ordersInsert).not.toHaveBeenCalled();
+  });
+
+  it("refuza itemi arhivati si ii numeste in mesaj", async () => {
+    const ordersInsert = vi.fn();
+    const from = vi.fn((table: string) => {
+      if (table === "orders") return { insert: ordersInsert };
+      return activeReferencesTable(table, { archivedItemTitles: ["Nisip vechi"] });
+    });
+    createClient.mockResolvedValue({ from });
+
+    await expect(
+      createOrderWithItems({
+        organizationId: "org-1",
+        clientId: "client-1",
+        orderType: "material",
+        createdByAdmin: true,
+        lines: [{ itemId: "archived-0", quantity: 1 }],
+      }),
+    ).rejects.toThrow(/Nisip vechi/);
+    expect(ordersInsert).not.toHaveBeenCalled();
   });
 });

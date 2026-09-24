@@ -40,6 +40,11 @@ export interface RecipeListRow {
   direction: RecipeDirection;
   componentCount: number;
   percentageSum: number;
+  /**
+   * Arhivata (migrarea 0035) - reteta insasi SAU itemul ei e arhivat. `null` =
+   * activa (utilizabila in productie).
+   */
+  archivedAt: string | null;
 }
 
 /** Rețeta unui item, cu toate componentele - ecranul /retete/[itemId]. */
@@ -49,6 +54,13 @@ export interface RecipeDetail {
   itemTitle: string;
   unit: UnitOfMeasure;
   direction: RecipeDirection;
+  /** Vezi `RecipeListRow.archivedAt` - reteta SAU itemul ei arhivat. */
+  archivedAt: string | null;
+  /**
+   * Doar arhivarea retetei insesi (nu a itemului) - decide butonul afisat in editor
+   * ("Restaurează rețeta" are sens doar daca reteta a fost arhivata explicit).
+   */
+  recipeArchivedAt: string | null;
   components: RecipeComponent[];
   percentageSum: number;
 }

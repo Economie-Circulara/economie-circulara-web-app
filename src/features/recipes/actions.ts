@@ -8,6 +8,7 @@ import {
   addOrUpdateComponent,
   createRecipe,
   removeComponent,
+  setRecipeArchived,
   updateRecipeDirection,
 } from "./service";
 import type { RecipeDirection } from "./types";
@@ -139,4 +140,44 @@ export async function removeComponentAction(
   if (itemId) revalidatePath(`/retete/${itemId}`);
   revalidatePath("/retete");
   return { error: null };
+}
+
+/** Rezultatul actiunilor de arhivare/restaurare (dialogul de confirmare). */
+export interface RecipeArchiveResult {
+  error: string | null;
+}
+
+async function toggleRecipeArchived(
+  recipeId: string,
+  itemId: string,
+  archive: boolean,
+): Promise<RecipeArchiveResult> {
+  await requireRole(["admin", "operator"]);
+  if (!recipeId) return { error: "Rețetă invalidă." };
+
+  try {
+    await setRecipeArchived(recipeId, archive);
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : "Nu am putut actualiza rețeta." };
+  }
+
+  revalidatePath("/retete");
+  revalidatePath(`/retete/${itemId}`);
+  return { error: null };
+}
+
+/** Arhiveaza o reteta intreaga (migrarea 0035) - doar staff, dupa confirmare. */
+export async function archiveRecipeAction(
+  recipeId: string,
+  itemId: string,
+): Promise<RecipeArchiveResult> {
+  return toggleRecipeArchived(recipeId, itemId, true);
+}
+
+/** Restaureaza o reteta arhivata - doar staff, dupa confirmare. */
+export async function restoreRecipeAction(
+  recipeId: string,
+  itemId: string,
+): Promise<RecipeArchiveResult> {
+  return toggleRecipeArchived(recipeId, itemId, false);
 }

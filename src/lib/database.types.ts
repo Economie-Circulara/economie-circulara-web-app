@@ -361,6 +361,8 @@ export type Database = {
       }
       clients: {
         Row: {
+          archived_at: string | null
+          archived_by: string | null
           contact_person: string | null
           created_at: string
           cui: string
@@ -377,6 +379,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          archived_at?: string | null
+          archived_by?: string | null
           contact_person?: string | null
           created_at?: string
           cui: string
@@ -393,6 +397,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          archived_at?: string | null
+          archived_by?: string | null
           contact_person?: string | null
           created_at?: string
           cui?: string
@@ -410,6 +416,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "clients_archived_by_fkey"
+            columns: ["archived_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "clients_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
@@ -420,6 +433,9 @@ export type Database = {
       }
       deliveries: {
         Row: {
+          cancel_reason: string | null
+          cancelled_at: string | null
+          cancelled_by: string | null
           carrier_name: string
           created_at: string
           created_by: string | null
@@ -450,6 +466,9 @@ export type Database = {
           vehicle_plate: string
         }
         Insert: {
+          cancel_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
           carrier_name: string
           created_at?: string
           created_by?: string | null
@@ -480,6 +499,9 @@ export type Database = {
           vehicle_plate: string
         }
         Update: {
+          cancel_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
           carrier_name?: string
           created_at?: string
           created_by?: string | null
@@ -511,6 +533,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "deliveries_cancelled_by_fkey"
+            columns: ["cancelled_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "deliveries_created_by_fkey"
             columns: ["created_by"]
             isOneToOne: false
@@ -520,7 +549,7 @@ export type Database = {
           {
             foreignKeyName: "deliveries_order_id_fkey"
             columns: ["order_id"]
-            isOneToOne: true
+            isOneToOne: false
             referencedRelation: "orders"
             referencedColumns: ["id"]
           },
@@ -599,6 +628,8 @@ export type Database = {
       }
       items: {
         Row: {
+          archived_at: string | null
+          archived_by: string | null
           created_at: string
           description: string | null
           id: string
@@ -612,6 +643,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          archived_at?: string | null
+          archived_by?: string | null
           created_at?: string
           description?: string | null
           id?: string
@@ -625,6 +658,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          archived_at?: string | null
+          archived_by?: string | null
           created_at?: string
           description?: string | null
           id?: string
@@ -638,6 +673,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "items_archived_by_fkey"
+            columns: ["archived_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "items_organization_id_fkey"
             columns: ["organization_id"]
@@ -679,6 +721,9 @@ export type Database = {
       lots: {
         Row: {
           block_reason: string | null
+          cancel_reason: string | null
+          cancelled_at: string | null
+          cancelled_by: string | null
           client_id: string | null
           created_at: string
           entry_date: string
@@ -697,6 +742,9 @@ export type Database = {
         }
         Insert: {
           block_reason?: string | null
+          cancel_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
           client_id?: string | null
           created_at?: string
           entry_date?: string
@@ -715,6 +763,9 @@ export type Database = {
         }
         Update: {
           block_reason?: string | null
+          cancel_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
           client_id?: string | null
           created_at?: string
           entry_date?: string
@@ -732,6 +783,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "lots_cancelled_by_fkey"
+            columns: ["cancelled_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "lots_client_id_fkey"
             columns: ["client_id"]
@@ -950,6 +1008,8 @@ export type Database = {
           created_at: string
           created_by: string | null
           created_by_admin: boolean
+          deleted_at: string | null
+          deleted_by: string | null
           delivered_at: string | null
           delivery_address_id: string | null
           delivery_date: string | null
@@ -969,6 +1029,8 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           created_by_admin?: boolean
+          deleted_at?: string | null
+          deleted_by?: string | null
           delivered_at?: string | null
           delivery_address_id?: string | null
           delivery_date?: string | null
@@ -988,6 +1050,8 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           created_by_admin?: boolean
+          deleted_at?: string | null
+          deleted_by?: string | null
           delivered_at?: string | null
           delivery_address_id?: string | null
           delivery_date?: string | null
@@ -1011,6 +1075,13 @@ export type Database = {
           {
             foreignKeyName: "orders_created_by_fkey"
             columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_deleted_by_fkey"
+            columns: ["deleted_by"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -1459,6 +1530,8 @@ export type Database = {
       }
       recipes: {
         Row: {
+          archived_at: string | null
+          archived_by: string | null
           created_at: string
           direction: Database["public"]["Enums"]["recipe_direction"]
           id: string
@@ -1467,6 +1540,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          archived_at?: string | null
+          archived_by?: string | null
           created_at?: string
           direction?: Database["public"]["Enums"]["recipe_direction"]
           id?: string
@@ -1475,6 +1550,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          archived_at?: string | null
+          archived_by?: string | null
           created_at?: string
           direction?: Database["public"]["Enums"]["recipe_direction"]
           id?: string
@@ -1483,6 +1560,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "recipes_archived_by_fkey"
+            columns: ["archived_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "recipes_item_id_fkey"
             columns: ["item_id"]
@@ -1598,6 +1682,8 @@ export type Database = {
           created_at: string
           created_by: string | null
           created_by_admin: boolean
+          deleted_at: string | null
+          deleted_by: string | null
           delivered_at: string | null
           delivery_address_id: string | null
           delivery_date: string | null
@@ -1626,6 +1712,8 @@ export type Database = {
           created_at: string
           created_by: string | null
           created_by_admin: boolean
+          deleted_at: string | null
+          deleted_by: string | null
           delivered_at: string | null
           delivery_address_id: string | null
           delivery_date: string | null
@@ -1654,6 +1742,8 @@ export type Database = {
           created_at: string
           created_by: string | null
           created_by_admin: boolean
+          deleted_at: string | null
+          deleted_by: string | null
           delivered_at: string | null
           delivery_address_id: string | null
           delivery_date: string | null
@@ -1681,6 +1771,40 @@ export type Database = {
         }
         Returns: undefined
       }
+      cancel_delivery: {
+        Args: { p_delivery_id: string; p_reason: string }
+        Returns: undefined
+      }
+      cancel_lot: {
+        Args: { p_lot_id: string; p_reason: string }
+        Returns: {
+          block_reason: string | null
+          cancel_reason: string | null
+          cancelled_at: string | null
+          cancelled_by: string | null
+          client_id: string | null
+          created_at: string
+          entry_date: string
+          id: string
+          initial_qty: number
+          is_blocked: boolean
+          item_id: string
+          location: string | null
+          lot_code: string
+          organization_id: string
+          provenance: Database["public"]["Enums"]["lot_provenance"]
+          quality_status: Database["public"]["Enums"]["quality_status"]
+          remaining_qty: number
+          source: string | null
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "lots"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       cancel_order: {
         Args: { p_order_id: string }
         Returns: {
@@ -1690,6 +1814,8 @@ export type Database = {
           created_at: string
           created_by: string | null
           created_by_admin: boolean
+          deleted_at: string | null
+          deleted_by: string | null
           delivered_at: string | null
           delivery_address_id: string | null
           delivery_date: string | null
@@ -1791,6 +1917,9 @@ export type Database = {
         }
         Returns: {
           block_reason: string | null
+          cancel_reason: string | null
+          cancelled_at: string | null
+          cancelled_by: string | null
           client_id: string | null
           created_at: string
           entry_date: string
@@ -1814,6 +1943,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      delete_draft_order: { Args: { p_order_id: string }; Returns: undefined }
       generate_certificate_number: { Args: { p_org: string }; Returns: string }
       generate_lot_code: { Args: { p_org: string }; Returns: string }
       generate_order_number: { Args: { p_org: string }; Returns: string }
@@ -1833,6 +1963,9 @@ export type Database = {
         Args: { p_blocked: boolean; p_lot_id: string; p_reason?: string }
         Returns: {
           block_reason: string | null
+          cancel_reason: string | null
+          cancelled_at: string | null
+          cancelled_by: string | null
           client_id: string | null
           created_at: string
           entry_date: string

@@ -11,3 +11,8 @@ import type { ItemKind } from "./types";
 export function itemHref(item: { id: string; kind: ItemKind }): string {
   return item.kind === "service" ? `/abonamente/${item.id}` : `/itemi/${item.id}`;
 }
+
+/** Lista in care apare un item, dupa `kind` - `/abonamente` sau `/itemi` (Materiale). */
+export function itemListHref(kind: ItemKind): string {
+  return kind === "service" ? "/abonamente" : "/itemi";
+}
