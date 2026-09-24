@@ -26,7 +26,8 @@ const selectClassName =
   "focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50";
 
 interface Row {
-  /** Stabil - id-ul materialului component (unic in lista, `unique(recipe_id, component_item_id)`). */
+  /** Stabil - id-ul materialului component (unic in lista, `unique(recipe_id, component_item_id)`),
+   * sau un id temporar `draft-N` cat timp randul e nerezolvat (`componentItemId === ""`). */
   key: string;
   componentItemId: string;
   /** Cantitate reala, in UM-ul rețetei (faza 1 - fara conversii de UM aici). */
@@ -34,6 +35,17 @@ interface Row {
   locked: boolean;
   /** `false` = adaugat in editorul curent, inca nesalvat - poate fi scos din listă direct. */
   existing: boolean;
+  /**
+   * Numele extras din text (tab-ul "Din text (AI)", docs/plans/reteta-ai.md), afisat
+   * cat timp randul nu e inca legat de un material (`componentItemId === ""`).
+   */
+  label?: string;
+}
+
+/** Randuri de import (draft) - vezi tab-ul "Din text (AI)" (docs/plans/reteta-ai.md). */
+export interface QuantityDraft {
+  batchQty: number;
+  rows: { componentItemId: string; quantity: number; label?: string }[];
 }
 
 function optionTitle(options: RecipeItemOption[], id: string): string {
@@ -52,25 +64,38 @@ function optionTitle(options: RecipeItemOption[], id: string): string {
 export function QuantityEditor({
   recipe,
   componentOptions,
+  initialDraft,
 }: {
   recipe: RecipeDetail;
   componentOptions: RecipeItemOption[];
+  /** Randuri de import din tab-ul "Din text (AI)" - inlocuiesc randurile existente. */
+  initialDraft?: QuantityDraft;
 }) {
   const [state, action, pending] = useActionState(
     saveQuantityComponentsAction,
     initialRecipeFormState,
   );
 
-  const [batchQty, setBatchQty] = useState(100);
-  const [rows, setRows] = useState<Row[]>(() =>
-    recipe.components.map((c) => ({
+  const [batchQty, setBatchQty] = useState(initialDraft?.batchQty ?? 100);
+  const [rows, setRows] = useState<Row[]>(() => {
+    if (initialDraft) {
+      return initialDraft.rows.map((r, index) => ({
+        key: r.componentItemId || `draft-${index}`,
+        componentItemId: r.componentItemId,
+        quantity: r.quantity,
+        locked: false,
+        existing: false,
+        label: r.label,
+      }));
+    }
+    return recipe.components.map((c) => ({
       key: c.componentItemId,
       componentItemId: c.componentItemId,
       quantity: 0, // recalculat mai jos, din procentul salvat + batchQty implicit
       locked: false,
       existing: true,
-    })),
-  );
+    }));
+  });
   const [newItemId, setNewItemId] = useState("");
   const [calcQty, setCalcQty] = useState<string>("");
 
@@ -97,14 +122,19 @@ export function QuantityEditor({
     });
   }, [rows, batchQty, savedPercentageByItemId]);
 
+  // Randurile nerezolvate (venite din tab-ul "Din text (AI)", fara material ales inca)
+  // nu intra in calculul procentelor/barei - nu pot fi salvate oricum pana sunt legate
+  // de un material sau ignorate.
+  const resolvedRows = effectiveRows.filter((r) => r.componentItemId);
+
   const percentages = quantitiesToPercentages(
     batchQty,
-    effectiveRows.map((r) => ({ id: r.key, quantity: r.quantity })),
+    resolvedRows.map((r) => ({ id: r.key, quantity: r.quantity })),
   );
   const percentageByKey = new Map(percentages.map((p) => [p.id, p.percentage]));
   const percentageSum = sumPercentages(percentages);
 
-  const usedIds = new Set(effectiveRows.map((r) => r.componentItemId));
+  const usedIds = new Set(resolvedRows.map((r) => r.componentItemId));
   const addableOptions = componentOptions.filter(
     (o) => o.id !== recipe.itemId && !usedIds.has(o.id),
   );
@@ -124,6 +154,11 @@ export function QuantityEditor({
 
   function removeRow(key: string) {
     setRows((prev) => prev.filter((r) => r.key !== key));
+  }
+
+  /** Leaga un rand nerezolvat (venit din tab-ul "Din text (AI)") de un material ales manual. */
+  function resolveRow(key: string, itemId: string) {
+    setRows((prev) => prev.map((r) => (r.key === key ? { ...r, componentItemId: itemId } : r)));
   }
 
   function addRow() {
@@ -148,14 +183,14 @@ export function QuantityEditor({
     );
   }
 
-  const barRows: ProportionBarRow[] = effectiveRows.map((r) => ({
+  const barRows: ProportionBarRow[] = resolvedRows.map((r) => ({
     id: r.key,
     label: optionTitle(componentOptions, r.componentItemId),
     percentage: percentageByKey.get(r.key) ?? 0,
     locked: r.locked,
   }));
 
-  const previewParts = effectiveRows.map(
+  const previewParts = resolvedRows.map(
     (r) =>
       `${roundTo(r.quantity, 3)} ${recipe.unit} ${optionTitle(componentOptions, r.componentItemId)}`,
   );
@@ -168,15 +203,13 @@ export function QuantityEditor({
   const calcResults =
     calcQtyNumber !== null && Number.isFinite(calcQtyNumber) && calcQtyNumber > 0
       ? scaleQuantities(calcQtyNumber, percentages).map((q, i) => ({
-          title: optionTitle(componentOptions, effectiveRows[i]?.componentItemId ?? ""),
+          title: optionTitle(componentOptions, resolvedRows[i]?.componentItemId ?? ""),
           quantity: q.quantity,
         }))
       : null;
 
   const rowsJson = JSON.stringify(
-    effectiveRows
-      .filter((r) => r.componentItemId)
-      .map((r) => ({ componentItemId: r.componentItemId, quantity: r.quantity })),
+    resolvedRows.map((r) => ({ componentItemId: r.componentItemId, quantity: r.quantity })),
   );
 
   return (
@@ -219,39 +252,74 @@ export function QuantityEditor({
             </p>
           ) : (
             <ul className="divide-y rounded-lg border">
-              {effectiveRows.map((row) => (
-                <li key={row.key} className="flex flex-wrap items-center gap-3 px-4 py-2">
-                  <span className="min-w-40 flex-1">
-                    {optionTitle(componentOptions, row.componentItemId)}
-                  </span>
-                  <div className="flex items-center gap-2">
-                    <Input
-                      type="number"
-                      min="0"
-                      step="0.001"
-                      value={row.quantity}
-                      onChange={(e) => updateQuantity(row.key, e.target.value)}
-                      className="w-28"
-                      aria-label={`Cantitate ${optionTitle(componentOptions, row.componentItemId)}`}
-                    />
-                    <span className="text-sm text-muted-foreground">{recipe.unit}</span>
-                  </div>
-                  <Badge variant="info" className="font-mono tabular-nums">
-                    {roundTo(percentageByKey.get(row.key) ?? 0, 2)}%
-                  </Badge>
-                  {!row.existing ? (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => removeRow(row.key)}
-                      aria-label={`Scoate ${optionTitle(componentOptions, row.componentItemId)}`}
-                    >
-                      <X className="size-4" />
-                    </Button>
-                  ) : null}
-                </li>
-              ))}
+              {effectiveRows.map((row) => {
+                const unresolved = !row.componentItemId;
+                const rowLabel = unresolved
+                  ? (row.label ?? "?")
+                  : optionTitle(componentOptions, row.componentItemId);
+                return (
+                  <li key={row.key} className="flex flex-wrap items-center gap-3 px-4 py-2">
+                    {unresolved ? (
+                      <div className="min-w-40 flex-1 space-y-1">
+                        <p className="text-xs text-muted-foreground">
+                          Din text: <span className="font-medium text-foreground">{rowLabel}</span>{" "}
+                          - nepotrivit cu niciun material.
+                        </p>
+                        <select
+                          value=""
+                          onChange={(e) => resolveRow(row.key, e.target.value)}
+                          className={selectClassName}
+                          aria-label={`Alege materialul pentru "${rowLabel}"`}
+                        >
+                          <option value="" disabled>
+                            Alege materialul...
+                          </option>
+                          {addableOptions.map((option) => (
+                            <option
+                              key={option.id}
+                              value={option.id}
+                              disabled={option.unit !== recipe.unit}
+                            >
+                              {option.title} ({option.unit})
+                              {option.unit !== recipe.unit ? " - UM diferă" : ""}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    ) : (
+                      <span className="min-w-40 flex-1">{rowLabel}</span>
+                    )}
+                    <div className="flex items-center gap-2">
+                      <Input
+                        type="number"
+                        min="0"
+                        step="0.001"
+                        value={row.quantity}
+                        onChange={(e) => updateQuantity(row.key, e.target.value)}
+                        className="w-28"
+                        aria-label={`Cantitate ${rowLabel}`}
+                      />
+                      <span className="text-sm text-muted-foreground">{recipe.unit}</span>
+                    </div>
+                    {!unresolved ? (
+                      <Badge variant="info" className="font-mono tabular-nums">
+                        {roundTo(percentageByKey.get(row.key) ?? 0, 2)}%
+                      </Badge>
+                    ) : null}
+                    {!row.existing ? (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => removeRow(row.key)}
+                        aria-label={`Scoate ${rowLabel}`}
+                      >
+                        <X className="size-4" />
+                      </Button>
+                    ) : null}
+                  </li>
+                );
+              })}
             </ul>
           )}
 
@@ -282,7 +350,7 @@ export function QuantityEditor({
             </Button>
           </div>
 
-          {effectiveRows.length > 0 ? (
+          {resolvedRows.length > 0 ? (
             <div className="space-y-3">
               <div className="flex flex-wrap items-center gap-2 text-sm">
                 <span className="text-muted-foreground">Suma procentelor:</span>
@@ -298,7 +366,7 @@ export function QuantityEditor({
 
           {state.error ? <p className="text-sm text-danger">{state.error}</p> : null}
 
-          <Button type="submit" disabled={pending || effectiveRows.length === 0}>
+          <Button type="submit" disabled={pending || resolvedRows.length === 0}>
             {pending ? "Se salvează..." : "Salvează rețeta"}
           </Button>
         </form>

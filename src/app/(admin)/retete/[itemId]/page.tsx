@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { PageHeader } from "@/components/page-header";
 import { requireRole } from "@/features/auth/session";
+import { isChatProviderConfigured } from "@/features/assistant/provider";
 import { getItemById, listItemOptions } from "@/features/items/queries";
 import { getRecipeByItemId } from "@/features/recipes/queries";
 import { RecipeEditor } from "@/features/recipes/recipe-editor";
@@ -48,7 +49,11 @@ export default async function RecipeEditorPage({ params }: RecipeEditorPageProps
         breadcrumbs={[{ label: "Rețete", href: "/retete" }, { label: item.title }]}
       />
       {recipe ? (
-        <RecipeEditor recipe={recipe} componentOptions={componentOptions} />
+        <RecipeEditor
+          recipe={recipe}
+          componentOptions={componentOptions}
+          aiExtractionAvailable={isChatProviderConfigured()}
+        />
       ) : (
         <CreateRecipeButton itemId={itemId} />
       )}

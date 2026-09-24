@@ -168,6 +168,14 @@ identice - procentele):
   din modul avansat.
 - **Procente (avansat)** - formularul clasic, cu procent introdus direct și factor
   de conversie între unități de măsură diferite (ex. 1 mc nisip = 1500 kg beton).
+- **Din text (AI)** - lipești un text liber (fișă tehnică, tabel copiat din Excel)
+  și modelul AI extrage cantitatea de bază și materiile prime, potrivindu-le cu
+  materialele deja existente ale organizației. Rezultatul se încarcă drept **ciornă**
+  în tab-ul "Cantități reale" - nimic nu se salvează automat; materiile prime
+  nepotrivite apar cu un select pentru alegere manuală sau pot fi ignorate. Tab-ul
+  necesită un furnizor AI configurat (aceleași variabile de mediu ca asistentul -
+  `ASSISTANT_API_URL`/`ASSISTANT_API_KEY`/`ASSISTANT_MODEL`) și consumă din aceeași
+  quota de mesaje AI a organizației.
 
 ![editorul de rețetă cu componentele în procente](img/admin-recipe-editor.png)
 
