@@ -17,11 +17,12 @@ import {
   DIRECTION_PERCENTAGE_HINTS,
   DIRECTION_SHORT_LABELS,
 } from "./labels";
-import { QuantityEditor } from "./quantity-editor";
+import { AiExtractTab } from "./ai-extract-tab";
+import { QuantityEditor, type QuantityDraft } from "./quantity-editor";
 import { isPercentageSumComplete } from "./validation";
 import type { RecipeDetail, RecipeDirection, RecipeItemOption } from "./types";
 
-type EditorMode = "cantitati" | "procente";
+type EditorMode = "cantitati" | "procente" | "ai";
 
 const selectClassName =
   "flex h-9 w-full rounded-md border border-input bg-card px-3 py-1 text-sm shadow-xs outline-none " +
@@ -113,14 +114,25 @@ function DirectionCard({ recipe }: { recipe: RecipeDetail }) {
 export function RecipeEditor({
   recipe,
   componentOptions,
+  aiExtractionAvailable = false,
 }: {
   recipe: RecipeDetail;
   componentOptions: RecipeItemOption[];
+  /** `isChatProviderConfigured()` - vezi docs/plans/reteta-ai.md. */
+  aiExtractionAvailable?: boolean;
 }) {
   const [state, action, pending] = useActionState(addComponentAction, initialRecipeFormState);
   const [componentItemId, setComponentItemId] = useState("");
   const [mode, setMode] = useState<EditorMode>("cantitati");
+  const [draft, setDraft] = useState<QuantityDraft | null>(null);
+  const [draftVersion, setDraftVersion] = useState(0);
   const sumComplete = isPercentageSumComplete(recipe.percentageSum);
+
+  function applyDraft(nextDraft: QuantityDraft) {
+    setDraft(nextDraft);
+    setDraftVersion((v) => v + 1);
+    setMode("cantitati");
+  }
 
   const selectedOption = componentOptions.find((option) => option.id === componentItemId) ?? null;
   const unitsDiffer = Boolean(selectedOption) && selectedOption!.unit !== recipe.unit;
@@ -219,10 +231,36 @@ export function RecipeEditor({
         >
           Procente (avansat)
         </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={mode === "ai"}
+          onClick={() => setMode("ai")}
+          className={
+            "rounded-t-md px-3 py-2 text-sm font-medium " +
+            (mode === "ai"
+              ? "border-b-2 border-primary text-foreground"
+              : "text-muted-foreground hover:text-foreground")
+          }
+        >
+          Din text (AI)
+        </button>
       </div>
 
       {mode === "cantitati" ? (
-        <QuantityEditor recipe={recipe} componentOptions={componentOptions} />
+        <QuantityEditor
+          key={draftVersion}
+          recipe={recipe}
+          componentOptions={componentOptions}
+          initialDraft={draft ?? undefined}
+        />
+      ) : mode === "ai" ? (
+        <AiExtractTab
+          itemId={recipe.itemId}
+          recipeUnit={recipe.unit}
+          providerConfigured={aiExtractionAvailable}
+          onApplyDraft={applyDraft}
+        />
       ) : (
         <Card>
           <CardHeader>

@@ -13,6 +13,32 @@ Cele mai noi intrari sus.
   mesajul generic); trunchierea rezultatelor de tool pastreaza JSON valid
   (`tool-result.ts`). Plan: `docs/plans/asistent-performanta-quick-wins.md`.
 
+## 2026-09-24 — Claude (Claude Code) — Rețete: extragere din text cu AI ("Din text (AI)")
+
+- **Cerut:** un al treilea tab în editorul de rețetă - lipești un text liber
+  (fișă tehnică, tabel Excel), un model AI extrage cantitatea de bază + materiile
+  prime, se potrivesc cu materialele organizației, iar rezultatul se încarcă drept
+  ciornă în tab-ul "Cantități reale" (PR 1) - nimic nu se salvează fără confirmarea
+  utilizatorului. Stacked pe PR-ul de cantități reale și, tranzitiv, pe PR #47.
+- **Facut:** `ai-extract-prompt.ts` (prompt JSON strict, text utilizator marcat ca
+  date, nu instrucțiuni); `ai-extract-parse.ts` (validare strictă a răspunsului,
+  fără încredere - respinge orice nu se potrivește schemei); `ai-extract-match.ts`
+  (potrivire fuzzy nume normalizate + Levenshtein, fără dependință nouă);
+  `ai-extract-actions.ts` (orchestrare: furnizor configurat -> quota -> apel AI ->
+  parsare -> potrivire, reutilizează `assistant/provider.ts` și `assistant/quota.ts`);
+  `ai-extract-tab.tsx` (UI: textarea, rezultate cu scor de potrivire, încărcare ca
+  ciornă); `quantity-editor.tsx` (PR 1) extins cu `initialDraft` și rânduri
+  nerezolvate (select manual de material pentru potrivirile lipsă/UM diferită);
+  tab nou în `recipe-editor.tsx`. Detaliu + decizia §2.4: `docs/plans/reteta-ai.md`.
+- **Verificat:** `pnpm typecheck`, `pnpm lint`, `pnpm test` (912 teste, incl. 23
+  teste noi de parsare/potrivire + 6 teste de acțiune, toate cu furnizorul AI
+  mock-uit).
+- **Impact asistent AI (regula 2.4):** documentat explicit ca **NU e un tool al
+  asistentului** (`tools/registry.ts` neschimbat) - e o funcționalitate AI separată,
+  fără propunere de scriere proprie (salvarea rămâne prin acțiunea existentă din
+  PR 1); consumă totuși aceeași quota de mesaje (`trackUsage`), ca să nu ocolească
+  plafonul comercial. Detaliu complet în `docs/plans/reteta-ai.md`.
+
 ## 2026-09-24 — Claude (Claude Code) — Integrare arhivare (PR #50) cu ecranul Abonamente (PR #48)
 
 - **Cerut:** merge in ordine al PR-urilor din runda "ultima suta de metri".
@@ -29,6 +55,7 @@ Cele mai noi intrari sus.
 - **Facut:** cast explicit `::public.order_type` pe expresia `case` din insert-ul in
   `orders`; restul expresiilor verificate. Plan:
   `docs/plans/fix-seed-demo-order-type-cast.md`.
+
 
 ## 2026-09-24 — Claude (Claude Code) — Rețete: mod de input "Cantități reale" + bară vizuală de proporții
 

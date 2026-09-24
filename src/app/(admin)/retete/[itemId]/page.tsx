@@ -3,6 +3,7 @@ import { ConfirmActionButton } from "@/components/confirm-action-button";
 import { PageHeader } from "@/components/page-header";
 import { Badge } from "@/components/ui/badge";
 import { requireRole } from "@/features/auth/session";
+import { isChatProviderConfigured } from "@/features/assistant/provider";
 import { archiveRecipeAction, restoreRecipeAction } from "@/features/recipes/actions";
 import { getItemById, listItemOptions } from "@/features/items/queries";
 import { getRecipeByItemId } from "@/features/recipes/queries";
@@ -81,7 +82,11 @@ export default async function RecipeEditorPage({ params }: RecipeEditorPageProps
         </p>
       ) : null}
       {recipe ? (
-        <RecipeEditor recipe={recipe} componentOptions={componentOptions} />
+        <RecipeEditor
+          recipe={recipe}
+          componentOptions={componentOptions}
+          aiExtractionAvailable={isChatProviderConfigured()}
+        />
       ) : (
         <CreateRecipeButton itemId={itemId} />
       )}
