@@ -12,6 +12,8 @@ const ERR_INVALID_TRANSITION = "OR001";
 const ERR_NOT_FOUND = "OR002";
 const ERR_FORBIDDEN = "OR004";
 const ERR_INSUFFICIENT_STOCK = "LT001";
+/** `delete_draft_order` (0035): comanda nu mai e in `draft`. */
+const ERR_NOT_DRAFT = "OD001";
 
 // Coduri AP00x - RPC `accept_intake_order` (0031_aport_intake.sql).
 const ERR_INTAKE_INVALID_TRANSITION = "AP001";
@@ -191,6 +193,36 @@ export async function acceptIntakeOrder(orderId: string): Promise<Order> {
   return mapOrder(data);
 }
 
+/**
+ * Un client sau un item ARHIVAT (migrarea 0035) nu mai poate fi pus pe o comanda
+ * noua / editata. Selecturile din UI si din asistent ii ascund deja; aceasta e linia
+ * de server pentru un ID trimis direct (formular vechi deschis, asistent, Data API
+ * prin server action). Randurile invizibile (RLS) nu sunt tratate aici - insert-ul
+ * ulterior esueaza oricum pe ele.
+ */
+export async function assertActiveOrderReferences(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  clientId: string,
+  itemIds: string[],
+): Promise<void> {
+  const [clientResult, itemsResult] = await Promise.all([
+    supabase.from("clients").select("id, archived_at").eq("id", clientId).maybeSingle(),
+    supabase.from("items").select("id, title, archived_at").in("id", itemIds),
+  ]);
+
+  if (clientResult.data?.archived_at) {
+    throw new OrderTransitionError(
+      "Clientul ales este arhivat - restaurează-l sau alege alt client.",
+    );
+  }
+  const archived = (itemsResult.data ?? []).filter((item) => item.archived_at);
+  if (archived.length > 0) {
+    throw new OrderTransitionError(
+      `Materiale/servicii arhivate pe comandă: ${archived.map((item) => item.title).join(", ")}. Alege altele.`,
+    );
+  }
+}
+
 export interface CreateOrderInput {
   organizationId: string;
   clientId: string;
@@ -222,6 +254,12 @@ export async function createOrderWithItems(input: CreateOrderInput): Promise<Ord
   }
 
   const supabase = await createClient();
+  await assertActiveOrderReferences(
+    supabase,
+    input.clientId,
+    input.lines.map((line) => line.itemId),
+  );
+
   const { data: order, error: orderError } = await supabase
     .from("orders")
     .insert({
@@ -306,6 +344,12 @@ export async function updateOrder(input: UpdateOrderInput): Promise<Order> {
     throw new OrderTransitionError('Doar o comandă în status "Ciornă" poate fi editată.');
   }
 
+  await assertActiveOrderReferences(
+    supabase,
+    input.clientId,
+    input.lines.map((line) => line.itemId),
+  );
+
   const { data: order, error: orderError } = await supabase
     .from("orders")
     .update({
@@ -346,4 +390,24 @@ export async function updateOrder(input: UpdateOrderInput): Promise<Order> {
   }
 
   return mapOrder(order);
+}
+
+/**
+ * Sterge LOGIC o comanda `draft` (migrarea 0035): seteaza `deleted_at` prin RPC-ul
+ * `delete_draft_order` (singura cale - RLS interzice setarea coloanei printr-un
+ * UPDATE simplu). Comanda stearsa devine invizibila peste tot (RLS), dar randul
+ * ramane. Doar ciornele: o comanda trimisa/acceptata se ANULEAZA (`cancelOrder`),
+ * iar una livrata/inchisa nu se sterge niciodata (trasabilitate).
+ */
+export async function deleteDraftOrder(orderId: string): Promise<void> {
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("delete_draft_order", { p_order_id: orderId });
+  if (!error) return;
+  if (error.code === ERR_NOT_FOUND) throw new OrderNotFoundError(orderId);
+  if (error.code === ERR_NOT_DRAFT) {
+    throw new OrderTransitionError(
+      'Doar o comandă în status "Ciornă" poate fi ștearsă. Pentru celelalte folosește "Anulează".',
+    );
+  }
+  throw new Error(error.message ?? "Nu am putut șterge ciorna.");
 }

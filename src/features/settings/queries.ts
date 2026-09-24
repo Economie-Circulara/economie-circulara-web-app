@@ -17,7 +17,7 @@ export async function listOrgUsers(): Promise<OrgUser[]> {
   const supabase = await createClient();
   const { data } = await supabase
     .from("profiles")
-    .select("id, email, full_name, role, status, clients(name)")
+    .select("id, email, full_name, role, status, clients!profiles_client_id_fkey(name)")
     .order("role", { ascending: true });
 
   return (data ?? []).map((p) => ({

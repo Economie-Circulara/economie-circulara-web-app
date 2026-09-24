@@ -42,6 +42,8 @@ export async function listCatalogItems(
     .from("items")
     .select("id, title, description, unit, kind, image_url")
     .eq("sellable", true)
+    // Itemii arhivati (migrarea 0035) nu mai apar in catalog.
+    .is("archived_at", null)
     .order("title");
 
   if (filters.kind) query = query.eq("kind", filters.kind);

@@ -17,6 +17,7 @@ export type NavIconName =
   | "production"
   | "clients"
   | "items"
+  | "subscriptions"
   | "recipes"
   | "stock-audit"
   | "reports"
@@ -37,8 +38,8 @@ export interface NavItem {
 }
 
 /**
- * Grup de navigatie pliabil (sidebar staff) - ex. "Stoc" grupeaza Materiale si
- * servicii / Rețete / Stoc / Audit stoc. `key` e stabila (folosita si ca cheie de
+ * Grup de navigatie pliabil (sidebar staff) - ex. "Stoc" grupeaza Materiale /
+ * Abonamente / Rețete / Stoc / Audit stoc. `key` e stabila (folosita si ca cheie de
  * persistare a starii extins/pliat in localStorage) - nu depinde de traducerea
  * `label`-ului.
  */
@@ -85,9 +86,15 @@ export const STAFF_NAV: NavEntry[] = [
     label: "Stoc",
     items: [
       {
-        label: "Materiale și servicii",
+        label: "Materiale",
         href: "/itemi",
         icon: "items",
+        roles: ["admin", "operator"],
+      },
+      {
+        label: "Abonamente",
+        href: "/abonamente",
+        icon: "subscriptions",
         roles: ["admin", "operator"],
       },
       { label: "Rețete", href: "/retete", icon: "recipes", roles: ["admin", "operator"] },

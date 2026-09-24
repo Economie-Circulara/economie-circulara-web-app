@@ -161,3 +161,47 @@ describe("updateSession - guard organizatie suspendata (T2.1)", () => {
     expect(response.status).not.toBe(307);
   });
 });
+
+describe("updateSession - guard cont dezactivat (migrarea 0035)", () => {
+  it("redirecteaza la /cont-dezactivat cand propriul profil e dezactivat", async () => {
+    getUser.mockResolvedValue({ data: { user: { id: "u1" } } });
+    singleMock.mockResolvedValue({
+      data: { organization_id: "org-1", status: "suspended", organizations: { status: "active" } },
+      error: null,
+    });
+    const request = makeRequest("http://localhost:3000/dashboard", { host: "localhost:3000" });
+
+    const response = await updateSession(request);
+
+    expect(response.status).toBe(307);
+    expect(new URL(response.headers.get("location")!).pathname).toBe("/cont-dezactivat");
+  });
+
+  it("nu creeaza bucla de redirect pe /cont-dezactivat insasi", async () => {
+    getUser.mockResolvedValue({ data: { user: { id: "u1" } } });
+    singleMock.mockResolvedValue({
+      data: { organization_id: "org-1", status: "suspended", organizations: { status: "active" } },
+      error: null,
+    });
+    const request = makeRequest("http://localhost:3000/cont-dezactivat", {
+      host: "localhost:3000",
+    });
+
+    const response = await updateSession(request);
+
+    expect(response.status).not.toBe(307);
+  });
+
+  it("un profil activ trece mai departe", async () => {
+    getUser.mockResolvedValue({ data: { user: { id: "u1" } } });
+    singleMock.mockResolvedValue({
+      data: { organization_id: "org-1", status: "active", organizations: { status: "active" } },
+      error: null,
+    });
+    const request = makeRequest("http://localhost:3000/dashboard", { host: "localhost:3000" });
+
+    const response = await updateSession(request);
+
+    expect(response.status).not.toBe(307);
+  });
+});

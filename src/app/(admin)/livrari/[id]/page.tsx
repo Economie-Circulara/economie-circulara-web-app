@@ -1,8 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ConfirmActionButton } from "@/components/confirm-action-button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageHeader } from "@/components/page-header";
 import { requireRole } from "@/features/auth/session";
+import { cancelDeliveryAction } from "@/features/deliveries/actions";
+import { canCancelDelivery } from "@/features/deliveries/cancel";
 import { DeliveryActionsPanel } from "@/features/deliveries/delivery-actions-panel";
 import { getDeliveryDetail } from "@/features/deliveries/queries";
 import { ReceiptForm } from "@/features/deliveries/receipt-form";
@@ -41,6 +44,20 @@ export default async function DeliveryDetailPage({ params }: DeliveryDetailPageP
           { label: "Comenzi", href: "/comenzi" },
           { label: delivery.orderNumber ?? "Comandă", href: `/comenzi/${delivery.orderId}` },
         ]}
+        actions={
+          // Doar INAINTE de plecare (nedeclarata e-Transport, fara receptie) - 0035.
+          canCancelDelivery(delivery) ? (
+            <ConfirmActionButton
+              triggerLabel="Anulează livrarea"
+              title="Anulezi această livrare?"
+              description="Livrarea planificată dispare din listă, iar comanda rămâne acceptată și poate fi planificată din nou. Stocul nu se modifică. Acțiunea nu poate fi anulată."
+              confirmLabel="Da, anulează livrarea"
+              pendingLabel="Se anulează..."
+              reasonLabel="Motivul anulării"
+              action={cancelDeliveryAction.bind(null, delivery.id, delivery.orderId)}
+            />
+          ) : undefined
+        }
       />
 
       <div className="grid gap-6 lg:grid-cols-2">

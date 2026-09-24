@@ -3,7 +3,13 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 const { createClient } = vi.hoisted(() => ({ createClient: vi.fn() }));
 vi.mock("@/lib/supabase/server", () => ({ createClient }));
 
-import { getLotById, getLotTraceability, listItemOptions, listLots, listStockEvents } from "./queries";
+import {
+  getLotById,
+  getLotTraceability,
+  listItemOptions,
+  listLots,
+  listStockEvents,
+} from "./queries";
 
 /**
  * Query builder Supabase fals: chainable (select/order/eq/gte/lte/limit/maybeSingle
@@ -11,7 +17,7 @@ import { getLotById, getLotTraceability, listItemOptions, listLots, listStockEve
  * fel ca PostgrestFilterBuilder-ul real.
  */
 function makeQueryBuilder(finalResult: { data: unknown; error: unknown }) {
-  const methods = ["select", "order", "eq", "gte", "lte", "limit"] as const;
+  const methods = ["select", "order", "eq", "gte", "lte", "limit", "is"] as const;
   const builder: Record<string, unknown> & { then: (resolve: (v: unknown) => void) => void } = {
     then: (resolve) => resolve(finalResult),
   };
@@ -19,7 +25,10 @@ function makeQueryBuilder(finalResult: { data: unknown; error: unknown }) {
     builder[m] = vi.fn(() => builder);
   }
   builder.maybeSingle = vi.fn(() => finalResult);
-  return builder as Record<(typeof methods)[number] | "then" | "maybeSingle", ReturnType<typeof vi.fn>> & {
+  return builder as Record<
+    (typeof methods)[number] | "then" | "maybeSingle",
+    ReturnType<typeof vi.fn>
+  > & {
     then: (resolve: (v: unknown) => void) => void;
   };
 }
@@ -79,6 +88,8 @@ describe("listLots", () => {
         blockReason: null,
         clientId: null,
         clientName: null,
+        cancelledAt: null,
+        cancelReason: null,
         createdAt: "2026-07-01T10:00:00.000Z",
       },
     ]);
@@ -191,7 +202,12 @@ describe("getLotTraceability", () => {
       data: [
         {
           quantity: 40,
-          processes: { id: "proc-1", type: "output_fixed", status: "completed", created_at: "2026-07-01T09:00:00.000Z" },
+          processes: {
+            id: "proc-1",
+            type: "output_fixed",
+            status: "completed",
+            created_at: "2026-07-01T09:00:00.000Z",
+          },
         },
       ],
       error: null,
@@ -200,12 +216,19 @@ describe("getLotTraceability", () => {
       data: [
         {
           quantity: 10,
-          processes: { id: "proc-2", type: "input_fixed", status: "in_progress", created_at: "2026-07-03T09:00:00.000Z" },
+          processes: {
+            id: "proc-2",
+            type: "input_fixed",
+            status: "in_progress",
+            created_at: "2026-07-03T09:00:00.000Z",
+          },
         },
       ],
       error: null,
     });
-    const from = vi.fn((table: string) => (table === "process_outputs" ? outputBuilder : inputBuilder));
+    const from = vi.fn((table: string) =>
+      table === "process_outputs" ? outputBuilder : inputBuilder,
+    );
     createClient.mockResolvedValue({ from });
 
     const result = await getLotTraceability("lot-1");

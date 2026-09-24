@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireRole } from "@/features/auth/session";
+import { listClientUserIds, setAuthUsersBanned } from "@/features/settings/auth-ban";
 import { sendClientInvite } from "@/features/settings/user-actions";
 import type { AddressFormState, ClientFormState } from "./action-state";
 import { defaultCuiLookupProvider, type CuiLookupResult } from "./cui-lookup";
@@ -10,6 +11,7 @@ import {
   DuplicateCuiError,
   createClientRecord,
   deleteAddress,
+  setClientArchived,
   updateClientRecord,
   upsertAddress,
   type ClientFields,
@@ -213,4 +215,41 @@ export async function deleteAddressAction(
 
   revalidatePath(`/clienti/${clientId}`);
   return { error: null };
+}
+
+/** Rezultatul actiunilor de arhivare/restaurare (dialogul de confirmare). */
+export interface ClientArchiveResult {
+  error: string | null;
+}
+
+async function toggleClientArchived(id: string, archive: boolean): Promise<ClientArchiveResult> {
+  await requireRole(["admin", "operator"]);
+  if (!id) return { error: "Client invalid." };
+
+  try {
+    await setClientArchived(id, archive);
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : "Nu am putut actualiza clientul." };
+  }
+
+  // Profilul utilizatorului-client e deja (de)blocat in DB (trigger 0035); ban-ul in
+  // Supabase Auth e doar a treia linie, best-effort - nu anuleaza arhivarea.
+  await setAuthUsersBanned(await listClientUserIds(id), archive);
+
+  revalidatePath("/clienti");
+  revalidatePath(`/clienti/${id}`);
+  return { error: null };
+}
+
+/**
+ * Arhiveaza un client (migrarea 0035) - doar staff, dupa confirmare. Blocheaza si
+ * logarea utilizatorului-client legat; comenzile/certificatele raman.
+ */
+export async function archiveClientAction(id: string): Promise<ClientArchiveResult> {
+  return toggleClientArchived(id, true);
+}
+
+/** Restaureaza un client arhivat (si deblocheaza utilizatorul-client legat). */
+export async function restoreClientAction(id: string): Promise<ClientArchiveResult> {
+  return toggleClientArchived(id, false);
 }

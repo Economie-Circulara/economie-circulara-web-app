@@ -1,12 +1,18 @@
 import { notFound } from "next/navigation";
 import { History } from "lucide-react";
+import { ConfirmActionButton } from "@/components/confirm-action-button";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/empty-state";
 import { PageHeader } from "@/components/page-header";
 import { requireRole } from "@/features/auth/session";
 import { AddressSection } from "@/features/clients/address-section";
 import { initialClientFormState } from "@/features/clients/action-state";
-import { updateClientAction } from "@/features/clients/actions";
+import {
+  archiveClientAction,
+  restoreClientAction,
+  updateClientAction,
+} from "@/features/clients/actions";
 import { ClientForm } from "@/features/clients/client-form";
 import { ClientPortalInvite } from "@/features/clients/invite-portal-access";
 import { getClient, listClientAddresses } from "@/features/clients/queries";
@@ -49,7 +55,34 @@ export default async function ClientDetailPage({ params, searchParams }: ClientD
         title={client.name}
         description={`CUI ${client.cui}`}
         breadcrumbs={[{ label: "Clienți", href: "/clienti" }, { label: client.name }]}
+        actions={
+          client.archivedAt ? (
+            <ConfirmActionButton
+              triggerLabel="Restaurează"
+              title="Restaurezi acest client?"
+              description="Clientul va apărea din nou în liste și în formularul de comandă, iar utilizatorul lui (dacă are cont în portal) se va putea loga din nou."
+              confirmLabel="Da, restaurează"
+              confirmVariant="default"
+              action={restoreClientAction.bind(null, client.id)}
+            />
+          ) : (
+            <ConfirmActionButton
+              triggerLabel="Arhivează"
+              title="Arhivezi acest client?"
+              description="Clientul nu va mai apărea în liste și nu va mai putea primi comenzi noi. Utilizatorul lui din portal nu se va mai putea loga. Comenzile, documentele și certificatele existente rămân neschimbate. Îl poți restaura oricând."
+              confirmLabel="Da, arhivează"
+              action={archiveClientAction.bind(null, client.id)}
+            />
+          )
+        }
       />
+
+      {client.archivedAt ? (
+        <p className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Badge variant="neutral">Arhivat</Badge>
+          Clientul este arhivat - ascuns din liste, iar accesul lui în portal este blocat.
+        </p>
+      ) : null}
 
       {inviteWarning ? (
         <p className="rounded-md border border-warn bg-warn-bg px-3 py-2 text-sm text-warn">

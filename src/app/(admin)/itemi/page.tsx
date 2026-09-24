@@ -3,42 +3,44 @@ import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { requireRole } from "@/features/auth/session";
-import { KIND_LABELS, KIND_OPTIONS } from "@/features/items/labels";
 import { listItems } from "@/features/items/queries";
 import { ItemsTable } from "@/features/items/items-table";
-import type { ItemKind } from "@/features/items/types";
 
-export const metadata = { title: "Materiale și servicii - Lot cu Lot" };
+export const metadata = { title: "Materiale - Lot cu Lot" };
 
 const selectClassName =
   "flex h-9 w-full rounded-md border border-input bg-card px-3 py-1 text-sm shadow-xs outline-none sm:w-48";
 
 interface ItemiPageProps {
-  searchParams: Promise<{ kind?: string; sellable?: string; q?: string }>;
+  searchParams: Promise<{ sellable?: string; q?: string; arhivate?: string }>;
 }
 
-/** Ecranul Itemi - catalogul (definitie), doar staff, cu filtre + cautare. */
+/**
+ * Ecranul Materiale - catalogul itemilor fizici (definitie), doar staff, cu
+ * filtre + cautare. Abonamentele (`kind = "service"`) au ecran propriu
+ * (`/abonamente`) - aici tipul e fixat, nu mai e filtru de UI.
+ */
 export default async function ItemiPage({ searchParams }: ItemiPageProps) {
   await requireRole(["admin", "operator"]);
   const params = await searchParams;
 
-  const kindParam = params.kind ?? "";
-  const kind = (KIND_OPTIONS as string[]).includes(kindParam) ? (kindParam as ItemKind) : undefined;
   const sellable =
     params.sellable === "true" ? true : params.sellable === "false" ? false : undefined;
   const search = params.q?.trim() || undefined;
 
-  const items = await listItems({ kind, sellable, search });
-  const hasFilters = Boolean(kind || sellable !== undefined || search);
+  const includeArchived = params.arhivate === "1";
+
+  const items = await listItems({ kind: "physical", sellable, search, includeArchived });
+  const hasFilters = Boolean(sellable !== undefined || search || includeArchived);
 
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Materiale și servicii"
-        description="Catalogul de materiale (fizice) și servicii - definiție, fără prețuri."
+        title="Materiale"
+        description="Catalogul de materiale fizice - definiție, fără prețuri."
         actions={
           <Button asChild>
-            <Link href="/itemi/nou">+ Adaugă material sau serviciu</Link>
+            <Link href="/itemi/nou">+ Adaugă material</Link>
           </Button>
         }
       />
@@ -49,19 +51,6 @@ export default async function ItemiPage({ searchParams }: ItemiPageProps) {
             Căutare
           </label>
           <Input id="q" name="q" defaultValue={search ?? ""} placeholder="Titlu..." />
-        </div>
-        <div className="space-y-1.5 sm:w-48">
-          <label htmlFor="kind" className="text-sm font-medium">
-            Tip
-          </label>
-          <select id="kind" name="kind" defaultValue={kind ?? ""} className={selectClassName}>
-            <option value="">Toate</option>
-            {KIND_OPTIONS.map((k) => (
-              <option key={k} value={k}>
-                {KIND_LABELS[k]}
-              </option>
-            ))}
-          </select>
         </div>
         <div className="space-y-1.5 sm:w-48">
           <label htmlFor="sellable" className="text-sm font-medium">
@@ -78,6 +67,17 @@ export default async function ItemiPage({ searchParams }: ItemiPageProps) {
             <option value="false">Nu</option>
           </select>
         </div>
+        {/* Arhivatele sunt ascunse implicit (migrarea 0035) - comutator explicit. */}
+        <label className="flex h-9 items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            name="arhivate"
+            value="1"
+            defaultChecked={includeArchived}
+            className="size-4"
+          />
+          Arată arhivate
+        </label>
         <Button type="submit" variant="outline">
           Filtrează
         </Button>
@@ -88,7 +88,7 @@ export default async function ItemiPage({ searchParams }: ItemiPageProps) {
         ) : null}
       </form>
 
-      <ItemsTable items={items} />
+      <ItemsTable items={items} kind="physical" />
     </div>
   );
 }

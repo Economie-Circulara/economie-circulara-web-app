@@ -23,7 +23,7 @@ export default async function RetetaNouaPage() {
           Toate materialele fizice au deja o rețetă definită (sau nu există încă niciun material
           fizic - adaugă unul în{" "}
           <Link className="underline" href="/itemi/nou">
-            Materiale și servicii
+            Materiale
           </Link>
           ).
         </p>

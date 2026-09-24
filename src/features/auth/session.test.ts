@@ -14,6 +14,7 @@ vi.mock("next/navigation", () => ({ redirect }));
 import {
   getCurrentUser,
   homePathForRole,
+  isAccountDeactivated,
   isOrgSuspended,
   requireRole,
   requireUser,
@@ -83,6 +84,7 @@ describe("getCurrentUser", () => {
       clientId: null,
       fullName: "Ana",
       organizationStatus: "active",
+      accountStatus: "active",
     });
   });
 
@@ -189,5 +191,44 @@ describe("requireRole", () => {
     );
     const user = await requireRole(["admin", "operator"]);
     expect(user.role).toBe("operator");
+  });
+});
+
+describe("requireUser - guard cont dezactivat (migrarea 0035)", () => {
+  it("redirecteaza la /cont-dezactivat cand propriul profil e dezactivat", async () => {
+    mockSupabase(
+      { id: "u1" },
+      {
+        role: "operator",
+        organization_id: "org1",
+        client_id: null,
+        full_name: null,
+        email: "op@test.ro",
+        status: "suspended",
+        organizations: { status: "active" },
+      },
+    );
+    await expect(requireUser()).rejects.toThrow("REDIRECT:/cont-dezactivat");
+  });
+
+  it("clientul unei firme arhivate (profil suspended de trigger) e redirectionat la fel", async () => {
+    mockSupabase(
+      { id: "u-client" },
+      {
+        role: "client",
+        organization_id: "org1",
+        client_id: "c1",
+        full_name: null,
+        email: "client@test.ro",
+        status: "suspended",
+        organizations: { status: "active" },
+      },
+    );
+    await expect(requireUser()).rejects.toThrow("REDIRECT:/cont-dezactivat");
+  });
+
+  it("isAccountDeactivated e adevarat doar pentru `suspended`", () => {
+    expect(isAccountDeactivated({ accountStatus: "suspended" })).toBe(true);
+    expect(isAccountDeactivated({ accountStatus: "active" })).toBe(false);
   });
 });

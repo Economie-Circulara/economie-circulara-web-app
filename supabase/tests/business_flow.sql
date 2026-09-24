@@ -645,4 +645,376 @@ begin;
   end $$;
 rollback;
 
+-- ===========================================================================
+-- B15: ARHIVARE item (migrarea 0035) - `archived_by` stampilat de trigger,
+--      un item arhivat nu mai poate intra intr-o reteta NOUA (AR001), iar
+--      restaurarea curata ambele coloane.
+-- ===========================================================================
+begin;
+  set local role authenticated;
+  set local request.jwt.claims = '{"sub":"b0000000-0000-0000-0000-0000000000b1"}';
+
+  update public.items set archived_at = now() where id = :item_caramizi;
+
+  select pg_temp.assert_eq('B15 archived_by = utilizatorul curent (nu input extern)',
+    archived_by::text, 'b0000000-0000-0000-0000-0000000000b1')
+  from public.items where id = :item_caramizi;
+
+  do $$
+  declare
+    v_recipe uuid;
+    v_item   uuid;
+  begin
+    select id into v_item from public.items
+      where organization_id = 'a0000000-0000-0000-0000-0000000000a1' and title = 'Cărămizi eco';
+    select id into v_recipe from public.recipes
+      where organization_id = 'a0000000-0000-0000-0000-0000000000a1' and item_id <> v_item
+      limit 1;
+    begin
+      insert into public.recipe_components (organization_id, recipe_id, component_item_id, percentage)
+      values ('a0000000-0000-0000-0000-0000000000a1', v_recipe, v_item, 5);
+      raise exception 'FAIL: B15 un item arhivat nu trebuia acceptat ca si componenta';
+    exception
+      when sqlstate 'AR001' then raise notice 'PASS: B15 item arhivat respins in reteta (AR001)';
+    end;
+  end $$;
+
+  update public.items set archived_at = null where id = :item_caramizi;
+  select pg_temp.assert_eq('B15 restaurare curata archived_by', archived_by::text, null)
+  from public.items where id = :item_caramizi;
+rollback;
+
+-- ===========================================================================
+-- B16: o RETETA arhivata nu mai poate porni un proces (AR002)
+-- ===========================================================================
+begin;
+  set local role authenticated;
+  set local request.jwt.claims = '{"sub":"b0000000-0000-0000-0000-0000000000b1"}';
+
+  do $$
+  declare
+    v_recipe uuid;
+  begin
+    select id into v_recipe from public.recipes
+      where organization_id = 'a0000000-0000-0000-0000-0000000000a1' limit 1;
+    update public.recipes set archived_at = now() where id = v_recipe;
+    begin
+      insert into public.processes (organization_id, type, status, recipe_id)
+      values ('a0000000-0000-0000-0000-0000000000a1', 'output_fixed', 'planned', v_recipe);
+      raise exception 'FAIL: B16 o reteta arhivata nu trebuia folosita intr-un proces';
+    exception
+      when sqlstate 'AR002' then raise notice 'PASS: B16 reteta arhivata respinsa (AR002)';
+    end;
+  end $$;
+rollback;
+
+-- ===========================================================================
+-- B17: delete_draft_order - doar CIORNE; ascunse prin RLS; `deleted_at` nu se
+--      poate seta printr-un UPDATE simplu (Data API).
+-- ===========================================================================
+begin;
+  set local role authenticated;
+  set local request.jwt.claims = '{"sub":"b0000000-0000-0000-0000-0000000000b1"}';
+
+  insert into public.orders (id, organization_id, client_id, order_type, status, created_by)
+  values ('eeee0000-0000-0000-0000-00000000ee06', :org, :client_demo, 'material', 'draft',
+          'b0000000-0000-0000-0000-0000000000b1');
+
+  do $$
+  begin
+    begin
+      update public.orders set deleted_at = now()
+      where id = 'eeee0000-0000-0000-0000-00000000ee06';
+      raise exception 'FAIL: B17 UPDATE direct pe deleted_at ar fi trebuit respins de RLS';
+    exception
+      when insufficient_privilege then raise notice 'PASS: B17 UPDATE direct pe deleted_at respins';
+    end;
+  end $$;
+
+  select public.delete_draft_order('eeee0000-0000-0000-0000-00000000ee06');
+
+  select pg_temp.assert_num('B17 ciorna stearsa nu mai e vizibila', count(*), 0)
+  from public.orders where id = 'eeee0000-0000-0000-0000-00000000ee06';
+
+  do $$
+  begin
+    begin
+      perform public.delete_draft_order(
+        (select id from public.orders
+         where organization_id = 'a0000000-0000-0000-0000-0000000000a1'
+           and order_number = 'CMD-2026-0002'));
+      raise exception 'FAIL: B17 o comanda trimisa nu trebuia stearsa';
+    exception
+      when sqlstate 'OD001' then raise notice 'PASS: B17 comanda non-ciorna respinsa (OD001)';
+    end;
+  end $$;
+rollback;
+
+-- ===========================================================================
+-- B18: cancel_lot - doar loturi manuale, NECONSUMATE; eveniment de corectie in
+--      audit (nu se sterge nimic), lotul ramane cu 0.
+-- ===========================================================================
+begin;
+  set local role authenticated;
+  set local request.jwt.claims = '{"sub":"b0000000-0000-0000-0000-0000000000b1"}';
+
+  select id as lot_gresit from public.create_lot(
+    p_item_id => :item_caramizi, p_quantity => 7, p_provenance => 'purchase',
+    p_reason => 'test B18 intrare gresita'
+  ) \gset
+
+  select id from public.cancel_lot(:'lot_gresit', 'cantitate introdusa gresit');
+
+  select pg_temp.assert_num('B18 lot anulat -> ramas 0', remaining_qty, 0)
+  from public.lots where id = :'lot_gresit';
+  select pg_temp.assert_eq('B18 lot marcat anulat', (cancelled_at is not null)::text, 'true')
+  from public.lots where id = :'lot_gresit';
+  select pg_temp.assert_num('B18 eveniment de corectie -7 in audit', sum(quantity), -7)
+  from public.stock_events where lot_id = :'lot_gresit' and event_type = 'adjustment';
+  select pg_temp.assert_num('B18 evenimentul de intrare NU a fost sters', count(*), 1)
+  from public.stock_events where lot_id = :'lot_gresit' and event_type = 'intake';
+
+  do $$
+  declare
+    v_item_moloz uuid;
+    v_lot_moloz  uuid;
+    v_lot_proc   uuid;
+    v_lot_new    uuid;
+  begin
+    -- a doua anulare -> LT007
+    select id into v_lot_new from public.lots
+      where cancelled_at is not null
+        and organization_id = 'a0000000-0000-0000-0000-0000000000a1'
+      limit 1;
+    begin
+      perform public.cancel_lot(v_lot_new, 'din nou');
+      raise exception 'FAIL: B18 un lot anulat nu trebuia anulat din nou';
+    exception
+      when sqlstate 'LT007' then raise notice 'PASS: B18 lot deja anulat (LT007)';
+    end;
+
+    -- lot consumat partial (moloz achizitie: 500 intrat, 300 consumat) -> LT008
+    select id into v_item_moloz from public.items
+      where organization_id = 'a0000000-0000-0000-0000-0000000000a1' and title = 'Moloz';
+    select id into v_lot_moloz from public.lots
+      where item_id = v_item_moloz and provenance = 'purchase';
+    begin
+      perform public.cancel_lot(v_lot_moloz, 'test');
+      raise exception 'FAIL: B18 un lot consumat nu trebuia anulat';
+    exception
+      when sqlstate 'LT008' then raise notice 'PASS: B18 lot consumat respins (LT008)';
+    end;
+
+    -- lot creat de un proces (output reciclare) -> LT009
+    select l.id into v_lot_proc from public.lots l
+      join public.process_outputs po on po.lot_id = l.id
+      where l.organization_id = 'a0000000-0000-0000-0000-0000000000a1'
+      limit 1;
+    begin
+      perform public.cancel_lot(v_lot_proc, 'test');
+      raise exception 'FAIL: B18 un lot de output de proces nu trebuia anulat';
+    exception
+      when sqlstate 'LT009' then raise notice 'PASS: B18 lot de proces respins (LT009)';
+    end;
+
+    -- anulare "pe ocolite" (UPDATE direct) -> LT010
+    begin
+      update public.lots set cancelled_at = now() where id = v_lot_moloz;
+      raise exception 'FAIL: B18 UPDATE direct pe cancelled_at ar fi trebuit respins';
+    exception
+      when sqlstate 'LT010' then raise notice 'PASS: B18 UPDATE direct respins (LT010)';
+    end;
+  end $$;
+rollback;
+
+-- ===========================================================================
+-- B19: cancel_delivery - doar INAINTE de plecare; livrarea anulata dispare si
+--      comanda poate fi replanificata (unicitate partiala).
+-- ===========================================================================
+begin;
+  set local role authenticated;
+  set local request.jwt.claims = '{"sub":"b0000000-0000-0000-0000-0000000000b1"}';
+
+  insert into public.orders (id, organization_id, client_id, order_type, status, created_by)
+  values ('eeee0000-0000-0000-0000-00000000ee07', :org, :client_demo, 'material', 'accepted',
+          'b0000000-0000-0000-0000-0000000000b1');
+  insert into public.deliveries (id, organization_id, order_id, scheduled_date, carrier_name,
+    vehicle_plate, driver_name, route_origin, route_destination)
+  values ('dddd0000-0000-0000-0000-00000000dd01', :org, 'eeee0000-0000-0000-0000-00000000ee07',
+    current_date, 'Transport SRL', 'B-01-ABC', 'Ion', 'Depozit', 'Santier');
+
+  select public.cancel_delivery('dddd0000-0000-0000-0000-00000000dd01', 'camion indisponibil');
+
+  select pg_temp.assert_num('B19 livrarea anulata nu mai e vizibila', count(*), 0)
+  from public.deliveries where id = 'dddd0000-0000-0000-0000-00000000dd01';
+
+  -- replanificare pe aceeasi comanda: permisa (unicitatea e doar pe livrari active)
+  insert into public.deliveries (id, organization_id, order_id, scheduled_date, carrier_name,
+    vehicle_plate, driver_name, route_origin, route_destination, uit_code, declaration_status)
+  values ('dddd0000-0000-0000-0000-00000000dd02', :org, 'eeee0000-0000-0000-0000-00000000ee07',
+    current_date, 'Transport SRL', 'B-01-ABC', 'Ion', 'Depozit', 'Santier', 'UIT123', 'declared');
+
+  do $$
+  begin
+    begin
+      perform public.cancel_delivery('dddd0000-0000-0000-0000-00000000dd02', 'test');
+      raise exception 'FAIL: B19 o livrare declarata (plecata) nu trebuia anulata';
+    exception
+      when sqlstate 'DL001' then raise notice 'PASS: B19 livrare plecata respinsa (DL001)';
+    end;
+  end $$;
+rollback;
+
+-- ===========================================================================
+-- B20: dezactivare utilizator - adminul nu se poate dezactiva singur (US001);
+--      un operator dezactivat pierde accesul la datele organizatiei (RLS).
+-- ===========================================================================
+begin;
+  set local role authenticated;
+  set local request.jwt.claims = '{"sub":"b0000000-0000-0000-0000-0000000000b1"}';
+
+  do $$
+  begin
+    begin
+      update public.profiles set status = 'suspended'
+      where id = 'b0000000-0000-0000-0000-0000000000b1';
+      raise exception 'FAIL: B20 adminul nu trebuia sa se poata dezactiva singur';
+    exception
+      when sqlstate 'US001' then raise notice 'PASS: B20 auto-dezactivare respinsa (US001)';
+    end;
+  end $$;
+
+  update public.profiles set status = 'suspended'
+  where id = 'b0000000-0000-0000-0000-0000000000b2';
+
+  set local request.jwt.claims = '{"sub":"b0000000-0000-0000-0000-0000000000b2"}';
+  select pg_temp.assert_num('B20 operatorul dezactivat nu mai vede itemi', count(*), 0)
+  from public.items;
+  select pg_temp.assert_num('B20 operatorul dezactivat isi vede propriul profil', count(*), 1)
+  from public.profiles where id = 'b0000000-0000-0000-0000-0000000000b2';
+rollback;
+
+-- ===========================================================================
+-- B21: arhivarea unui CLIENT blocheaza utilizatorul-client legat; restaurarea
+--      il deblocheaza. Comenzile clientului raman (doar ascunse de el).
+-- ===========================================================================
+begin;
+  set local role authenticated;
+  set local request.jwt.claims = '{"sub":"b0000000-0000-0000-0000-0000000000b1"}';
+
+  update public.clients set archived_at = now() where id = :client_demo;
+  select pg_temp.assert_eq('B21 profilul clientului devine suspended', status::text, 'suspended')
+  from public.profiles where id = 'b0000000-0000-0000-0000-0000000000b3';
+  select pg_temp.assert_eq('B21 comenzile clientului arhivat raman (staff)',
+    (count(*) > 0)::text, 'true')
+  from public.orders where client_id = :client_demo;
+
+  set local request.jwt.claims = '{"sub":"b0000000-0000-0000-0000-0000000000b3"}';
+  select pg_temp.assert_num('B21 clientul arhivat nu mai vede comenzi', count(*), 0)
+  from public.orders;
+
+  set local request.jwt.claims = '{"sub":"b0000000-0000-0000-0000-0000000000b1"}';
+  update public.clients set archived_at = null where id = :client_demo;
+  select pg_temp.assert_eq('B21 restaurare -> profil activ', status::text, 'active')
+  from public.profiles where id = 'b0000000-0000-0000-0000-0000000000b3';
+rollback;
+
+-- ===========================================================================
+-- B22: CLIENTUL isi poate sterge (logic) propriile CIORNE din portal
+--      (delete_draft_order, 0035) - dar NU ciorna altui client (OR002, fara sa
+--      dezvaluie existenta ei) si NU o comanda care nu mai e ciorna (OD001).
+-- ===========================================================================
+begin;
+  set local role authenticated;
+  set local request.jwt.claims = '{"sub":"b0000000-0000-0000-0000-0000000000b1"}';
+
+  -- Fixture-uri create de admin: o ciorna a clientului demo + o ciorna a altui client.
+  insert into public.orders (id, organization_id, client_id, order_type, status, created_by)
+  values ('eeee0000-0000-0000-0000-00000000ee08', :org, :client_demo, 'material', 'draft',
+          'b0000000-0000-0000-0000-0000000000b3');
+  insert into public.orders (id, organization_id, client_id, order_type, status, created_by)
+  select 'eeee0000-0000-0000-0000-00000000ee09', :org, c.id, 'material', 'draft',
+         'b0000000-0000-0000-0000-0000000000b1'
+  from public.clients c
+  where c.organization_id = :org and c.name = 'Bravo Construct SRL';
+
+  -- Acum ca utilizatorul-client al clientului demo.
+  set local request.jwt.claims = '{"sub":"b0000000-0000-0000-0000-0000000000b3"}';
+
+  select public.delete_draft_order('eeee0000-0000-0000-0000-00000000ee08');
+  select pg_temp.assert_num('B22 clientul nu-si mai vede ciorna stearsa', count(*), 0)
+  from public.orders where id = 'eeee0000-0000-0000-0000-00000000ee08';
+
+  do $$
+  begin
+    begin
+      perform public.delete_draft_order('eeee0000-0000-0000-0000-00000000ee09'::uuid);
+      raise exception 'FAIL: B22 clientul a putut sterge ciorna ALTUI client';
+    exception
+      when sqlstate 'OR002' then raise notice 'PASS: B22 ciorna altui client respinsa (OR002)';
+    end;
+
+    begin
+      perform public.delete_draft_order(
+        (select id from public.orders
+         where organization_id = 'a0000000-0000-0000-0000-0000000000a1'
+           and order_number = 'CMD-2026-0002'));
+      raise exception 'FAIL: B22 clientul a putut sterge o comanda trimisa';
+    exception
+      when sqlstate 'OD001' then raise notice 'PASS: B22 comanda proprie non-ciorna respinsa (OD001)';
+    end;
+  end $$;
+
+  -- Verificare ca admin: ciorna clientului e marcata stearsa de EL, cealalta e intacta.
+  set local request.jwt.claims = '{"sub":"b0000000-0000-0000-0000-0000000000b1"}';
+  select pg_temp.assert_num('B22 ciorna altui client ramane nestearsa', count(*), 1)
+  from public.orders where id = 'eeee0000-0000-0000-0000-00000000ee09';
+rollback;
+
+-- ===========================================================================
+-- B23: un item ARHIVAT poate reveni prin retur/garantie initiate de CLIENT
+--      (decizie 2026-09): clientul poate pune pe o comanda (cererea de retur) un
+--      item arhivat pe care l-a primit deja (comanda proprie livrata/inchisa), dar
+--      NU un item arhivat pe care nu l-a primit niciodata (AR001).
+--      Fixture: o comanda LIVRATA a clientului demo cu Cărămizi eco; Nisip
+--      reciclat apare doar pe CMD-2026-0002 (trimisa, nelivrata).
+-- ===========================================================================
+begin;
+  set local role authenticated;
+  set local request.jwt.claims = '{"sub":"b0000000-0000-0000-0000-0000000000b1"}';
+  insert into public.orders (id, organization_id, client_id, order_type, status, created_by)
+  values ('eeee0000-0000-0000-0000-00000000ee11', :org, :client_demo, 'material', 'delivered',
+          'b0000000-0000-0000-0000-0000000000b1');
+  insert into public.order_items (organization_id, order_id, item_id, quantity)
+  values (:org, 'eeee0000-0000-0000-0000-00000000ee11', :item_caramizi, 5);
+
+  update public.items set archived_at = now() where id in (:item_caramizi, :item_nisip);
+
+  set local request.jwt.claims = '{"sub":"b0000000-0000-0000-0000-0000000000b3"}';
+  insert into public.orders (id, organization_id, client_id, order_type, status, created_by)
+  values ('eeee0000-0000-0000-0000-00000000ee10', :org, :client_demo, 'material', 'draft',
+          'b0000000-0000-0000-0000-0000000000b3');
+
+  insert into public.order_items (organization_id, order_id, item_id, quantity)
+  values (:org, 'eeee0000-0000-0000-0000-00000000ee10', :item_caramizi, 1);
+  select pg_temp.assert_num('B23 retur client: item arhivat deja livrat acceptat', count(*), 1)
+  from public.order_items where order_id = 'eeee0000-0000-0000-0000-00000000ee10';
+
+  do $$
+  declare
+    v_nisip uuid;
+  begin
+    select id into v_nisip from public.items
+      where organization_id = 'a0000000-0000-0000-0000-0000000000a1' and title = 'Nisip reciclat';
+    begin
+      insert into public.order_items (organization_id, order_id, item_id, quantity)
+      values ('a0000000-0000-0000-0000-0000000000a1', 'eeee0000-0000-0000-0000-00000000ee10',
+              v_nisip, 1);
+      raise exception 'FAIL: B23 clientul a comandat un item arhivat nelivrat';
+    exception
+      when sqlstate 'AR001' then raise notice 'PASS: B23 item arhivat nelivrat respins (AR001)';
+    end;
+  end $$;
+rollback;
+
 select '*** TOATE TESTELE FUNCTIONALE DE BUSINESS AU TRECUT ***' as result;

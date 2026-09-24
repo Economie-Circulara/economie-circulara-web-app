@@ -1,9 +1,13 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ConfirmActionButton } from "@/components/confirm-action-button";
 import { PageHeader } from "@/components/page-header";
+import { Badge } from "@/components/ui/badge";
 import { StatusBadge } from "@/components/status-badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { requireRole } from "@/features/auth/session";
+import { cancelLotAction } from "@/features/stock/actions";
+import { canCancelLot } from "@/features/stock/cancel";
 import { PROCESS_STATUS_BADGE_STATUS, PROCESS_TYPE_LABELS } from "@/features/production/labels";
 import {
   PROVENANCE_BADGE_STATUS,
@@ -20,7 +24,10 @@ interface LotDetailPageProps {
 }
 
 const dateFormatter = new Intl.DateTimeFormat("ro-RO");
-const dateTimeFormatter = new Intl.DateTimeFormat("ro-RO", { dateStyle: "medium", timeStyle: "short" });
+const dateTimeFormatter = new Intl.DateTimeFormat("ro-RO", {
+  dateStyle: "medium",
+  timeStyle: "short",
+});
 
 function formatDate(iso: string): string {
   return dateFormatter.format(new Date(iso));
@@ -54,6 +61,14 @@ export default async function LotDetailPage({ params }: LotDetailPageProps) {
     listStockEvents({ lotId: id }),
   ]);
 
+  // Aceeasi regula ca RPC-ul `cancel_lot` (migrarea 0035) - butonul apare doar cand
+  // anularea chiar e posibila; altfel explicam de ce nu.
+  const cancellation = canCancelLot(
+    lot,
+    events.map((event) => event.eventType),
+    traceability,
+  );
+
   return (
     <div className="space-y-8">
       <PageHeader
@@ -61,9 +76,37 @@ export default async function LotDetailPage({ params }: LotDetailPageProps) {
         description={lot.itemTitle}
         breadcrumbs={[{ label: "Stoc", href: "/stoc" }, { label: lot.lotCode }]}
         actions={
-          <StatusBadge group="lot" status={lotBadgeStatus(lot.isBlocked)} />
+          <div className="flex flex-wrap items-center gap-2">
+            {lot.cancelledAt ? (
+              <Badge variant="neutral">Anulat</Badge>
+            ) : (
+              <StatusBadge group="lot" status={lotBadgeStatus(lot.isBlocked)} />
+            )}
+            {cancellation.allowed ? (
+              <ConfirmActionButton
+                triggerLabel="Anulează lotul"
+                title="Anulezi acest lot?"
+                description="Folosește asta doar pentru un lot introdus din greșeală. Cantitatea lotului iese din stoc, iar în istoric rămâne o înregistrare de corecție cu motivul tău - nimic nu se șterge. Acțiunea nu poate fi anulată."
+                confirmLabel="Da, anulează lotul"
+                pendingLabel="Se anulează..."
+                reasonLabel="Motivul anulării (apare în istoric)"
+                action={cancelLotAction.bind(null, lot.id)}
+              />
+            ) : null}
+          </div>
         }
       />
+
+      {lot.cancelledAt ? (
+        <p className="rounded-md border bg-surface-2 px-3 py-2 text-sm text-muted-foreground">
+          Lot anulat (introdus din greșeală){lot.cancelReason ? `: ${lot.cancelReason}` : ""}.
+          Corecția apare în istoricul de mișcări de mai jos.
+        </p>
+      ) : !cancellation.allowed && cancellation.reason ? (
+        <p className="text-xs text-muted-foreground">
+          Anularea lotului nu e disponibilă: {cancellation.reason}
+        </p>
+      ) : null}
 
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
@@ -178,7 +221,9 @@ export default async function LotDetailPage({ params }: LotDetailPageProps) {
       <section className="space-y-3">
         <h2 className="text-lg font-semibold">Istoric mișcări</h2>
         {events.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Niciun eveniment înregistrat pentru acest lot.</p>
+          <p className="text-sm text-muted-foreground">
+            Niciun eveniment înregistrat pentru acest lot.
+          </p>
         ) : (
           <div className="overflow-x-auto rounded-lg border bg-card">
             <table className="w-full text-sm">

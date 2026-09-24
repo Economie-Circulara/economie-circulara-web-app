@@ -16,7 +16,7 @@ import {
  * `src/features/orders/queries.test.ts#makeQueryBuilder`.
  */
 function makeQueryBuilder(finalResult: { data: unknown; error: unknown }) {
-  const methods = ["select", "order", "eq", "in", "gte", "lte", "lt", "maybeSingle"] as const;
+  const methods = ["select", "order", "eq", "in", "gte", "lte", "lt", "is", "maybeSingle"] as const;
   const builder: Record<string, unknown> & { then: (resolve: (v: unknown) => void) => void } = {
     then: (resolve) => resolve(finalResult),
   };
@@ -227,6 +227,8 @@ describe("fetchRecycledLotsInRange", () => {
     ]);
     expect(lotsBuilder.gte).toHaveBeenCalledWith("entry_date", "2026-07-01");
     expect(lotsBuilder.lte).toHaveBeenCalledWith("entry_date", "2026-07-18");
+    // Loturile anulate (migrarea 0035) nu intra in raport.
+    expect(lotsBuilder.is).toHaveBeenCalledWith("cancelled_at", null);
     expect(result).toEqual([
       {
         provenance: "recycling",

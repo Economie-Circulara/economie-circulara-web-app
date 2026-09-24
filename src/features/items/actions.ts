@@ -6,8 +6,9 @@ import { redirect } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requireRole } from "@/features/auth/session";
 import { validateItemImageFile } from "./image-validation";
+import { itemListHref } from "./item-links";
 import { KIND_OPTIONS, UNIT_OPTIONS } from "./labels";
-import { createItem, updateItem } from "./service";
+import { createItem, setItemArchived, updateItem } from "./service";
 import type { ItemKind, UnitOfMeasure } from "./types";
 import type { ItemFormState } from "./action-state";
 
@@ -85,7 +86,7 @@ export async function createItemAction(
 
   if (!title) return { error: "Titlul este obligatoriu." };
   if (!unit) return { error: "Alege o unitate de masura." };
-  if (!kind) return { error: "Alege tipul materialului sau serviciului." };
+  if (!kind) return { error: "Alege tipul materialului sau abonamentului." };
 
   // Id pre-generat: uploadul pozei (daca exista) se face INAINTE de insert,
   // ca o eroare de upload sa nu creeze un item orfan fara poza.
@@ -114,12 +115,12 @@ export async function createItemAction(
     });
   } catch (err) {
     return {
-      error: err instanceof Error ? err.message : "Nu am putut crea materialul sau serviciul.",
+      error: err instanceof Error ? err.message : "Nu am putut crea materialul sau abonamentul.",
     };
   }
 
-  revalidatePath("/itemi");
-  redirect("/itemi");
+  revalidatePath(itemListHref(kind));
+  redirect(itemListHref(kind));
 }
 
 /** Actualizeaza un item existent (formularul /itemi/[id]) - doar staff (admin/operator). */
@@ -134,10 +135,10 @@ export async function updateItemAction(
   const unit = parseUnit(formData.get("unit"));
   const kind = parseKind(formData.get("kind"));
 
-  if (!id) return { error: "Material sau serviciu invalid." };
+  if (!id) return { error: "Material sau abonament invalid." };
   if (!title) return { error: "Titlul este obligatoriu." };
   if (!unit) return { error: "Alege o unitate de masura." };
-  if (!kind) return { error: "Alege tipul materialului sau serviciului." };
+  if (!kind) return { error: "Alege tipul materialului sau abonamentului." };
 
   // Tri-state pentru poza: fisier nou -> inlocuieste; bifa "elimina" -> null;
   // altfel cheia lipseste din payload si `updateItem` nu atinge poza existenta.
@@ -166,10 +167,47 @@ export async function updateItemAction(
     });
   } catch (err) {
     return {
-      error: err instanceof Error ? err.message : "Nu am putut salva materialul sau serviciul.",
+      error: err instanceof Error ? err.message : "Nu am putut salva materialul sau abonamentul.",
     };
   }
 
-  revalidatePath("/itemi");
-  redirect("/itemi");
+  revalidatePath(itemListHref(kind));
+  redirect(itemListHref(kind));
+}
+
+/** Rezultatul actiunilor de arhivare/restaurare (dialogul de confirmare). */
+export interface ArchiveActionResult {
+  error: string | null;
+}
+
+async function toggleItemArchived(id: string, archive: boolean): Promise<ArchiveActionResult> {
+  await requireRole(["admin", "operator"]);
+  if (!id) return { error: "Material sau serviciu invalid." };
+
+  try {
+    await setItemArchived(id, archive);
+  } catch (err) {
+    return {
+      error: err instanceof Error ? err.message : "Nu am putut actualiza materialul sau serviciul.",
+    };
+  }
+
+  // Nu stim aici `kind`-ul - invalidam ambele ecrane (Materiale + Abonamente).
+  for (const path of ["/itemi", `/itemi/${id}`, "/abonamente", `/abonamente/${id}`]) {
+    revalidatePath(path);
+  }
+  return { error: null };
+}
+
+/**
+ * Arhiveaza un item (migrarea 0035) - doar staff. Se apeleaza legat cu `.bind(null, id)`
+ * din pagina, dupa confirmarea din `ConfirmActionButton`.
+ */
+export async function archiveItemAction(id: string): Promise<ArchiveActionResult> {
+  return toggleItemArchived(id, true);
+}
+
+/** Restaureaza un item arhivat - doar staff. */
+export async function restoreItemAction(id: string): Promise<ArchiveActionResult> {
+  return toggleItemArchived(id, false);
 }

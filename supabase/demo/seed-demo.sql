@@ -669,7 +669,7 @@ begin
         values (v_org, pg_temp.idof(v_ids, j ->> 'client'),
                 coalesce(
                   (j ->> 'tip')::public.order_type,
-                  case when j ? 'ret' then 'serviciu' else 'material' end
+                  (case when j ? 'ret' then 'serviciu' else 'material' end)::public.order_type
                 ),
                 'draft', not v_is_client,
                 case when j ? 'addr' then pg_temp.idof(v_ids, j ->> 'addr') end,

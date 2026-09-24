@@ -1,8 +1,9 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { requireRole } from "@/features/auth/session";
-import { createOrderWithItems, sendOrder } from "@/features/orders/service";
+import { createOrderWithItems, deleteDraftOrder, sendOrder } from "@/features/orders/service";
 import type { OrderLineInput } from "@/features/orders/types";
 import type { ClientOrderFormState } from "./action-state";
 
@@ -150,4 +151,29 @@ export async function createClientAportAction(
       orderId: null,
     };
   }
+}
+
+/** Rezultatul stergerii unei ciorne din portal (dialogul de confirmare). */
+export interface DeleteOwnDraftResult {
+  error: string | null;
+}
+
+/**
+ * Clientul isi sterge (logic) propria comanda `draft` din portal (migrarea 0035).
+ * Autorizarea reala e in RPC-ul `delete_draft_order`: doar comanda propriei firme,
+ * din organizatia lui, si doar cat e ciorna - o comanda straina da aceeasi eroare ca
+ * una inexistenta. Legata cu `.bind(null, id)` in pagina; la succes duce la lista.
+ */
+export async function deleteOwnDraftOrderAction(orderId: string): Promise<DeleteOwnDraftResult> {
+  await requireRole(["client"]);
+  if (!orderId) return { error: "Comandă invalidă." };
+
+  try {
+    await deleteDraftOrder(orderId);
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : "Nu am putut șterge ciorna." };
+  }
+
+  revalidatePath("/comenzile-mele");
+  redirect("/comenzile-mele");
 }

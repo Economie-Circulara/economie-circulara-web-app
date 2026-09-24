@@ -15,9 +15,13 @@ const columns: ColumnDef<RecipeListRow>[] = [
     accessorKey: "itemTitle",
     header: "Material",
     cell: ({ row }) => (
-      <Link href={`/retete/${row.original.itemId}`} className="font-medium hover:underline">
-        {row.original.itemTitle}
-      </Link>
+      <div className="flex flex-wrap items-center gap-1.5">
+        <Link href={`/retete/${row.original.itemId}`} className="font-medium hover:underline">
+          {row.original.itemTitle}
+        </Link>
+        {/* Vizibil doar cu "Arată arhivate" (migrarea 0035). */}
+        {row.original.archivedAt ? <Badge variant="neutral">Arhivată</Badge> : null}
+      </div>
     ),
   },
   {

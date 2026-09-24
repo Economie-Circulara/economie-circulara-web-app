@@ -9,7 +9,7 @@ import { listClients } from "@/features/clients/queries";
 export const metadata = { title: "Clienți - Lot cu Lot" };
 
 interface ClientiPageProps {
-  searchParams: Promise<{ q?: string }>;
+  searchParams: Promise<{ q?: string; arhivate?: string }>;
 }
 
 /** Ecranul Clienți - lista firmelor (doar staff), cu căutare după denumire/CUI. */
@@ -18,7 +18,9 @@ export default async function ClientiPage({ searchParams }: ClientiPageProps) {
   const params = await searchParams;
   const search = params.q?.trim() || undefined;
 
-  const clients = await listClients({ search });
+  const includeArchived = params.arhivate === "1";
+
+  const clients = await listClients({ search, includeArchived });
 
   return (
     <div className="space-y-6">
@@ -39,10 +41,21 @@ export default async function ClientiPage({ searchParams }: ClientiPageProps) {
           </label>
           <Input id="q" name="q" defaultValue={search ?? ""} placeholder="Denumire sau CUI..." />
         </div>
+        {/* Arhivatii sunt ascunsi implicit (migrarea 0035) - comutator explicit. */}
+        <label className="flex h-9 items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            name="arhivate"
+            value="1"
+            defaultChecked={includeArchived}
+            className="size-4"
+          />
+          Arată arhivați
+        </label>
         <Button type="submit" variant="outline">
           Caută
         </Button>
-        {search ? (
+        {search || includeArchived ? (
           <Button asChild variant="ghost">
             <Link href="/clienti">Resetează</Link>
           </Button>

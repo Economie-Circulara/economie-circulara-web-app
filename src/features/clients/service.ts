@@ -13,7 +13,9 @@ const ERR_UNIQUE_VIOLATION = "23505";
 /** Exista deja un client cu acest CUI in organizatia curenta. */
 export class DuplicateCuiError extends Error {
   constructor(public readonly cui: string) {
-    super(`Există deja un client cu CUI ${cui} în organizația ta.`);
+    super(
+      `Există deja un client cu CUI ${cui} în organizația ta (verifică și clienții arhivați - îl poți restaura).`,
+    );
     this.name = "DuplicateCuiError";
   }
 }
@@ -31,6 +33,7 @@ function mapClient(row: ClientRow): Client {
     contactPerson: row.contact_person,
     isSupplier: row.is_supplier,
     notes: row.notes,
+    archivedAt: row.archived_at ?? null,
     createdAt: row.created_at,
   };
 }
@@ -188,4 +191,23 @@ export async function deleteAddress(id: string): Promise<void> {
   const supabase = await createClient();
   const { error } = await supabase.from("client_addresses").delete().eq("id", id);
   if (error) throw new Error("Nu am putut șterge adresa.");
+}
+
+/**
+ * Arhiveaza (`archive = true`) sau restaureaza un client (migrarea 0035). Comenzile,
+ * documentele si certificatele lui raman neatinse. Blocarea/deblocarea
+ * utilizatorului-client legat se face in DB (trigger `app.sync_client_profile_status`
+ * pe `profiles.status`), deci si un operator (care nu vede profilele) o declanseaza.
+ */
+export async function setClientArchived(id: string, archive: boolean): Promise<void> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("clients")
+    .update({ archived_at: archive ? new Date().toISOString() : null })
+    .eq("id", id)
+    .select("id")
+    .maybeSingle();
+
+  if (error) throw new Error(error.message ?? "Nu am putut actualiza clientul.");
+  if (!data) throw new Error("Clientul nu există sau nu ai acces la el.");
 }

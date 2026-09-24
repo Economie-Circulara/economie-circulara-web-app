@@ -12,7 +12,7 @@ interface StocNouPageProps {
 /** Formular adăugare lot nou în stoc (doar staff). */
 export default async function StocNouPage({ searchParams }: StocNouPageProps) {
   await requireRole(["admin", "operator"]);
-  const [items, params] = await Promise.all([listItemOptions(), searchParams]);
+  const [items, params] = await Promise.all([listItemOptions({ activeOnly: true }), searchParams]);
 
   return (
     <div className="space-y-6">

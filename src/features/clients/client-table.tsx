@@ -10,7 +10,17 @@ import { SUPPLIER_LABEL, VAT_PAYER_LABEL } from "./labels";
 import type { Client } from "./types";
 
 const columns: ColumnDef<Client>[] = [
-  { accessorKey: "name", header: "Denumire" },
+  {
+    accessorKey: "name",
+    header: "Denumire",
+    cell: ({ row }) => (
+      <div className="flex flex-wrap items-center gap-1.5">
+        <span>{row.original.name}</span>
+        {/* Vizibil doar cu "Arată arhivați" (migrarea 0035). */}
+        {row.original.archivedAt ? <Badge variant="neutral">Arhivat</Badge> : null}
+      </div>
+    ),
+  },
   { accessorKey: "cui", header: "CUI" },
   {
     id: "contact",

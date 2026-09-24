@@ -11,6 +11,12 @@ export interface Client {
   contactPerson: string | null;
   isSupplier: boolean;
   notes: string | null;
+  /**
+   * Arhivat (migrarea 0035) - ascuns din liste si selecturi (comenzi noi, invitari),
+   * iar utilizatorul-client legat nu se mai poate loga. Comenzile/certificatele
+   * raman. `null` = activ.
+   */
+  archivedAt: string | null;
   createdAt: string;
 }
 

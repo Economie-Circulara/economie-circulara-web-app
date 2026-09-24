@@ -76,6 +76,8 @@ describe("createLot", () => {
       qualityStatus: "unchecked",
       isBlocked: false,
       blockReason: null,
+      cancelledAt: null,
+      cancelReason: null,
       createdAt: "2026-07-01T00:00:00.000Z",
     });
   });

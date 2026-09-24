@@ -3,7 +3,7 @@ import type { ItemKind, UnitOfMeasure } from "./types";
 
 export const KIND_LABELS: Record<ItemKind, string> = {
   physical: "Material",
-  service: "Serviciu",
+  service: "Abonament",
 };
 
 export const KIND_OPTIONS: ItemKind[] = ["physical", "service"];

@@ -8,6 +8,7 @@ import {
   DeliveryNotFoundError,
   DeliveryOrderNotFoundError,
   DeliveryValidationError,
+  cancelDelivery,
   confirmDeliveryReceipt,
   declareETransport,
   planDelivery,
@@ -164,4 +165,29 @@ export async function confirmDeliveryReceiptAction(
 
   revalidatePath(`/livrari/${deliveryId}`);
   return { error: null };
+}
+
+/**
+ * Anuleaza o livrare inainte de plecare (migrarea 0035) - DOAR staff. `deliveryId`
+ * si `orderId` sunt legate cu `.bind` in pagina; motivul vine din dialogul de
+ * confirmare. La succes duce utilizatorul la comanda (care poate fi replanificata).
+ */
+export async function cancelDeliveryAction(
+  deliveryId: string,
+  orderId: string,
+  reason?: string,
+): Promise<DeliveryFormState> {
+  await requireRole(["admin", "operator"]);
+  if (!deliveryId) return { error: "Livrare invalidă." };
+  if (!reason?.trim()) return { error: "Motivul anulării este obligatoriu." };
+
+  try {
+    await cancelDelivery(deliveryId, reason);
+  } catch (err) {
+    return { error: errorMessage(err, "Nu am putut anula livrarea.") };
+  }
+
+  revalidatePath("/livrari");
+  revalidatePath(`/comenzi/${orderId}`);
+  redirect(`/comenzi/${orderId}`);
 }
