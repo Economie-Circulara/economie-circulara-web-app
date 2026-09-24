@@ -55,7 +55,7 @@ describe("OpenAiCompatibleProvider", () => {
     expect(completion.usage).toEqual({ inputTokens: 100, outputTokens: 20 });
   });
 
-  it("pentru DeepSeek, activeaza thinking mode si citeste reasoning_content din raspuns", async () => {
+  it("pentru DeepSeek cu thinking activat, trimite `thinking` si citeste reasoning_content", async () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
       json: async () => ({
@@ -76,6 +76,7 @@ describe("OpenAiCompatibleProvider", () => {
       "https://api.deepseek.com",
       "cheie",
       "deepseek-chat",
+      true,
     );
     const completion = await provider.complete({
       messages: [{ role: "user", content: "9.11 sau 9.8, ce e mai mare?" }],
@@ -113,6 +114,20 @@ describe("OpenAiCompatibleProvider", () => {
     const [, init] = fetchMock.mock.calls[0];
     const body = JSON.parse((init as { body: string }).body);
     expect(body.messages[1].reasoning_content).toBe("trebuie sa caut beton");
+  });
+
+  it("pentru DeepSeek, thinking mode e OPRIT implicit (un CoT per pas facea tura lenta)", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ choices: [{ message: { content: "ok" } }] }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const provider = new OpenAiCompatibleProvider("https://api.deepseek.com", "k", "deepseek-chat");
+    await provider.complete({ messages: [{ role: "user", content: "salut" }], tools: [] });
+
+    const body = JSON.parse((fetchMock.mock.calls[0][1] as { body: string }).body);
+    expect(body.thinking).toBeUndefined();
   });
 
   it("pentru alti furnizori, NU trimite `thinking` (parametru necunoscut la DeepSeek)", async () => {
@@ -189,5 +204,26 @@ describe("getChatProvider", () => {
     vi.stubEnv("ASSISTANT_API_KEY", "k");
     vi.stubEnv("ASSISTANT_MODEL", "mistral-small-latest");
     expect(getChatProvider().name).toBe("openai-compatible");
+  });
+
+  it("activeaza thinking mode doar cu ASSISTANT_THINKING=enabled", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ choices: [{ message: { content: "ok" } }] }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    vi.stubEnv("ASSISTANT_API_URL", "https://api.deepseek.com");
+    vi.stubEnv("ASSISTANT_API_KEY", "k");
+    vi.stubEnv("ASSISTANT_MODEL", "deepseek-chat");
+    const bodyOf = (index: number) =>
+      JSON.parse((fetchMock.mock.calls[index][1] as { body: string }).body);
+
+    vi.stubEnv("ASSISTANT_THINKING", "");
+    await getChatProvider().complete({ messages: [], tools: [] });
+    expect(bodyOf(0).thinking).toBeUndefined();
+
+    vi.stubEnv("ASSISTANT_THINKING", "enabled");
+    await getChatProvider().complete({ messages: [], tools: [] });
+    expect(bodyOf(1).thinking).toEqual({ type: "enabled" });
   });
 });

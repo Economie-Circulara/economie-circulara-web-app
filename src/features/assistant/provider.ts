@@ -10,8 +10,8 @@
  *  - `OpenAiCompatibleProvider`: un singur cod pentru Mistral / Groq / OpenRouter /
  *    OpenAI / DeepSeek - toate expun `POST /chat/completions` cu `tools`. Configurare:
  *    `ASSISTANT_API_URL`, `ASSISTANT_API_KEY`, `ASSISTANT_MODEL` (vezi `.env.example`).
- *    Pentru DeepSeek (`ASSISTANT_API_URL` contine `deepseek.com`) se activeaza automat
- *    thinking mode - vezi comentariul din `complete()`.
+ *    Pentru DeepSeek (`ASSISTANT_API_URL` contine `deepseek.com`) thinking mode e
+ *    OPTIONAL, prin `ASSISTANT_THINKING=enabled` - vezi comentariul din `complete()`.
  *
  * Alegerea furnizorului e o variabila de mediu, nu o decizie de arhitectura: daca
  * modelul se dovedeste slab la tool calling, se schimba `ASSISTANT_MODEL`, nu codul.
@@ -131,6 +131,8 @@ export class OpenAiCompatibleProvider implements ChatProvider {
     private readonly baseUrl: string,
     private readonly apiKey: string,
     private readonly model: string,
+    /** Thinking mode (doar DeepSeek). Implicit oprit - vezi `complete()`. */
+    private readonly thinking = false,
   ) {}
 
   async complete({
@@ -144,7 +146,11 @@ export class OpenAiCompatibleProvider implements ChatProvider {
     // mode: https://api-docs.deepseek.com/guides/thinking_mode/. Cand are `tools`, cere
     // *obligatoriu* `reasoning_content` inapoi pe fiecare mesaj `assistant` din cererile
     // urmatoare - altfel raspunde cu 400 - de-aia mesajele mai jos il retrimit mereu.
+    // E OPTIONAL (`ASSISTANT_THINKING=enabled`): bucla face cate un apel de model per
+    // tool, iar un CoT lung la fiecare cautare facea o tura sa dureze zeci de secunde
+    // (docs/plans/asistent-performanta-quick-wins.md).
     const isDeepSeek = /(?:^|\.)deepseek\.com(?:\/|$)/i.test(this.baseUrl);
+    const thinking = isDeepSeek && this.thinking;
 
     const response = await fetch(`${this.baseUrl.replace(/\/$/, "")}/chat/completions`, {
       method: "POST",
@@ -157,7 +163,7 @@ export class OpenAiCompatibleProvider implements ChatProvider {
         // Temperatura mica: vrem argumente corecte, nu creativitate. (Ignorata de
         // DeepSeek in thinking mode, dar celelalte furnizoare tot o folosesc.)
         temperature: 0.1,
-        ...(isDeepSeek ? { thinking: { type: "enabled" } } : {}),
+        ...(thinking ? { thinking: { type: "enabled" } } : {}),
         messages: messages.map((message) => ({
           role: message.role,
           content: message.content,
@@ -230,7 +236,10 @@ export function getChatProvider(): ChatProvider {
   const key = process.env.ASSISTANT_API_KEY;
   const model = process.env.ASSISTANT_MODEL;
 
-  if (url && key && model) return new OpenAiCompatibleProvider(url, key, model);
+  if (url && key && model) {
+    const thinking = process.env.ASSISTANT_THINKING === "enabled";
+    return new OpenAiCompatibleProvider(url, key, model, thinking);
+  }
   return new MockChatProvider();
 }
 

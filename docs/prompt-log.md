@@ -4,6 +4,15 @@ Jurnal al sarcinilor lucrate de agenti AI in acest repo. Conform regulii 1.2 din
 [`AGENTS.md`](../AGENTS.md), la **fiecare commit** se adauga o intrare aici.
 Cele mai noi intrari sus.
 
+## 2026-09-24 — Claude Opus 5.5 (Claude Code) — Asistent AI: quick wins de performanta
+
+- **Cerut:** asistentul (DeepSeek) e lent si raspunde des „împarte cererea în pași”;
+  un PR cu quick wins, apoi unul cu restul.
+- **Facut:** thinking mode DeepSeek opt-in (`ASSISTANT_THINKING=enabled`, oprit
+  implicit); `MAX_STEPS` 5 -> 12 + rezumat fara tool-uri la limita (in loc de
+  mesajul generic); trunchierea rezultatelor de tool pastreaza JSON valid
+  (`tool-result.ts`). Plan: `docs/plans/asistent-performanta-quick-wins.md`.
+
 ## 2026-09-24 — Claude (Claude Code) — Integrare arhivare (PR #50) cu ecranul Abonamente (PR #48)
 
 - **Cerut:** merge in ordine al PR-urilor din runda "ultima suta de metri".
