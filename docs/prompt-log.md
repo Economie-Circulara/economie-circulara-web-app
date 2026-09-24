@@ -4,6 +4,16 @@ Jurnal al sarcinilor lucrate de agenti AI in acest repo. Conform regulii 1.2 din
 [`AGENTS.md`](../AGENTS.md), la **fiecare commit** se adauga o intrare aici.
 Cele mai noi intrari sus.
 
+## 2026-09-24 — Claude Opus 5.5 (Claude Code) — Asistent AI: performanta, partea 2
+
+- **Cerut:** al doilea PR cu imbunatatirile structurale ale asistentului (dupa quick wins).
+- **Facut:** citiri paralele intr-o runda (doar prima scriere devine propunere);
+  „date de referinta” (ID-uri gasite) salvate ca mesaj `tool` si retrimise in turele
+  urmatoare (`facts.ts`); cautare toleranta la diacritice/forma juridica
+  (`tools/fuzzy-match.ts`) in tool-urile de clienti/produse/stoc; system prompt
+  actualizat; indicator de lucru cu timp scurs in chat. Plan:
+  `docs/plans/asistent-performanta-part2.md`.
+
 ## 2026-09-24 — Claude Opus 5.5 (Claude Code) — Asistent AI: quick wins de performanta
 
 - **Cerut:** asistentul (DeepSeek) e lent si raspunde des „împarte cererea în pași”;

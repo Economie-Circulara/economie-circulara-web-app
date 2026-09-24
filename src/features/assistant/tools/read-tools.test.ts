@@ -91,6 +91,43 @@ describe("listeaza_clienti", () => {
   });
 });
 
+describe("cautare toleranta (fallback cand filtrul din DB nu gaseste nimic)", () => {
+  it("listeaza_clienti: „Beton SRL” gaseste „SC BETON S.R.L.”", async () => {
+    vi.mocked(listClients)
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([
+        { id: "c-beton", name: "SC BETON S.R.L.", cui: "1", email: null },
+        { id: "c-alt", name: "Alt Client SA", cui: "2", email: null },
+      ] as never);
+
+    const result = await listeazaClienti.execute({ cautare: "Beton SRL" }, CTX);
+
+    expect(vi.mocked(listClients).mock.calls.at(-2)?.[0]).toEqual({ search: "Beton SRL" });
+    expect(vi.mocked(listClients).mock.calls.at(-1)?.[0]).toEqual({});
+    expect(result).toEqual([expect.objectContaining({ client_id: "c-beton" })]);
+  });
+
+  it("itemi_vandabili: fara diacritice gaseste denumirea cu diacritice", async () => {
+    vi.mocked(listItems)
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([
+        { id: "i-p", title: "Pietriș 4-8", unit: "t", kind: "physical" },
+        { id: "i-n", title: "Nisip", unit: "t", kind: "physical" },
+      ] as never);
+
+    const result = await itemiVandabili.execute({ cautare: "pietris" }, CTX);
+
+    expect(vi.mocked(listItems).mock.calls.at(-1)?.[0]).toEqual({ sellable: true });
+    expect(result).toEqual([expect.objectContaining({ item_id: "i-p" })]);
+  });
+
+  it("nu mai incarca lista completa daca filtrul din DB a gasit ceva", async () => {
+    vi.mocked(listClients).mockClear();
+    await listeazaClienti.execute({ cautare: "acme" }, CTX);
+    expect(listClients).toHaveBeenCalledTimes(1);
+  });
+});
+
 describe("itemi_vandabili", () => {
   it("include link-ul catre pagina itemului", async () => {
     const result = await itemiVandabili.execute({ cautare: null }, CTX);

@@ -12,8 +12,11 @@ import type {
   ToolCallStatus,
 } from "./types";
 
-/** Cate mesaje din istoric trimitem modelului (context marginit = cost marginit). */
-export const HISTORY_LIMIT = 20;
+/**
+ * Cate mesaje din istoric trimitem modelului (context marginit = cost marginit).
+ * Include si mesajele `tool` cu date de referinta (`facts.ts`, cel mult unul pe tura).
+ */
+export const HISTORY_LIMIT = 30;
 
 export async function createConversation(input: {
   userId: string;

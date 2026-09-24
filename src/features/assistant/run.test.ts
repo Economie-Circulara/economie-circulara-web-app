@@ -278,6 +278,107 @@ describe("runAssistantTurn", () => {
   });
 });
 
+describe("runAssistantTurn - citiri paralele si date de referinta", () => {
+  it("executa TOATE citirile dintr-o runda si le da inapoi modelului intr-un singur pas", async () => {
+    const execute = vi.fn(async (args: { text: string }) => [{ item_id: `id-${args.text}` }]);
+    vi.mocked(findTool).mockReturnValue(readTool(execute as never) as never);
+    const provider = new ScriptedProvider([
+      {
+        toolCalls: [
+          { id: "t1", name: "cauta", arguments: '{"text":"nisip"}' },
+          { id: "t2", name: "cauta", arguments: '{"text":"pietris"}' },
+        ],
+      },
+      { content: "Am găsit ambele." },
+    ]);
+
+    await runAssistantTurn({
+      conversationId: null,
+      message: "nisip și pietriș",
+      ctx: CTX,
+      provider,
+    });
+
+    expect(execute).toHaveBeenCalledTimes(2);
+    expect(provider.calls).toHaveLength(2);
+    const sent = provider.calls[1].messages as {
+      role: string;
+      toolCalls?: unknown[];
+      toolCallId?: string;
+    }[];
+    expect(sent.at(-3)?.toolCalls).toHaveLength(2);
+    expect(sent.slice(-2).map((message) => message.toolCallId)).toEqual(["t1", "t2"]);
+  });
+
+  it("o runda cu citire + scriere produce DOAR propunerea (citirea nu se executa)", async () => {
+    const readExecute = vi.fn();
+    const writeExecute = vi.fn();
+    vi.mocked(findTool).mockImplementation(
+      (name) => (name === "cauta" ? readTool(readExecute) : writeTool(writeExecute)) as never,
+    );
+    const provider = new ScriptedProvider([
+      {
+        toolCalls: [
+          { id: "t1", name: "cauta", arguments: "{}" },
+          { id: "t2", name: "creeaza_client", arguments: '{"denumire":"ACME"}' },
+          { id: "t3", name: "creeaza_client", arguments: '{"denumire":"Alt"}' },
+        ],
+      },
+    ]);
+
+    const turn = await runAssistantTurn({ conversationId: null, message: "x", ctx: CTX, provider });
+
+    expect(readExecute).not.toHaveBeenCalled();
+    expect(writeExecute).not.toHaveBeenCalled();
+    expect(service.saveProposal).toHaveBeenCalledTimes(1);
+    expect(vi.mocked(service.saveProposal).mock.calls[0][0]).toMatchObject({
+      providerCallId: "t2",
+      arguments: { denumire: "ACME" },
+    });
+    expect(turn.pendingAction?.tool).toBe("creeaza_client");
+  });
+
+  it("salveaza ID-urile gasite ca mesaj `tool`, inaintea raspunsului", async () => {
+    vi.mocked(findTool).mockReturnValue(
+      readTool(
+        vi.fn().mockResolvedValue([{ client_id: "c1", denumire: "ACME", email: "x" }]),
+      ) as never,
+    );
+    const provider = new ScriptedProvider([
+      { toolCalls: [{ id: "t1", name: "listeaza_clienti", arguments: "{}" }] },
+      { content: "Am găsit ACME." },
+    ]);
+
+    await runAssistantTurn({ conversationId: null, message: "acme", ctx: CTX, provider });
+
+    const saved = vi.mocked(service.appendMessage).mock.calls.map((call) => call[0]);
+    expect(saved.map((message) => message.role)).toEqual(["user", "tool", "assistant"]);
+    expect(saved[1].content).toContain('listeaza_clienti: [{"client_id":"c1","denumire":"ACME"}]');
+    expect(saved[1].content).not.toContain("email");
+  });
+
+  it("trimite modelului datele de referinta din turele anterioare", async () => {
+    vi.mocked(service.listMessages).mockResolvedValue([
+      { id: "1", role: "user", content: "acme", createdAt: "" },
+      { id: "2", role: "tool", content: "[Date de referință] client_id c1", createdAt: "" },
+      { id: "3", role: "assistant", content: "Am găsit ACME.", createdAt: "" },
+      { id: "4", role: "user", content: "fă-i o comandă", createdAt: "" },
+    ]);
+    const provider = new ScriptedProvider([{ content: "ok" }]);
+
+    await runAssistantTurn({
+      conversationId: "conv-1",
+      message: "fă-i o comandă",
+      ctx: CTX,
+      provider,
+    });
+
+    const sent = provider.calls[0].messages as { role: string; content: string }[];
+    expect(sent.map((message) => message.role)).toEqual(["system", "user", "assistant", "user"]);
+    expect(sent[2].content).toContain("client_id c1");
+  });
+});
+
 describe("runAssistantTurn - limita de pasi", () => {
   const loopingCalls = () =>
     Array.from({ length: MAX_STEPS }, (_, index) => ({
