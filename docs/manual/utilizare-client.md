@@ -103,7 +103,14 @@ livrare, data de livrare, observațiile transmise și lista produselor comandate
 (denumire + cantitate + unitate de măsură - **fără prețuri**, ca peste tot în
 platformă).
 
-### 3.3 Repetarea unei comenzi vechi
+### 3.3 Ștergerea unei ciorne
+
+Dacă ai o comandă rămasă în status **Ciornă** (nu a fost trimisă către
+organizație), o poți șterge: deschide comanda, apasă **"Șterge ciorna"** și
+confirmă în fereastra care apare. Ciorna dispare din lista ta. Comenzile deja
+trimise nu se pot șterge - pentru ele contactează organizația.
+
+### 3.4 Repetarea unei comenzi vechi
 
 Din detaliul unei comenzi, apasă **"Repetă comanda"** - coșul tău se
 precompletează automat cu aceleași produse și cantități, apoi ești dus înapoi la
@@ -187,3 +194,4 @@ tău (creare/trimitere de comenzi rămâne doar din ecranele obișnuite).
 | Cere retur sau garanție pe o comandă finalizată | Trimite mesaje pe comandă (nu există chat în platformă) |
 | Descărca documentele și certificatele proprii | Încărca sau șterge documente |
 | Repeta o comandă anterioară | Crea alți utilizatori pentru firma ta (un singur cont per firmă client) |
+| Șterge propriile ciorne (comenzi netrimise) | Șterge o comandă deja trimisă |

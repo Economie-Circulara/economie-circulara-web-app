@@ -571,7 +571,7 @@ livrare**. Orice acțiune se arată întâi într-un **card de confirmare**, nee
 | Material / serviciu           | Arhivare (reversibilă)                                |
 | Rețetă                        | Arhivare (reversibilă)                                |
 | Client                        | Arhivare (reversibilă) + blocarea contului din portal |
-| Comandă în Ciornă             | Ștergere                                              |
+| Comandă în Ciornă             | Ștergere (și de către client, pentru ciornele lui)    |
 | Comandă trimisă / acceptată   | Anulare                                               |
 | Lot introdus din greșeală     | Anulare, doar dacă nu s-a consumat nimic din el       |
 | Livrare                       | Anulare, doar înainte de plecare                      |

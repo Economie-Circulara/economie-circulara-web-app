@@ -4,6 +4,24 @@ Jurnal al sarcinilor lucrate de agenti AI in acest repo. Conform regulii 1.2 din
 [`AGENTS.md`](../AGENTS.md), la **fiecare commit** se adauga o intrare aici.
 Cele mai noi intrari sus.
 
+## 2026-09-24 — Claude (Claude Code) — Soft-delete: ciorne șterse de client + retur pe itemi arhivați
+
+- **Cerut:** răspunsuri la întrebările deschise din PR #50: (1) clientul își poate
+  șterge propriile ciorne din portal; (2) itemii arhivați pot reveni prin
+  retur/garanție - ambele ca reguli de business în AGENTS.md §4.
+- **Facut:** `delete_draft_order` (0035) acceptă și clientul proprietar (doar
+  firma lui, organizația lui, `draft`); acțiunea `deleteOwnDraftOrderAction` + buton
+  cu confirmare în `/comenzile-mele/[id]`. Trigger-ul `reject_archived_references`
+  lasă clientul să pună pe o comandă un item arhivat deja livrat lui - altfel
+  cererile de retur/garanție din portal pe itemi arhivați ar fi fost blocate (bug
+  prins la implementarea regulii 2). Teste: unitare (acțiunea client), B22/B23 în
+  `business_flow.sql`, T20 în `rls_isolation.sql`. Manual client + plan +
+  AGENTS.md actualizate.
+- **Verificat:** `pnpm typecheck`, `pnpm lint`, `pnpm test`, `pnpm format:check`;
+  testele SQL rulate pe Postgres 16 local cu shim Supabase (nu pe stack-ul real).
+- **Impact asistent AI (regula 2.4):** `none` - asistentul nu e disponibil
+  rolului client pentru această acțiune; niciun tool nou.
+
 ## 2026-09-24 — Claude (Claude Code) — Arhivare / ștergere logică (soft-delete)
 
 - **Cerut:** utilizatorii nu pot șterge nimic creat din greșeală. Lista aprobată:

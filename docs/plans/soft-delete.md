@@ -51,6 +51,15 @@ e-Transport (`declared`, cod UIT = transportul e legal pe drum) -> recepționat�
   `deleted_at is null` => singura cale de ștergere e RPC-ul
   `delete_draft_order(p_order_id)` (security definer, verifică explicit staff +
   `status = 'draft'`, eroare `OD001`). Clientul: aceleași politici + `deleted_at is null`.
+- **Extensie (decizie utilizator, după review):** `delete_draft_order` acceptă și
+  utilizatorul-client, doar pentru ciornele propriei firme (`client_id =
+  app.client_id()`, organizația lui, activă). Buton „Șterge ciorna” în
+  `/comenzile-mele/[id]` (`deleteOwnDraftOrderAction`). Teste: B22
+  (business_flow) + T20 (rls_isolation - alt tenant, UPDATE direct).
+- **Decizie utilizator:** itemii arhivați POT reveni prin retur/garanție. Pentru
+  rolul client, `reject_archived_references` acceptă un item arhivat pe o comandă
+  doar dacă a fost deja livrat acelui client (cererile de retur/garanție din portal
+  se inserează ca rol client, iar `order_links` vine după linii). Test: B23.
 - `lots`: `cancelled_at`, `cancelled_by`, `cancel_reason`; RPC `cancel_lot(p_lot_id,
   p_reason)` (security invoker, ca `set_lot_block`). Refuză: lot deja anulat
   (`LT007`), lot consumat (`LT008` - `remaining_qty <> initial_qty`, input de proces

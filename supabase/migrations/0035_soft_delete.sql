@@ -92,7 +92,9 @@ create trigger clients_stamp_archive before update on public.clients
 -- Aplicatia ascunde arhivatele din selecturi; triggerele de mai jos refuza la DB
 -- insert-urile care le-ar folosi totusi (Data API direct, formular vechi deschis).
 -- Deliberat NU pe `lots`/`order_items` de staff: returul/garantia unui item deja
--- arhivat trebuie sa poata intra in continuare in stoc (fluxurile de retur).
+-- arhivat trebuie sa poata intra in continuare in stoc (fluxurile de retur). Pentru
+-- rolul client, un item arhivat e acceptat doar daca i-a fost deja livrat (retur/
+-- garantie initiate din portal) - vezi ramura `order_items` de mai jos.
 create or replace function app.reject_archived_references()
 returns trigger
 language plpgsql
@@ -110,6 +112,22 @@ begin
     -- Doar pentru rolul client (catalogul lui): staff-ul poate avea nevoie de
     -- itemi arhivati in fluxurile de retur/garantie.
     if app.role() is distinct from 'client' then
+      return new;
+    end if;
+    -- Regula de business: un item arhivat POATE reveni prin retur/garantie. Clientul
+    -- isi creeaza singur cererile de retur/garantie (insert-uri ca rol client), iar
+    -- `order_links` se insereaza DUPA linii - deci nu putem verifica legatura aici.
+    -- Criteriul echivalent: itemul a fost deja LIVRAT acestui client (apare pe o
+    -- comanda proprie `delivered`/`closed`) - singurele linii returnabile (vezi
+    -- `returns/service.ts#createReturnOrder`, care valideaza oricum cantitatile).
+    if exists (
+      select 1
+      from public.order_items oi
+      join public.orders o on o.id = oi.order_id
+      where oi.item_id = new.item_id
+        and o.client_id = app.client_id()
+        and o.status in ('delivered', 'closed')
+    ) then
       return new;
     end if;
     v_item := new.item_id;
@@ -158,8 +176,8 @@ comment on column public.orders.deleted_at is
 -- Politica staff FOR ALL (0001) se sparge pe operatii: SELECT/UPDATE vad doar
 -- comenzile nesterse, iar WITH CHECK pe UPDATE cere `deleted_at is null` - deci
 -- NIMENI nu poate seta `deleted_at` printr-un UPDATE simplu (Data API); singura
--- cale e RPC-ul `delete_draft_order` (security definer, verifica explicit staff +
--- status draft). DELETE fizic ramane ca inainte (compensarile best-effort din
+-- cale e RPC-ul `delete_draft_order` (security definer, verifica explicit staff SAU
+-- clientul proprietar + status draft). DELETE fizic ramane ca inainte (compensarile best-effort din
 -- `createOrderWithItems` / retur).
 drop policy orders_staff_all on public.orders;
 
@@ -229,7 +247,20 @@ begin
   where id = p_order_id and deleted_at is null
   for update;
 
-  if v_order.id is null or not app.is_staff_of(v_order.organization_id) then
+  -- Autorizare: staff-ul organizatiei SAU clientul care detine comanda (doar
+  -- propria firma, organizatia lui, organizatie activa). Un client care incearca
+  -- comanda altui client primeste acelasi OR002 ca o comanda inexistenta (nu
+  -- dezvaluim existenta ei). `app.role()` e null pentru conturi dezactivate.
+  if v_order.id is null
+     or not (
+       app.is_staff_of(v_order.organization_id)
+       or (
+         app.role() = 'client'
+         and v_order.client_id = app.client_id()
+         and v_order.organization_id = app.org_id()
+         and app.org_is_active(v_order.organization_id)
+       )
+     ) then
     raise exception 'Comanda inexistenta sau fara acces: %', p_order_id
       using errcode = 'OR002';
   end if;

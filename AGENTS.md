@@ -288,6 +288,18 @@ Testele unitare sunt **colocate** langa cod (`*.test.ts` / `*.test.tsx`).
   - Comenzi: **doar `draft` se sterge** (logic, `deleted_at`, RPC
     `delete_draft_order`, ascunse prin RLS); `sent`/`accepted` se ANULEAZA;
     `delivered`/`closed` nu se sterg si nu se anuleaza.
+  - **Clientul isi poate sterge propriile CIORNE din portal** (decizie 2026-09,
+    `/comenzile-mele/[id]`): acelasi RPC `delete_draft_order`, care accepta pe
+    langa staff si utilizatorul-client, DOAR pentru comenzile propriei firme
+    (`client_id = app.client_id()`), din organizatia lui (activa), in `draft`. O
+    ciorna a altui client da aceeasi eroare ca una inexistenta (`OR002`).
+  - **Un item ARHIVAT poate reveni in stoc prin retur/garantie** (decizie
+    2026-09, intentionat): arhivarea opreste doar lucrurile NOI construite peste
+    item (vanzari, retete, productie, intrari manuale), nu intoarcerea marfii deja
+    livrate. Staff-ul nu e restrictionat pe `order_items`/`lots`; clientul poate
+    pune un item arhivat pe o comanda doar daca i-a fost deja livrat (apare pe o
+    comanda proprie `delivered`/`closed`) - criteriul folosit de trigger-ul
+    `app.reject_archived_references` pentru cererile de retur/garantie din portal.
   - Loturi: **"Anulează lotul" doar daca nimic nu s-a consumat** si lotul e o
     intrare manuala (nu output de proces / retur / aport). Nu sterge nimic: scrie un
     eveniment de corectie `adjustment` (`-initial_qty`) in `stock_events`,

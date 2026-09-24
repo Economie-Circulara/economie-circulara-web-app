@@ -919,4 +919,102 @@ begin;
   from public.profiles where id = 'b0000000-0000-0000-0000-0000000000b3';
 rollback;
 
+-- ===========================================================================
+-- B22: CLIENTUL isi poate sterge (logic) propriile CIORNE din portal
+--      (delete_draft_order, 0035) - dar NU ciorna altui client (OR002, fara sa
+--      dezvaluie existenta ei) si NU o comanda care nu mai e ciorna (OD001).
+-- ===========================================================================
+begin;
+  set local role authenticated;
+  set local request.jwt.claims = '{"sub":"b0000000-0000-0000-0000-0000000000b1"}';
+
+  -- Fixture-uri create de admin: o ciorna a clientului demo + o ciorna a altui client.
+  insert into public.orders (id, organization_id, client_id, order_type, status, created_by)
+  values ('eeee0000-0000-0000-0000-00000000ee08', :org, :client_demo, 'material', 'draft',
+          'b0000000-0000-0000-0000-0000000000b3');
+  insert into public.orders (id, organization_id, client_id, order_type, status, created_by)
+  select 'eeee0000-0000-0000-0000-00000000ee09', :org, c.id, 'material', 'draft',
+         'b0000000-0000-0000-0000-0000000000b1'
+  from public.clients c
+  where c.organization_id = :org and c.name = 'Bravo Construct SRL';
+
+  -- Acum ca utilizatorul-client al clientului demo.
+  set local request.jwt.claims = '{"sub":"b0000000-0000-0000-0000-0000000000b3"}';
+
+  select public.delete_draft_order('eeee0000-0000-0000-0000-00000000ee08');
+  select pg_temp.assert_num('B22 clientul nu-si mai vede ciorna stearsa', count(*), 0)
+  from public.orders where id = 'eeee0000-0000-0000-0000-00000000ee08';
+
+  do $$
+  begin
+    begin
+      perform public.delete_draft_order('eeee0000-0000-0000-0000-00000000ee09'::uuid);
+      raise exception 'FAIL: B22 clientul a putut sterge ciorna ALTUI client';
+    exception
+      when sqlstate 'OR002' then raise notice 'PASS: B22 ciorna altui client respinsa (OR002)';
+    end;
+
+    begin
+      perform public.delete_draft_order(
+        (select id from public.orders
+         where organization_id = 'a0000000-0000-0000-0000-0000000000a1'
+           and order_number = 'CMD-2026-0002'));
+      raise exception 'FAIL: B22 clientul a putut sterge o comanda trimisa';
+    exception
+      when sqlstate 'OD001' then raise notice 'PASS: B22 comanda proprie non-ciorna respinsa (OD001)';
+    end;
+  end $$;
+
+  -- Verificare ca admin: ciorna clientului e marcata stearsa de EL, cealalta e intacta.
+  set local request.jwt.claims = '{"sub":"b0000000-0000-0000-0000-0000000000b1"}';
+  select pg_temp.assert_num('B22 ciorna altui client ramane nestearsa', count(*), 1)
+  from public.orders where id = 'eeee0000-0000-0000-0000-00000000ee09';
+rollback;
+
+-- ===========================================================================
+-- B23: un item ARHIVAT poate reveni prin retur/garantie initiate de CLIENT
+--      (decizie 2026-09): clientul poate pune pe o comanda (cererea de retur) un
+--      item arhivat pe care l-a primit deja (comanda proprie livrata/inchisa), dar
+--      NU un item arhivat pe care nu l-a primit niciodata (AR001).
+--      Fixture: o comanda LIVRATA a clientului demo cu Cărămizi eco; Nisip
+--      reciclat apare doar pe CMD-2026-0002 (trimisa, nelivrata).
+-- ===========================================================================
+begin;
+  set local role authenticated;
+  set local request.jwt.claims = '{"sub":"b0000000-0000-0000-0000-0000000000b1"}';
+  insert into public.orders (id, organization_id, client_id, order_type, status, created_by)
+  values ('eeee0000-0000-0000-0000-00000000ee11', :org, :client_demo, 'material', 'delivered',
+          'b0000000-0000-0000-0000-0000000000b1');
+  insert into public.order_items (organization_id, order_id, item_id, quantity)
+  values (:org, 'eeee0000-0000-0000-0000-00000000ee11', :item_caramizi, 5);
+
+  update public.items set archived_at = now() where id in (:item_caramizi, :item_nisip);
+
+  set local request.jwt.claims = '{"sub":"b0000000-0000-0000-0000-0000000000b3"}';
+  insert into public.orders (id, organization_id, client_id, order_type, status, created_by)
+  values ('eeee0000-0000-0000-0000-00000000ee10', :org, :client_demo, 'material', 'draft',
+          'b0000000-0000-0000-0000-0000000000b3');
+
+  insert into public.order_items (organization_id, order_id, item_id, quantity)
+  values (:org, 'eeee0000-0000-0000-0000-00000000ee10', :item_caramizi, 1);
+  select pg_temp.assert_num('B23 retur client: item arhivat deja livrat acceptat', count(*), 1)
+  from public.order_items where order_id = 'eeee0000-0000-0000-0000-00000000ee10';
+
+  do $$
+  declare
+    v_nisip uuid;
+  begin
+    select id into v_nisip from public.items
+      where organization_id = 'a0000000-0000-0000-0000-0000000000a1' and title = 'Nisip reciclat';
+    begin
+      insert into public.order_items (organization_id, order_id, item_id, quantity)
+      values ('a0000000-0000-0000-0000-0000000000a1', 'eeee0000-0000-0000-0000-00000000ee10',
+              v_nisip, 1);
+      raise exception 'FAIL: B23 clientul a comandat un item arhivat nelivrat';
+    exception
+      when sqlstate 'AR001' then raise notice 'PASS: B23 item arhivat nelivrat respins (AR001)';
+    end;
+  end $$;
+rollback;
+
 select '*** TOATE TESTELE FUNCTIONALE DE BUSINESS AU TRECUT ***' as result;
