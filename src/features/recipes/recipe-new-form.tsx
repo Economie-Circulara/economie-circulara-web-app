@@ -14,9 +14,9 @@ const selectClassName =
   "focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50";
 
 /**
- * Formular pornire rețetă noua: alege un item fizic fara rețetă inca SI directia
+ * Formular pornire rețetă noua: alege un item fizic fara rețetă inca SI metoda
  * rețetei (migrarea 0028) - compunere (itemul e outputul, componentele se consuma)
- * sau descompunere (itemul e inputul, componentele rezulta din el). Directia se
+ * sau descompunere (itemul e inputul, componentele rezulta din el). Metoda se
  * alege explicit aici, nu se mai deduce din ecranul de productie folosit ulterior.
  */
 export function RecipeNewForm({ items }: { items: RecipeItemOption[] }) {
@@ -46,7 +46,7 @@ export function RecipeNewForm({ items }: { items: RecipeItemOption[] }) {
             )}
           </FormField>
 
-          <FormField label="Direcție" required hint={DIRECTION_DESCRIPTIONS[direction]}>
+          <FormField label="Metodă" required hint={DIRECTION_DESCRIPTIONS[direction]}>
             {(id) => (
               <select
                 id={id}

@@ -80,7 +80,8 @@ folder ca suport de curs și se încheie cu un checklist de competențe verifica
 3. (20 min) Rețete: compoziția în procente, fără versionare (produs nou = rețetă
    nouă).
 4. (30 min) Stoc: adăugarea unui lot (proveniență, cantitate, sursă, locație),
-   blocarea/deblocarea unui lot cu motiv, regula FIFO.
+   blocarea/deblocarea unui lot cu motiv, regula "se consumă întâi loturile cele
+   mai vechi".
 5. (15 min) Audit stoc: filtrare și export CSV.
 6. (10 min) Probă practică: fiecare participant creează un client, un material cu
    rețetă simplă și un lot de stoc, apoi blochează și deblochează lotul.
@@ -89,7 +90,7 @@ folder ca suport de curs și se încheie cu un checklist de competențe verifica
 
 - [ ] Creează un client folosind lookup CUI și completează manual câmpurile lipsă.
 - [ ] Adaugă o adresă de livrare și un document pe un client.
-- [ ] Creează un item și îi definește o rețetă (procente).
+- [ ] Creează un produs și îi definește o rețetă (procente).
 - [ ] Adaugă un lot de stoc cu proveniență corectă.
 - [ ] Blochează/deblochează un lot cu motiv.
 - [ ] Exportă un audit de stoc filtrat în CSV.
@@ -105,12 +106,13 @@ critic al demo-ului MVP, pașii 5-9 din flux.)
 
 **Agendă:**
 
-1. (30 min) Producție/Reciclare: cele două fluxuri (Output fix - Fabricație vs.
-   Output variabil - Reciclare), citirea diagramei Sankey, randament/pierderi
-   (se înregistrează, nu se validează).
+1. (30 min) Producție/Reciclare: cele două fluxuri (Fabricație vs. Reciclare),
+   citirea diagramei Sankey, randament/pierderi (se înregistrează, nu se
+   validează).
 2. (40 min) Comenzi: crearea unei comenzi în numele clientului, mașina de stări
-   (Draft -> Trimisă -> Acceptată -> Livrată -> Închisă), **momentul-cheie**:
-   acceptarea scade stocul (FIFO), anularea îl reface.
+   (Ciornă -> Trimisă -> Acceptată -> Livrată -> Închisă), **momentul-cheie**:
+   acceptarea scade stocul (se consumă întâi loturile cele mai vechi), anularea
+   îl reface.
 3. (20 min) Retur și garanție: fluxul de retur (readuce în stoc, după acceptare
    manuală) vs. garanție (retur + comandă de înlocuire automată).
 4. (20 min) Certificat de trasabilitate: generare automată la închiderea
@@ -124,7 +126,7 @@ critic al demo-ului MVP, pașii 5-9 din flux.)
 
 **Checklist de competențe:**
 
-- [ ] Pornește un proces "Output fix" și unul "Output variabil", înțelegând diferența.
+- [ ] Pornește un proces "Fabricație" și unul "Reciclare", înțelegând diferența.
 - [ ] Creează o comandă în numele unui client, cu linii corecte.
 - [ ] Parcurge corect mașina de stări a unei comenzi (Trimite -> Acceptă -> Livrează -> Închide).
 - [ ] Explică de ce stocul scade la acceptare, nu la livrare.

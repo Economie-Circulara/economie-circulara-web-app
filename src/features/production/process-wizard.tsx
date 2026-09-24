@@ -53,15 +53,15 @@ export function ProcessWizard({ recipes, inputItems }: ProcessWizardProps) {
     <div className="max-w-5xl">
       <div className="flex overflow-hidden rounded-t-lg border border-b-0 bg-card">
         <TabButton active={tab === "fix"} onClick={() => setTab("fix")}>
-          <div className="font-semibold">Output fix - Fabricație</div>
+          <div className="font-semibold">Fabricație</div>
           <div className="text-xs text-muted-foreground">
-            Rețete de compunere · consum FIFO automat
+            Rețete de producție · se folosesc întâi loturile cele mai vechi
           </div>
         </TabButton>
         <TabButton active={tab === "var"} onClick={() => setTab("var")}>
-          <div className="font-semibold">Output variabil - Reciclare</div>
+          <div className="font-semibold">Reciclare</div>
           <div className="text-xs text-muted-foreground">
-            Rețete de descompunere · fracții reale ajustabile
+            Rețete de reciclare · materiale rezultate ajustabile
           </div>
         </TabButton>
       </div>

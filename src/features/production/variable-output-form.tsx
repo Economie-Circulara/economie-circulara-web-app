@@ -38,10 +38,11 @@ export interface VariableOutputFormProps {
 }
 
 /**
- * 4b - Input fix / output variabil (reciclare): alegi materialul de input +
- * cantitatea, sistemul afișează outputul ideal pe baza rețetei de DESCOMPUNERE a
- * itemului (`recipes.direction = 'descompunere'`, migrarea 0028), convertit in
- * UM-ul fiecarei fracții, apoi utilizatorul ajustează cantitățile reale.
+ * 4b - Reciclare (input fix / output variabil): alegi materialul de reciclat +
+ * cantitatea, sistemul afișează materialele rezultate ideale pe baza rețetei de
+ * DESCOMPUNERE a itemului (`recipes.direction = 'descompunere'`, migrarea 0028),
+ * convertite in UM-ul fiecarei fracții, apoi utilizatorul ajustează cantitățile
+ * reale.
  *
  * Daca itemul ales are o rețetă de `compunere` (el e produsul, nu materia primă),
  * fracțiile ar fi de fapt componentele lui consumate - afișarea lor ca output e
@@ -241,7 +242,7 @@ export function VariableOutputForm({
   return (
     <div className="grid grid-cols-1 gap-0 rounded-b-lg border border-t-0 bg-card md:grid-cols-2">
       <div className="space-y-4 border-b p-6 md:border-r md:border-b-0">
-        <FormField label="Material input" required>
+        <FormField label="Material de reciclat" required>
           {(id) => (
             <div className="flex gap-2">
               <select
@@ -250,7 +251,7 @@ export function VariableOutputForm({
                 value={inputItemId}
                 onChange={(e) => onInputItemIdChange(e.target.value)}
               >
-                {inputItems.length === 0 ? <option value="">Niciun item</option> : null}
+                {inputItems.length === 0 ? <option value="">Niciun material</option> : null}
                 {inputItems.map((i) => (
                   <option key={i.id} value={i.id}>
                     {i.title}
@@ -276,9 +277,10 @@ export function VariableOutputForm({
         {directionMismatch && selectedInput && recipe ? (
           <div className="space-y-2 rounded-md border border-warn bg-warn/10 px-3 py-2 text-sm">
             <p className="text-warn">
-              Rețeta itemului &quot;{selectedInput.title}&quot; este de <strong>compunere</strong>:
-              componentele ei sunt materialele CONSUMATE ca să îl obții, nu fracțiile care rezultă
-              din el. Afișarea lor ca output ar inversa fluxul, așa că nu propunem fracții aici.
+              Rețeta materialului &quot;{selectedInput.title}&quot; este de{" "}
+              <strong>producție</strong>: materiile prime de mai jos sunt CONSUMATE ca să îl obții,
+              nu materialele care rezultă din el. Afișarea lor ca materiale rezultate ar inversa
+              fluxul, așa că nu propunem nimic aici.
             </p>
             <Button
               type="button"
@@ -286,7 +288,7 @@ export function VariableOutputForm({
               size="sm"
               onClick={() => onOpenInFixedFlow(selectedInput.id)}
             >
-              Deschide în &quot;Output fix - Fabricație&quot; {"->"}
+              Deschide în &quot;Fabricație&quot; {"->"}
             </Button>
           </div>
         ) : null}
@@ -323,16 +325,16 @@ export function VariableOutputForm({
 
         <div>
           <div className="mb-2 font-mono text-[11px] tracking-wide text-muted-foreground uppercase">
-            Output real - ajustează fracțiile
+            Rezultat real - ajustează fracțiile
           </div>
           {directionMismatch ? (
             <p className="text-sm text-muted-foreground">
-              Folosește fluxul de fabricație pentru acest item (vezi mesajul de mai sus).
+              Folosește fluxul de fabricație pentru acest material (vezi mesajul de mai sus).
             </p>
           ) : rows.length === 0 ? (
             <p className="text-sm text-muted-foreground">
-              Itemul ales nu are o rețetă de descompunere definită - creeaz-o din /retete (direcție
-              &quot;Descompunere&quot;) pentru a vedea fracțiile ideale aici.
+              Materialul ales nu are o rețetă de reciclare definită - creeaz-o din /retete (metodă
+              &quot;Reciclare&quot;) pentru a vedea materialele ideale aici.
             </p>
           ) : (
             <table className="w-full border-collapse text-sm">
@@ -373,7 +375,7 @@ export function VariableOutputForm({
           )}
           <div className="mt-3 flex items-center justify-between rounded-md bg-secondary/40 px-3 py-2 text-sm">
             <span className="text-muted-foreground">
-              Total output{" "}
+              Total rezultat{" "}
               <span className="font-medium tabular-nums text-foreground">{totalReal}</span>{" "}
               {selectedInput?.unit}
             </span>

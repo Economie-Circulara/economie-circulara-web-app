@@ -4,6 +4,37 @@ Jurnal al sarcinilor lucrate de agenti AI in acest repo. Conform regulii 1.2 din
 [`AGENTS.md`](../AGENTS.md), la **fiecare commit** se adauga o intrare aici.
 Cele mai noi intrari sus.
 
+## 2026-09-24 — Claude (Claude Code) — Fix cast enum in seed-ul demo
+
+- **Cerut:** repararea `supabase/demo/seed-demo.sql`, care cadea la evenimentul #14
+  (`COALESCE types order_type and text cannot be matched`).
+- **Facut:** cast explicit `::public.order_type` pe expresia `case` din insert-ul in
+  `orders`; restul expresiilor verificate. Plan:
+  `docs/plans/fix-seed-demo-order-type-cast.md`.
+
+## 2026-09-24 — Claude (Claude Code) — Redenumiri texte UI: limbaj mai natural
+
+- **Cerut:** redenumire text-only (fara enum-uri DB/identificatori/rute) a
+  jargonului tehnic din UI, manual si textele asistentului, dupa un glosar
+  aprobat: Direcție->Metodă, Compunere/Descompunere->Producție/Reciclare,
+  Componente(input)/Fracții(output)->Materii prime/Materiale rezultate,
+  Item->Produs, Fizic->Material, Draft->Ciornă, FIFO->"se folosesc întâi
+  loturile cele mai vechi", Factor conversie UM->întrebare dinamica, UM
+  identică->Aceeași unitate de măsură, plus alte texte input/output.
+- **Facut:** actualizate `labels.ts` din `recipes`/`production`/`items`,
+  formularele de rețetă/producție (`recipe-editor`, `recipe-new-form`,
+  `recipes-table`, `fixed-output-form`, `variable-output-form`,
+  `process-wizard`, `processes-table`), detaliul de proces
+  (`productie/[id]/page.tsx`), selectorul de produs din comenzi
+  (`order-editor.tsx`), fallback-urile "Draft" din 9 ecrane, cele 4 documente
+  din `docs/manual/`, si textele descriptive din
+  `assistant/prompt.ts`/`tools/read-tools.ts` (fara sa schimbe numele
+  tool-urilor). Detaliu complet, fisier cu fisier: `docs/plans/redenumiri-texte-ui.md`.
+- **Verificat:** `pnpm typecheck`, `pnpm lint`, `pnpm test` (850 teste),
+  `pnpm format:check` (curat pe fisierele atinse de acest task).
+- **Impact asistent AI (regula 2.4):** `none` - niciun tool nou/schimbat, doar
+  reformulari de texte descriptive trimise modelului (vezi planul).
+
 ## 2026-09-24 — Claude (Claude Code) — Abonamente: ecran și meniu separat de Materiale
 
 - **Cerut:** redenumirea "servicii" -> "Abonamente" in UI, cu ecran si intrare de

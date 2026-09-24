@@ -342,7 +342,7 @@ export function OrderEditor({
           )}
 
           <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
-            <FormField label="Item" className="sm:w-56">
+            <FormField label="Produs" className="sm:w-56">
               {(id) => (
                 <select
                   id={id}
@@ -352,7 +352,7 @@ export function OrderEditor({
                   className={selectClassName}
                 >
                   <option value="" disabled>
-                    {value.orderType ? "Alege un item..." : "Alege întâi tipul comenzii..."}
+                    {value.orderType ? "Alege un produs..." : "Alege întâi tipul comenzii..."}
                   </option>
                   {availableItems.map((option) => (
                     <option key={option.id} value={option.id}>

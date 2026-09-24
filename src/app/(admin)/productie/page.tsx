@@ -17,7 +17,7 @@ export default async function ProductiePage() {
     <div className="space-y-6">
       <PageHeader
         title="Producție"
-        description="Procese de fabricație, reciclare și recondiționare - consum FIFO și trasabilitate."
+        description="Procese de fabricație, reciclare și recondiționare - trasabilitate completă, se folosesc întâi loturile cele mai vechi."
         actions={
           <Button asChild>
             <Link href="/productie/nou">+ Pornește proces</Link>

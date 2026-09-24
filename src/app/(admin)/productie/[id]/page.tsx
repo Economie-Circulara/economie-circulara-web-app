@@ -66,11 +66,11 @@ export default async function ProcessDetailPage({ params }: ProcessDetailPagePro
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Inputuri (loturi consumate)</CardTitle>
+            <CardTitle>Materii prime (loturi consumate)</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
             {process.inputs.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Niciun input înregistrat.</p>
+              <p className="text-sm text-muted-foreground">Nimic consumat încă.</p>
             ) : (
               process.inputs.map((line, i) => (
                 <div
@@ -85,7 +85,7 @@ export default async function ProcessDetailPage({ params }: ProcessDetailPagePro
               ))
             )}
             <div className="flex justify-between border-t pt-2 text-sm font-semibold">
-              <span>Total input</span>
+              <span>Total consumat</span>
               <span className="font-mono tabular-nums">{process.totalInputQty}</span>
             </div>
           </CardContent>
@@ -93,11 +93,11 @@ export default async function ProcessDetailPage({ params }: ProcessDetailPagePro
 
         <Card>
           <CardHeader>
-            <CardTitle>Outputuri (loturi create)</CardTitle>
+            <CardTitle>Materiale rezultate (loturi create)</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
             {process.outputs.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Niciun output înregistrat.</p>
+              <p className="text-sm text-muted-foreground">Nimic rezultat înregistrat.</p>
             ) : (
               process.outputs.map((line, i) => (
                 <div
@@ -119,7 +119,7 @@ export default async function ProcessDetailPage({ params }: ProcessDetailPagePro
               ))
             )}
             <div className="flex justify-between border-t pt-2 text-sm font-semibold">
-              <span>Total output</span>
+              <span>Total rezultat</span>
               <span className="font-mono tabular-nums">{process.totalOutputQty}</span>
             </div>
           </CardContent>
@@ -132,7 +132,8 @@ export default async function ProcessDetailPage({ params }: ProcessDetailPagePro
         </CardHeader>
         <CardContent className="space-y-1 text-sm">
           <p className="text-muted-foreground">
-            Diferența input - output este informativă (se înregistrează, nu se validează).
+            Diferența dintre cantitatea consumată și cea rezultată este informativă (se
+            înregistrează, nu se validează).
           </p>
           <p>
             Pierdere (masă): <span className="font-mono font-semibold tabular-nums">{loss}</span>
