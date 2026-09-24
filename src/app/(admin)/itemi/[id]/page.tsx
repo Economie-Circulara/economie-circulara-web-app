@@ -9,37 +9,38 @@ import { archiveItemAction, restoreItemAction } from "@/features/items/actions";
 import { getItemById } from "@/features/items/queries";
 import { ItemForm } from "@/features/items/item-form";
 
-export const metadata = { title: "Editează material/serviciu - Lot cu Lot" };
+export const metadata = { title: "Editează material - Lot cu Lot" };
 
 interface ItemDetailPageProps {
   params: Promise<{ id: string }>;
 }
 
-/** Formular editare item existent - doar staff. */
+/**
+ * Formular editare material existent - doar staff. Ecranul e doar pentru
+ * itemi `kind = "physical"` - un abonament se editează pe `/abonamente/[id]`.
+ */
 export default async function ItemDetailPage({ params }: ItemDetailPageProps) {
   await requireRole(["admin", "operator"]);
   const { id } = await params;
 
   const item = await getItemById(id);
-  if (!item) notFound();
+  if (!item || item.kind !== "physical") notFound();
 
   return (
     <div className="space-y-6">
       <PageHeader
         title={item.title}
-        description="Editează detaliile materialului sau serviciului."
-        breadcrumbs={[{ label: "Materiale și servicii", href: "/itemi" }, { label: item.title }]}
+        description="Editează detaliile materialului."
+        breadcrumbs={[{ label: "Materiale", href: "/itemi" }, { label: item.title }]}
         actions={
           <div className="flex flex-wrap items-center gap-2">
-            {item.kind === "physical" ? (
-              <Button asChild variant="outline">
-                <Link href={`/retete/${item.id}`}>Rețetă</Link>
-              </Button>
-            ) : null}
+            <Button asChild variant="outline">
+              <Link href={`/retete/${item.id}`}>Rețetă</Link>
+            </Button>
             {item.archivedAt ? (
               <ConfirmActionButton
                 triggerLabel="Restaurează"
-                title="Restaurezi acest material/serviciu?"
+                title="Restaurezi acest material?"
                 description="Va apărea din nou în liste și va putea fi folosit în comenzi, rețete și intrări de stoc."
                 confirmLabel="Da, restaurează"
                 confirmVariant="default"
@@ -48,7 +49,7 @@ export default async function ItemDetailPage({ params }: ItemDetailPageProps) {
             ) : (
               <ConfirmActionButton
                 triggerLabel="Arhivează"
-                title="Arhivezi acest material/serviciu?"
+                title="Arhivezi acest material?"
                 description="Nu va mai apărea în liste și nu va mai putea fi ales în comenzi, rețete sau intrări de stoc. Istoricul (loturi, comenzi, certificate) rămâne neschimbat. Îl poți restaura oricând."
                 confirmLabel="Da, arhivează"
                 action={archiveItemAction.bind(null, item.id)}
@@ -60,10 +61,10 @@ export default async function ItemDetailPage({ params }: ItemDetailPageProps) {
       {item.archivedAt ? (
         <p className="flex items-center gap-2 text-sm text-muted-foreground">
           <Badge variant="neutral">Arhivat</Badge>
-          Acest material/serviciu este arhivat - ascuns din liste și din selecturi.
+          Acest material este arhivat - ascuns din liste și din selecturi.
         </p>
       ) : null}
-      <ItemForm item={item} />
+      <ItemForm item={item} fixedKind="physical" />
     </div>
   );
 }

@@ -1,8 +1,8 @@
 import type { ProcessStatus, ProcessType, ProductionKind } from "./types";
 
 export const PROCESS_TYPE_LABELS: Record<ProcessType, string> = {
-  output_fixed: "Output fix (fabricație)",
-  input_fixed: "Input fix / output variabil (reciclare)",
+  output_fixed: "Fabricație",
+  input_fixed: "Reciclare",
 };
 
 export const PRODUCTION_KIND_LABELS: Record<ProductionKind, string> = {

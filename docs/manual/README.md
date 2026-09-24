@@ -10,7 +10,7 @@ conformitatea cu Anexa 1 - finanțare europeană). Documentele descriu ecranele
 
 | Document | Pentru cine | Ce conține |
 | --- | --- | --- |
-| [`utilizare-admin-operator.md`](utilizare-admin-operator.md) | **Administrator** și **Operator** ai unei organizații | Ghid pas-cu-pas pentru activitatea zilnică: autentificare, dashboard, clienți, itemi/rețete, stoc, producție/reciclare, comenzi, retur/garanție, livrări, rapoarte, căutare. |
+| [`utilizare-admin-operator.md`](utilizare-admin-operator.md) | **Administrator** și **Operator** ai unei organizații | Ghid pas-cu-pas pentru activitatea zilnică: autentificare, dashboard, clienți, produse/rețete, stoc, producție/reciclare, comenzi, retur/garanție, livrări, rapoarte, căutare. |
 | [`utilizare-client.md`](utilizare-client.md) | **Client** (firma care cumpără) | Ghid pas-cu-pas pentru portalul clientului: autentificare, catalog, comenzi proprii, retur/garanție, documente și certificate. |
 | [`ghid-administrare.md`](ghid-administrare.md) | **Administrator de organizație** și **Super-admin de platformă** (+ echipa tehnică) | Configurarea organizației (identitate, white-label, domeniu, email), managementul utilizatorilor, administrarea multi-organizație (super-admin), și referințe tehnice de operare (Supabase, Vercel, migrări, backup). |
 | [`instruire.md`](instruire.md) | **Persoana responsabilă cu instruirea** utilizatorilor desemnați (Beneficiar) | Plan de sesiuni de instruire pe rol, agendă, durată estimată, checklist de competențe, materiale necesare. |
@@ -24,10 +24,12 @@ certificatul de trasabilitate - același flux descris în
 
 1. Creare organizație + useri
 2. Creare client (lookup CUI -> precompletare -> confirmare)
-3. Definire itemi cu rețete
+3. Definire produse cu rețete
 4. Intrare stoc cu lot și documente
-5. Proces reciclare (input -> confirmare output manual -> loturi noi)
-6. Producție (cantitate output -> consum FIFO automat -> loturi noi)
+5. Proces reciclare (material de reciclat -> confirmare manuală a materialelor
+   rezultate -> loturi noi)
+6. Producție (cât vrei să produci -> consum automat, loturile cele mai vechi
+   întâi -> loturi noi)
 7. Comandă (client sau admin)
 8. Acceptare comandă -> scădere stoc
 9. Livrare -> închidere -> generare certificat PDF automat
@@ -77,6 +79,6 @@ Cateva note de onestitate, ca sa nu existe asteptari gresite:
 - Secțiunea "CO₂ economisit" din pagina Rapoarte este marcată explicit în
   aplicație ca fiind în pregătire (v2) - nu e un raport funcțional încă.
 
-Restul fluxurilor descrise (autentificare, clienți, itemi, rețete, stoc,
+Restul fluxurilor descrise (autentificare, clienți, produse, rețete, stoc,
 producție/reciclare, comenzi, retur/garanție, certificate, rapoarte, căutare,
 portal client) sunt funcționale și documentate pe baza ecranelor reale.

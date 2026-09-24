@@ -10,7 +10,7 @@ managementul utilizatorilor - detaliate în [`ghid-administrare.md`](ghid-admini
 Interfața este aceeași pentru ambele roluri (un singur meniu, în stânga ecranului),
 cu excepția "Setări", vizibilă doar pentru Administrator.
 
-![meniul lateral, grupat pe secțiuni pliabile - Panou de control; grupul Comenzi (Comenzi, Livrări); grupul Stoc (Materiale și servicii, Rețete, Stoc, Audit stoc); Clienți; Producție; Rapoarte; grupul Setări (Setări, Utilizatori, Puncte de plecare)](img/admin-sidebar.png)
+![meniul lateral, grupat pe secțiuni pliabile - Panou de control; grupul Comenzi (Comenzi, Livrări); grupul Stoc (Materiale, Abonamente, Rețete, Stoc, Audit stoc); Clienți; Producție; Rapoarte; grupul Setări (Setări, Utilizatori, Puncte de plecare)](img/admin-sidebar.png)
 
 ---
 
@@ -123,56 +123,75 @@ mesajul că firma există deja - restaureaz-o în loc să o creezi din nou.
 
 ---
 
-## 4. Materiale și servicii, Rețete
+## 4. Materiale, Abonamente, Rețete
 
-### 4.1 Materiale și servicii
+### 4.1 Materiale
 
-Meniul **"Materiale și servicii"** este catalogul de produse și servicii al
-organizației - **fără prețuri**. O intrare din catalog poate fi:
+Meniul **"Materiale"** este catalogul de materiale fizice al organizației -
+**fără prețuri**. Fiecare material ține stoc (loturi) și poate avea o rețetă.
 
-- **Fizic** (material) - ține stoc (loturi), poate avea o rețetă.
-- **Serviciu** - abonament/serviciu PaaS (product-as-a-service), fără stoc.
+Abonamentele (produse-ca-serviciu, fără stoc) au ecran propriu - vezi
+secțiunea 4.2.
 
-Lista permite filtrare după **Căutare** (titlu), **Tip** (Fizic/Serviciu) și
-**Vandabil** (Da/Nu).
+Lista permite filtrare după **Căutare** (titlu) și **Vandabil** (Da/Nu).
 
-Pentru a adăuga un material sau serviciu, apasă **"+ Adaugă material sau
-serviciu"** și completează:
+Pentru a adăuga un material, apasă **"+ Adaugă material"** și completează:
 
 - **Titlu** (obligatoriu)
 - **Descriere**
 - **Unitate de măsură** (kg, tonă, mc, litru, bucată, sac, palet) - **un singur UM
   per produs**; dacă același material se vinde în unități diferite, se creează
   produse separate (fără conversii între unități).
-- **Tip** (Fizic/Serviciu)
+- **Urmărește stocul** - dezactivează doar pentru materiale generice fără cantitate
+  limitată (ex: apă, aer).
 - **URL poză** (opțional)
-- Bifa **"Vandabil (apare în catalogul clientului)"** - doar materialele/serviciile
+- Bifa **"Vandabil (apare în catalogul clientului)"** - doar materialele
   vandabile apar în catalogul portalului client.
 
-Apasă **"Creează materialul sau serviciul"**.
+Apasă **"Creează materialul"**.
 
-![ecranul "Materiale și servicii" cu lista și filtrele](img/admin-items.png)
+![ecranul "Materiale" cu lista și filtrele](img/admin-items.png)
 
-**Arhivarea unui material sau serviciu.** Un material/serviciu nu se șterge (e
-folosit de loturi, comenzi și rețete), se **arhivează**: pe ecranul lui apasă
-**"Arhivează"** și confirmă. Materialul arhivat nu mai apare în listă și nu mai
-poate fi ales nicăieri (comenzi, catalogul clientului, rețete, intrări de stoc,
-producție, asistent), dar istoricul - loturi, comenzi, certificate - îl afișează în
-continuare. Bifa **"Arată arhivate"** din filtre îl readuce în listă (cu eticheta
-"Arhivat"), iar **"Restaurează"** îl face din nou utilizabil.
+**Arhivarea unui material.** Un material nu se șterge (e folosit de loturi, comenzi
+și rețete), se **arhivează**: pe ecranul lui apasă **"Arhivează"** și confirmă.
+Materialul arhivat nu mai apare în listă și nu mai poate fi ales nicăieri (comenzi,
+catalogul clientului, rețete, intrări de stoc, producție, asistent), dar istoricul -
+loturi, comenzi, certificate - îl afișează în continuare. Bifa **"Arată arhivate"**
+din filtre îl readuce în listă (cu eticheta "Arhivat"), iar **"Restaurează"** îl
+face din nou utilizabil. Abonamentele se arhivează la fel, de pe ecranul lor.
 
-### 4.2 Rețete
+### 4.2 Abonamente
 
-Meniul **"Rețete"** listează rețetele definite pentru materialele fizice. O rețetă
-descrie **compoziția în procente** a unui produs din alte materiale fizice (materii
-prime/componente). **Rețetele nu se versionează** - dacă se schimbă compoziția,
-se creează un material (produs) nou.
+Meniul **"Abonamente"** este catalogul de produse-ca-serviciu (PaaS) al
+organizației - **fără stoc și fără prețuri** (ex. mentenanță periodică,
+închiriere de echipament). Ecranul oglindește "Materiale", dar fără rețetă și
+fără opțiunea de urmărire a stocului (irelevantă pentru un abonament).
+
+Pentru a adăuga un abonament, apasă **"+ Adaugă abonament"** și completează
+**Titlu**, **Unitate de măsură**, opțional **Descriere** și **URL poză**, apoi
+bifa **"Vandabil"** dacă abonamentul trebuie să apară în catalogul clientului.
+
+Apasă **"Creează abonamentul"**.
+
+### 4.3 Rețete
+
+Meniul **"Rețete"** listează rețetele definite pentru materiale. O rețetă
+descrie **compoziția în procente** a unui produs din materii prime. **Rețetele nu
+se versionează** - dacă se schimbă compoziția, se creează un material (produs) nou.
+
+Fiecare rețetă are o **metodă** explicită:
+
+- **Producție** - produsul se obține din materiile prime de mai jos (ex. beton din
+  apă + nisip + ciment).
+- **Reciclare** - produsul se descompune în materialele rezultate de mai jos (ex.
+  moloz în nisip + pietriș + balast).
 
 Pentru a defini/edita rețeta unui material: din listă, click pe material -> ecranul
 **"Rețetă - `<nume material>`"**. Dacă materialul nu are încă rețetă, apare un buton
-de creare; altfel, editorul de rețetă permite adăugarea/editarea componentelor și a
-procentelor lor. Rețetele se pot defini **doar pentru materiale de tip Fizic**
-(pentru servicii, ecranul afișează un mesaj informativ).
+de creare; altfel, editorul de rețetă permite adăugarea/editarea materiilor prime
+(sau a materialelor rezultate, la metoda Reciclare) și a procentelor lor. Rețetele
+se pot defini **doar pentru materiale** (nu și pentru abonamente - ecranul afișează
+un mesaj informativ).
 
 ![editorul de rețetă cu componentele în procente](img/admin-recipe-editor.png)
 
@@ -234,11 +253,11 @@ două ori), deschide lotul (click pe codul lui) și apasă **"Anulează lotul"**
 - Loturile anulate nu mai apar în lista de stoc; bifa **"Arată loturile anulate"**
   le afișează.
 
-### 5.5 Consumul de stoc (FIFO)
+### 5.5 Consumul de stoc
 
-**Regulă de business:** consumul loturilor la producție se face **FIFO implicit**
-(se consumă mai întâi loturile cele mai vechi), cu opțiune de selecție manuală în
-ecranele de producție (secțiunea 6).
+**Regulă de business:** consumul loturilor la producție se face implicit **în
+ordinea intrării** (se consumă mai întâi loturile cele mai vechi), cu opțiune de
+selecție manuală în ecranele de producție (secțiunea 6).
 
 ### 5.6 Audit stoc
 
@@ -262,21 +281,23 @@ derulate, cu status: **Planificat -> În lucru -> Așteaptă confirmare -> Final
 Apasă **"+ Pornește proces"** -> ecranul **"Pornește proces"**, cu **două fluxuri**,
 alese din tab-uri:
 
-**a) "Output fix - Fabricație"** (ex. fabricare cărămizi, pavaje):
+**a) "Fabricație"** (ex. fabricare cărămizi, pavaje):
 
-1. Alegi rețeta/produsul de output și **cantitatea de output dorită**.
+1. Alegi rețeta/produsul și **cât vrei să produci**.
 2. Sistemul calculează automat, pe baza rețetei (procente), **consumul necesar**
-   din fiecare componentă și propune alocarea **FIFO** din loturile disponibile
-   (previzualizare live, cu eventuale erori dacă nu e stoc suficient).
-3. Diagrama **Sankey** afișează vizual fluxul: loturi de input -> proces -> lot de
-   output.
+   din fiecare materie primă și propune alocarea din loturile disponibile, în
+   ordinea intrării (previzualizare live, cu eventuale erori dacă nu e stoc
+   suficient).
+3. Diagrama **Sankey** afișează vizual fluxul: loturi consumate -> proces -> lot
+   rezultat.
 4. Apeși **"Confirmă și pornește ->"** - se creează procesul, se consumă loturile
-   (FIFO) și se creează lotul/loturile noi de output.
+   și se creează lotul/loturile noi rezultate.
 
-**b) "Output variabil - Reciclare"** (ex. reciclare moloz, demolări):
+**b) "Reciclare"** (ex. reciclare moloz, demolări):
 
-1. Alegi materialul de **input** și cantitatea introdusă.
-2. Sistemul afișează **outputul ideal** conform rețetei (fracțiile teoretice).
+1. Alegi materialul **de reciclat** și cantitatea introdusă.
+2. Sistemul afișează **materialele rezultate ideale** conform rețetei (fracțiile
+   teoretice).
 3. Ajustezi manual cantitățile **reale** obținute pentru fiecare fracție (coloana
    editabilă), pentru că randamentul real diferă de cel teoretic.
 4. Confirmi - se creează loturile noi rezultate, cu proveniența "Reciclare" (sau
@@ -285,16 +306,17 @@ alese din tab-uri:
 **Notă:** pierderile/randamentul se **înregistrează**, nu se validează - sistemul
 nu blochează un proces cu randament sub cel ideal.
 
-![wizard-ul "Pornește proces" cu cele două tab-uri Output fix / Output variabil](img/admin-process-wizard.png)
+![wizard-ul "Pornește proces" cu cele două tab-uri Fabricație / Reciclare](img/admin-process-wizard.png)
 
 ### 6.2 Detaliul unui proces
 
 Click pe un proces din listă deschide ecranul de detaliu, cu:
 
-- Diagrama **"Flux materiale"** (Sankey: input -> proces -> output).
-- Cardurile **"Inputuri (loturi consumate)"** și **"Outputuri (loturi create)"**,
-  cu total input/output.
-- **"Randament / pierderi"** - diferența input - output, informativă.
+- Diagrama **"Flux materiale"** (Sankey: consumat -> proces -> rezultat).
+- Cardurile **"Materii prime (loturi consumate)"** și **"Materiale rezultate
+  (loturi create)"**, cu total consumat/rezultat.
+- **"Randament / pierderi"** - diferența dintre cantitatea consumată și cea
+  rezultată, informativă.
 - Buton **"Anulează procesul"**, disponibil doar cât procesul e într-un status
   netermin (Planificat/În lucru/Așteaptă confirmare).
 
@@ -307,19 +329,19 @@ Click pe un proces din listă deschide ecranul de detaliu, cu:
 Meniul **"Comenzi"** listează comenzile clienților, cu filtrare după **Status**
 și **Căutare** (client sau număr comandă).
 
-### 7.1 Tipul comenzii (Material / Serviciu / Aport)
+### 7.1 Tipul comenzii (Material / Abonament / Aport)
 
 Orice comandă are un **tip**, ales explicit la creare (nu există o valoare
 implicită) - el dă sensul mișcării de stoc:
 
-| Tip          | Sens               | Efect la acceptare                                   |
-| ------------ | ------------------ | ---------------------------------------------------- |
-| **Material** | organizație → client | **scade** stocul (consum FIFO)                       |
-| **Serviciu** | organizație → client | ca la material, plus câmpul **"Retur estimat"**      |
-| **Aport**    | **client → organizație** | **crește** stocul: materialul adus de client intră ca lot nou |
+| Tip           | Sens               | Efect la acceptare                                   |
+| ------------- | ------------------ | ---------------------------------------------------- |
+| **Material**  | organizație → client | **scade** stocul (se folosesc întâi loturile cele mai vechi) |
+| **Abonament** | organizație → client | ca la material, plus câmpul **"Retur estimat"**      |
+| **Aport**     | **client → organizație** | **crește** stocul: materialul adus de client intră ca lot nou |
 
 **Aportul** acoperă cazul în care clientul aduce material către organizație (ex.
-moloz din demolări, pentru reciclare). La linii se pot alege **orice itemi fizici**,
+moloz din demolări, pentru reciclare). La linii se pot alege **orice materiale**,
 inclusiv cei nevandabili (materiile prime nu apar în catalogul de vânzare). O
 comandă de aport nu se "trimite" și nu se "livrează": are o singură acțiune,
 **"Acceptă aport"** (vezi 7.4), după care rămâne **Acceptată**.
@@ -327,7 +349,7 @@ comandă de aport nu se "trimite" și nu se "livrează": are o singură acțiune
 ### 7.2 Mașina de stări a unei comenzi
 
 ```
-Draft -> Trimisă -> Acceptată -> Livrată -> Închisă
+Ciornă -> Trimisă -> Acceptată -> Livrată -> Închisă
                       ↓
                    Anulată (posibilă din stările netermin)
 ```
@@ -337,7 +359,7 @@ statusul curent, atât în listă cât și în ecranul de detaliu):
 **"Trimite"**, **"Acceptă"**, **"Livrează"**, **"Închide"**, **"Anulează"**.
 
 - **"Acceptă"** este momentul-cheie de business: **la acceptare se scade stocul**
-  (consum FIFO din loturile disponibile pentru fiecare linie a comenzii). La
+  (se folosesc întâi loturile cele mai vechi, pentru fiecare linie a comenzii). La
   **"Anulează"**, dacă stocul fusese deja scăzut, acesta **se reface**.
 - **"Închide"** generează **automat** certificatul de trasabilitate PDF al
   comenzii - nu există un buton separat "Generează certificat".
@@ -349,15 +371,15 @@ Organizația poate crea o comandă în numele unui client (flag intern
 telefon/WhatsApp și înregistrate în platformă):
 
 1. Din lista "Comenzi", apasă **"+ Comandă nouă"** -> ecranul **"Comandă nouă"**.
-2. Alege **Tipul comenzii** (Material / Serviciu / Aport - vezi 7.1). Abia după
-   această alegere se poate completa lista de materiale/servicii, pentru că ea
+2. Alege **Tipul comenzii** (Material / Abonament / Aport - vezi 7.1). Abia după
+   această alegere se poate completa lista de materiale/abonamente, pentru că ea
    depinde de tip.
 3. Alege **Client**, opțional o **Adresă de livrare** (dependentă de client) și o
-   **Dată livrare**, opțional **Note**. La tipul **Serviciu** apare în plus
+   **Dată livrare**, opțional **Note**. La tipul **Abonament** apare în plus
    **"Retur estimat"** (data la care se așteaptă bunul înapoi).
-4. În secțiunea **"Linii comandă"**, alege un material sau serviciu și o cantitate, apasă
+4. În secțiunea **"Linii comandă"**, alege un material sau abonament și o cantitate, apasă
    adaugă-linie; repetă pentru fiecare produs; poți șterge o linie adăugată.
-5. Trimite formularul - comanda se creează ca **Draft**.
+5. Trimite formularul - comanda se creează ca **Ciornă**.
 
 Notificările prin email se trimit identic indiferent dacă e comandă creată de
 client sau de organizație.
@@ -369,14 +391,14 @@ client sau de organizație.
 Ecranul de detaliu (`/comenzi/[id]`) afișează: **tipul comenzii** (cu o scurtă
 explicație), client (CUI, notă "Creată de organizație în numele clientului" dacă e
 cazul), livrare (adresă, dată livrare, eventual "Retur estimat (închiriere)" pentru
-fluxul de închiriere ca serviciu), linii de comandă, și un **traseu vizual al
-statusului** (Draft -> Trimisă -> Acceptată -> Livrată -> Închisă, sau "Anulată").
+fluxul de abonament/închiriere), linii de comandă, și un **traseu vizual al
+statusului** (Ciornă -> Trimisă -> Acceptată -> Livrată -> Închisă, sau "Anulată").
 
 Dacă o comandă a fost livrată/închisă, pot apărea butoanele **"Retur"** și
 **"Garanție"** (secțiunea 8). Dacă certificatul există deja, apare butonul
 **"Vezi certificat"**.
 
-Pe o comandă de tip **Aport** aflată în Draft, în locul butoanelor de tranziție apare
+Pe o comandă de tip **Aport** aflată în Ciornă, în locul butoanelor de tranziție apare
 **"Acceptă aport"**: materialul adus de client intră în stoc ca lot nou, cu
 proveniența "Aport client", cu **clientul care l-a adus** păstrat pe lot
 (trasabilitate) și cu calitatea **"Neverificat"** - controlul de calitate se face
@@ -405,7 +427,7 @@ apărea două butoane - **care dintre ele apare depinde de tipul comenzii** (7.1
 | Tipul comenzii | "Retur" | "Garanție" |
 | -------------- | ------- | ---------- |
 | Material       | nu      | da         |
-| Serviciu       | da      | da         |
+| Abonament      | da      | da         |
 | Aport          | nu      | nu         |
 
 Motivul: un **retur pur** (materialul se întoarce în stoc, fără înlocuire) are sens
@@ -421,9 +443,9 @@ materialul a venit de la client, nu către el.
   creează o **nouă comandă**, legată de comanda originală (etichetă "Retur").
 - **"Garanție"** - la fel ca returul, dar sistemul creează automat, în plus, o
   comandă de **înlocuire** (comandă de vânzare obișnuită, care parcurge fluxul
-  normal Draft -> Trimisă -> Acceptată -> Livrată -> Închisă).
+  normal Ciornă -> Trimisă -> Acceptată -> Livrată -> Închisă).
 
-Comanda-retur/garanție nou creată apare inițial ca **Draft**; pe ea, în loc de
+Comanda-retur/garanție nou creată apare inițial ca **Ciornă**; pe ea, în loc de
 butoanele generice de tranziție, apare butonul dedicat **"Acceptă retur"** -
 acceptarea unui retur **adaugă** materialul înapoi în stoc (după inspecție/
 acceptare manuală), spre deosebire de acceptarea unei comenzi de vânzare, care
@@ -500,7 +522,7 @@ selectabilă (câmpurile **"De la"** / **"Până la"** + butonul **"Aplică peri
    reciclare, recondiționare sau retur, intrate în stoc în perioadă.
 5. **"Utilizare PaaS (livrat - returnat)"** - cantitatea efectiv utilizată de
    fiecare client (livrat minus returnat acceptat), per produs - relevant pentru
-   clienți cu model de tip "serviciu" (produs-ca-serviciu).
+   clienți cu model de tip "abonament" (produs-ca-serviciu).
 6. **"% materii prime secundare"** - ponderea materiilor prime secundare
    (reciclate/recondiționate/retur) din inputul de producție, per produs.
 

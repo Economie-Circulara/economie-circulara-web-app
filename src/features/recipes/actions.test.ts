@@ -96,7 +96,7 @@ describe("createRecipeAction", () => {
   it("propaga eroarea serviciului (ex. item de tip serviciu)", async () => {
     requireRole.mockResolvedValue({ id: "u1" });
     createRecipe.mockRejectedValue(
-      new Error("Rețetele se pot defini doar pentru itemi de tip fizic."),
+      new Error("Rețetele se pot defini doar pentru materiale, nu pentru abonamente."),
     );
 
     const state = await createRecipeAction(
@@ -104,7 +104,7 @@ describe("createRecipeAction", () => {
       formData({ item_id: "item-1", direction: "compunere" }),
     );
 
-    expect(state.error).toBe("Rețetele se pot defini doar pentru itemi de tip fizic.");
+    expect(state.error).toBe("Rețetele se pot defini doar pentru materiale, nu pentru abonamente.");
     expect(redirect).not.toHaveBeenCalled();
   });
 });

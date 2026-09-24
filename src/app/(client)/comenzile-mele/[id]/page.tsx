@@ -70,7 +70,7 @@ export default async function ClientOrderDetailPage({ params }: OrderDetailPageP
         title={order.orderNumber ?? "Comandă draft"}
         breadcrumbs={[
           { label: "Comenzile mele", href: "/comenzile-mele" },
-          { label: order.orderNumber ?? "Draft" },
+          { label: order.orderNumber ?? "Ciornă" },
         ]}
         actions={
           <>

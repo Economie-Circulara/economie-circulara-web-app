@@ -91,7 +91,7 @@ export function DeliveryForm({
         <CardHeader>
           <CardTitle>Comandă</CardTitle>
           <CardDescription>
-            {orderNumber ?? "Draft"} · {clientName}
+            {orderNumber ?? "Ciornă"} · {clientName}
           </CardDescription>
         </CardHeader>
       </Card>

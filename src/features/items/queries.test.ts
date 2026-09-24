@@ -79,7 +79,7 @@ describe("listItems", () => {
     createClient.mockResolvedValue({ from: vi.fn().mockReturnValue(itemsBuilder) });
 
     await expect(listItems()).rejects.toThrow(
-      "Nu am putut incarca lista de materiale si servicii.",
+      "Nu am putut incarca lista de materiale si abonamente.",
     );
   });
 });

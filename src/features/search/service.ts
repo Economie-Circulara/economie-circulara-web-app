@@ -3,6 +3,7 @@ import type { UserRole } from "@/features/auth/session";
 import { ORDER_STATUS_LABELS } from "@/features/orders/labels";
 import { listOrders } from "@/features/orders/queries";
 import { listClients } from "@/features/clients/queries";
+import { itemHref } from "@/features/items/item-links";
 import { listItems } from "@/features/items/queries";
 import { listCatalogItems } from "@/features/client-portal/queries";
 import { SEARCH_GROUP_LABELS, SEARCH_GROUP_ORDER } from "./labels";
@@ -83,7 +84,7 @@ async function searchItems(query: string, limit: number): Promise<SearchResultGr
       id: row.id,
       label: row.title,
       sublabel: row.sellable ? "Vandabil" : "Nevandabil",
-      href: `/itemi/${row.id}`,
+      href: itemHref(row),
     })),
   };
 }

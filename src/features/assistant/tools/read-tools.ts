@@ -6,6 +6,7 @@ import {
 } from "@/features/clients/cui-lookup";
 import { getDeliveryByOrderId } from "@/features/deliveries/queries";
 import { PLANNABLE_ORDER_STATUS } from "@/features/deliveries/service";
+import { itemHref } from "@/features/items/item-links";
 import { listItems } from "@/features/items/queries";
 import { getOrderDetail, listIntakeItemOptions } from "@/features/orders/queries";
 import { listSites } from "@/features/routing/site-queries";
@@ -54,7 +55,7 @@ export const cautaInManual: AssistantTool<{ intrebare: string }> = {
 export const cauta: AssistantTool<{ text: string }> = {
   name: "cauta",
   description:
-    "Caută în datele platformei (clienți, comenzi, itemi, loturi, certificate) la care are acces " +
+    "Caută în datele platformei (clienți, comenzi, produse, loturi, certificate) la care are acces " +
     "utilizatorul curent. Întoarce rezultate grupate pe tip.",
   parameters: {
     type: "object",
@@ -128,7 +129,7 @@ export const listeazaClienti: AssistantTool<{ cautare: string | null }> = {
 export const itemiVandabili: AssistantTool<{ cautare: string | null }> = {
   name: "itemi_vandabili",
   description:
-    "Listează itemii marcați ca vandabili, cu unitatea de măsură. " +
+    "Listează produsele marcate ca vandabile, cu unitatea de măsură. " +
     "Folosește-l ca să găsești `item_id`-ul pentru liniile unei comenzi.",
   parameters: {
     type: "object",
@@ -148,7 +149,7 @@ export const itemiVandabili: AssistantTool<{ cautare: string | null }> = {
       item_id: item.id,
       denumire: item.title,
       um: item.unit,
-      link: `/itemi/${item.id}`,
+      link: itemHref(item),
     }));
   },
 };
@@ -156,8 +157,8 @@ export const itemiVandabili: AssistantTool<{ cautare: string | null }> = {
 export const itemiAport: AssistantTool<{ cautare: string | null }> = {
   name: "itemi_aport",
   description:
-    "Listează itemii care pot fi ADUȘI de client într-o comandă de tip `aport` (itemi " +
-    "fizici trasați, inclusiv cei NEVANDABILI - ex. moloz). Folosește-l în locul lui " +
+    "Listează produsele care pot fi ADUSE de client într-o comandă de tip `aport` (materiale " +
+    "fizice trasate, inclusiv cele NEVANDABILE - ex. moloz). Folosește-l în locul lui " +
     "`itemi_vandabili` când pregătești o comandă cu `tip_comanda = aport`.",
   parameters: {
     type: "object",
@@ -182,7 +183,7 @@ export const itemiAport: AssistantTool<{ cautare: string | null }> = {
       item_id: item.id,
       denumire: item.title,
       um: item.unit,
-      link: `/itemi/${item.id}`,
+      link: itemHref(item),
     }));
   },
 };

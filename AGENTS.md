@@ -270,6 +270,18 @@ Testele unitare sunt **colocate** langa cod (`*.test.ts` / `*.test.tsx`).
     `serviciu` nu e "poate avea retur", ci e ca la `serviciu` returul e ASTEPTAT
     DE LA INCEPUT (`expected_return_date` completat la creare) - la `material` e
     o exceptie de la fluxul normal, nu regula.
+- **In UI, itemii `kind = "service"` se numesc "Abonament", nu "Serviciu"**
+  (decizie 2026-09-24, task Abonamente): denumirea de produs-ca-serviciu (PaaS)
+  e mai clara pentru utilizatorii platformei decat termenul generic "serviciu".
+  Ecranul e acum separat de materiale - `/abonamente` (listare, creare, editare),
+  distinct de `/itemi` (doar `kind = "physical"`), fiecare cu intrare proprie in
+  meniu (grupul "Stoc": "Materiale" + "Abonamente"). Linkurile catre un item
+  existent (tabele, cautare globala, tool-urile de asistent) trec obligatoriu prin
+  helper-ul `itemHref()` (`src/features/items/item-links.ts`), care alege ruta
+  dupa `kind` - o constructie directa de genul `` `/itemi/${id}` `` da 404 pentru
+  un abonament. Enum-urile DB (`item_kind.service`, `order_type.serviciu`) NU
+  s-au schimbat - e cost de migrare, nu regula de business; schimbarea e strict de
+  etichetare (`KIND_LABELS`, `ORDER_TYPE_LABELS`), ecran si navigare.
 
 - **Nimic cu istoric nu se sterge fizic - arhivare / stergere logica / anulare /
   dezactivare** (decizie 2026-09, migrarea `0035_soft_delete.sql`,

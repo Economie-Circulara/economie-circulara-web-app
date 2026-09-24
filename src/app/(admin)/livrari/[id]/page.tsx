@@ -37,7 +37,7 @@ export default async function DeliveryDetailPage({ params }: DeliveryDetailPageP
   return (
     <div className="space-y-8">
       <PageHeader
-        title={`Livrare - ${delivery.orderNumber ?? "Draft"}`}
+        title={`Livrare - ${delivery.orderNumber ?? "Ciornă"}`}
         description={delivery.clientName}
         breadcrumbs={[
           { label: "Livrări", href: "/livrari" },

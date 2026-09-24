@@ -92,7 +92,8 @@ test.describe("Flux complet MVP (handoff.md, pasii 1-9)", () => {
       await page.goto("/itemi/nou");
       await label(page, "Titlu").fill(ITEM_INPUT_TITLE);
       await label(page, "Unitate de măsură").selectOption({ label: "kg" });
-      // Rămâne nevandabil (materie primă internă) și "Fizic" (implicit).
+      // Rămâne nevandabil (materie primă internă) - "Material" (kind fizic,
+      // fixat de ecranul /itemi/nou).
       await page.getByRole("button", { name: "Creează itemul" }).click();
       await expect(page).toHaveURL(/\/itemi$/);
 

@@ -4,6 +4,81 @@ Jurnal al sarcinilor lucrate de agenti AI in acest repo. Conform regulii 1.2 din
 [`AGENTS.md`](../AGENTS.md), la **fiecare commit** se adauga o intrare aici.
 Cele mai noi intrari sus.
 
+## 2026-09-24 — Claude (Claude Code) — Integrare arhivare (PR #50) cu ecranul Abonamente (PR #48)
+
+- **Cerut:** merge in ordine al PR-urilor din runda "ultima suta de metri".
+- **Facut:** la aducerea `main` in PR-ul de arhivare, butoanele Arhivează/Restaurează
+  si comutatorul "Arată arhivate" au fost puse si pe ecranele `/abonamente` (nu doar
+  `/itemi`); helper nou `itemListHref(kind)`. Fix bug din #48: crearea/salvarea unui
+  abonament redirectiona la lista Materiale (unde nu apare) - acum merge la
+  `/abonamente`; arhivarea invalideaza ambele ecrane.
+
+## 2026-09-24 — Claude (Claude Code) — Fix cast enum in seed-ul demo
+
+- **Cerut:** repararea `supabase/demo/seed-demo.sql`, care cadea la evenimentul #14
+  (`COALESCE types order_type and text cannot be matched`).
+- **Facut:** cast explicit `::public.order_type` pe expresia `case` din insert-ul in
+  `orders`; restul expresiilor verificate. Plan:
+  `docs/plans/fix-seed-demo-order-type-cast.md`.
+
+## 2026-09-24 — Claude (Claude Code) — Redenumiri texte UI: limbaj mai natural
+
+- **Cerut:** redenumire text-only (fara enum-uri DB/identificatori/rute) a
+  jargonului tehnic din UI, manual si textele asistentului, dupa un glosar
+  aprobat: Direcție->Metodă, Compunere/Descompunere->Producție/Reciclare,
+  Componente(input)/Fracții(output)->Materii prime/Materiale rezultate,
+  Item->Produs, Fizic->Material, Draft->Ciornă, FIFO->"se folosesc întâi
+  loturile cele mai vechi", Factor conversie UM->întrebare dinamica, UM
+  identică->Aceeași unitate de măsură, plus alte texte input/output.
+- **Facut:** actualizate `labels.ts` din `recipes`/`production`/`items`,
+  formularele de rețetă/producție (`recipe-editor`, `recipe-new-form`,
+  `recipes-table`, `fixed-output-form`, `variable-output-form`,
+  `process-wizard`, `processes-table`), detaliul de proces
+  (`productie/[id]/page.tsx`), selectorul de produs din comenzi
+  (`order-editor.tsx`), fallback-urile "Draft" din 9 ecrane, cele 4 documente
+  din `docs/manual/`, si textele descriptive din
+  `assistant/prompt.ts`/`tools/read-tools.ts` (fara sa schimbe numele
+  tool-urilor). Detaliu complet, fisier cu fisier: `docs/plans/redenumiri-texte-ui.md`.
+- **Verificat:** `pnpm typecheck`, `pnpm lint`, `pnpm test` (850 teste),
+  `pnpm format:check` (curat pe fisierele atinse de acest task).
+- **Impact asistent AI (regula 2.4):** `none` - niciun tool nou/schimbat, doar
+  reformulari de texte descriptive trimise modelului (vezi planul).
+
+## 2026-09-24 — Claude (Claude Code) — Abonamente: ecran și meniu separat de Materiale
+
+- **Cerut:** redenumirea "servicii" -> "Abonamente" in UI, cu ecran si intrare de
+  meniu separate de "Materiale" (optiunea A, aprobata: doar UI/catalog, FARA
+  modificari de DB/enum).
+- **Facut:**
+  - Rute noi `/abonamente`, `/abonamente/nou`, `/abonamente/[id]` (oglindesc
+    `/itemi`, filtrate pe `kind = "service"`); `/itemi` ramane doar pentru
+    `kind = "physical"` ("Materiale"). `ItemForm` primeste `fixedKind` - niciun
+    formular de creare nu mai are selector de tip (fixat de ecran).
+  - Helper nou `itemHref()` (`src/features/items/item-links.ts`) - alege
+    `/itemi/[id]` sau `/abonamente/[id]` dupa `kind`; folosit in `ItemsTable`,
+    cautarea globala (`search/service.ts`) si tool-urile de asistent
+    (`itemi_vandabili`, `itemi_aport`) - altfel un link catre un abonament da 404.
+  - Nav: grupul "Stoc" -> "Materiale" + "Abonamente" (icon nou `subscriptions`,
+    `Repeat` din lucide, mapat in `sidebar.tsx` conform regulii RSC din AGENTS §4.2).
+  - Etichete: `KIND_LABELS.service` -> "Abonament", `.physical` -> "Material";
+    `ORDER_TYPE_LABELS.serviciu` -> "Abonament" (doar eticheta - enum-ul DB
+    `serviciu` ramane neschimbat). Text UI corespunzator in retete, comenzi,
+    retururi, catalogul clientului (reutilizeaza `KIND_LABELS`), asistent
+    (`prompt.ts`, descrierile tool-urilor, sugestii) si `docs/manual/`.
+  - Teste noi: `item-links.test.ts`, `items-table.test.tsx`; actualizate
+    `read-tools.test.ts` (link catre abonament), `order-editor.test.tsx`
+    (radio "Abonament"), `items/actions.test.ts`.
+- **Verificat:** `pnpm typecheck`, `pnpm lint`, `pnpm test` (855 teste),
+  `pnpm format:check` (3 avertismente Prettier ramase apartin unor fisiere
+  neatinse de acest task, deja prezente pe `main`).
+- **Impact asistent AI (regula 2.4):** `none` pe capabilitati - niciun tool nou/
+  schimbat functional; doar wording (`serviciu` -> `abonament` in text liber,
+  NU valoarea enum `tip_comanda`) si linkurile intoarse de tool-urile existente
+  (prin `itemHref()`).
+- **Regula noua adaugata in AGENTS.md §4:** denumirea "Abonament" pentru
+  `kind = "service"` in UI, cu ecran/rute separate si helper-ul `itemHref()`
+  obligatoriu pentru orice link catre un item existent.
+
 ## 2026-09-24 — Claude (Claude Code) — Soft-delete: ciorne șterse de client + retur pe itemi arhivați
 
 - **Cerut:** răspunsuri la întrebările deschise din PR #50: (1) clientul își poate
@@ -62,6 +137,7 @@ Cele mai noi intrari sus.
   acum arhivatele / loturile anulate / ciornele șterse. Fără tool-uri noi de scriere
   (arhivarea/ștergerea rămân acțiuni conștiente din UI). Test de regresie în
   `read-tools.test.ts`.
+
 
 ## 2026-09-20 — Claude Sonnet 5 — Asistent: fix catalog aport + planificarea livrarii
 

@@ -88,7 +88,7 @@ export async function createClientOrderAction(
   } catch (err) {
     // Comanda a fost salvata ca draft, dar nu a putut fi trimisa (ex. generarea
     // numarului a esuat) - semnalam eroarea, dar orderId ramane util (utilizatorul
-    // poate incerca din nou din /comenzile-mele, comanda apare acolo ca "Draft").
+    // poate incerca din nou din /comenzile-mele, comanda apare acolo ca "Ciornă").
     revalidatePath("/comenzile-mele");
     return {
       error:
