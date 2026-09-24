@@ -6,11 +6,14 @@ import { requireRole } from "@/features/auth/session";
 import { DIRECTION_OPTIONS } from "./labels";
 import {
   addOrUpdateComponent,
+  addOrUpdateComponents,
   createRecipe,
   removeComponent,
   setRecipeArchived,
   updateRecipeDirection,
 } from "./service";
+import { quantitiesToPercentages } from "./quantity-calc";
+import { validateNotSelfReference } from "./validation";
 import type { RecipeDirection } from "./types";
 import type { RecipeFormState } from "./action-state";
 
@@ -81,6 +84,86 @@ export async function addComponentAction(
     await addOrUpdateComponent({ recipeId, componentItemId, percentage, conversionFactor });
   } catch (err) {
     return { error: err instanceof Error ? err.message : "Nu am putut salva componenta." };
+  }
+
+  revalidatePath(`/retete/${itemId}`);
+  revalidatePath("/retete");
+  return { error: null };
+}
+
+interface QuantityRow {
+  componentItemId: string;
+  quantity: number;
+}
+
+function parseQuantityRows(value: FormDataEntryValue | null): QuantityRow[] | null {
+  const raw = clean(value);
+  if (!raw) return null;
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    return null;
+  }
+  if (!Array.isArray(parsed)) return null;
+
+  const rows: QuantityRow[] = [];
+  for (const entry of parsed) {
+    if (!entry || typeof entry !== "object") return null;
+    const componentItemId = (entry as Record<string, unknown>).componentItemId;
+    const quantity = (entry as Record<string, unknown>).quantity;
+    if (typeof componentItemId !== "string" || !componentItemId) return null;
+    if (typeof quantity !== "number" || !Number.isFinite(quantity)) return null;
+    rows.push({ componentItemId, quantity });
+  }
+  return rows;
+}
+
+/**
+ * Salveaza rețeta din modul de input "Cantități reale" (docs/plans/reteta-vizuala.md):
+ * primeste cantitatea de baza + cantitati reale per componenta (aceeasi UM ca
+ * rețeta - faza 1, fara conversii), calculeaza procentele (`quantitiesToPercentages`)
+ * si le salveaza prin `addOrUpdateComponents` - ACELASI upsert/validare ca modul
+ * clasic de procente, doar intrarea difera.
+ */
+export async function saveQuantityComponentsAction(
+  _prev: RecipeFormState,
+  formData: FormData,
+): Promise<RecipeFormState> {
+  await requireRole(["admin", "operator"]);
+
+  const recipeId = clean(formData.get("recipe_id"));
+  const itemId = clean(formData.get("item_id"));
+  const batchQty = parseNumber(formData.get("batch_qty"));
+  const rows = parseQuantityRows(formData.get("rows_json"));
+
+  if (!recipeId || !itemId) return { error: "Rețetă invalidă." };
+  if (batchQty === null || batchQty <= 0) {
+    return { error: "Introdu o cantitate de bază mai mare ca 0." };
+  }
+  if (!rows) return { error: "Rândurile de cantități nu au putut fi citite." };
+  if (rows.length === 0) return { error: "Adaugă cel puțin o materie primă." };
+
+  for (const row of rows) {
+    const selfRefError = validateNotSelfReference(itemId, row.componentItemId);
+    if (selfRefError) return { error: selfRefError };
+    if (row.quantity <= 0) return { error: "Fiecare cantitate trebuie să fie mai mare ca 0." };
+  }
+  const seen = new Set(rows.map((r) => r.componentItemId));
+  if (seen.size !== rows.length) return { error: "Un material nu poate apărea de două ori." };
+
+  const percentages = quantitiesToPercentages(
+    batchQty,
+    rows.map((r) => ({ id: r.componentItemId, quantity: r.quantity })),
+  );
+
+  try {
+    await addOrUpdateComponents(
+      recipeId,
+      percentages.map((p) => ({ componentItemId: p.id, percentage: p.percentage })),
+    );
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : "Nu am putut salva rețeta." };
   }
 
   revalidatePath(`/retete/${itemId}`);

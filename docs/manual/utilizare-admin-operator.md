@@ -189,9 +189,24 @@ Fiecare rețetă are o **metodă** explicită:
 Pentru a defini/edita rețeta unui material: din listă, click pe material -> ecranul
 **"Rețetă - `<nume material>`"**. Dacă materialul nu are încă rețetă, apare un buton
 de creare; altfel, editorul de rețetă permite adăugarea/editarea materiilor prime
-(sau a materialelor rezultate, la metoda Reciclare) și a procentelor lor. Rețetele
-se pot defini **doar pentru materiale** (nu și pentru abonamente - ecranul afișează
-un mesaj informativ).
+(sau a materialelor rezultate, la metoda Reciclare). Rețetele se pot defini **doar
+pentru materiale** (nu și pentru abonamente - ecranul afișează un mesaj informativ).
+
+Editorul are două moduri de introducere a materiilor prime (datele salvate sunt
+identice - procentele):
+
+- **Cantități reale** (implicit) - setezi o **cantitate de bază** (ex. 1000 kg) și
+  introduci cantitatea reală a fiecărei materii prime, în **aceeași unitate de
+  măsură** ca produsul; procentele se calculează automat. O **bară de proporții**
+  vizuală arată ponderea fiecărei materii prime și permite ajustarea prin tragerea
+  granițelor dintre segmente (sau cu săgețile stânga/dreapta, când o graniță e
+  selectată) - o materie primă poate fi **blocată** (lacăt) ca să nu se miște la
+  ajustare. Un calculator "Pentru [cantitate] {unitate}" arată o previzualizare
+  rescalată, fără să modifice rețeta salvată. Materiile prime într-o altă unitate
+  de măsură decât produsul apar dezactivate în listă, cu indicația să fie adăugate
+  din modul avansat.
+- **Procente (avansat)** - formularul clasic, cu procent introdus direct și factor
+  de conversie între unități de măsură diferite (ex. 1 mc nisip = 1500 kg beton).
 
 ![editorul de rețetă cu componentele în procente](img/admin-recipe-editor.png)
 
