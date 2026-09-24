@@ -5,6 +5,7 @@ vi.mock("@/lib/supabase/server", () => ({ createClient }));
 
 import {
   addOrUpdateComponent,
+  addOrUpdateComponents,
   createRecipe,
   removeComponent,
   updateRecipeDirection,
@@ -191,6 +192,70 @@ describe("addOrUpdateComponent", () => {
     await expect(
       addOrUpdateComponent({ recipeId: "recipe-x", componentItemId: "item-2", percentage: 40 }),
     ).rejects.toThrow(/inexistentă/i);
+  });
+});
+
+describe("addOrUpdateComponents", () => {
+  function mockSupabase({
+    recipe,
+    upsertError,
+  }: {
+    recipe?: Record<string, unknown> | null;
+    upsertError?: { message: string } | null;
+  } = {}) {
+    const maybeSingle = vi.fn().mockResolvedValue({ data: recipe ?? null, error: null });
+    const upsert = vi.fn().mockResolvedValue({ error: upsertError ?? null });
+    const from = vi.fn((table: string) => {
+      if (table === "recipes") {
+        return {
+          select: vi.fn().mockReturnValue({ eq: vi.fn().mockReturnValue({ maybeSingle }) }),
+        };
+      }
+      if (table === "recipe_components") {
+        return { upsert };
+      }
+      throw new Error(`tabel neasteptat in test: ${table}`);
+    });
+    return { from, upsert };
+  }
+
+  it("salveaza fiecare rand cu conversion_factor 1 (modul cantitati reale - fara conversii de UM)", async () => {
+    const { from, upsert } = mockSupabase({
+      recipe: { id: "recipe-1", item_id: "item-1", organization_id: "org-1" },
+    });
+    createClient.mockResolvedValue({ from });
+
+    await addOrUpdateComponents("recipe-1", [
+      { componentItemId: "ciment", percentage: 15 },
+      { componentItemId: "apa", percentage: 20 },
+    ]);
+
+    expect(upsert).toHaveBeenCalledTimes(2);
+    expect(upsert).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({
+        component_item_id: "ciment",
+        percentage: 15,
+        conversion_factor: 1,
+      }),
+      { onConflict: "recipe_id,component_item_id" },
+    );
+    expect(upsert).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({ component_item_id: "apa", percentage: 20, conversion_factor: 1 }),
+      { onConflict: "recipe_id,component_item_id" },
+    );
+  });
+
+  it("opreste la primul rand invalid (validare refolosita din addOrUpdateComponent)", async () => {
+    const { from } = mockSupabase({
+      recipe: { id: "recipe-1", item_id: "item-1", organization_id: "org-1" },
+    });
+    createClient.mockResolvedValue({ from });
+
+    await expect(
+      addOrUpdateComponents("recipe-1", [{ componentItemId: "ciment", percentage: 0 }]),
+    ).rejects.toThrow(/mai mare/i);
   });
 });
 

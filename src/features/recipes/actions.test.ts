@@ -3,17 +3,23 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 const { requireRole } = vi.hoisted(() => ({ requireRole: vi.fn() }));
 vi.mock("@/features/auth/session", () => ({ requireRole }));
 
-const { createRecipe, addOrUpdateComponent, removeComponent, updateRecipeDirection } = vi.hoisted(
-  () => ({
-    createRecipe: vi.fn(),
-    addOrUpdateComponent: vi.fn(),
-    removeComponent: vi.fn(),
-    updateRecipeDirection: vi.fn(),
-  }),
-);
+const {
+  createRecipe,
+  addOrUpdateComponent,
+  addOrUpdateComponents,
+  removeComponent,
+  updateRecipeDirection,
+} = vi.hoisted(() => ({
+  createRecipe: vi.fn(),
+  addOrUpdateComponent: vi.fn(),
+  addOrUpdateComponents: vi.fn(),
+  removeComponent: vi.fn(),
+  updateRecipeDirection: vi.fn(),
+}));
 vi.mock("./service", () => ({
   createRecipe,
   addOrUpdateComponent,
+  addOrUpdateComponents,
   removeComponent,
   updateRecipeDirection,
 }));
@@ -32,6 +38,7 @@ import {
   addComponentAction,
   createRecipeAction,
   removeComponentAction,
+  saveQuantityComponentsAction,
   updateRecipeDirectionAction,
 } from "./actions";
 import { initialRecipeFormState } from "./action-state";
@@ -238,6 +245,93 @@ describe("addComponentAction", () => {
     );
 
     expect(state.error).toBe("Un item nu poate fi componenta propriei rețete.");
+  });
+});
+
+describe("saveQuantityComponentsAction (modul Cantități reale)", () => {
+  function rowsFormData(fields: Record<string, string>, rows: unknown): FormData {
+    return formData({ ...fields, rows_json: JSON.stringify(rows) });
+  }
+
+  it("cere o cantitate de bază mai mare ca 0", async () => {
+    requireRole.mockResolvedValue({ id: "u1" });
+    const state = await saveQuantityComponentsAction(
+      initialRecipeFormState,
+      rowsFormData({ recipe_id: "recipe-1", item_id: "item-1", batch_qty: "0" }, [
+        { componentItemId: "ciment", quantity: 150 },
+      ]),
+    );
+    expect(state.error).toMatch(/cantitate de bază/i);
+    expect(addOrUpdateComponents).not.toHaveBeenCalled();
+  });
+
+  it("cere cel putin un rand", async () => {
+    requireRole.mockResolvedValue({ id: "u1" });
+    const state = await saveQuantityComponentsAction(
+      initialRecipeFormState,
+      rowsFormData({ recipe_id: "recipe-1", item_id: "item-1", batch_qty: "1000" }, []),
+    );
+    expect(state.error).toMatch(/cel puțin o materie primă/i);
+  });
+
+  it("respinge auto-referinta (componenta = itemul propriu al retetei)", async () => {
+    requireRole.mockResolvedValue({ id: "u1" });
+    const state = await saveQuantityComponentsAction(
+      initialRecipeFormState,
+      rowsFormData({ recipe_id: "recipe-1", item_id: "item-1", batch_qty: "1000" }, [
+        { componentItemId: "item-1", quantity: 150 },
+      ]),
+    );
+    expect(state.error).toMatch(/propriei rețete/i);
+  });
+
+  it("respinge randuri duplicate ale aceluiasi material", async () => {
+    requireRole.mockResolvedValue({ id: "u1" });
+    const state = await saveQuantityComponentsAction(
+      initialRecipeFormState,
+      rowsFormData({ recipe_id: "recipe-1", item_id: "item-1", batch_qty: "1000" }, [
+        { componentItemId: "ciment", quantity: 150 },
+        { componentItemId: "ciment", quantity: 50 },
+      ]),
+    );
+    expect(state.error).toMatch(/de două ori/i);
+  });
+
+  it("calculeaza procentele din cantitati si le salveaza prin addOrUpdateComponents", async () => {
+    requireRole.mockResolvedValue({ id: "u1" });
+    addOrUpdateComponents.mockResolvedValue(undefined);
+
+    const state = await saveQuantityComponentsAction(
+      initialRecipeFormState,
+      rowsFormData({ recipe_id: "recipe-1", item_id: "item-1", batch_qty: "1000" }, [
+        { componentItemId: "ciment", quantity: 150 },
+        { componentItemId: "apa", quantity: 200 },
+        { componentItemId: "nisip", quantity: 650 },
+      ]),
+    );
+
+    expect(addOrUpdateComponents).toHaveBeenCalledWith("recipe-1", [
+      { componentItemId: "ciment", percentage: 15 },
+      { componentItemId: "apa", percentage: 20 },
+      { componentItemId: "nisip", percentage: 65 },
+    ]);
+    expect(state.error).toBeNull();
+    expect(revalidatePath).toHaveBeenCalledWith("/retete/item-1");
+    expect(revalidatePath).toHaveBeenCalledWith("/retete");
+  });
+
+  it("propaga eroarea serviciului", async () => {
+    requireRole.mockResolvedValue({ id: "u1" });
+    addOrUpdateComponents.mockRejectedValue(new Error("boom"));
+
+    const state = await saveQuantityComponentsAction(
+      initialRecipeFormState,
+      rowsFormData({ recipe_id: "recipe-1", item_id: "item-1", batch_qty: "1000" }, [
+        { componentItemId: "ciment", quantity: 150 },
+      ]),
+    );
+
+    expect(state.error).toBe("boom");
   });
 });
 

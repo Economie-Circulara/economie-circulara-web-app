@@ -17,8 +17,11 @@ import {
   DIRECTION_PERCENTAGE_HINTS,
   DIRECTION_SHORT_LABELS,
 } from "./labels";
+import { QuantityEditor } from "./quantity-editor";
 import { isPercentageSumComplete } from "./validation";
 import type { RecipeDetail, RecipeDirection, RecipeItemOption } from "./types";
+
+type EditorMode = "cantitati" | "procente";
 
 const selectClassName =
   "flex h-9 w-full rounded-md border border-input bg-card px-3 py-1 text-sm shadow-xs outline-none " +
@@ -116,6 +119,7 @@ export function RecipeEditor({
 }) {
   const [state, action, pending] = useActionState(addComponentAction, initialRecipeFormState);
   const [componentItemId, setComponentItemId] = useState("");
+  const [mode, setMode] = useState<EditorMode>("cantitati");
   const sumComplete = isPercentageSumComplete(recipe.percentageSum);
 
   const selectedOption = componentOptions.find((option) => option.id === componentItemId) ?? null;
@@ -182,95 +186,141 @@ export function RecipeEditor({
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>
-            {recipe.direction === "compunere" ? "Adaugă materie primă" : "Adaugă material rezultat"}
-          </CardTitle>
-          <CardDescription>
-            Alegerea unui material deja prezent în rețetă îi actualizează procentul și factorul.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form action={action} className="flex flex-wrap items-end gap-3">
-            <input type="hidden" name="recipe_id" value={recipe.recipeId} />
-            <input type="hidden" name="item_id" value={recipe.itemId} />
-            <FormField label="Material" required>
-              {(id) => (
-                <select
-                  id={id}
-                  name="component_item_id"
-                  required
-                  value={componentItemId}
-                  onChange={(e) => setComponentItemId(e.target.value)}
-                  className={selectClassName}
-                >
-                  <option value="" disabled>
-                    Alege un material...
-                  </option>
-                  {componentOptions.map((option) => (
-                    <option key={option.id} value={option.id}>
-                      {option.title} ({option.unit})
+      <div
+        role="tablist"
+        aria-label="Mod de introducere a rețetei"
+        className="flex flex-wrap gap-2 border-b"
+      >
+        <button
+          type="button"
+          role="tab"
+          aria-selected={mode === "cantitati"}
+          onClick={() => setMode("cantitati")}
+          className={
+            "rounded-t-md px-3 py-2 text-sm font-medium " +
+            (mode === "cantitati"
+              ? "border-b-2 border-primary text-foreground"
+              : "text-muted-foreground hover:text-foreground")
+          }
+        >
+          Cantități reale
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={mode === "procente"}
+          onClick={() => setMode("procente")}
+          className={
+            "rounded-t-md px-3 py-2 text-sm font-medium " +
+            (mode === "procente"
+              ? "border-b-2 border-primary text-foreground"
+              : "text-muted-foreground hover:text-foreground")
+          }
+        >
+          Procente (avansat)
+        </button>
+      </div>
+
+      {mode === "cantitati" ? (
+        <QuantityEditor recipe={recipe} componentOptions={componentOptions} />
+      ) : (
+        <Card>
+          <CardHeader>
+            <CardTitle>
+              {recipe.direction === "compunere"
+                ? "Adaugă materie primă"
+                : "Adaugă material rezultat"}
+            </CardTitle>
+            <CardDescription>
+              Alegerea unui material deja prezent în rețetă îi actualizează procentul și factorul.
+              Modul avansat - permite conversii intre unități de măsură diferite.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form action={action} className="flex flex-wrap items-end gap-3">
+              <input type="hidden" name="recipe_id" value={recipe.recipeId} />
+              <input type="hidden" name="item_id" value={recipe.itemId} />
+              <FormField label="Material" required>
+                {(id) => (
+                  <select
+                    id={id}
+                    name="component_item_id"
+                    required
+                    value={componentItemId}
+                    onChange={(e) => setComponentItemId(e.target.value)}
+                    className={selectClassName}
+                  >
+                    <option value="" disabled>
+                      Alege un material...
                     </option>
-                  ))}
-                </select>
-              )}
-            </FormField>
-            <FormField label="Procent" required hint={DIRECTION_PERCENTAGE_HINTS[recipe.direction]}>
-              {(id) => (
-                <Input
-                  id={id}
-                  name="percentage"
-                  type="number"
-                  min="0"
-                  step="0.001"
-                  required
-                  className="w-28"
-                />
-              )}
-            </FormField>
-            <FormField
-              label={
-                selectedOption
-                  ? `Câte ${recipe.unit} are un ${selectedOption.unit}?`
-                  : "Câte unități de rețetă are o unitate de materie primă?"
-              }
-              required={unitsDiffer}
-              hint={
-                selectedOption
-                  ? unitsDiffer
-                    ? "Obligatoriu, unitățile de măsură diferă (ex: 1 mc nisip = 1500 kg beton)."
-                    : "Unități de măsură identice, lasă 1."
-                  : "Implicit 1, dacă nu se completează."
-              }
-            >
-              {(id) => (
-                <Input
-                  id={id}
-                  name="conversion_factor"
-                  type="number"
-                  min="0"
-                  step="0.000001"
-                  defaultValue="1"
-                  key={componentItemId}
-                  className={unitsDiffer ? "w-36 border-warn" : "w-36"}
-                />
-              )}
-            </FormField>
-            <Button type="submit" disabled={pending}>
-              {pending ? "Se salvează..." : "Adaugă"}
-            </Button>
-          </form>
-          {unitsDiffer ? (
-            <p className="mt-2 text-sm text-warn">
-              Unitatea de măsură a materiei prime ({selectedOption!.unit}) diferă de unitatea de
-              măsură a produsului ({recipe.unit}). Fără un factor corect, cantitățile calculate la
-              producție vor fi greșite.
-            </p>
-          ) : null}
-          {state.error ? <p className="mt-2 text-sm text-danger">{state.error}</p> : null}
-        </CardContent>
-      </Card>
+                    {componentOptions.map((option) => (
+                      <option key={option.id} value={option.id}>
+                        {option.title} ({option.unit})
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </FormField>
+              <FormField
+                label="Procent"
+                required
+                hint={DIRECTION_PERCENTAGE_HINTS[recipe.direction]}
+              >
+                {(id) => (
+                  <Input
+                    id={id}
+                    name="percentage"
+                    type="number"
+                    min="0"
+                    step="0.001"
+                    required
+                    className="w-28"
+                  />
+                )}
+              </FormField>
+              <FormField
+                label={
+                  selectedOption
+                    ? `Câte ${recipe.unit} are un ${selectedOption.unit}?`
+                    : "Câte unități de rețetă are o unitate de materie primă?"
+                }
+                required={unitsDiffer}
+                hint={
+                  selectedOption
+                    ? unitsDiffer
+                      ? "Obligatoriu, unitățile de măsură diferă (ex: 1 mc nisip = 1500 kg beton)."
+                      : "Unități de măsură identice, lasă 1."
+                    : "Implicit 1, dacă nu se completează."
+                }
+              >
+                {(id) => (
+                  <Input
+                    id={id}
+                    name="conversion_factor"
+                    type="number"
+                    min="0"
+                    step="0.000001"
+                    defaultValue="1"
+                    key={componentItemId}
+                    className={unitsDiffer ? "w-36 border-warn" : "w-36"}
+                  />
+                )}
+              </FormField>
+              <Button type="submit" disabled={pending}>
+                {pending ? "Se salvează..." : "Adaugă"}
+              </Button>
+            </form>
+            {unitsDiffer ? (
+              <p className="mt-2 text-sm text-warn">
+                Unitatea de măsură a materiei prime ({selectedOption!.unit}) diferă de unitatea de
+                măsură a produsului ({recipe.unit}). Fără un factor corect, cantitățile calculate la
+                producție vor fi greșite.
+              </p>
+            ) : null}
+            {state.error ? <p className="mt-2 text-sm text-danger">{state.error}</p> : null}
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

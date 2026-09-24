@@ -115,6 +115,36 @@ export async function addOrUpdateComponent(input: AddComponentInput): Promise<vo
   if (error) throw new Error(error.message ?? "Nu am putut salva componenta.");
 }
 
+export interface QuantityComponentRow {
+  componentItemId: string;
+  percentage: number;
+}
+
+/**
+ * Salveaza mai multe componente deodata (modul de input "Cantități reale",
+ * docs/plans/reteta-vizuala.md) - reapeleaza `addOrUpdateComponent` per rând, deci
+ * ACEEASI validare si acelasi upsert ca la adaugarea clasica, una câte una.
+ * `conversion_factor` ramane implicit 1 - faza 1 a modului de cantitati reale
+ * lucreaza doar cu componente in aceeasi UM ca reteta (fara conversii).
+ *
+ * Secvential, nu `Promise.all` - daca un rand esueaza (ex. procent invalid),
+ * randurile de dinainte raman salvate iar eroarea arata exact care rand a picat,
+ * mai usor de diagnosticat de utilizator decat un esec "in paralel" fara ordine.
+ */
+export async function addOrUpdateComponents(
+  recipeId: string,
+  rows: QuantityComponentRow[],
+): Promise<void> {
+  for (const row of rows) {
+    await addOrUpdateComponent({
+      recipeId,
+      componentItemId: row.componentItemId,
+      percentage: row.percentage,
+      conversionFactor: 1,
+    });
+  }
+}
+
 /** Șterge o componenta a rețetei. */
 export async function removeComponent(componentId: string): Promise<void> {
   const supabase = await createClient();

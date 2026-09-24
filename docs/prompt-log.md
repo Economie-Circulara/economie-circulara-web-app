@@ -4,6 +4,30 @@ Jurnal al sarcinilor lucrate de agenti AI in acest repo. Conform regulii 1.2 din
 [`AGENTS.md`](../AGENTS.md), la **fiecare commit** se adauga o intrare aici.
 Cele mai noi intrari sus.
 
+## 2026-09-24 — Claude (Claude Code) — Rețete: mod de input "Cantități reale" + bară vizuală de proporții
+
+- **Cerut:** in editorul de rețetă, un mod de input alternativ pentru
+  utilizatori non-tehnici - cantitate de bază + cantitate reală per materie
+  primă (in loc de procente calculate mental), plus o bară vizuală stivuită cu
+  granițe trăgabile (pointer + tastatură) pentru ajustarea proporțiilor.
+  Stocarea rămâne procente - se schimbă doar UX-ul de input. Stacked pe PR #47.
+- **Facut:** modul de calcul pur `src/features/recipes/quantity-calc.ts`
+  (cantități<->procente cu rotunjire "resturi celor mai mari" ca suma sa fie
+  exactă, calculatorul de scalare, latimile normalizate ale barei, mutarea
+  granițelor cu blocare); componenta `proportion-bar.tsx` (bară trăgabilă,
+  pointer + săgeți tastatură, blocare per segment); `quantity-editor.tsx`
+  (formularul „Cantități reale”: cantitate de bază, rânduri de materii prime,
+  bara, preview live, calculator "Pentru X"); tab-uri noi în
+  `recipe-editor.tsx` ("Cantități reale" implicit / "Procente (avansat)" -
+  formularul clasic neschimbat); funcție nouă `addOrUpdateComponents` in
+  `service.ts` (reapelează validarea existentă per rând) + acțiunea
+  `saveQuantityComponentsAction`. Detaliu: `docs/plans/reteta-vizuala.md`.
+- **Verificat:** `pnpm typecheck`, `pnpm lint`, `pnpm test` (883 teste, incl.
+  25 teste noi de calcul pur + teste noi de serviciu/acțiune).
+- **Impact asistent AI (regula 2.4):** `none` - schimbă doar UX-ul de editare
+  a rețetelor; asistentul continuă să vadă exact aceleași date (procente +
+  factor de conversie), fără tool nou/schimbat.
+
 ## 2026-09-24 — Claude (Claude Code) — Redenumiri texte UI: limbaj mai natural
 
 - **Cerut:** redenumire text-only (fara enum-uri DB/identificatori/rute) a
