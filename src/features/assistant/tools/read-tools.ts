@@ -6,6 +6,7 @@ import {
 } from "@/features/clients/cui-lookup";
 import { getDeliveryByOrderId } from "@/features/deliveries/queries";
 import { PLANNABLE_ORDER_STATUS } from "@/features/deliveries/service";
+import { itemHref } from "@/features/items/item-links";
 import { listItems } from "@/features/items/queries";
 import { getOrderDetail, listIntakeItemOptions } from "@/features/orders/queries";
 import { listSites } from "@/features/routing/site-queries";
@@ -148,7 +149,7 @@ export const itemiVandabili: AssistantTool<{ cautare: string | null }> = {
       item_id: item.id,
       denumire: item.title,
       um: item.unit,
-      link: `/itemi/${item.id}`,
+      link: itemHref(item),
     }));
   },
 };
@@ -182,7 +183,7 @@ export const itemiAport: AssistantTool<{ cautare: string | null }> = {
       item_id: item.id,
       denumire: item.title,
       um: item.unit,
-      link: `/itemi/${item.id}`,
+      link: itemHref(item),
     }));
   },
 };

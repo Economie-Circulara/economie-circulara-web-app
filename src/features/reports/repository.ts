@@ -162,7 +162,9 @@ export async function fetchRecycledLotsInRange(range: DateRange): Promise<Recycl
     .select("provenance, item_id, initial_qty, items(title, unit)")
     .in("provenance", ["recycling", "reconditioning", "return"])
     .gte("entry_date", range.from)
-    .lte("entry_date", range.to);
+    .lte("entry_date", range.to)
+    // Un lot anulat (introdus din greseala, migrarea 0035) n-a fost reintegrat real.
+    .is("cancelled_at", null);
   if (error) throw new Error("Nu am putut încărca loturile pentru raport.");
 
   return (data ?? []).map((row) => ({

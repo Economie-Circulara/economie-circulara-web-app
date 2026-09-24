@@ -31,6 +31,7 @@ import {
   confirmProcessAction,
   getCandidateLots,
   getFifoPreview,
+  getRecipeForItem,
 } from "./actions";
 
 function lot(overrides: Record<string, unknown> = {}) {
@@ -159,5 +160,35 @@ describe("cancelProcessAction", () => {
     const result = await cancelProcessAction("proc-1");
 
     expect(result.error).toBe("deja finalizat");
+  });
+});
+
+describe("getRecipeForItem - retete arhivate (migrarea 0035)", () => {
+  function recipe(archivedAt: string | null) {
+    return {
+      recipeId: "r1",
+      itemId: "item-1",
+      itemTitle: "Beton",
+      unit: "kg",
+      direction: "compunere",
+      archivedAt,
+      recipeArchivedAt: archivedAt,
+      components: [],
+      percentageSum: 0,
+    };
+  }
+
+  it("intoarce reteta activa", async () => {
+    requireRole.mockResolvedValue({ id: "u1" });
+    getRecipeByItemId.mockResolvedValue(recipe(null));
+
+    expect(await getRecipeForItem("item-1")).toEqual(recipe(null));
+  });
+
+  it("o reteta arhivata (ea sau itemul ei) NU mai poate fi folosita in productie", async () => {
+    requireRole.mockResolvedValue({ id: "u1" });
+    getRecipeByItemId.mockResolvedValue(recipe("2026-09-01T00:00:00.000Z"));
+
+    expect(await getRecipeForItem("item-1")).toBeNull();
   });
 });

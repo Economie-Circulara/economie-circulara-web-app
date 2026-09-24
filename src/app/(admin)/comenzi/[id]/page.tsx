@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ConfirmActionButton } from "@/components/confirm-action-button";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageHeader } from "@/components/page-header";
@@ -7,6 +8,7 @@ import { requireRole } from "@/features/auth/session";
 import { getCertificateByOrderId } from "@/features/certificates/service";
 import { getDeliveryByOrderId } from "@/features/deliveries/queries";
 import { AcceptIntakeButton } from "@/features/orders/accept-intake-button";
+import { deleteDraftOrderAction } from "@/features/orders/actions";
 import {
   ORDER_STATUS_LABELS,
   ORDER_TYPE_DESCRIPTIONS,
@@ -89,9 +91,20 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
         actions={
           <>
             {order.status === "draft" ? (
-              <Button asChild variant="outline">
-                <Link href={`/comenzi/${order.id}/edit`}>Editează</Link>
-              </Button>
+              <>
+                <Button asChild variant="outline">
+                  <Link href={`/comenzi/${order.id}/edit`}>Editează</Link>
+                </Button>
+                {/* Doar ciornele se sterg (migrarea 0035); restul se anuleaza. */}
+                <ConfirmActionButton
+                  triggerLabel="Șterge ciorna"
+                  title="Ștergi această ciornă de comandă?"
+                  description="Ciorna va dispărea din listă. Nu s-a mișcat nimic din stoc, deci nu se pierde nicio informație de trasabilitate. Acțiunea nu poate fi anulată din aplicație."
+                  confirmLabel="Da, șterge ciorna"
+                  pendingLabel="Se șterge..."
+                  action={deleteDraftOrderAction.bind(null, order.id)}
+                />
+              </>
             ) : null}
             {certificate ? (
               <Button asChild variant="outline">

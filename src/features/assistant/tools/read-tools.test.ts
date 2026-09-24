@@ -10,7 +10,10 @@ vi.mock("@/features/clients/queries", () => ({
 }));
 
 vi.mock("@/features/items/queries", () => ({
-  listItems: vi.fn().mockResolvedValue([{ id: "item-1", title: "Agregat 0-4", unit: "kg" }]),
+  listItems: vi.fn().mockResolvedValue([
+    { id: "item-1", title: "Agregat 0-4", unit: "kg", kind: "physical" },
+    { id: "item-2", title: "Mentenanță lunară", unit: "bucata", kind: "service" },
+  ]),
 }));
 
 vi.mock("@/features/stock/queries", () => ({
@@ -60,8 +63,11 @@ vi.mock("@/features/clients/cui-lookup", () => ({
 
 const { getOrderDetail } = await import("@/features/orders/queries");
 const { getDeliveryByOrderId } = await import("@/features/deliveries/queries");
-const { listeazaClienti, itemiVandabili, itemiAport, contextLivrare, cauta } =
+const { listeazaClienti, itemiVandabili, itemiAport, contextLivrare, cauta, stocDisponibil } =
   await import("./read-tools");
+const { listClients } = await import("@/features/clients/queries");
+const { listItems } = await import("@/features/items/queries");
+const { listLots } = await import("@/features/stock/queries");
 
 const CTX: ToolContext = {
   userId: "u1",
@@ -90,6 +96,12 @@ describe("itemi_vandabili", () => {
     const result = await itemiVandabili.execute({ cautare: null }, CTX);
     expect(result).toEqual([
       { item_id: "item-1", denumire: "Agregat 0-4", um: "kg", link: "/itemi/item-1" },
+      {
+        item_id: "item-2",
+        denumire: "Mentenanță lunară",
+        um: "bucata",
+        link: "/abonamente/item-2",
+      },
     ]);
   });
 });
@@ -193,5 +205,29 @@ describe("cauta", () => {
         results: [{ id: "client-1", title: "ACME SRL", link: "/clienti/client-1" }],
       },
     ]);
+  });
+});
+
+/**
+ * Regresie regula 2.4 (migrarea 0035 - arhivare/stergere logica): asistentul NU are
+ * tool-uri noi, dar tool-urile de citire trebuie sa ceara interogarile partajate
+ * FARA optiunile care ar readuce arhivatele / loturile anulate. Daca cineva adauga
+ * `includeArchived`/`includeCancelled` intr-un tool, testul pica.
+ */
+describe("tool-urile de citire nu expun arhivatele (migrarea 0035)", () => {
+  it("listeaza_clienti / itemi_vandabili / stoc_disponibil folosesc filtrele implicite", async () => {
+    await listeazaClienti.execute({ cautare: "acme" }, CTX);
+    await itemiVandabili.execute({ cautare: null }, CTX);
+    await stocDisponibil.execute({ item: null }, CTX);
+
+    for (const call of vi.mocked(listClients).mock.calls) {
+      expect(call[0]).not.toHaveProperty("includeArchived");
+    }
+    for (const call of vi.mocked(listItems).mock.calls) {
+      expect(call[0]).not.toHaveProperty("includeArchived");
+    }
+    for (const call of vi.mocked(listLots).mock.calls) {
+      expect(call[0] ?? {}).not.toHaveProperty("includeCancelled");
+    }
   });
 });

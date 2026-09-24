@@ -14,6 +14,7 @@ function mapItem(row: ItemRow): Item {
     isTracked: row.is_tracked,
     sellable: row.sellable,
     imageUrl: row.image_url,
+    archivedAt: row.archived_at ?? null,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -58,12 +59,12 @@ export async function createItem(input: CreateItemInput): Promise<Item> {
       image_url: input.imageUrl ?? null,
     })
     .select(
-      "id, organization_id, title, description, unit, kind, is_tracked, sellable, image_url, created_at, updated_at",
+      "id, organization_id, title, description, unit, kind, is_tracked, sellable, image_url, archived_at, archived_by, created_at, updated_at",
     )
     .single();
 
   if (error || !data) {
-    throw new Error(error?.message ?? "Nu am putut crea materialul sau serviciul.");
+    throw new Error(error?.message ?? "Nu am putut crea materialul sau abonamentul.");
   }
   return mapItem(data);
 }
@@ -101,14 +102,33 @@ export async function updateItem(id: string, input: UpdateItemInput): Promise<It
     })
     .eq("id", id)
     .select(
-      "id, organization_id, title, description, unit, kind, is_tracked, sellable, image_url, created_at, updated_at",
+      "id, organization_id, title, description, unit, kind, is_tracked, sellable, image_url, archived_at, archived_by, created_at, updated_at",
     )
     .single();
 
   if (error || !data) {
     throw new Error(
-      error?.message ?? "Nu am putut salva materialul sau serviciul (verifica accesul).",
+      error?.message ?? "Nu am putut salva materialul sau abonamentul (verifica accesul).",
     );
   }
   return mapItem(data);
+}
+
+/**
+ * Arhiveaza (`archive = true`) sau restaureaza un item (migrarea 0035). Soft-delete
+ * reversibil: randul ramane (loturile/comenzile/retetele il refera), dar dispare
+ * din liste si selecturi. `archived_by` e completat de trigger-ul DB din sesiune.
+ * RLS (`items_staff_all`) limiteaza la staff-ul organizatiei.
+ */
+export async function setItemArchived(id: string, archive: boolean): Promise<void> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("items")
+    .update({ archived_at: archive ? new Date().toISOString() : null })
+    .eq("id", id)
+    .select("id")
+    .maybeSingle();
+
+  if (error) throw new Error(error.message ?? "Nu am putut actualiza materialul sau serviciul.");
+  if (!data) throw new Error("Materialul sau serviciul nu există sau nu ai acces la el.");
 }

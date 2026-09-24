@@ -75,7 +75,7 @@ describe("createRecipe", () => {
     });
     createClient.mockResolvedValue({ from });
 
-    await expect(createRecipe("item-1")).rejects.toThrow(/nu pentru servicii/i);
+    await expect(createRecipe("item-1")).rejects.toThrow(/nu pentru abonamente/i);
   });
 
   it("arunca eroare cand itemul nu exista sau nu e accesibil", async () => {

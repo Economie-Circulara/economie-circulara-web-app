@@ -159,6 +159,8 @@ export async function listSellableItemOptions(): Promise<ItemOption[]> {
     .from("items")
     .select("id, title, unit, kind, is_tracked")
     .eq("sellable", true)
+    // Itemii arhivati (migrarea 0035) nu mai pot fi pusi pe comenzi noi.
+    .is("archived_at", null)
     .order("title");
   if (error) throw new Error("Nu am putut incarca catalogul de itemi vandabili.");
 
@@ -188,6 +190,8 @@ export async function listIntakeItemOptions(): Promise<ItemOption[]> {
     .select("id, title, unit, kind, is_tracked")
     .eq("kind", "physical")
     .eq("is_tracked", true)
+    // Itemii arhivati (migrarea 0035) nu mai pot fi pusi pe comenzi noi.
+    .is("archived_at", null)
     .order("title");
   if (error) throw new Error("Nu am putut incarca itemii fizici pentru aport.");
 

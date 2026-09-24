@@ -56,7 +56,9 @@ export async function getOperationalDashboard(): Promise<OperationalDashboardDat
     getDashboardKpis(),
     supabase
       .from("lots")
-      .select("item_id, initial_qty, remaining_qty, is_blocked, items(title, unit)"),
+      .select("item_id, initial_qty, remaining_qty, is_blocked, items(title, unit)")
+      // Loturile anulate (introduse din greseala, migrarea 0035) nu sunt stoc real.
+      .is("cancelled_at", null),
     supabase
       .from("orders")
       .select("id, order_number, status, updated_at, clients(name)")

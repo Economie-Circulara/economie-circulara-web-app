@@ -40,13 +40,17 @@ urmezi linkul primit pe email pentru a seta o parolă nouă.
 
 ![ecranul de Autentificare al portalului client](img/client-login.png)
 
+Dacă după logare vezi pagina **"Contul tău este dezactivat"**, organizația a
+suspendat accesul firmei tale în portal. Contactează organizația pentru a-l
+reactiva; comenzile și certificatele tale nu se pierd.
+
 ---
 
 ## 2. Catalog și plasarea unei comenzi
 
-Ecranul **"Catalog"** afișează toate produsele/serviciile marcate ca vandabile de
-către organizație - **fără prețuri**. Poți căuta după denumire și filtra după tip
-(Material/Serviciu).
+Ecranul **"Catalog"** afișează toate materialele și abonamentele marcate ca
+vandabile de către organizație - **fără prețuri**. Poți căuta după denumire și
+filtra după tip (Material/Abonament).
 
 ### 2.1 Adăugarea în coș
 
@@ -99,7 +103,14 @@ livrare, data de livrare, observațiile transmise și lista produselor comandate
 (denumire + cantitate + unitate de măsură - **fără prețuri**, ca peste tot în
 platformă).
 
-### 3.3 Repetarea unei comenzi vechi
+### 3.3 Ștergerea unei ciorne
+
+Dacă ai o comandă rămasă în status **Ciornă** (nu a fost trimisă către
+organizație), o poți șterge: deschide comanda, apasă **"Șterge ciorna"** și
+confirmă în fereastra care apare. Ciorna dispare din lista ta. Comenzile deja
+trimise nu se pot șterge - pentru ele contactează organizația.
+
+### 3.4 Repetarea unei comenzi vechi
 
 Din detaliul unei comenzi, apasă **"Repetă comanda"** - coșul tău se
 precompletează automat cu aceleași produse și cantități, apoi ești dus înapoi la
@@ -126,7 +137,7 @@ Materialul returnat intră efectiv în stocul organizației doar **după ce
 organizația inspectează și acceptă** returul (nu automat la trimiterea cererii
 tale).
 
-**Închiriere (product-as-a-service):** dacă produsul tău e de tip serviciu
+**Închiriere (product-as-a-service):** dacă produsul tău e un abonament
 (închiriere simulată), pe comandă poate apărea o dată estimată de retur al
 materialului/echipamentului.
 
@@ -183,3 +194,4 @@ tău (creare/trimitere de comenzi rămâne doar din ecranele obișnuite).
 | Cere retur sau garanție pe o comandă finalizată | Trimite mesaje pe comandă (nu există chat în platformă) |
 | Descărca documentele și certificatele proprii | Încărca sau șterge documente |
 | Repeta o comandă anterioară | Crea alți utilizatori pentru firma ta (un singur cont per firmă client) |
+| Șterge propriile ciorne (comenzi netrimise) | Șterge o comandă deja trimisă |

@@ -32,8 +32,8 @@ confirmarea/salvarea de acolo.
    dependință nouă). Candidații vin din `listItemOptions({kind: "physical"})` -
    RLS-ul clientului sesiunii filtrează automat la organizația curentă. Sub un prag
    (0.6), componenta rămâne nepotrivită - utilizatorul o leagă manual sau o ignoră.
-   **Notă:** acest codebase nu are încă un concept de "item arhivat"
-   (`src/features/items/`) - cand va exista, filtrul se adaugă aici.
+   Itemii arhivați (migrarea `0035`, PR #50) sunt excluși automat -
+   `listItemOptions` filtrează `archived_at is null`.
 5. **Server action** `extractRecipeFromTextAction` (`ai-extract-actions.ts`) -
    orchestrează: verifică furnizorul configurat -> verifică quota (`assistant/quota.ts`,
    ACEEAȘI limită de mesaje ca asistentul - un apel AI în plus nu ocolește plafonul

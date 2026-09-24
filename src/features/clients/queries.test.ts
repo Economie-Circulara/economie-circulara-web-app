@@ -29,35 +29,69 @@ function clientRow(overrides: Record<string, unknown> = {}) {
   };
 }
 
+/**
+ * Query builder fals, chainable (select/order/is/or intorc `this`) si "thenable" ca
+ * PostgrestFilterBuilder - rezolva la `finalResult` cand e asteptat.
+ */
+function makeListBuilder(finalResult: { data: unknown; error: unknown }) {
+  const builder: Record<string, ReturnType<typeof vi.fn>> & {
+    then: (resolve: (v: unknown) => void) => void;
+  } = { then: (resolve: (v: unknown) => void) => resolve(finalResult) } as never;
+  for (const m of ["select", "order", "is", "or"]) {
+    builder[m] = vi.fn(() => builder);
+  }
+  return builder;
+}
+
 describe("listClients", () => {
   it("nu aplica filtru de cautare cand search e absent", async () => {
-    const order = vi.fn().mockResolvedValue({ data: [clientRow()], error: null });
-    const select = vi.fn().mockReturnValue({ order });
-    const from = vi.fn().mockReturnValue({ select });
+    const builder = makeListBuilder({ data: [clientRow()], error: null });
+    const from = vi.fn().mockReturnValue(builder);
     createClient.mockResolvedValue({ from });
 
     const result = await listClients();
 
     expect(from).toHaveBeenCalledWith("clients");
+    expect(builder.or).not.toHaveBeenCalled();
     expect(result).toHaveLength(1);
     expect(result[0].name).toBe("SC Exemplu SRL");
+    expect(result[0].archivedAt).toBeNull();
+  });
+
+  it("ascunde implicit clientii arhivati (migrarea 0035)", async () => {
+    const builder = makeListBuilder({ data: [], error: null });
+    createClient.mockResolvedValue({ from: vi.fn().mockReturnValue(builder) });
+
+    await listClients();
+
+    expect(builder.is).toHaveBeenCalledWith("archived_at", null);
+  });
+
+  it("include arhivatii doar la cerere explicita (comutatorul 'Arată arhivați')", async () => {
+    const builder = makeListBuilder({
+      data: [clientRow({ archived_at: "2026-09-01T00:00:00.000Z" })],
+      error: null,
+    });
+    createClient.mockResolvedValue({ from: vi.fn().mockReturnValue(builder) });
+
+    const result = await listClients({ includeArchived: true });
+
+    expect(builder.is).not.toHaveBeenCalled();
+    expect(result[0].archivedAt).toBe("2026-09-01T00:00:00.000Z");
   });
 
   it("cauta dupa denumire SAU CUI (ilike, or())", async () => {
-    const or = vi.fn().mockResolvedValue({ data: [], error: null });
-    const order = vi.fn().mockReturnValue({ or });
-    const select = vi.fn().mockReturnValue({ order });
-    createClient.mockResolvedValue({ from: vi.fn().mockReturnValue({ select }) });
+    const builder = makeListBuilder({ data: [], error: null });
+    createClient.mockResolvedValue({ from: vi.fn().mockReturnValue(builder) });
 
     await listClients({ search: "exemplu" });
 
-    expect(or).toHaveBeenCalledWith("name.ilike.%exemplu%,cui.ilike.%exemplu%");
+    expect(builder.or).toHaveBeenCalledWith("name.ilike.%exemplu%,cui.ilike.%exemplu%");
   });
 
   it("arunca eroare cand interogarea esueaza", async () => {
-    const order = vi.fn().mockResolvedValue({ data: null, error: { message: "boom" } });
-    const select = vi.fn().mockReturnValue({ order });
-    createClient.mockResolvedValue({ from: vi.fn().mockReturnValue({ select }) });
+    const builder = makeListBuilder({ data: null, error: { message: "boom" } });
+    createClient.mockResolvedValue({ from: vi.fn().mockReturnValue(builder) });
 
     await expect(listClients()).rejects.toThrow("Nu am putut încărca lista de clienți.");
   });

@@ -29,10 +29,15 @@ export async function getCandidateLots(itemId: string): Promise<FifoCandidateLot
     }));
 }
 
-/** Rețeta unui item (sau `null` daca nu are), pentru panoul de consum/output ideal. */
+/**
+ * Rețeta unui item (sau `null` daca nu are), pentru panoul de consum/output ideal.
+ * O reteta ARHIVATA (ea sau itemul ei - migrarea 0035) e tratata ca inexistenta:
+ * nu mai poate fi folosita in productie (garda DB `AR002` e a doua linie).
+ */
 export async function getRecipeForItem(itemId: string): Promise<RecipeDetail | null> {
   await requireRole(["admin", "operator"]);
-  return getRecipeByItemId(itemId);
+  const recipe = await getRecipeByItemId(itemId);
+  return recipe && recipe.archivedAt === null ? recipe : null;
 }
 
 export interface FifoPreviewResult {

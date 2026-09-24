@@ -30,6 +30,24 @@ Cele mai noi intrari sus.
   PR 1); consumă totuși aceeași quota de mesaje (`trackUsage`), ca să nu ocolească
   plafonul comercial. Detaliu complet în `docs/plans/reteta-ai.md`.
 
+## 2026-09-24 — Claude (Claude Code) — Integrare arhivare (PR #50) cu ecranul Abonamente (PR #48)
+
+- **Cerut:** merge in ordine al PR-urilor din runda "ultima suta de metri".
+- **Facut:** la aducerea `main` in PR-ul de arhivare, butoanele Arhivează/Restaurează
+  si comutatorul "Arată arhivate" au fost puse si pe ecranele `/abonamente` (nu doar
+  `/itemi`); helper nou `itemListHref(kind)`. Fix bug din #48: crearea/salvarea unui
+  abonament redirectiona la lista Materiale (unde nu apare) - acum merge la
+  `/abonamente`; arhivarea invalideaza ambele ecrane.
+
+## 2026-09-24 — Claude (Claude Code) — Fix cast enum in seed-ul demo
+
+- **Cerut:** repararea `supabase/demo/seed-demo.sql`, care cadea la evenimentul #14
+  (`COALESCE types order_type and text cannot be matched`).
+- **Facut:** cast explicit `::public.order_type` pe expresia `case` din insert-ul in
+  `orders`; restul expresiilor verificate. Plan:
+  `docs/plans/fix-seed-demo-order-type-cast.md`.
+
+
 ## 2026-09-24 — Claude (Claude Code) — Rețete: mod de input "Cantități reale" + bară vizuală de proporții
 
 - **Cerut:** in editorul de rețetă, un mod de input alternativ pentru
@@ -54,6 +72,7 @@ Cele mai noi intrari sus.
   a rețetelor; asistentul continuă să vadă exact aceleași date (procente +
   factor de conversie), fără tool nou/schimbat.
 
+
 ## 2026-09-24 — Claude (Claude Code) — Redenumiri texte UI: limbaj mai natural
 
 - **Cerut:** redenumire text-only (fara enum-uri DB/identificatori/rute) a
@@ -76,6 +95,101 @@ Cele mai noi intrari sus.
   `pnpm format:check` (curat pe fisierele atinse de acest task).
 - **Impact asistent AI (regula 2.4):** `none` - niciun tool nou/schimbat, doar
   reformulari de texte descriptive trimise modelului (vezi planul).
+
+## 2026-09-24 — Claude (Claude Code) — Abonamente: ecran și meniu separat de Materiale
+
+- **Cerut:** redenumirea "servicii" -> "Abonamente" in UI, cu ecran si intrare de
+  meniu separate de "Materiale" (optiunea A, aprobata: doar UI/catalog, FARA
+  modificari de DB/enum).
+- **Facut:**
+  - Rute noi `/abonamente`, `/abonamente/nou`, `/abonamente/[id]` (oglindesc
+    `/itemi`, filtrate pe `kind = "service"`); `/itemi` ramane doar pentru
+    `kind = "physical"` ("Materiale"). `ItemForm` primeste `fixedKind` - niciun
+    formular de creare nu mai are selector de tip (fixat de ecran).
+  - Helper nou `itemHref()` (`src/features/items/item-links.ts`) - alege
+    `/itemi/[id]` sau `/abonamente/[id]` dupa `kind`; folosit in `ItemsTable`,
+    cautarea globala (`search/service.ts`) si tool-urile de asistent
+    (`itemi_vandabili`, `itemi_aport`) - altfel un link catre un abonament da 404.
+  - Nav: grupul "Stoc" -> "Materiale" + "Abonamente" (icon nou `subscriptions`,
+    `Repeat` din lucide, mapat in `sidebar.tsx` conform regulii RSC din AGENTS §4.2).
+  - Etichete: `KIND_LABELS.service` -> "Abonament", `.physical` -> "Material";
+    `ORDER_TYPE_LABELS.serviciu` -> "Abonament" (doar eticheta - enum-ul DB
+    `serviciu` ramane neschimbat). Text UI corespunzator in retete, comenzi,
+    retururi, catalogul clientului (reutilizeaza `KIND_LABELS`), asistent
+    (`prompt.ts`, descrierile tool-urilor, sugestii) si `docs/manual/`.
+  - Teste noi: `item-links.test.ts`, `items-table.test.tsx`; actualizate
+    `read-tools.test.ts` (link catre abonament), `order-editor.test.tsx`
+    (radio "Abonament"), `items/actions.test.ts`.
+- **Verificat:** `pnpm typecheck`, `pnpm lint`, `pnpm test` (855 teste),
+  `pnpm format:check` (3 avertismente Prettier ramase apartin unor fisiere
+  neatinse de acest task, deja prezente pe `main`).
+- **Impact asistent AI (regula 2.4):** `none` pe capabilitati - niciun tool nou/
+  schimbat functional; doar wording (`serviciu` -> `abonament` in text liber,
+  NU valoarea enum `tip_comanda`) si linkurile intoarse de tool-urile existente
+  (prin `itemHref()`).
+- **Regula noua adaugata in AGENTS.md §4:** denumirea "Abonament" pentru
+  `kind = "service"` in UI, cu ecran/rute separate si helper-ul `itemHref()`
+  obligatoriu pentru orice link catre un item existent.
+
+## 2026-09-24 — Claude (Claude Code) — Soft-delete: ciorne șterse de client + retur pe itemi arhivați
+
+- **Cerut:** răspunsuri la întrebările deschise din PR #50: (1) clientul își poate
+  șterge propriile ciorne din portal; (2) itemii arhivați pot reveni prin
+  retur/garanție - ambele ca reguli de business în AGENTS.md §4.
+- **Facut:** `delete_draft_order` (0035) acceptă și clientul proprietar (doar
+  firma lui, organizația lui, `draft`); acțiunea `deleteOwnDraftOrderAction` + buton
+  cu confirmare în `/comenzile-mele/[id]`. Trigger-ul `reject_archived_references`
+  lasă clientul să pună pe o comandă un item arhivat deja livrat lui - altfel
+  cererile de retur/garanție din portal pe itemi arhivați ar fi fost blocate (bug
+  prins la implementarea regulii 2). Teste: unitare (acțiunea client), B22/B23 în
+  `business_flow.sql`, T20 în `rls_isolation.sql`. Manual client + plan +
+  AGENTS.md actualizate.
+- **Verificat:** `pnpm typecheck`, `pnpm lint`, `pnpm test`, `pnpm format:check`;
+  testele SQL rulate pe Postgres 16 local cu shim Supabase (nu pe stack-ul real).
+- **Impact asistent AI (regula 2.4):** `none` - asistentul nu e disponibil
+  rolului client pentru această acțiune; niciun tool nou.
+
+## 2026-09-24 — Claude (Claude Code) — Arhivare / ștergere logică (soft-delete)
+
+- **Cerut:** utilizatorii nu pot șterge nimic creat din greșeală. Lista aprobată:
+  arhivare pentru materiale/servicii, rețete și clienți (+ blocarea logării
+  clientului), ștergere logică pentru comenzile `draft`, "Anulează lotul" doar dacă
+  nimic nu s-a consumat (corecție în audit), anularea livrărilor înainte de plecare,
+  dezactivarea utilizatorilor de staff; `stock_events`, certificate, procese
+  finalizate și comenzi livrate/închise rămân neștergibile.
+- **Facut:**
+  - Migrarea `0035_soft_delete.sql` (coloane `archived_at/by`, `deleted_at/by`,
+    `cancelled_at/by/cancel_reason`; RPC-uri `delete_draft_order`, `cancel_lot`,
+    `cancel_delivery`; RLS spartă pe `orders`/`deliveries` ca să ascundă ștersele;
+    triggere `stamp_archive`, `reject_archived_references` (AR001/AR002),
+    `guard_lot_cancellation`, `enforce_profile_deactivation` (US001),
+    `sync_client_profile_status`; `app.role()` întoarce null pentru conturi blocate;
+    unicitatea livrării per comandă devine parțială). Poate necesita renumerotare la
+    merge dacă alt PR adaugă tot o `0035`.
+  - Aplicație: `ConfirmActionButton` (dialog de confirmare, Radix), acțiuni +
+    butoane pe `/itemi/[id]`, `/retete/[itemId]`, `/clienti/[id]`, `/comenzi/[id]`,
+    `/stoc/loturi/[id]`, `/livrari/[id]`, `/setari/utilizatori`; comutatoare
+    "Arată arhivate/anulate"; toate selecturile filtrează arhivatele; garda de server
+    `assertActiveOrderReferences` la creare/editare comandă; pagina
+    `/cont-dezactivat` + gărzi în middleware/`requireUser`; ban best-effort în
+    Supabase Auth; rapoartele/dashboard-ul ignoră loturile anulate.
+  - Fix colateral: embed-uri PostgREST dezambiguizate (`clients!profiles_client_id_fkey`
+    în lista de utilizatori - devenea ambiguu prin FK-ul nou; `organizations!…` în
+    middleware - aceeași ambiguitate PGRST201 documentată în `session.ts`, care ar
+    fi făcut ca guard-ul de organizație suspendată să fie ocolit silențios).
+  - `database.types.ts` actualizat manual; teste SQL B15-B21 în `business_flow.sql`;
+    plan `docs/plans/soft-delete.md`; manual (admin/operator, administrare, client);
+    AGENTS.md §4 + §4.2.
+- **Verificat:** `pnpm typecheck`, `pnpm lint`, `pnpm test`, `pnpm format:check`.
+  Migrările + `business_flow.sql`, `rls_isolation.sql`, `assistant_rls.sql` rulate pe
+  un Postgres 16 local cu un shim minimal Supabase (roluri, `auth.uid()`, `storage`) -
+  toate trec; NU pe stack-ul Supabase real (Docker indisponibil).
+- **Impact asistent AI (regula 2.4):** `read` - doar excludere: tool-urile de citire
+  și cataloagele din `creeaza_comanda` folosesc interogările partajate, care exclud
+  acum arhivatele / loturile anulate / ciornele șterse. Fără tool-uri noi de scriere
+  (arhivarea/ștergerea rămân acțiuni conștiente din UI). Test de regresie în
+  `read-tools.test.ts`.
+
 
 ## 2026-09-20 — Claude Sonnet 5 — Asistent: fix catalog aport + planificarea livrarii
 

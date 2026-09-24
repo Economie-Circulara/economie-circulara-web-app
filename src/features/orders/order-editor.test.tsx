@@ -18,6 +18,7 @@ function client(overrides: Partial<Client> = {}): Client {
     contactPerson: null,
     isSupplier: false,
     notes: null,
+    archivedAt: null,
     createdAt: "2026-01-01T00:00:00.000Z",
     ...overrides,
   };
@@ -175,7 +176,7 @@ describe("OrderEditor", () => {
     render(<Harness initial={draftValue()} />);
     expect(screen.queryByLabelText("Retur estimat")).not.toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("radio", { name: /Serviciu/ }));
+    fireEvent.click(screen.getByRole("radio", { name: /Abonament/ }));
     expect(screen.getByLabelText("Retur estimat")).toBeInTheDocument();
   });
 

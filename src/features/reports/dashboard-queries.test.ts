@@ -20,7 +20,7 @@ function makeDataBuilder(data: unknown, count: number | null = null, error: unkn
   const builder: Record<string, unknown> & { then: (resolve: (v: unknown) => void) => void } = {
     then: (resolve) => resolve({ data, count, error }),
   };
-  for (const method of ["select", "in", "eq", "gte", "order", "limit"]) {
+  for (const method of ["select", "in", "eq", "gte", "order", "limit", "is"]) {
     builder[method] = vi.fn(() => builder);
   }
   return builder;

@@ -34,7 +34,7 @@ export async function createRecipe(
     .maybeSingle();
   if (itemError || !item) throw new Error("Material inexistent sau fără acces.");
   if (item.kind !== "physical") {
-    throw new Error("Rețetele se pot defini doar pentru produse, nu pentru servicii.");
+    throw new Error("Rețetele se pot defini doar pentru materiale, nu pentru abonamente.");
   }
 
   const { data, error } = await supabase
@@ -150,4 +150,22 @@ export async function removeComponent(componentId: string): Promise<void> {
   const supabase = await createClient();
   const { error } = await supabase.from("recipe_components").delete().eq("id", componentId);
   if (error) throw new Error(error.message ?? "Nu am putut șterge componenta.");
+}
+
+/**
+ * Arhiveaza (`archive = true`) sau restaureaza o reteta intreaga (migrarea 0035).
+ * O reteta arhivata ramane legata de procesele vechi (trasabilitate), dar nu mai
+ * poate porni procese noi (garda DB `AR002` + filtrul din productie).
+ */
+export async function setRecipeArchived(recipeId: string, archive: boolean): Promise<void> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("recipes")
+    .update({ archived_at: archive ? new Date().toISOString() : null })
+    .eq("id", recipeId)
+    .select("id")
+    .maybeSingle();
+
+  if (error) throw new Error(error.message ?? "Nu am putut actualiza rețeta.");
+  if (!data) throw new Error("Rețeta nu există sau nu ai acces la ea.");
 }

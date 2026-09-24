@@ -18,23 +18,37 @@ const textareaClassName =
   "flex min-h-20 w-full rounded-md border border-input bg-card px-3 py-2 text-sm shadow-xs outline-none " +
   "focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50";
 
+interface ItemFormProps {
+  item?: Item;
+  /**
+   * Tipul fixat de ecran (`/itemi/nou` -> `physical`, `/abonamente/nou` ->
+   * `service`) - cand e dat, selectorul de tip nu se mai afiseaza (ecranul
+   * deja decide tipul), doar un `<input type="hidden">` trimite valoarea.
+   * La editare `item.kind` e mereu prezent, deci `fixedKind` e relevant doar
+   * la creare.
+   */
+  fixedKind?: ItemKind;
+}
+
 /** Formular creare/editare item - acelasi component, actiune diferita dupa mod. */
-export function ItemForm({ item }: { item?: Item }) {
+export function ItemForm({ item, fixedKind }: ItemFormProps) {
   const action = item ? updateItemAction : createItemAction;
   const [state, formAction, pending] = useActionState(action, initialItemFormState);
   // Tipul e in state (nu doar `defaultValue`) pentru ca de el depinde afisarea
   // comutatorului "Urmărește stocul" - relevant doar la itemii fizici (0029).
-  const [kind, setKind] = useState<ItemKind>(item?.kind ?? "physical");
+  const resolvedFixedKind = fixedKind ?? item?.kind;
+  const [kind, setKind] = useState<ItemKind>(resolvedFixedKind ?? "physical");
 
   return (
     <form action={formAction} className="max-w-2xl space-y-6">
       {item ? <input type="hidden" name="id" value={item.id} /> : null}
       <Card>
         <CardHeader>
-          <CardTitle>Detalii material/serviciu</CardTitle>
+          <CardTitle>{kind === "service" ? "Detalii abonament" : "Detalii material"}</CardTitle>
           <CardDescription>
-            Titlu, unitate de măsură și tip - fizic (stoc + rețetă opțională) sau serviciu
-            (abonament/serviciu PaaS, fără stoc).
+            {kind === "service"
+              ? "Titlu și unitate de măsură pentru un abonament (produs-ca-serviciu, fără stoc)."
+              : "Titlu, unitate de măsură și urmărirea stocului pentru un material fizic."}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -65,7 +79,7 @@ export function ItemForm({ item }: { item?: Item }) {
                   className={selectClassName}
                 >
                   <option value="" disabled>
-                    Alege unitatea de măsură...
+                    Alege UM...
                   </option>
                   {UNIT_OPTIONS.map((unit) => (
                     <option key={unit} value={unit}>
@@ -75,28 +89,34 @@ export function ItemForm({ item }: { item?: Item }) {
                 </select>
               )}
             </FormField>
-            <FormField
-              label="Tip"
-              required
-              hint="Material = stoc + rețetă opțională. Serviciu = abonament/serviciu PaaS, fără stoc."
-            >
-              {(id) => (
-                <select
-                  id={id}
-                  name="kind"
-                  required
-                  value={kind}
-                  onChange={(e) => setKind(e.target.value as ItemKind)}
-                  className={selectClassName}
-                >
-                  {KIND_OPTIONS.map((option) => (
-                    <option key={option} value={option}>
-                      {KIND_LABELS[option]}
-                    </option>
-                  ))}
-                </select>
-              )}
-            </FormField>
+            {resolvedFixedKind ? (
+              // Tipul e fixat de ecran (`/itemi` -> material, `/abonamente` ->
+              // abonament) - fara selector, doar valoarea trimisa la submit.
+              <input type="hidden" name="kind" value={resolvedFixedKind} />
+            ) : (
+              <FormField
+                label="Tip"
+                required
+                hint="Material = stoc + rețetă opțională. Abonament = produs-ca-serviciu, fără stoc."
+              >
+                {(id) => (
+                  <select
+                    id={id}
+                    name="kind"
+                    required
+                    value={kind}
+                    onChange={(e) => setKind(e.target.value as ItemKind)}
+                    className={selectClassName}
+                  >
+                    {KIND_OPTIONS.map((option) => (
+                      <option key={option} value={option}>
+                        {KIND_LABELS[option]}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </FormField>
+            )}
           </div>
 
           <FormField label="Poză" hint="PNG, JPEG, WEBP sau GIF, max 2MB (opțional).">
@@ -150,7 +170,7 @@ export function ItemForm({ item }: { item?: Item }) {
               </label>
               <p className="text-xs text-muted-foreground">
                 Dezactivează pentru materiale generice fără cantitate limitată (ex: apă, aer).
-                Astfel de materiale pot fi folosite în rețete, dar nu se consumă din stoc.
+                Astfel de itemi pot fi componente de rețetă, dar nu se consumă din stoc.
               </p>
             </div>
           ) : null}
@@ -175,7 +195,9 @@ export function ItemForm({ item }: { item?: Item }) {
             ? "Se salvează..."
             : item
               ? "Salvează modificările"
-              : "Creează materialul sau serviciul"}
+              : kind === "service"
+                ? "Creează abonamentul"
+                : "Creează materialul"}
         </Button>
       </div>
     </form>
