@@ -10,7 +10,10 @@ vi.mock("@/features/clients/queries", () => ({
 }));
 
 vi.mock("@/features/items/queries", () => ({
-  listItems: vi.fn().mockResolvedValue([{ id: "item-1", title: "Agregat 0-4", unit: "kg" }]),
+  listItems: vi.fn().mockResolvedValue([
+    { id: "item-1", title: "Agregat 0-4", unit: "kg", kind: "physical" },
+    { id: "item-2", title: "Mentenanță lunară", unit: "bucata", kind: "service" },
+  ]),
 }));
 
 vi.mock("@/features/stock/queries", () => ({
@@ -90,6 +93,12 @@ describe("itemi_vandabili", () => {
     const result = await itemiVandabili.execute({ cautare: null }, CTX);
     expect(result).toEqual([
       { item_id: "item-1", denumire: "Agregat 0-4", um: "kg", link: "/itemi/item-1" },
+      {
+        item_id: "item-2",
+        denumire: "Mentenanță lunară",
+        um: "bucata",
+        link: "/abonamente/item-2",
+      },
     ]);
   });
 });

@@ -6,21 +6,21 @@ import { requireRole } from "@/features/auth/session";
 import { listItems } from "@/features/items/queries";
 import { ItemsTable } from "@/features/items/items-table";
 
-export const metadata = { title: "Materiale - Lot cu Lot" };
+export const metadata = { title: "Abonamente - Lot cu Lot" };
 
 const selectClassName =
   "flex h-9 w-full rounded-md border border-input bg-card px-3 py-1 text-sm shadow-xs outline-none sm:w-48";
 
-interface ItemiPageProps {
+interface AbonamentePageProps {
   searchParams: Promise<{ sellable?: string; q?: string }>;
 }
 
 /**
- * Ecranul Materiale - catalogul itemilor fizici (definitie), doar staff, cu
- * filtre + cautare. Abonamentele (`kind = "service"`) au ecran propriu
- * (`/abonamente`) - aici tipul e fixat, nu mai e filtru de UI.
+ * Ecranul Abonamente - catalogul itemilor `kind = "service"` (produs-ca-serviciu,
+ * fără stoc), doar staff, cu filtre + căutare. Oglindește `/itemi` (Materiale),
+ * dar tipul e fixat de ecran - nu mai e filtru de UI.
  */
-export default async function ItemiPage({ searchParams }: ItemiPageProps) {
+export default async function AbonamentePage({ searchParams }: AbonamentePageProps) {
   await requireRole(["admin", "operator"]);
   const params = await searchParams;
 
@@ -28,17 +28,17 @@ export default async function ItemiPage({ searchParams }: ItemiPageProps) {
     params.sellable === "true" ? true : params.sellable === "false" ? false : undefined;
   const search = params.q?.trim() || undefined;
 
-  const items = await listItems({ kind: "physical", sellable, search });
+  const items = await listItems({ kind: "service", sellable, search });
   const hasFilters = Boolean(sellable !== undefined || search);
 
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Materiale"
-        description="Catalogul de materiale fizice - definiție, fără prețuri."
+        title="Abonamente"
+        description="Catalogul de abonamente (produs-ca-serviciu) - definiție, fără prețuri."
         actions={
           <Button asChild>
-            <Link href="/itemi/nou">+ Adaugă material</Link>
+            <Link href="/abonamente/nou">+ Adaugă abonament</Link>
           </Button>
         }
       />
@@ -70,12 +70,12 @@ export default async function ItemiPage({ searchParams }: ItemiPageProps) {
         </Button>
         {hasFilters ? (
           <Button asChild variant="ghost">
-            <Link href="/itemi">Resetează</Link>
+            <Link href="/abonamente">Resetează</Link>
           </Button>
         ) : null}
       </form>
 
-      <ItemsTable items={items} kind="physical" />
+      <ItemsTable items={items} kind="service" />
     </div>
   );
 }

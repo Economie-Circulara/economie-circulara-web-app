@@ -44,9 +44,9 @@ urmezi linkul primit pe email pentru a seta o parolă nouă.
 
 ## 2. Catalog și plasarea unei comenzi
 
-Ecranul **"Catalog"** afișează toate produsele/serviciile marcate ca vandabile de
-către organizație - **fără prețuri**. Poți căuta după denumire și filtra după tip
-(Fizic/Serviciu).
+Ecranul **"Catalog"** afișează toate materialele și abonamentele marcate ca
+vandabile de către organizație - **fără prețuri**. Poți căuta după denumire și
+filtra după tip (Material/Abonament).
 
 ### 2.1 Adăugarea în coș
 
@@ -126,7 +126,7 @@ Materialul returnat intră efectiv în stocul organizației doar **după ce
 organizația inspectează și acceptă** returul (nu automat la trimiterea cererii
 tale).
 
-**Închiriere (product-as-a-service):** dacă produsul tău e de tip serviciu
+**Închiriere (product-as-a-service):** dacă produsul tău e un abonament
 (închiriere simulată), pe comandă poate apărea o dată estimată de retur al
 materialului/echipamentului.
 

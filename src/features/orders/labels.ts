@@ -3,17 +3,20 @@ import type { OrderStatus, OrderType } from "./types";
 /** Etichete RO pentru tipul comenzii (enum DB `order_type`, migrarea 0030). */
 export const ORDER_TYPE_LABELS: Record<OrderType, string> = {
   material: "Material",
-  serviciu: "Serviciu",
+  serviciu: "Abonament",
   aport: "Aport",
 };
 
 /**
  * Explicatia fiecarui tip, aratata langa selector la creare - tipul nu poate fi
  * ghicit din denumire (mai ales "aport", care inverseaza sensul stocului).
+ * Eticheta enum-ului DB `serviciu` e "Abonament" in UI - valoarea enum nu se
+ * schimba (cost de migrare), doar denumirea afisata (regula de naming din
+ * AGENTS.md, task Abonamente).
  */
 export const ORDER_TYPE_DESCRIPTIONS: Record<OrderType, string> = {
   material: "Vânzare de produse fizice către client. Scade stocul la acceptare.",
-  serviciu: "Închiriere / serviciu (product-as-a-service), cu dată estimată de retur.",
+  serviciu: "Abonament (product-as-a-service), cu dată estimată de retur.",
   aport: "Clientul aduce material către organizație (ex. moloz). Crește stocul la acceptare.",
 };
 

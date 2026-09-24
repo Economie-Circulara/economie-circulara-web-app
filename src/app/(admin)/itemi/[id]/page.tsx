@@ -6,35 +6,36 @@ import { requireRole } from "@/features/auth/session";
 import { getItemById } from "@/features/items/queries";
 import { ItemForm } from "@/features/items/item-form";
 
-export const metadata = { title: "Editează material/serviciu - Lot cu Lot" };
+export const metadata = { title: "Editează material - Lot cu Lot" };
 
 interface ItemDetailPageProps {
   params: Promise<{ id: string }>;
 }
 
-/** Formular editare item existent - doar staff. */
+/**
+ * Formular editare material existent - doar staff. Ecranul e doar pentru
+ * itemi `kind = "physical"` - un abonament se editează pe `/abonamente/[id]`.
+ */
 export default async function ItemDetailPage({ params }: ItemDetailPageProps) {
   await requireRole(["admin", "operator"]);
   const { id } = await params;
 
   const item = await getItemById(id);
-  if (!item) notFound();
+  if (!item || item.kind !== "physical") notFound();
 
   return (
     <div className="space-y-6">
       <PageHeader
         title={item.title}
-        description="Editează detaliile materialului sau serviciului."
-        breadcrumbs={[{ label: "Materiale și servicii", href: "/itemi" }, { label: item.title }]}
+        description="Editează detaliile materialului."
+        breadcrumbs={[{ label: "Materiale", href: "/itemi" }, { label: item.title }]}
         actions={
-          item.kind === "physical" ? (
-            <Button asChild variant="outline">
-              <Link href={`/retete/${item.id}`}>Rețetă</Link>
-            </Button>
-          ) : undefined
+          <Button asChild variant="outline">
+            <Link href={`/retete/${item.id}`}>Rețetă</Link>
+          </Button>
         }
       />
-      <ItemForm item={item} />
+      <ItemForm item={item} fixedKind="physical" />
     </div>
   );
 }

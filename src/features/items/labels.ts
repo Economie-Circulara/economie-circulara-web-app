@@ -2,8 +2,8 @@ import type { BadgeVariant } from "@/components/ui/badge";
 import type { ItemKind, UnitOfMeasure } from "./types";
 
 export const KIND_LABELS: Record<ItemKind, string> = {
-  physical: "Fizic",
-  service: "Serviciu",
+  physical: "Material",
+  service: "Abonament",
 };
 
 export const KIND_OPTIONS: ItemKind[] = ["physical", "service"];

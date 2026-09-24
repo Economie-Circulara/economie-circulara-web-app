@@ -175,7 +175,7 @@ describe("OrderEditor", () => {
     render(<Harness initial={draftValue()} />);
     expect(screen.queryByLabelText("Retur estimat")).not.toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("radio", { name: /Serviciu/ }));
+    fireEvent.click(screen.getByRole("radio", { name: /Abonament/ }));
     expect(screen.getByLabelText("Retur estimat")).toBeInTheDocument();
   });
 

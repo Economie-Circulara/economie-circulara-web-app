@@ -73,7 +73,7 @@ export async function getItemById(id: string): Promise<Item | null> {
     .eq("id", id)
     .maybeSingle();
 
-  if (error) throw new Error("Nu am putut incarca materialul sau serviciul.");
+  if (error) throw new Error("Nu am putut incarca materialul sau abonamentul.");
   return data ? mapItem(data) : null;
 }
 

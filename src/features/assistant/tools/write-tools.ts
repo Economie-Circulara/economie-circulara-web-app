@@ -216,7 +216,7 @@ export const creeazaComanda: AssistantTool<CreateOrderToolInput> = {
         enum: ["material", "serviciu", "aport"],
         description:
           "Tipul comenzii: `material` (vânzare de produse, implicit), `serviciu` " +
-          "(închiriere/abonament, permite `data_retur_estimata`) sau `aport` " +
+          "(abonament / product-as-a-service, permite `data_retur_estimata`) sau `aport` " +
           "(clientul aduce material către organizație - crește stocul). " +
           "Dacă utilizatorul nu precizează, lasă gol (se folosește `material`).",
       },
@@ -240,7 +240,8 @@ export const creeazaComanda: AssistantTool<CreateOrderToolInput> = {
       data_retur_estimata: {
         type: "string",
         description:
-          "Data estimată de retur (doar pentru `tip_comanda = serviciu`), format YYYY-MM-DD.",
+          "Data estimată de retur (doar pentru `tip_comanda = serviciu`, abonament), " +
+          "format YYYY-MM-DD.",
       },
       observatii: { type: "string" },
     },

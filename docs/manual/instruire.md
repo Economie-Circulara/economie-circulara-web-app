@@ -11,7 +11,7 @@ folder ca suport de curs și se încheie cu un checklist de competențe verifica
   demo), nu doar teoretic - fiecare participant execută pașii, nu doar urmărește.
 - **Ordinea sesiunilor urmează fluxul de business** (1->9 din `docs/handoff.md`):
   nu are sens să înveți "Producție" înainte de "Stoc", sau "Comenzi" înainte de
-  "Clienți"/"Materiale și servicii".
+  "Clienți"/"Materiale"/"Abonamente".
 - **Materialele scrise** (manualele din acest folder) rămân disponibile
   permanent după instruire, pentru consultare ulterioară.
 - **Fiecare sesiune se încheie cu o probă practică** - participantul execută
@@ -63,7 +63,7 @@ folder ca suport de curs și se încheie cu un checklist de competențe verifica
 
 ---
 
-## S2 - Operațiuni zilnice: Clienți, Materiale și servicii, Rețete, Stoc (Administrator + Operator)
+## S2 - Operațiuni zilnice: Clienți, Materiale, Abonamente, Rețete, Stoc (Administrator + Operator)
 
 **Durată estimată:** 2 ore.
 
@@ -74,8 +74,9 @@ folder ca suport de curs și se încheie cu un checklist de competențe verifica
 1. (25 min) Clienți: creare client nou cu lookup CUI (ANAF), completare
    manuală când lookup-ul eșuează, adrese de livrare multiple, documente
    (upload/descărcare, nota despre contracte arhivate).
-2. (20 min) Materiale și servicii: diferența Fizic/Serviciu, unitate de măsură
-   unică per produs, flag "Vandabil" (ce apare în catalogul clientului).
+2. (20 min) Materiale și Abonamente: ecrane separate (materiale fizice cu stoc
+   vs. abonamente PaaS fără stoc), unitate de măsură unică per produs, flag
+   "Vandabil" (ce apare în catalogul clientului).
 3. (20 min) Rețete: compoziția în procente, fără versionare (produs nou = rețetă
    nouă).
 4. (30 min) Stoc: adăugarea unui lot (proveniență, cantitate, sursă, locație),
