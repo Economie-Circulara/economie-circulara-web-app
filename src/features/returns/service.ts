@@ -106,8 +106,8 @@ export async function loadOriginalOrderForReturn(
   if (!ALLOWED_RETURN_FLOWS_BY_ORDER_TYPE[data.order_type].includes(flowType)) {
     throw new ReturnValidationError(
       flowType === "return"
-        ? "Returul se poate face doar pe o comandă de tip serviciu (închiriere). Pentru un produs defect vândut, folosește Garanție."
-        : "Garanția se poate cere doar pe o comandă de tip material sau serviciu.",
+        ? "Returul se poate face doar pe o comandă de tip abonament (închiriere). Pentru un produs defect vândut, folosește Garanție."
+        : "Garanția se poate cere doar pe o comandă de tip material sau abonament.",
     );
   }
 

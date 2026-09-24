@@ -28,8 +28,8 @@ export default async function RecipeEditorPage({ params }: RecipeEditorPageProps
           breadcrumbs={[{ label: "Rețete", href: "/retete" }, { label: item.title }]}
         />
         <p className="text-sm text-muted-foreground">
-          Rețetele se pot defini doar pentru produse, nu pentru servicii. &quot;{item.title}&quot;
-          este un serviciu.
+          Rețetele se pot defini doar pentru materiale (itemi fizici). &quot;{item.title}&quot; este
+          un abonament.
         </p>
       </div>
     );

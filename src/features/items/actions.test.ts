@@ -140,14 +140,14 @@ describe("createItemAction", () => {
 
   it("returneaza eroarea serviciului fara redirect", async () => {
     requireRole.mockResolvedValue({ id: "u1", organizationId: "org-1" });
-    createItem.mockRejectedValue(new Error("Nu am putut crea materialul sau serviciul."));
+    createItem.mockRejectedValue(new Error("Nu am putut crea materialul sau abonamentul."));
 
     const state = await createItemAction(
       initialItemFormState,
       formData({ title: "X", unit: "kg", kind: "physical" }),
     );
 
-    expect(state.error).toBe("Nu am putut crea materialul sau serviciul.");
+    expect(state.error).toBe("Nu am putut crea materialul sau abonamentul.");
     expect(redirect).not.toHaveBeenCalled();
   });
 });
@@ -182,13 +182,13 @@ describe("updateItemAction", () => {
 
   it("propaga eroarea serviciului (ex. item inexistent)", async () => {
     requireRole.mockResolvedValue({ id: "u1", organizationId: "org-1" });
-    updateItem.mockRejectedValue(new Error("Nu am putut salva materialul sau serviciul."));
+    updateItem.mockRejectedValue(new Error("Nu am putut salva materialul sau abonamentul."));
 
     const state = await updateItemAction(
       initialItemFormState,
       formData({ id: "item-x", title: "X", unit: "kg", kind: "physical" }),
     );
 
-    expect(state.error).toBe("Nu am putut salva materialul sau serviciul.");
+    expect(state.error).toBe("Nu am putut salva materialul sau abonamentul.");
   });
 });

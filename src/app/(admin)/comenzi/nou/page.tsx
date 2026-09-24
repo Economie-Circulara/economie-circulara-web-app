@@ -27,7 +27,7 @@ export default async function ComandaNouaPage() {
     <div className="space-y-6">
       <PageHeader
         title="Comandă nouă"
-        description="Creează o comandă în numele unui client (vânzare, serviciu sau aport)."
+        description="Creează o comandă în numele unui client (vânzare, abonament sau aport)."
         breadcrumbs={[{ label: "Comenzi", href: "/comenzi" }, { label: "Comandă nouă" }]}
       />
       <OrderForm

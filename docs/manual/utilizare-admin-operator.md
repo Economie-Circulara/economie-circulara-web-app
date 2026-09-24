@@ -10,7 +10,7 @@ managementul utilizatorilor - detaliate în [`ghid-administrare.md`](ghid-admini
 Interfața este aceeași pentru ambele roluri (un singur meniu, în stânga ecranului),
 cu excepția "Setări", vizibilă doar pentru Administrator.
 
-![meniul lateral, grupat pe secțiuni pliabile - Panou de control; grupul Comenzi (Comenzi, Livrări); grupul Stoc (Materiale și servicii, Rețete, Stoc, Audit stoc); Clienți; Producție; Rapoarte; grupul Setări (Setări, Utilizatori, Puncte de plecare)](img/admin-sidebar.png)
+![meniul lateral, grupat pe secțiuni pliabile - Panou de control; grupul Comenzi (Comenzi, Livrări); grupul Stoc (Materiale, Abonamente, Rețete, Stoc, Audit stoc); Clienți; Producție; Rapoarte; grupul Setări (Setări, Utilizatori, Puncte de plecare)](img/admin-sidebar.png)
 
 ---
 
@@ -104,37 +104,49 @@ Din listă, click pe o firmă deschide ecranul de detaliu, cu secțiunile:
 
 ---
 
-## 4. Materiale și servicii, Rețete
+## 4. Materiale, Abonamente, Rețete
 
-### 4.1 Materiale și servicii
+### 4.1 Materiale
 
-Meniul **"Materiale și servicii"** este catalogul de produse și servicii al
-organizației - **fără prețuri**. O intrare din catalog poate fi:
+Meniul **"Materiale"** este catalogul de materiale fizice al organizației -
+**fără prețuri**. Fiecare material ține stoc (loturi) și poate avea o rețetă.
 
-- **Material** - ține stoc (loturi), poate avea o rețetă.
-- **Serviciu** - abonament/serviciu PaaS (product-as-a-service), fără stoc.
+Abonamentele (produse-ca-serviciu, fără stoc) au ecran propriu - vezi
+secțiunea 4.2.
 
-Lista permite filtrare după **Căutare** (titlu), **Tip** (Material/Serviciu) și
-**Vandabil** (Da/Nu).
+Lista permite filtrare după **Căutare** (titlu) și **Vandabil** (Da/Nu).
 
-Pentru a adăuga un material sau serviciu, apasă **"+ Adaugă material sau
-serviciu"** și completează:
+Pentru a adăuga un material, apasă **"+ Adaugă material"** și completează:
 
 - **Titlu** (obligatoriu)
 - **Descriere**
 - **Unitate de măsură** (kg, tonă, mc, litru, bucată, sac, palet) - **un singur UM
   per produs**; dacă același material se vinde în unități diferite, se creează
   produse separate (fără conversii între unități).
-- **Tip** (Material/Serviciu)
+- **Urmărește stocul** - dezactivează doar pentru materiale generice fără cantitate
+  limitată (ex: apă, aer).
 - **URL poză** (opțional)
-- Bifa **"Vandabil (apare în catalogul clientului)"** - doar materialele/serviciile
+- Bifa **"Vandabil (apare în catalogul clientului)"** - doar materialele
   vandabile apar în catalogul portalului client.
 
-Apasă **"Creează materialul sau serviciul"**.
+Apasă **"Creează materialul"**.
 
-![ecranul "Materiale și servicii" cu lista și filtrele](img/admin-items.png)
+![ecranul "Materiale" cu lista și filtrele](img/admin-items.png)
 
-### 4.2 Rețete
+### 4.2 Abonamente
+
+Meniul **"Abonamente"** este catalogul de produse-ca-serviciu (PaaS) al
+organizației - **fără stoc și fără prețuri** (ex. mentenanță periodică,
+închiriere de echipament). Ecranul oglindește "Materiale", dar fără rețetă și
+fără opțiunea de urmărire a stocului (irelevantă pentru un abonament).
+
+Pentru a adăuga un abonament, apasă **"+ Adaugă abonament"** și completează
+**Titlu**, **Unitate de măsură**, opțional **Descriere** și **URL poză**, apoi
+bifa **"Vandabil"** dacă abonamentul trebuie să apară în catalogul clientului.
+
+Apasă **"Creează abonamentul"**.
+
+### 4.3 Rețete
 
 Meniul **"Rețete"** listează rețetele definite pentru materiale. O rețetă
 descrie **compoziția în procente** a unui produs din materii prime. **Rețetele nu
@@ -151,8 +163,8 @@ Pentru a defini/edita rețeta unui material: din listă, click pe material -> ec
 **"Rețetă - `<nume material>`"**. Dacă materialul nu are încă rețetă, apare un buton
 de creare; altfel, editorul de rețetă permite adăugarea/editarea materiilor prime
 (sau a materialelor rezultate, la metoda Reciclare) și a procentelor lor. Rețetele
-se pot defini **doar pentru materiale** (pentru servicii, ecranul afișează un mesaj
-informativ).
+se pot defini **doar pentru materiale** (nu și pentru abonamente - ecranul afișează
+un mesaj informativ).
 
 ![editorul de rețetă cu componentele în procente](img/admin-recipe-editor.png)
 
@@ -269,16 +281,16 @@ Click pe un proces din listă deschide ecranul de detaliu, cu:
 Meniul **"Comenzi"** listează comenzile clienților, cu filtrare după **Status**
 și **Căutare** (client sau număr comandă).
 
-### 7.1 Tipul comenzii (Material / Serviciu / Aport)
+### 7.1 Tipul comenzii (Material / Abonament / Aport)
 
 Orice comandă are un **tip**, ales explicit la creare (nu există o valoare
 implicită) - el dă sensul mișcării de stoc:
 
-| Tip          | Sens               | Efect la acceptare                                   |
-| ------------ | ------------------ | ---------------------------------------------------- |
-| **Material** | organizație → client | **scade** stocul (se folosesc întâi loturile cele mai vechi) |
-| **Serviciu** | organizație → client | ca la material, plus câmpul **"Retur estimat"**      |
-| **Aport**    | **client → organizație** | **crește** stocul: materialul adus de client intră ca lot nou |
+| Tip           | Sens               | Efect la acceptare                                   |
+| ------------- | ------------------ | ---------------------------------------------------- |
+| **Material**  | organizație → client | **scade** stocul (se folosesc întâi loturile cele mai vechi) |
+| **Abonament** | organizație → client | ca la material, plus câmpul **"Retur estimat"**      |
+| **Aport**     | **client → organizație** | **crește** stocul: materialul adus de client intră ca lot nou |
 
 **Aportul** acoperă cazul în care clientul aduce material către organizație (ex.
 moloz din demolări, pentru reciclare). La linii se pot alege **orice materiale**,
@@ -311,13 +323,13 @@ Organizația poate crea o comandă în numele unui client (flag intern
 telefon/WhatsApp și înregistrate în platformă):
 
 1. Din lista "Comenzi", apasă **"+ Comandă nouă"** -> ecranul **"Comandă nouă"**.
-2. Alege **Tipul comenzii** (Material / Serviciu / Aport - vezi 7.1). Abia după
-   această alegere se poate completa lista de materiale/servicii, pentru că ea
+2. Alege **Tipul comenzii** (Material / Abonament / Aport - vezi 7.1). Abia după
+   această alegere se poate completa lista de materiale/abonamente, pentru că ea
    depinde de tip.
 3. Alege **Client**, opțional o **Adresă de livrare** (dependentă de client) și o
-   **Dată livrare**, opțional **Note**. La tipul **Serviciu** apare în plus
+   **Dată livrare**, opțional **Note**. La tipul **Abonament** apare în plus
    **"Retur estimat"** (data la care se așteaptă bunul înapoi).
-4. În secțiunea **"Linii comandă"**, alege un material sau serviciu și o cantitate, apasă
+4. În secțiunea **"Linii comandă"**, alege un material sau abonament și o cantitate, apasă
    adaugă-linie; repetă pentru fiecare produs; poți șterge o linie adăugată.
 5. Trimite formularul - comanda se creează ca **Ciornă**.
 
@@ -331,7 +343,7 @@ client sau de organizație.
 Ecranul de detaliu (`/comenzi/[id]`) afișează: **tipul comenzii** (cu o scurtă
 explicație), client (CUI, notă "Creată de organizație în numele clientului" dacă e
 cazul), livrare (adresă, dată livrare, eventual "Retur estimat (închiriere)" pentru
-fluxul de închiriere ca serviciu), linii de comandă, și un **traseu vizual al
+fluxul de abonament/închiriere), linii de comandă, și un **traseu vizual al
 statusului** (Ciornă -> Trimisă -> Acceptată -> Livrată -> Închisă, sau "Anulată").
 
 Dacă o comandă a fost livrată/închisă, pot apărea butoanele **"Retur"** și
@@ -356,7 +368,7 @@ apărea două butoane - **care dintre ele apare depinde de tipul comenzii** (7.1
 | Tipul comenzii | "Retur" | "Garanție" |
 | -------------- | ------- | ---------- |
 | Material       | nu      | da         |
-| Serviciu       | da      | da         |
+| Abonament      | da      | da         |
 | Aport          | nu      | nu         |
 
 Motivul: un **retur pur** (materialul se întoarce în stoc, fără înlocuire) are sens
@@ -446,7 +458,7 @@ selectabilă (câmpurile **"De la"** / **"Până la"** + butonul **"Aplică peri
    reciclare, recondiționare sau retur, intrate în stoc în perioadă.
 5. **"Utilizare PaaS (livrat - returnat)"** - cantitatea efectiv utilizată de
    fiecare client (livrat minus returnat acceptat), per produs - relevant pentru
-   clienți cu model de tip "serviciu" (produs-ca-serviciu).
+   clienți cu model de tip "abonament" (produs-ca-serviciu).
 6. **"% materii prime secundare"** - ponderea materiilor prime secundare
    (reciclate/recondiționate/retur) din inputul de producție, per produs.
 

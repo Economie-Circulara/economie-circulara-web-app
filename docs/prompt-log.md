@@ -35,6 +35,40 @@ Cele mai noi intrari sus.
 - **Impact asistent AI (regula 2.4):** `none` - niciun tool nou/schimbat, doar
   reformulari de texte descriptive trimise modelului (vezi planul).
 
+## 2026-09-24 — Claude (Claude Code) — Abonamente: ecran și meniu separat de Materiale
+
+- **Cerut:** redenumirea "servicii" -> "Abonamente" in UI, cu ecran si intrare de
+  meniu separate de "Materiale" (optiunea A, aprobata: doar UI/catalog, FARA
+  modificari de DB/enum).
+- **Facut:**
+  - Rute noi `/abonamente`, `/abonamente/nou`, `/abonamente/[id]` (oglindesc
+    `/itemi`, filtrate pe `kind = "service"`); `/itemi` ramane doar pentru
+    `kind = "physical"` ("Materiale"). `ItemForm` primeste `fixedKind` - niciun
+    formular de creare nu mai are selector de tip (fixat de ecran).
+  - Helper nou `itemHref()` (`src/features/items/item-links.ts`) - alege
+    `/itemi/[id]` sau `/abonamente/[id]` dupa `kind`; folosit in `ItemsTable`,
+    cautarea globala (`search/service.ts`) si tool-urile de asistent
+    (`itemi_vandabili`, `itemi_aport`) - altfel un link catre un abonament da 404.
+  - Nav: grupul "Stoc" -> "Materiale" + "Abonamente" (icon nou `subscriptions`,
+    `Repeat` din lucide, mapat in `sidebar.tsx` conform regulii RSC din AGENTS §4.2).
+  - Etichete: `KIND_LABELS.service` -> "Abonament", `.physical` -> "Material";
+    `ORDER_TYPE_LABELS.serviciu` -> "Abonament" (doar eticheta - enum-ul DB
+    `serviciu` ramane neschimbat). Text UI corespunzator in retete, comenzi,
+    retururi, catalogul clientului (reutilizeaza `KIND_LABELS`), asistent
+    (`prompt.ts`, descrierile tool-urilor, sugestii) si `docs/manual/`.
+  - Teste noi: `item-links.test.ts`, `items-table.test.tsx`; actualizate
+    `read-tools.test.ts` (link catre abonament), `order-editor.test.tsx`
+    (radio "Abonament"), `items/actions.test.ts`.
+- **Verificat:** `pnpm typecheck`, `pnpm lint`, `pnpm test` (855 teste),
+  `pnpm format:check` (3 avertismente Prettier ramase apartin unor fisiere
+  neatinse de acest task, deja prezente pe `main`).
+- **Impact asistent AI (regula 2.4):** `none` pe capabilitati - niciun tool nou/
+  schimbat functional; doar wording (`serviciu` -> `abonament` in text liber,
+  NU valoarea enum `tip_comanda`) si linkurile intoarse de tool-urile existente
+  (prin `itemHref()`).
+- **Regula noua adaugata in AGENTS.md §4:** denumirea "Abonament" pentru
+  `kind = "service"` in UI, cu ecran/rute separate si helper-ul `itemHref()`
+  obligatoriu pentru orice link catre un item existent.
 
 ## 2026-09-20 — Claude Sonnet 5 — Asistent: fix catalog aport + planificarea livrarii
 

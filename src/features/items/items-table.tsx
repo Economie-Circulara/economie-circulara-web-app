@@ -6,19 +6,20 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { DataTable } from "@/components/data-table";
 import { EmptyState } from "@/components/empty-state";
 import { Badge } from "@/components/ui/badge";
+import { itemHref } from "./item-links";
 import { KIND_BADGE_VARIANT, KIND_LABELS, UNIT_LABELS } from "./labels";
-import type { ItemListRow } from "./types";
+import type { ItemKind, ItemListRow } from "./types";
 
 function YesNoBadge({ value }: { value: boolean }) {
   return <Badge variant={value ? "ok" : "neutral"}>{value ? "Da" : "Nu"}</Badge>;
 }
 
-const columns: ColumnDef<ItemListRow>[] = [
+const baseColumns: ColumnDef<ItemListRow>[] = [
   {
     accessorKey: "title",
     header: "Titlu",
     cell: ({ row }) => (
-      <Link href={`/itemi/${row.original.id}`} className="font-medium hover:underline">
+      <Link href={itemHref(row.original)} className="font-medium hover:underline">
         {row.original.title}
       </Link>
     ),
@@ -48,30 +49,52 @@ const columns: ColumnDef<ItemListRow>[] = [
     header: "Vandabil",
     cell: ({ row }) => <YesNoBadge value={row.original.sellable} />,
   },
-  {
-    accessorKey: "hasRecipe",
-    header: "Are rețetă",
-    cell: ({ row }) => <YesNoBadge value={row.original.hasRecipe} />,
-  },
 ];
 
-export function ItemsTable({ items }: { items: ItemListRow[] }) {
+const recipeColumn: ColumnDef<ItemListRow> = {
+  accessorKey: "hasRecipe",
+  header: "Are rețetă",
+  cell: ({ row }) => <YesNoBadge value={row.original.hasRecipe} />,
+};
+
+interface EmptyCopy {
+  title: string;
+  description: string;
+  emptyMessage: string;
+}
+
+const EMPTY_COPY: Record<ItemKind, EmptyCopy> = {
+  physical: {
+    title: "Niciun material în catalog",
+    description: "Adaugă primul material pentru a începe.",
+    emptyMessage: "Niciun material găsit.",
+  },
+  service: {
+    title: "Niciun abonament în catalog",
+    description: "Adaugă primul abonament pentru a începe.",
+    emptyMessage: "Niciun abonament găsit.",
+  },
+};
+
+interface ItemsTableProps {
+  items: ItemListRow[];
+  /**
+   * Tipul listat de ecran (`/itemi` -> `physical`, `/abonamente` -> `service`) -
+   * decide textele stării goale și dacă se arată coloana "Are rețetă" (retetele
+   * se definesc doar pentru materiale fizice, coloana n-are sens pe abonamente).
+   */
+  kind: ItemKind;
+}
+
+export function ItemsTable({ items, kind }: ItemsTableProps) {
+  const copy = EMPTY_COPY[kind];
+  const columns = kind === "physical" ? [...baseColumns, recipeColumn] : baseColumns;
+
   if (items.length === 0) {
-    return (
-      <EmptyState
-        icon={<Package />}
-        title="Niciun material sau serviciu în catalog"
-        description="Adaugă primul material sau serviciu pentru a începe."
-      />
-    );
+    return <EmptyState icon={<Package />} title={copy.title} description={copy.description} />;
   }
 
   return (
-    <DataTable
-      columns={columns}
-      data={items}
-      pageSize={10}
-      emptyMessage="Niciun material sau serviciu găsit."
-    />
+    <DataTable columns={columns} data={items} pageSize={10} emptyMessage={copy.emptyMessage} />
   );
 }

@@ -92,7 +92,8 @@ test.describe("Flux complet MVP (handoff.md, pasii 1-9)", () => {
       await page.goto("/itemi/nou");
       await label(page, "Titlu").fill(ITEM_INPUT_TITLE);
       await label(page, "Unitate de măsură").selectOption({ label: "kg" });
-      // Rămâne nevandabil (materie primă internă) și "Material" (implicit).
+      // Rămâne nevandabil (materie primă internă) - "Material" (kind fizic,
+      // fixat de ecranul /itemi/nou).
       await page.getByRole("button", { name: "Creează itemul" }).click();
       await expect(page).toHaveURL(/\/itemi$/);
 
@@ -124,11 +125,11 @@ test.describe("Flux complet MVP (handoff.md, pasii 1-9)", () => {
       // Rețeta itemului de intrare: descompunere 100% în agregatul reciclat
       // (interpretata de 4b - VariableOutputForm - ca fracții de output ideal).
       await page.goto("/retete/nou");
-      await label(page, "Material").selectOption({ label: `${ITEM_INPUT_TITLE} (kg)` });
+      await label(page, "Item").selectOption({ label: `${ITEM_INPUT_TITLE} (kg)` });
       await page.getByRole("button", { name: "Creează rețeta" }).click();
       await expect(page).toHaveURL(/\/retete\/[0-9a-f-]+$/);
 
-      await label(page, "Material").selectOption({ label: `${ITEM_RECYCLED_TITLE} (kg)` });
+      await label(page, "Item").selectOption({ label: `${ITEM_RECYCLED_TITLE} (kg)` });
       await label(page, "Procent").fill("100");
       await page.getByRole("button", { name: "Adaugă" }).click();
       await expect(page.getByText(ITEM_RECYCLED_TITLE, { exact: true })).toBeVisible();
@@ -136,11 +137,11 @@ test.describe("Flux complet MVP (handoff.md, pasii 1-9)", () => {
       // Rețeta produsului finit: compoziție 100% din agregatul reciclat
       // (interpretata de 4a - FixedOutputForm - ca și consum calculat FIFO).
       await page.goto("/retete/nou");
-      await label(page, "Material").selectOption({ label: `${ITEM_PRODUCT_TITLE} (bucata)` });
+      await label(page, "Item").selectOption({ label: `${ITEM_PRODUCT_TITLE} (bucata)` });
       await page.getByRole("button", { name: "Creează rețeta" }).click();
       await expect(page).toHaveURL(/\/retete\/[0-9a-f-]+$/);
 
-      await label(page, "Material").selectOption({ label: `${ITEM_RECYCLED_TITLE} (kg)` });
+      await label(page, "Item").selectOption({ label: `${ITEM_RECYCLED_TITLE} (kg)` });
       await label(page, "Procent").fill("100");
       await page.getByRole("button", { name: "Adaugă" }).click();
       await expect(page.getByText(ITEM_RECYCLED_TITLE, { exact: true })).toBeVisible();
@@ -148,13 +149,13 @@ test.describe("Flux complet MVP (handoff.md, pasii 1-9)", () => {
 
     await test.step("Pasul 4: intrare stoc - lot nou pentru materia primă", async () => {
       await page.goto("/stoc/nou");
-      await label(page, "Material").selectOption({ label: `${ITEM_INPUT_TITLE} (kg)` });
+      await label(page, "Item").selectOption({ label: `${ITEM_INPUT_TITLE} (kg)` });
       await label(page, "Cantitate").fill("100");
       await label(page, "Proveniență").selectOption({ label: "Achiziție" });
       await page.getByRole("button", { name: "Înregistrează lotul" }).click();
 
       await expect(page).toHaveURL(/\/stoc$/);
-      // Scopeaza la tabel (nu la intreaga pagina): filtrul "Material" de deasupra
+      // Scopeaza la tabel (nu la intreaga pagina): filtrul "Item" de deasupra
       // tabelului randeaza optiuni cu titlul PUR (fara sufix UM), acelasi text
       // exact ca celula din tabel - fara scopare, `getByText(exact)` ar gasi
       // ambele elemente (violare de "strict mode").
@@ -165,9 +166,9 @@ test.describe("Flux complet MVP (handoff.md, pasii 1-9)", () => {
 
     await test.step("Pasul 5: proces de reciclare (input fix / output variabil)", async () => {
       await page.goto("/productie/nou");
-      await page.getByRole("button", { name: /Reciclare/ }).click();
+      await page.getByRole("button", { name: /Output variabil/ }).click();
 
-      await label(page, "Material de reciclat").selectOption({ label: ITEM_INPUT_TITLE });
+      await label(page, "Material input").selectOption({ label: ITEM_INPUT_TITLE });
       await page.getByPlaceholder("0").fill("50");
 
       const confirmRecycle = page.getByRole("button", { name: /Finalizează procesul/ });
@@ -180,11 +181,11 @@ test.describe("Flux complet MVP (handoff.md, pasii 1-9)", () => {
       ).toBeVisible();
     });
 
-    await test.step("Pasul 6: proces de producție (fabricație) - produsul finit", async () => {
+    await test.step("Pasul 6: proces de producție (output fix) - produsul finit", async () => {
       await page.goto("/productie/nou");
-      // Tab implicit "Fabricație" - nu mai trebuie schimbat.
+      // Tab implicit "Output fix - Fabricație" - nu mai trebuie schimbat.
       await label(page, "Rețetă / produs").selectOption({ label: ITEM_PRODUCT_TITLE });
-      await label(page, "Cât vrei să produci").fill("20");
+      await label(page, "Cantitate output dorită").fill("20");
 
       const confirmProduce = page.getByRole("button", { name: /Confirmă și pornește/ });
       await expect(confirmProduce).toBeEnabled({ timeout: 15_000 });
@@ -199,7 +200,7 @@ test.describe("Flux complet MVP (handoff.md, pasii 1-9)", () => {
     await test.step("Pasul 7: comandă nouă în numele clientului", async () => {
       await page.goto("/comenzi/nou");
       await label(page, "Client").selectOption({ label: `${CLIENT_NAME} (${CLIENT_CUI})` });
-      await label(page, "Material").selectOption({ label: `${ITEM_PRODUCT_TITLE} (bucata)` });
+      await label(page, "Item").selectOption({ label: `${ITEM_PRODUCT_TITLE} (bucata)` });
       await label(page, "Cantitate").fill("5");
       await page.getByRole("button", { name: "Adaugă linie" }).click();
       await expect(page.getByText(ITEM_PRODUCT_TITLE, { exact: true })).toBeVisible();

@@ -42,6 +42,7 @@ const STAFF_EXTRA_ROUTES = [
   "/productie/nou",
   "/clienti/nou",
   "/itemi/nou",
+  "/abonamente/nou",
   "/retete/nou",
   "/cautare?q=beton",
 ];

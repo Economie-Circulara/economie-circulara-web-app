@@ -85,7 +85,7 @@ export async function createItemAction(
 
   if (!title) return { error: "Titlul este obligatoriu." };
   if (!unit) return { error: "Alege o unitate de masura." };
-  if (!kind) return { error: "Alege tipul materialului sau serviciului." };
+  if (!kind) return { error: "Alege tipul materialului sau abonamentului." };
 
   // Id pre-generat: uploadul pozei (daca exista) se face INAINTE de insert,
   // ca o eroare de upload sa nu creeze un item orfan fara poza.
@@ -114,7 +114,7 @@ export async function createItemAction(
     });
   } catch (err) {
     return {
-      error: err instanceof Error ? err.message : "Nu am putut crea materialul sau serviciul.",
+      error: err instanceof Error ? err.message : "Nu am putut crea materialul sau abonamentul.",
     };
   }
 
@@ -134,10 +134,10 @@ export async function updateItemAction(
   const unit = parseUnit(formData.get("unit"));
   const kind = parseKind(formData.get("kind"));
 
-  if (!id) return { error: "Material sau serviciu invalid." };
+  if (!id) return { error: "Material sau abonament invalid." };
   if (!title) return { error: "Titlul este obligatoriu." };
   if (!unit) return { error: "Alege o unitate de masura." };
-  if (!kind) return { error: "Alege tipul materialului sau serviciului." };
+  if (!kind) return { error: "Alege tipul materialului sau abonamentului." };
 
   // Tri-state pentru poza: fisier nou -> inlocuieste; bifa "elimina" -> null;
   // altfel cheia lipseste din payload si `updateItem` nu atinge poza existenta.
@@ -166,7 +166,7 @@ export async function updateItemAction(
     });
   } catch (err) {
     return {
-      error: err instanceof Error ? err.message : "Nu am putut salva materialul sau serviciul.",
+      error: err instanceof Error ? err.message : "Nu am putut salva materialul sau abonamentul.",
     };
   }
 
