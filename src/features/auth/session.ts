@@ -8,6 +8,12 @@ export type OrgStatus = Database["public"]["Enums"]["org_status"];
 /** Ruta dedicata pentru userii unei organizatii suspendate (T2.1). */
 export const SUSPENDED_ORG_PATH = "/organizatie-suspendata";
 
+/**
+ * Ruta dedicata pentru un CONT dezactivat (migrarea 0035): utilizator de staff
+ * dezactivat de admin sau utilizator-client al unui client arhivat.
+ */
+export const DEACTIVATED_ACCOUNT_PATH = "/cont-dezactivat";
+
 export interface SessionUser {
   id: string;
   email: string | null;
@@ -20,6 +26,19 @@ export interface SessionUser {
    * organizatie - trece peste tenant) sau daca organizatia n-a putut fi rezolvata.
    */
   organizationStatus: OrgStatus | null;
+  /**
+   * Statusul PROPRIULUI profil (`profiles.status`, migrarea 0035): `suspended` =
+   * cont dezactivat (staff dezactivat de admin, sau client al unei firme arhivate).
+   */
+  accountStatus: OrgStatus;
+}
+
+/**
+ * Adevarat daca propriul cont al userului e dezactivat (migrarea 0035). Independent
+ * de statusul organizatiei - un operator dezactivat intr-o organizatie activa.
+ */
+export function isAccountDeactivated(user: Pick<SessionUser, "accountStatus">): boolean {
+  return user.accountStatus === "suspended";
 }
 
 /**
@@ -68,7 +87,7 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
   const { data: profile } = await supabase
     .from("profiles")
     .select(
-      "role, organization_id, client_id, full_name, email, organizations!profiles_organization_id_fkey(status)",
+      "role, organization_id, client_id, full_name, email, status, organizations!profiles_organization_id_fkey(status)",
     )
     .eq("id", user.id)
     .single();
@@ -82,6 +101,8 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
     clientId: profile.client_id,
     fullName: profile.full_name,
     organizationStatus: profile.organizations?.status ?? null,
+    // `?? "active"`: profilele vechi/fixture-urile fara coloana raman active.
+    accountStatus: profile.status ?? "active",
   };
 }
 
@@ -98,6 +119,7 @@ export async function requireUser(): Promise<SessionUser> {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
   if (isOrgSuspended(user)) redirect(SUSPENDED_ORG_PATH);
+  if (isAccountDeactivated(user)) redirect(DEACTIVATED_ACCOUNT_PATH);
   return user;
 }
 

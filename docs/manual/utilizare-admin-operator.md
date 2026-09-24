@@ -102,6 +102,25 @@ Din listă, click pe o firmă deschide ecranul de detaliu, cu secțiunile:
 
 ![ecranul de detaliu client, secțiunea Documente](img/admin-client-documents.png)
 
+### 3.4 Arhivarea unui client
+
+Un client creat din greșeală (sau cu care nu mai lucrezi) **nu se șterge, se
+arhivează**: comenzile, documentele și certificatele lui trebuie să rămână pentru
+trasabilitate.
+
+- Pe ecranul de detaliu al clientului apasă **"Arhivează"** și confirmă în
+  fereastra care apare.
+- Un client arhivat **dispare din lista de clienți, din formularul de comandă și
+  din căutare**, iar **utilizatorul lui din portal nu se mai poate loga** (vede
+  pagina "Contul tău este dezactivat").
+- Pentru a-l vedea din nou în listă bifează **"Arată arhivați"** și apasă
+  **"Caută"**; clienții arhivați au eticheta **"Arhivat"**.
+- **"Restaurează"** (pe ecranul de detaliu) îl readuce în liste și îi deblochează
+  utilizatorul din portal.
+
+CUI-ul rămâne unic: dacă încerci să adaugi din nou o firmă arhivată, primești
+mesajul că firma există deja - restaureaz-o în loc să o creezi din nou.
+
 ---
 
 ## 4. Materiale și servicii, Rețete
@@ -134,6 +153,14 @@ Apasă **"Creează materialul sau serviciul"**.
 
 ![ecranul "Materiale și servicii" cu lista și filtrele](img/admin-items.png)
 
+**Arhivarea unui material sau serviciu.** Un material/serviciu nu se șterge (e
+folosit de loturi, comenzi și rețete), se **arhivează**: pe ecranul lui apasă
+**"Arhivează"** și confirmă. Materialul arhivat nu mai apare în listă și nu mai
+poate fi ales nicăieri (comenzi, catalogul clientului, rețete, intrări de stoc,
+producție, asistent), dar istoricul - loturi, comenzi, certificate - îl afișează în
+continuare. Bifa **"Arată arhivate"** din filtre îl readuce în listă (cu eticheta
+"Arhivat"), iar **"Restaurează"** îl face din nou utilizabil.
+
 ### 4.2 Rețete
 
 Meniul **"Rețete"** listează rețetele definite pentru materialele fizice. O rețetă
@@ -148,6 +175,12 @@ procentelor lor. Rețetele se pot defini **doar pentru materiale de tip Fizic**
 (pentru servicii, ecranul afișează un mesaj informativ).
 
 ![editorul de rețetă cu componentele în procente](img/admin-recipe-editor.png)
+
+**Arhivarea unei rețete.** Din editorul rețetei, **"Arhivează rețeta"** (cu
+confirmare) o scoate din listă și din producție: nu mai poate porni procese noi,
+dar procesele făcute deja cu ea rămân neschimbate. O rețetă se consideră arhivată
+și atunci când materialul ei e arhivat. Linkul **"Arată arhivate"** din lista de
+rețete le afișează; **"Restaurează rețeta"** o face din nou utilizabilă.
 
 ---
 
@@ -186,13 +219,28 @@ Din lista de loturi, coloana "Acțiuni":
 - Pe un lot blocat, apasă **"Deblochează"** pentru a-l reintroduce în stocul
   disponibil.
 
-### 5.4 Consumul de stoc (FIFO)
+### 5.4 Anularea unui lot introdus din greșeală
+
+Dacă un lot a fost introdus greșit (cantitate greșită, material greșit, introdus de
+două ori), deschide lotul (click pe codul lui) și apasă **"Anulează lotul"**. Scrie
+**motivul** (obligatoriu - apare în istoric) și confirmă.
+
+- Butonul apare **doar dacă din lot nu s-a consumat nimic** și lotul a fost
+  introdus manual. Loturile create de un proces de producție, de un retur sau de un
+  aport de la client nu se anulează separat - se corectează fluxul respectiv
+  (pagina lotului explică de ce butonul lipsește).
+- Nimic nu se șterge: cantitatea lotului iese din stoc printr-o **înregistrare de
+  corecție** în auditul de stoc, iar lotul rămâne cu eticheta **"Anulat"**.
+- Loturile anulate nu mai apar în lista de stoc; bifa **"Arată loturile anulate"**
+  le afișează.
+
+### 5.5 Consumul de stoc (FIFO)
 
 **Regulă de business:** consumul loturilor la producție se face **FIFO implicit**
 (se consumă mai întâi loturile cele mai vechi), cu opțiune de selecție manuală în
 ecranele de producție (secțiunea 6).
 
-### 5.5 Audit stoc
+### 5.6 Audit stoc
 
 Meniul **"Audit stoc"** este jurnalul complet al mișcărilor de stoc - Intrare,
 Consum, Ajustare, Blocare, Deblocare, Stornare - cu filtrare pe **Material** și
@@ -336,6 +384,17 @@ ulterior, din ecranul de Stoc. Traseul afișat se oprește la "Acceptată".
 
 ![ecranul de detaliu comandă, cu traseul de status](img/admin-order-detail.png)
 
+### 7.5 Ștergerea unei ciorne
+
+**Doar o comandă în status Ciornă (Draft) se poate șterge** - din ea nu s-a mișcat
+nimic din stoc. Pe ecranul comenzii apasă **"Șterge ciorna"** și confirmă; ciorna
+dispare din listă. Comenzile trimise sau acceptate se **anulează** (butonul
+"Anulează", care reface stocul acolo unde e cazul), iar comenzile livrate sau
+închise **nu se pot șterge și nici anula** - sunt parte din trasabilitate.
+
+Dacă editezi o ciornă mai veche care folosește un client sau un material arhivat
+între timp, ecranul de editare te avertizează: alege altele înainte de a salva.
+
 ---
 
 ## 8. Retur și garanție
@@ -421,6 +480,11 @@ poate fi marcat **implicit** (preselectat la planificarea unei livrări noi).
   e-Transport (ANAF) prin serviciul terț **Socrate.io** (pentru transporturile
   care depășesc pragurile legale). Codul **UIT** rezultat se stochează pe
   livrare și apare pe avizul PDF printabil (buton **"Descarcă avizul (PDF)"**).
+- **"Anulează livrarea"** (în antetul paginii) - apare **doar înainte de plecare**:
+  cât livrarea nu e declarată în e-Transport (nu are cod UIT) și recepția nu e
+  confirmată. Cere un motiv și confirmare. Livrarea anulată dispare din listă, iar
+  comanda rămâne acceptată și poate fi planificată din nou. După declarare sau
+  recepție, livrarea nu se mai poate anula.
 
 ---
 
@@ -497,3 +561,22 @@ livrare**. Orice acțiune se arată întâi într-un **card de confirmare**, nee
   configurată, **ruta recomandată se calculează automat** și se salvează pe livrare
   (o poți recalcula sau schimba oricând din ecranul livrării). Ca și în aplicație,
   se pot planifica doar comenzile **acceptate** care nu au deja o livrare.
+
+---
+
+## Anexă - Ce se poate șterge și ce nu
+
+| Ce                            | Acțiunea disponibilă                                  |
+| ----------------------------- | ----------------------------------------------------- |
+| Material / serviciu           | Arhivare (reversibilă)                                |
+| Rețetă                        | Arhivare (reversibilă)                                |
+| Client                        | Arhivare (reversibilă) + blocarea contului din portal |
+| Comandă în Ciornă             | Ștergere                                              |
+| Comandă trimisă / acceptată   | Anulare                                               |
+| Lot introdus din greșeală     | Anulare, doar dacă nu s-a consumat nimic din el       |
+| Livrare                       | Anulare, doar înainte de plecare                      |
+| Utilizator (staff)            | Dezactivare (doar Administratorul, nu pe sine)        |
+| Audit stoc, certificate, procese finalizate, comenzi livrate/închise | Nimic - nu se șterg niciodată (trasabilitate) |
+
+Toate aceste acțiuni cer **confirmare** într-o fereastră care explică pe scurt ce
+se întâmplă.

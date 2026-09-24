@@ -42,6 +42,11 @@ describe("listOrgUsers", () => {
     const result = await listOrgUsers();
 
     expect(from).toHaveBeenCalledWith("profiles");
+    // Embed dezambiguizat: din 0035 exista si `clients.archived_by -> profiles`, deci
+    // `clients(name)` simplu ar fi refuzat de PostgREST (PGRST201).
+    expect(select).toHaveBeenCalledWith(
+      expect.stringContaining("clients!profiles_client_id_fkey(name)"),
+    );
     expect(result).toHaveLength(2);
     expect(result[0].clientName).toBeNull();
     expect(result[1].clientName).toBe("SC Exemplu SRL");

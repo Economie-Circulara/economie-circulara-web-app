@@ -3,14 +3,20 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 const { createClient } = vi.hoisted(() => ({ createClient: vi.fn() }));
 vi.mock("@/lib/supabase/server", () => ({ createClient }));
 
-import { getOrderDetail, getOrderStatus, listOrders } from "./queries";
+import {
+  getOrderDetail,
+  getOrderStatus,
+  listIntakeItemOptions,
+  listOrders,
+  listSellableItemOptions,
+} from "./queries";
 
 /**
  * Query builder Supabase fals: chainable si "thenable", in stilul
  * `src/features/stock/queries.test.ts#makeQueryBuilder`.
  */
 function makeQueryBuilder(finalResult: { data: unknown; error: unknown }) {
-  const methods = ["select", "order", "eq", "in", "maybeSingle"] as const;
+  const methods = ["select", "order", "eq", "in", "is", "maybeSingle"] as const;
   const builder: Record<string, unknown> & { then: (resolve: (v: unknown) => void) => void } = {
     then: (resolve) => resolve(finalResult),
   };
@@ -213,5 +219,26 @@ describe("getOrderDetail", () => {
       deliveryAddress: "Str. Exemplu 1",
       items: [{ itemId: "item-1", itemTitle: "Cărămidă eco", unit: "bucata", quantity: 4 }],
     });
+  });
+});
+
+describe("cataloagele de itemi pentru comenzi - fara arhivate (migrarea 0035)", () => {
+  it("listSellableItemOptions exclude itemii arhivati", async () => {
+    const builder = makeQueryBuilder({ data: [], error: null });
+    createClient.mockResolvedValue({ from: vi.fn().mockReturnValue(builder) });
+
+    await listSellableItemOptions();
+
+    expect(builder.eq).toHaveBeenCalledWith("sellable", true);
+    expect(builder.is).toHaveBeenCalledWith("archived_at", null);
+  });
+
+  it("listIntakeItemOptions (aport - staff, client si asistent) exclude itemii arhivati", async () => {
+    const builder = makeQueryBuilder({ data: [], error: null });
+    createClient.mockResolvedValue({ from: vi.fn().mockReturnValue(builder) });
+
+    await listIntakeItemOptions();
+
+    expect(builder.is).toHaveBeenCalledWith("archived_at", null);
   });
 });

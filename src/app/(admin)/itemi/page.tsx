@@ -14,7 +14,7 @@ const selectClassName =
   "flex h-9 w-full rounded-md border border-input bg-card px-3 py-1 text-sm shadow-xs outline-none sm:w-48";
 
 interface ItemiPageProps {
-  searchParams: Promise<{ kind?: string; sellable?: string; q?: string }>;
+  searchParams: Promise<{ kind?: string; sellable?: string; q?: string; arhivate?: string }>;
 }
 
 /** Ecranul Itemi - catalogul (definitie), doar staff, cu filtre + cautare. */
@@ -28,8 +28,10 @@ export default async function ItemiPage({ searchParams }: ItemiPageProps) {
     params.sellable === "true" ? true : params.sellable === "false" ? false : undefined;
   const search = params.q?.trim() || undefined;
 
-  const items = await listItems({ kind, sellable, search });
-  const hasFilters = Boolean(kind || sellable !== undefined || search);
+  const includeArchived = params.arhivate === "1";
+
+  const items = await listItems({ kind, sellable, search, includeArchived });
+  const hasFilters = Boolean(kind || sellable !== undefined || search || includeArchived);
 
   return (
     <div className="space-y-6">
@@ -78,6 +80,17 @@ export default async function ItemiPage({ searchParams }: ItemiPageProps) {
             <option value="false">Nu</option>
           </select>
         </div>
+        {/* Arhivatele sunt ascunse implicit (migrarea 0035) - comutator explicit. */}
+        <label className="flex h-9 items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            name="arhivate"
+            value="1"
+            defaultChecked={includeArchived}
+            className="size-4"
+          />
+          Arată arhivate
+        </label>
         <Button type="submit" variant="outline">
           Filtrează
         </Button>

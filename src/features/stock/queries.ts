@@ -10,7 +10,7 @@ import type {
 } from "./types";
 
 const LOT_WITH_ITEM_SELECT =
-  "id, item_id, entry_date, source, provenance, location, initial_qty, remaining_qty, quality_status, is_blocked, block_reason, client_id, lot_code, created_at, items(title, unit), clients(name)";
+  "id, item_id, entry_date, source, provenance, location, initial_qty, remaining_qty, quality_status, is_blocked, block_reason, client_id, lot_code, cancelled_at, cancel_reason, created_at, items(title, unit), clients(name)";
 
 function mapLotWithItem(row: {
   id: string;
@@ -26,6 +26,8 @@ function mapLotWithItem(row: {
   block_reason: string | null;
   client_id: string | null;
   lot_code: string;
+  cancelled_at?: string | null;
+  cancel_reason?: string | null;
   created_at: string;
   items: { title: string; unit: LotWithItem["unit"] } | null;
   clients: { name: string } | null;
@@ -48,6 +50,8 @@ function mapLotWithItem(row: {
     // Doar loturile de aport au client (migrarile 0030/0031).
     clientId: row.client_id,
     clientName: row.clients?.name ?? null,
+    cancelledAt: row.cancelled_at ?? null,
+    cancelReason: row.cancel_reason ?? null,
     createdAt: row.created_at,
   };
 }
@@ -55,6 +59,12 @@ function mapLotWithItem(row: {
 export interface ListLotsFilters {
   itemId?: string;
   provenance?: LotProvenance;
+  /**
+   * Include si loturile ANULATE (introduse din greseala, migrarea 0035). Implicit
+   * `false`: lista de stoc, preview-ul FIFO si asistentul vad doar loturile valide;
+   * lotul anulat ramane accesibil pe `/stoc/loturi/[id]` si in jurnalul de audit.
+   */
+  includeCancelled?: boolean;
 }
 
 /** Lista loturilor (cu titlu/UM item), cea mai recenta intrare prima. Ecranul /stoc. */
@@ -66,6 +76,7 @@ export async function listLots(filters: ListLotsFilters = {}): Promise<LotWithIt
     .order("entry_date", { ascending: false })
     .order("created_at", { ascending: false });
 
+  if (!filters.includeCancelled) query = query.is("cancelled_at", null);
   if (filters.itemId) query = query.eq("item_id", filters.itemId);
   if (filters.provenance) query = query.eq("provenance", filters.provenance);
 
@@ -123,7 +134,12 @@ export async function getLotTraceability(lotId: string): Promise<LotTraceability
 
   const toLink = (row: {
     quantity: number;
-    processes: { id: string; type: LotProcessLink["type"]; status: LotProcessLink["status"]; created_at: string } | null;
+    processes: {
+      id: string;
+      type: LotProcessLink["type"];
+      status: LotProcessLink["status"];
+      created_at: string;
+    } | null;
   }): LotProcessLink | null =>
     row.processes
       ? {
@@ -146,10 +162,23 @@ export async function getLotTraceability(lotId: string): Promise<LotTraceability
   return { producedBy, consumedBy };
 }
 
-/** Itemii organizatiei curente, pentru select-ul din formularul de adaugare lot. */
-export async function listItemOptions(): Promise<ItemOption[]> {
+export interface ListStockItemOptionsFilters {
+  /**
+   * Doar itemii ACTIVI (fara arhivati, migrarea 0035) - pentru formularul de
+   * intrare in stoc. Filtrele de istoric (/stoc, /stoc/audit) lasa `false`, ca
+   * loturile/evenimentele itemilor arhivati sa ramana filtrabile.
+   */
+  activeOnly?: boolean;
+}
+
+/** Itemii organizatiei curente, pentru select-ul din formularul de adaugare lot / filtre. */
+export async function listItemOptions(
+  filters: ListStockItemOptionsFilters = {},
+): Promise<ItemOption[]> {
   const supabase = await createClient();
-  const { data, error } = await supabase.from("items").select("id, title, unit").order("title");
+  let query = supabase.from("items").select("id, title, unit").order("title");
+  if (filters.activeOnly) query = query.is("archived_at", null);
+  const { data, error } = await query;
   if (error) throw new Error("Nu am putut incarca lista de materiale.");
 
   return (data ?? []).map((row) => ({ id: row.id, title: row.title, unit: row.unit }));

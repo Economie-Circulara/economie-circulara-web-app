@@ -26,6 +26,12 @@ export interface Lot {
    * aport (`provenance = 'aport_client'`, migrarile 0030/0031), null in rest.
    */
   clientId: string | null;
+  /**
+   * Lot anulat (introdus din greseala - migrarea 0035, RPC `cancel_lot`): cantitatea
+   * ramasa e 0, iar corectia e in `stock_events`. `null` = lot valid.
+   */
+  cancelledAt: string | null;
+  cancelReason: string | null;
   createdAt: string;
 }
 

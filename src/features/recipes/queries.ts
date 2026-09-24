@@ -8,12 +8,31 @@ import type { RecipeComponent, RecipeDetail, RecipeItemOption, RecipeListRow } f
  * nefolosite inca in alta parte a codebase-ului - pattern consistent cu
  * `src/features/items/queries.ts#listItems`, care agrega la fel `hasRecipe`).
  */
-export async function listRecipes(): Promise<RecipeListRow[]> {
+export interface ListRecipesFilters {
+  /**
+   * Include si retetele arhivate (comutatorul "Arată arhivate" de pe /retete).
+   * Implicit `false` - productia si selecturile vad doar retetele active.
+   */
+  includeArchived?: boolean;
+}
+
+/**
+ * Momentul arhivarii "efective" a unei retete (migrarea 0035): reteta insasi SAU
+ * itemul ei arhivat - in ambele cazuri reteta nu mai poate fi folosita in productie.
+ */
+export function effectiveRecipeArchivedAt(
+  recipeArchivedAt: string | null | undefined,
+  itemArchivedAt: string | null | undefined,
+): string | null {
+  return recipeArchivedAt ?? itemArchivedAt ?? null;
+}
+
+export async function listRecipes(filters: ListRecipesFilters = {}): Promise<RecipeListRow[]> {
   const supabase = await createClient();
 
   const { data: recipeRows, error: recipeError } = await supabase
     .from("recipes")
-    .select("id, item_id, direction, items(title, unit)")
+    .select("id, item_id, direction, archived_at, items(title, unit, archived_at)")
     .order("created_at", { ascending: false });
   if (recipeError) throw new Error("Nu am putut incarca lista de retete.");
 
@@ -30,7 +49,7 @@ export async function listRecipes(): Promise<RecipeListRow[]> {
     aggregates.set(row.recipe_id, current);
   }
 
-  return (recipeRows ?? []).map((row) => {
+  const rows = (recipeRows ?? []).map((row) => {
     const agg = aggregates.get(row.id) ?? { count: 0, sum: 0 };
     return {
       recipeId: row.id,
@@ -40,8 +59,11 @@ export async function listRecipes(): Promise<RecipeListRow[]> {
       direction: row.direction ?? "compunere",
       componentCount: agg.count,
       percentageSum: agg.sum,
+      archivedAt: effectiveRecipeArchivedAt(row.archived_at, row.items?.archived_at),
     };
   });
+
+  return filters.includeArchived ? rows : rows.filter((row) => row.archivedAt === null);
 }
 
 /** Rețeta unui item (cu componente), sau `null` daca itemul nu are inca o reteta. */
@@ -50,7 +72,7 @@ export async function getRecipeByItemId(itemId: string): Promise<RecipeDetail | 
 
   const { data: recipe, error: recipeError } = await supabase
     .from("recipes")
-    .select("id, item_id, direction, items(title, unit)")
+    .select("id, item_id, direction, archived_at, items(title, unit, archived_at)")
     .eq("item_id", itemId)
     .maybeSingle();
   if (recipeError) throw new Error("Nu am putut incarca rețeta.");
@@ -81,6 +103,8 @@ export async function getRecipeByItemId(itemId: string): Promise<RecipeDetail | 
     itemTitle: recipe.items?.title ?? "-",
     unit: recipe.items?.unit ?? "kg",
     direction: recipe.direction ?? "compunere",
+    archivedAt: effectiveRecipeArchivedAt(recipe.archived_at, recipe.items?.archived_at),
+    recipeArchivedAt: recipe.archived_at ?? null,
     components,
     percentageSum: components.reduce((sum, c) => sum + c.percentage, 0),
   };

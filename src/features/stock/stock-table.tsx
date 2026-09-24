@@ -7,6 +7,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { DataTable } from "@/components/data-table";
 import { EmptyState } from "@/components/empty-state";
 import { StatusBadge } from "@/components/status-badge";
+import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -49,9 +50,13 @@ function ProvenanceCell({ lot }: { lot: LotWithItem }) {
  */
 function LotCodeCell({ lot }: { lot: LotWithItem }) {
   return (
-    <Link href={`/stoc/loturi/${lot.id}`} className="font-mono text-xs underline">
-      {lot.lotCode}
-    </Link>
+    <span className="inline-flex flex-wrap items-center gap-1.5">
+      <Link href={`/stoc/loturi/${lot.id}`} className="font-mono text-xs underline">
+        {lot.lotCode}
+      </Link>
+      {/* Vizibil doar cu "Arată loturile anulate" (migrarea 0035). */}
+      {lot.cancelledAt ? <Badge variant="neutral">Anulat</Badge> : null}
+    </span>
   );
 }
 
@@ -95,7 +100,7 @@ const columns: ColumnDef<LotWithItem>[] = [
   {
     id: "actions",
     header: "Acțiuni",
-    cell: ({ row }) => <LotBlockControls lot={row.original} />,
+    cell: ({ row }) => (row.original.cancelledAt ? null : <LotBlockControls lot={row.original} />),
   },
 ];
 
@@ -170,9 +175,7 @@ function LotsDetail({ lots }: { lots: LotWithItem[] }) {
               <TableCell>
                 <StatusBadge group="lot" status={lotBadgeStatus(lot.isBlocked)} />
               </TableCell>
-              <TableCell>
-                <LotBlockControls lot={lot} />
-              </TableCell>
+              <TableCell>{lot.cancelledAt ? null : <LotBlockControls lot={lot} />}</TableCell>
             </TableRow>
           ))}
         </TableBody>

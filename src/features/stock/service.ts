@@ -8,6 +8,10 @@ type LotRow = Database["public"]["Tables"]["lots"]["Row"];
 // Coduri de eroare SQL definite in supabase/migrations/0004_stock_service.sql.
 const ERR_INSUFFICIENT_STOCK = "LT001";
 const ERR_NOT_FOUND = "LT002";
+// Coduri noi din 0035_soft_delete.sql (`cancel_lot`).
+const ERR_LOT_ALREADY_CANCELLED = "LT007";
+const ERR_LOT_CONSUMED = "LT008";
+const ERR_LOT_FROM_FLOW = "LT009";
 
 /** Stoc insuficient pentru a acoperi cantitatea ceruta la consumul FIFO. */
 export class InsufficientStockError extends Error {
@@ -68,6 +72,8 @@ function mapLot(row: LotRow): Lot {
     // Null pe orice lot creat din acest serviciu (intrare manuala de stoc) -
     // `client_id` se completeaza doar la acceptarea unui aport (migrarea 0031).
     clientId: row.client_id,
+    cancelledAt: row.cancelled_at ?? null,
+    cancelReason: row.cancel_reason ?? null,
     createdAt: row.created_at,
   };
 }
@@ -310,4 +316,37 @@ export function planFifoConsumption(
   }
 
   return allocation;
+}
+
+/**
+ * Anuleaza un lot introdus din greseala (migrarea 0035) - atomic, prin RPC-ul
+ * `cancel_lot`: doar daca NIMIC nu s-a consumat din el si nu provine dintr-un flux
+ * (proces/retur/aport). Nu sterge nimic: scrie un eveniment de corectie
+ * (`adjustment`, `-initial_qty`) in `stock_events`, aduce `remaining_qty` la 0 si
+ * marcheaza lotul anulat. Motivul e obligatoriu (ajunge in audit).
+ */
+export async function cancelLot(lotId: string, reason: string): Promise<Lot> {
+  const trimmed = reason.trim();
+  if (!trimmed) throw new Error("Motivul anulării este obligatoriu.");
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("cancel_lot", {
+    p_lot_id: lotId,
+    p_reason: trimmed,
+  });
+
+  if (error || !data) {
+    if (error?.code === ERR_NOT_FOUND) throw new LotNotFoundError(lotId, error.message);
+    if (error?.code === ERR_LOT_ALREADY_CANCELLED) throw new Error("Lotul este deja anulat.");
+    if (error?.code === ERR_LOT_CONSUMED) {
+      throw new Error("Din acest lot s-a consumat deja - nu mai poate fi anulat.");
+    }
+    if (error?.code === ERR_LOT_FROM_FLOW) {
+      throw new Error(
+        "Lotul a fost creat de un proces, un retur sau un aport - nu poate fi anulat separat.",
+      );
+    }
+    throw new Error(error?.message ?? "Nu am putut anula lotul.");
+  }
+  return mapLot(data);
 }

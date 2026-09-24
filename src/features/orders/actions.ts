@@ -13,6 +13,7 @@ import {
   acceptOrder,
   cancelOrder,
   createOrderWithItems,
+  deleteDraftOrder,
   sendOrder,
   setOrderStatus,
   updateOrder,
@@ -338,4 +339,23 @@ export async function acceptIntakeAction(orderId: string): Promise<OrderTransiti
   revalidatePath(`/comenzi/${orderId}`);
   revalidatePath("/stoc");
   return { error: null };
+}
+
+/**
+ * Sterge (logic) o comanda `draft` - migrarea 0035. Primeste direct `orderId`
+ * (legat cu `.bind` in pagina, dupa confirmarea din `ConfirmActionButton`). La
+ * succes duce utilizatorul inapoi la lista (detaliul comenzii nu mai exista).
+ */
+export async function deleteDraftOrderAction(orderId: string): Promise<OrderTransitionState> {
+  await requireRole(["admin", "operator"]);
+  if (!orderId) return { error: "Comandă invalidă." };
+
+  try {
+    await deleteDraftOrder(orderId);
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : "Nu am putut șterge ciorna." };
+  }
+
+  revalidatePath("/comenzi");
+  redirect("/comenzi");
 }

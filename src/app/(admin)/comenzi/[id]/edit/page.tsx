@@ -39,6 +39,14 @@ export default async function EditOrderPage({ params }: EditOrderPageProps) {
     listIntakeItemOptions(),
   ]);
 
+  // Selecturile exclud clientii/itemii arhivati (migrarea 0035). O ciorna mai veche
+  // care ii foloseste trebuie corectata inainte de salvare - avertizam explicit.
+  const availableItemIds = new Set(
+    [...itemOptions, ...intakeItemOptions].map((option) => option.id),
+  );
+  const usesArchivedClient = !clients.some((client) => client.id === order.clientId);
+  const usesArchivedItem = order.items.some((item) => !availableItemIds.has(item.itemId));
+
   const initialValue: OrderEditorValue = {
     orderType: order.orderType,
     clientId: order.clientId,
@@ -64,6 +72,17 @@ export default async function EditOrderPage({ params }: EditOrderPageProps) {
           { label: "Editează" },
         ]}
       />
+      {usesArchivedClient || usesArchivedItem ? (
+        <p className="rounded-md border border-warn bg-warn-bg px-3 py-2 text-sm text-warn">
+          Această ciornă folosește{" "}
+          {usesArchivedClient && usesArchivedItem
+            ? "un client și materiale arhivate"
+            : usesArchivedClient
+              ? "un client arhivat"
+              : "materiale arhivate"}
+          . Alege altele înainte de a salva, sau șterge ciorna.
+        </p>
+      ) : null}
       <OrderEditForm
         orderId={id}
         clients={clients}

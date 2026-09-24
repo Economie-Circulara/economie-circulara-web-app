@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireRole } from "@/features/auth/session";
 import { PROVENANCE_OPTIONS } from "./labels";
-import { blockLot, createLot, unblockLot } from "./service";
+import { blockLot, cancelLot, createLot, unblockLot } from "./service";
 import type { LotProvenance, QualityStatus } from "./types";
 import type { BlockFormState, LotFormState } from "./action-state";
 
@@ -108,5 +108,25 @@ export async function unblockLotAction(
   }
 
   revalidatePath("/stoc");
+  return { error: null };
+}
+
+/**
+ * Anuleaza un lot introdus din greseala (migrarea 0035) - doar staff. Primeste
+ * `lotId` legat cu `.bind` in pagina + motivul din dialogul de confirmare.
+ */
+export async function cancelLotAction(lotId: string, reason?: string): Promise<BlockFormState> {
+  await requireRole(["admin", "operator"]);
+  if (!lotId) return { error: "Lot invalid." };
+  if (!reason?.trim()) return { error: "Motivul anulării este obligatoriu." };
+
+  try {
+    await cancelLot(lotId, reason);
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : "Nu am putut anula lotul." };
+  }
+
+  revalidatePath("/stoc");
+  revalidatePath(`/stoc/loturi/${lotId}`);
   return { error: null };
 }

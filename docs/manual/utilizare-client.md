@@ -40,6 +40,10 @@ urmezi linkul primit pe email pentru a seta o parolă nouă.
 
 ![ecranul de Autentificare al portalului client](img/client-login.png)
 
+Dacă după logare vezi pagina **"Contul tău este dezactivat"**, organizația a
+suspendat accesul firmei tale în portal. Contactează organizația pentru a-l
+reactiva; comenzile și certificatele tale nu se pierd.
+
 ---
 
 ## 2. Catalog și plasarea unei comenzi

@@ -7,7 +7,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { requireRole } from "@/features/auth/session";
 import { validateItemImageFile } from "./image-validation";
 import { KIND_OPTIONS, UNIT_OPTIONS } from "./labels";
-import { createItem, updateItem } from "./service";
+import { createItem, setItemArchived, updateItem } from "./service";
 import type { ItemKind, UnitOfMeasure } from "./types";
 import type { ItemFormState } from "./action-state";
 
@@ -172,4 +172,39 @@ export async function updateItemAction(
 
   revalidatePath("/itemi");
   redirect("/itemi");
+}
+
+/** Rezultatul actiunilor de arhivare/restaurare (dialogul de confirmare). */
+export interface ArchiveActionResult {
+  error: string | null;
+}
+
+async function toggleItemArchived(id: string, archive: boolean): Promise<ArchiveActionResult> {
+  await requireRole(["admin", "operator"]);
+  if (!id) return { error: "Material sau serviciu invalid." };
+
+  try {
+    await setItemArchived(id, archive);
+  } catch (err) {
+    return {
+      error: err instanceof Error ? err.message : "Nu am putut actualiza materialul sau serviciul.",
+    };
+  }
+
+  revalidatePath("/itemi");
+  revalidatePath(`/itemi/${id}`);
+  return { error: null };
+}
+
+/**
+ * Arhiveaza un item (migrarea 0035) - doar staff. Se apeleaza legat cu `.bind(null, id)`
+ * din pagina, dupa confirmarea din `ConfirmActionButton`.
+ */
+export async function archiveItemAction(id: string): Promise<ArchiveActionResult> {
+  return toggleItemArchived(id, true);
+}
+
+/** Restaureaza un item arhivat - doar staff. */
+export async function restoreItemAction(id: string): Promise<ArchiveActionResult> {
+  return toggleItemArchived(id, false);
 }

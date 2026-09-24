@@ -65,7 +65,25 @@ Formularul **"Invită un membru"**:
    activă în organizație imediat ce își setează parola.
 
 Lista de mai jos arată toți membrii organizației, cu **Nume**, **Email**, **Rol**
-și **Status** (Activ/Suspendat).
+și **Status** (Activ/Dezactivat).
+
+### 2.1.1 Dezactivarea și reactivarea unui utilizator
+
+Utilizatorii **nu se șterg** - sunt autorii mișcărilor din istoric (stoc, comenzi,
+producție). Un operator sau administrator care nu mai lucrează în organizație se
+**dezactivează**:
+
+1. În lista de utilizatori, pe rândul persoanei, apasă **"Dezactivează"**.
+2. Confirmă în fereastra care apare.
+
+Persoana nu se mai poate loga (dacă era logată, la următorul click ajunge pe
+pagina "Contul tău este dezactivat"). Tot ce a făcut rămâne în istoric pe numele
+ei. **"Reactivează"** îi redă accesul, cu același rol.
+
+- Doar **Administratorul** poate dezactiva utilizatori și **nu își poate dezactiva
+  propriul cont** (ca organizația să nu rămână fără administrator din greșeală).
+- Contul unui **client** din portal nu se dezactivează de aici: se blochează
+  **arhivând clientul** (manualul admin/operator, secțiunea 3.4).
 
 ![ecranul "Utilizatori" cu formularul de invitare](img/admin-users.png)
 
