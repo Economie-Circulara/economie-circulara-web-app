@@ -21,7 +21,7 @@ const columns: ColumnDef<DeliveryListRow>[] = [
     header: "Comandă",
     cell: ({ row }) => (
       <Link href={`/livrari/${row.original.id}`} className="font-medium hover:underline">
-        {row.original.orderNumber ?? "Draft"}
+        {row.original.orderNumber ?? "Ciornă"}
       </Link>
     ),
   },

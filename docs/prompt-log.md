@@ -12,6 +12,30 @@ Cele mai noi intrari sus.
   `orders`; restul expresiilor verificate. Plan:
   `docs/plans/fix-seed-demo-order-type-cast.md`.
 
+## 2026-09-24 — Claude (Claude Code) — Redenumiri texte UI: limbaj mai natural
+
+- **Cerut:** redenumire text-only (fara enum-uri DB/identificatori/rute) a
+  jargonului tehnic din UI, manual si textele asistentului, dupa un glosar
+  aprobat: Direcție->Metodă, Compunere/Descompunere->Producție/Reciclare,
+  Componente(input)/Fracții(output)->Materii prime/Materiale rezultate,
+  Item->Produs, Fizic->Material, Draft->Ciornă, FIFO->"se folosesc întâi
+  loturile cele mai vechi", Factor conversie UM->întrebare dinamica, UM
+  identică->Aceeași unitate de măsură, plus alte texte input/output.
+- **Facut:** actualizate `labels.ts` din `recipes`/`production`/`items`,
+  formularele de rețetă/producție (`recipe-editor`, `recipe-new-form`,
+  `recipes-table`, `fixed-output-form`, `variable-output-form`,
+  `process-wizard`, `processes-table`), detaliul de proces
+  (`productie/[id]/page.tsx`), selectorul de produs din comenzi
+  (`order-editor.tsx`), fallback-urile "Draft" din 9 ecrane, cele 4 documente
+  din `docs/manual/`, si textele descriptive din
+  `assistant/prompt.ts`/`tools/read-tools.ts` (fara sa schimbe numele
+  tool-urilor). Detaliu complet, fisier cu fisier: `docs/plans/redenumiri-texte-ui.md`.
+- **Verificat:** `pnpm typecheck`, `pnpm lint`, `pnpm test` (850 teste),
+  `pnpm format:check` (curat pe fisierele atinse de acest task).
+- **Impact asistent AI (regula 2.4):** `none` - niciun tool nou/schimbat, doar
+  reformulari de texte descriptive trimise modelului (vezi planul).
+
+
 ## 2026-09-20 — Claude Sonnet 5 — Asistent: fix catalog aport + planificarea livrarii
 
 - **Cerut:** doua adaugiri la asistent - (1) fixul bug-ului de catalog la comenzile

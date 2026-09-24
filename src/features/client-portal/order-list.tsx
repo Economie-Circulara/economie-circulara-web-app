@@ -46,7 +46,7 @@ export function OrderList({ orders }: { orders: OrderListRow[] }) {
                   href={`/comenzile-mele/${order.id}`}
                   className="font-mono text-sm font-bold hover:underline"
                 >
-                  {order.orderNumber ?? "Draft"}
+                  {order.orderNumber ?? "Ciornă"}
                 </Link>
                 <StatusBadge group="order" status={ORDER_STATUS_BADGE_STATUS[order.status]} />
               </div>

@@ -111,10 +111,10 @@ Din listă, click pe o firmă deschide ecranul de detaliu, cu secțiunile:
 Meniul **"Materiale și servicii"** este catalogul de produse și servicii al
 organizației - **fără prețuri**. O intrare din catalog poate fi:
 
-- **Fizic** (material) - ține stoc (loturi), poate avea o rețetă.
+- **Material** - ține stoc (loturi), poate avea o rețetă.
 - **Serviciu** - abonament/serviciu PaaS (product-as-a-service), fără stoc.
 
-Lista permite filtrare după **Căutare** (titlu), **Tip** (Fizic/Serviciu) și
+Lista permite filtrare după **Căutare** (titlu), **Tip** (Material/Serviciu) și
 **Vandabil** (Da/Nu).
 
 Pentru a adăuga un material sau serviciu, apasă **"+ Adaugă material sau
@@ -125,7 +125,7 @@ serviciu"** și completează:
 - **Unitate de măsură** (kg, tonă, mc, litru, bucată, sac, palet) - **un singur UM
   per produs**; dacă același material se vinde în unități diferite, se creează
   produse separate (fără conversii între unități).
-- **Tip** (Fizic/Serviciu)
+- **Tip** (Material/Serviciu)
 - **URL poză** (opțional)
 - Bifa **"Vandabil (apare în catalogul clientului)"** - doar materialele/serviciile
   vandabile apar în catalogul portalului client.
@@ -136,16 +136,23 @@ Apasă **"Creează materialul sau serviciul"**.
 
 ### 4.2 Rețete
 
-Meniul **"Rețete"** listează rețetele definite pentru materialele fizice. O rețetă
-descrie **compoziția în procente** a unui produs din alte materiale fizice (materii
-prime/componente). **Rețetele nu se versionează** - dacă se schimbă compoziția,
-se creează un material (produs) nou.
+Meniul **"Rețete"** listează rețetele definite pentru materiale. O rețetă
+descrie **compoziția în procente** a unui produs din materii prime. **Rețetele nu
+se versionează** - dacă se schimbă compoziția, se creează un material (produs) nou.
+
+Fiecare rețetă are o **metodă** explicită:
+
+- **Producție** - produsul se obține din materiile prime de mai jos (ex. beton din
+  apă + nisip + ciment).
+- **Reciclare** - produsul se descompune în materialele rezultate de mai jos (ex.
+  moloz în nisip + pietriș + balast).
 
 Pentru a defini/edita rețeta unui material: din listă, click pe material -> ecranul
 **"Rețetă - `<nume material>`"**. Dacă materialul nu are încă rețetă, apare un buton
-de creare; altfel, editorul de rețetă permite adăugarea/editarea componentelor și a
-procentelor lor. Rețetele se pot defini **doar pentru materiale de tip Fizic**
-(pentru servicii, ecranul afișează un mesaj informativ).
+de creare; altfel, editorul de rețetă permite adăugarea/editarea materiilor prime
+(sau a materialelor rezultate, la metoda Reciclare) și a procentelor lor. Rețetele
+se pot defini **doar pentru materiale** (pentru servicii, ecranul afișează un mesaj
+informativ).
 
 ![editorul de rețetă cu componentele în procente](img/admin-recipe-editor.png)
 
@@ -186,11 +193,11 @@ Din lista de loturi, coloana "Acțiuni":
 - Pe un lot blocat, apasă **"Deblochează"** pentru a-l reintroduce în stocul
   disponibil.
 
-### 5.4 Consumul de stoc (FIFO)
+### 5.4 Consumul de stoc
 
-**Regulă de business:** consumul loturilor la producție se face **FIFO implicit**
-(se consumă mai întâi loturile cele mai vechi), cu opțiune de selecție manuală în
-ecranele de producție (secțiunea 6).
+**Regulă de business:** consumul loturilor la producție se face implicit **în
+ordinea intrării** (se consumă mai întâi loturile cele mai vechi), cu opțiune de
+selecție manuală în ecranele de producție (secțiunea 6).
 
 ### 5.5 Audit stoc
 
@@ -214,21 +221,23 @@ derulate, cu status: **Planificat -> În lucru -> Așteaptă confirmare -> Final
 Apasă **"+ Pornește proces"** -> ecranul **"Pornește proces"**, cu **două fluxuri**,
 alese din tab-uri:
 
-**a) "Output fix - Fabricație"** (ex. fabricare cărămizi, pavaje):
+**a) "Fabricație"** (ex. fabricare cărămizi, pavaje):
 
-1. Alegi rețeta/produsul de output și **cantitatea de output dorită**.
+1. Alegi rețeta/produsul și **cât vrei să produci**.
 2. Sistemul calculează automat, pe baza rețetei (procente), **consumul necesar**
-   din fiecare componentă și propune alocarea **FIFO** din loturile disponibile
-   (previzualizare live, cu eventuale erori dacă nu e stoc suficient).
-3. Diagrama **Sankey** afișează vizual fluxul: loturi de input -> proces -> lot de
-   output.
+   din fiecare materie primă și propune alocarea din loturile disponibile, în
+   ordinea intrării (previzualizare live, cu eventuale erori dacă nu e stoc
+   suficient).
+3. Diagrama **Sankey** afișează vizual fluxul: loturi consumate -> proces -> lot
+   rezultat.
 4. Apeși **"Confirmă și pornește ->"** - se creează procesul, se consumă loturile
-   (FIFO) și se creează lotul/loturile noi de output.
+   și se creează lotul/loturile noi rezultate.
 
-**b) "Output variabil - Reciclare"** (ex. reciclare moloz, demolări):
+**b) "Reciclare"** (ex. reciclare moloz, demolări):
 
-1. Alegi materialul de **input** și cantitatea introdusă.
-2. Sistemul afișează **outputul ideal** conform rețetei (fracțiile teoretice).
+1. Alegi materialul **de reciclat** și cantitatea introdusă.
+2. Sistemul afișează **materialele rezultate ideale** conform rețetei (fracțiile
+   teoretice).
 3. Ajustezi manual cantitățile **reale** obținute pentru fiecare fracție (coloana
    editabilă), pentru că randamentul real diferă de cel teoretic.
 4. Confirmi - se creează loturile noi rezultate, cu proveniența "Reciclare" (sau
@@ -237,16 +246,17 @@ alese din tab-uri:
 **Notă:** pierderile/randamentul se **înregistrează**, nu se validează - sistemul
 nu blochează un proces cu randament sub cel ideal.
 
-![wizard-ul "Pornește proces" cu cele două tab-uri Output fix / Output variabil](img/admin-process-wizard.png)
+![wizard-ul "Pornește proces" cu cele două tab-uri Fabricație / Reciclare](img/admin-process-wizard.png)
 
 ### 6.2 Detaliul unui proces
 
 Click pe un proces din listă deschide ecranul de detaliu, cu:
 
-- Diagrama **"Flux materiale"** (Sankey: input -> proces -> output).
-- Cardurile **"Inputuri (loturi consumate)"** și **"Outputuri (loturi create)"**,
-  cu total input/output.
-- **"Randament / pierderi"** - diferența input - output, informativă.
+- Diagrama **"Flux materiale"** (Sankey: consumat -> proces -> rezultat).
+- Cardurile **"Materii prime (loturi consumate)"** și **"Materiale rezultate
+  (loturi create)"**, cu total consumat/rezultat.
+- **"Randament / pierderi"** - diferența dintre cantitatea consumată și cea
+  rezultată, informativă.
 - Buton **"Anulează procesul"**, disponibil doar cât procesul e într-un status
   netermin (Planificat/În lucru/Așteaptă confirmare).
 
@@ -266,12 +276,12 @@ implicită) - el dă sensul mișcării de stoc:
 
 | Tip          | Sens               | Efect la acceptare                                   |
 | ------------ | ------------------ | ---------------------------------------------------- |
-| **Material** | organizație → client | **scade** stocul (consum FIFO)                       |
+| **Material** | organizație → client | **scade** stocul (se folosesc întâi loturile cele mai vechi) |
 | **Serviciu** | organizație → client | ca la material, plus câmpul **"Retur estimat"**      |
 | **Aport**    | **client → organizație** | **crește** stocul: materialul adus de client intră ca lot nou |
 
 **Aportul** acoperă cazul în care clientul aduce material către organizație (ex.
-moloz din demolări, pentru reciclare). La linii se pot alege **orice itemi fizici**,
+moloz din demolări, pentru reciclare). La linii se pot alege **orice materiale**,
 inclusiv cei nevandabili (materiile prime nu apar în catalogul de vânzare). O
 comandă de aport nu se "trimite" și nu se "livrează": are o singură acțiune,
 **"Acceptă aport"** (vezi 7.4), după care rămâne **Acceptată**.
@@ -279,7 +289,7 @@ comandă de aport nu se "trimite" și nu se "livrează": are o singură acțiune
 ### 7.2 Mașina de stări a unei comenzi
 
 ```
-Draft -> Trimisă -> Acceptată -> Livrată -> Închisă
+Ciornă -> Trimisă -> Acceptată -> Livrată -> Închisă
                       ↓
                    Anulată (posibilă din stările netermin)
 ```
@@ -289,7 +299,7 @@ statusul curent, atât în listă cât și în ecranul de detaliu):
 **"Trimite"**, **"Acceptă"**, **"Livrează"**, **"Închide"**, **"Anulează"**.
 
 - **"Acceptă"** este momentul-cheie de business: **la acceptare se scade stocul**
-  (consum FIFO din loturile disponibile pentru fiecare linie a comenzii). La
+  (se folosesc întâi loturile cele mai vechi, pentru fiecare linie a comenzii). La
   **"Anulează"**, dacă stocul fusese deja scăzut, acesta **se reface**.
 - **"Închide"** generează **automat** certificatul de trasabilitate PDF al
   comenzii - nu există un buton separat "Generează certificat".
@@ -309,7 +319,7 @@ telefon/WhatsApp și înregistrate în platformă):
    **"Retur estimat"** (data la care se așteaptă bunul înapoi).
 4. În secțiunea **"Linii comandă"**, alege un material sau serviciu și o cantitate, apasă
    adaugă-linie; repetă pentru fiecare produs; poți șterge o linie adăugată.
-5. Trimite formularul - comanda se creează ca **Draft**.
+5. Trimite formularul - comanda se creează ca **Ciornă**.
 
 Notificările prin email se trimit identic indiferent dacă e comandă creată de
 client sau de organizație.
@@ -322,13 +332,13 @@ Ecranul de detaliu (`/comenzi/[id]`) afișează: **tipul comenzii** (cu o scurt�
 explicație), client (CUI, notă "Creată de organizație în numele clientului" dacă e
 cazul), livrare (adresă, dată livrare, eventual "Retur estimat (închiriere)" pentru
 fluxul de închiriere ca serviciu), linii de comandă, și un **traseu vizual al
-statusului** (Draft -> Trimisă -> Acceptată -> Livrată -> Închisă, sau "Anulată").
+statusului** (Ciornă -> Trimisă -> Acceptată -> Livrată -> Închisă, sau "Anulată").
 
 Dacă o comandă a fost livrată/închisă, pot apărea butoanele **"Retur"** și
 **"Garanție"** (secțiunea 8). Dacă certificatul există deja, apare butonul
 **"Vezi certificat"**.
 
-Pe o comandă de tip **Aport** aflată în Draft, în locul butoanelor de tranziție apare
+Pe o comandă de tip **Aport** aflată în Ciornă, în locul butoanelor de tranziție apare
 **"Acceptă aport"**: materialul adus de client intră în stoc ca lot nou, cu
 proveniența "Aport client", cu **clientul care l-a adus** păstrat pe lot
 (trasabilitate) și cu calitatea **"Neverificat"** - controlul de calitate se face
@@ -362,9 +372,9 @@ materialul a venit de la client, nu către el.
   creează o **nouă comandă**, legată de comanda originală (etichetă "Retur").
 - **"Garanție"** - la fel ca returul, dar sistemul creează automat, în plus, o
   comandă de **înlocuire** (comandă de vânzare obișnuită, care parcurge fluxul
-  normal Draft -> Trimisă -> Acceptată -> Livrată -> Închisă).
+  normal Ciornă -> Trimisă -> Acceptată -> Livrată -> Închisă).
 
-Comanda-retur/garanție nou creată apare inițial ca **Draft**; pe ea, în loc de
+Comanda-retur/garanție nou creată apare inițial ca **Ciornă**; pe ea, în loc de
 butoanele generice de tranziție, apare butonul dedicat **"Acceptă retur"** -
 acceptarea unui retur **adaugă** materialul înapoi în stoc (după inspecție/
 acceptare manuală), spre deosebire de acceptarea unei comenzi de vânzare, care

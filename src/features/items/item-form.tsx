@@ -65,7 +65,7 @@ export function ItemForm({ item }: { item?: Item }) {
                   className={selectClassName}
                 >
                   <option value="" disabled>
-                    Alege UM...
+                    Alege unitatea de măsură...
                   </option>
                   {UNIT_OPTIONS.map((unit) => (
                     <option key={unit} value={unit}>
@@ -78,7 +78,7 @@ export function ItemForm({ item }: { item?: Item }) {
             <FormField
               label="Tip"
               required
-              hint="Fizic = stoc + rețetă opțională. Serviciu = abonament/serviciu PaaS, fără stoc."
+              hint="Material = stoc + rețetă opțională. Serviciu = abonament/serviciu PaaS, fără stoc."
             >
               {(id) => (
                 <select
@@ -150,7 +150,7 @@ export function ItemForm({ item }: { item?: Item }) {
               </label>
               <p className="text-xs text-muted-foreground">
                 Dezactivează pentru materiale generice fără cantitate limitată (ex: apă, aer).
-                Astfel de itemi pot fi componente de rețetă, dar nu se consumă din stoc.
+                Astfel de materiale pot fi folosite în rețete, dar nu se consumă din stoc.
               </p>
             </div>
           ) : null}

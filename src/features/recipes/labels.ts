@@ -1,40 +1,40 @@
 import type { RecipeDirection } from "./types";
 
 export const DIRECTION_LABELS: Record<RecipeDirection, string> = {
-  compunere: "Compunere (produsul se obține din componente)",
-  descompunere: "Descompunere (produsul se descompune în componente)",
+  compunere: "Producție (se obține din materii prime)",
+  descompunere: "Reciclare (se descompune în materii prime)",
 };
 
 /** Varianta scurta, pentru badge-uri si tabele. */
 export const DIRECTION_SHORT_LABELS: Record<RecipeDirection, string> = {
-  compunere: "Compunere",
-  descompunere: "Descompunere",
+  compunere: "Producție",
+  descompunere: "Reciclare",
 };
 
 export const DIRECTION_OPTIONS: RecipeDirection[] = ["compunere", "descompunere"];
 
-/** Explicatia afisata sub selectorul de directie si in editorul de rețetă. */
+/** Explicatia afisata sub selectorul de metoda si in editorul de rețetă. */
 export const DIRECTION_DESCRIPTIONS: Record<RecipeDirection, string> = {
   compunere:
-    "Acest produs se obține din componentele de mai jos - ele se CONSUMĂ din stoc " +
+    "Acest produs se obține din materiile prime de mai jos - ele se CONSUMĂ din stoc " +
     "(ex: beton ← apă + nisip + ciment).",
   descompunere:
-    "Acest produs se descompune în componentele de mai jos - ele se PRODUC, iar " +
+    "Acest produs se descompune în materiile prime de mai jos - ele se PRODUC, iar " +
     "produsul se consumă (ex: reciclare, moloz → nisip + pietriș + balast).",
 };
 
-/** Ce reprezinta procentul unei componente, in functie de directie. */
+/** Ce reprezinta procentul unei materii prime, in functie de metoda. */
 export const DIRECTION_PERCENTAGE_HINTS: Record<RecipeDirection, string> = {
   compunere:
-    "Cât intră din componentă raportat la cantitatea de produs obținută. Poate depăși " +
-    "100% (input mai mare decât outputul, la rețete cu pierderi).",
+    "Cât intră din materia primă raportat la cantitatea de produs obținută. Poate depăși " +
+    "100% (se consumă mai mult decât se produce, la rețete cu pierderi).",
   descompunere:
-    "Cât rezultă din componentă raportat la cantitatea de produs descompusă. Suma sub " +
+    "Cât rezultă din materia primă raportat la cantitatea de produs descompusă. Suma sub " +
     "100% = pierdere la procesare (informativ, nu blochează salvarea).",
 };
 
-/** Rolul componentelor in proces (input/output), derivat din directie. */
+/** Rolul materiilor prime in proces (consumate/rezultate), derivat din metoda. */
 export const DIRECTION_COMPONENT_ROLE: Record<RecipeDirection, string> = {
-  compunere: "Componente consumate (input)",
-  descompunere: "Fracții rezultate (output)",
+  compunere: "Materii prime",
+  descompunere: "Materiale rezultate",
 };

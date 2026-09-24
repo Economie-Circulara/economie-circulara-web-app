@@ -84,7 +84,7 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
         description={order.clientName}
         breadcrumbs={[
           { label: "Comenzi", href: "/comenzi" },
-          { label: order.orderNumber ?? "Draft" },
+          { label: order.orderNumber ?? "Ciornă" },
         ]}
         actions={
           <>

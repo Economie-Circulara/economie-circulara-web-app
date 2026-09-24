@@ -22,7 +22,7 @@ const columns: ColumnDef<ProcessListRow>[] = [
     header: "Tip",
     cell: ({ row }) => PROCESS_TYPE_LABELS[row.original.type],
   },
-  { accessorKey: "outputItemTitle", header: "Output" },
+  { accessorKey: "outputItemTitle", header: "Produs" },
   {
     id: "status",
     header: "Status",

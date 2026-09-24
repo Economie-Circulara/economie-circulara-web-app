@@ -46,7 +46,7 @@ urmezi linkul primit pe email pentru a seta o parolă nouă.
 
 Ecranul **"Catalog"** afișează toate produsele/serviciile marcate ca vandabile de
 către organizație - **fără prețuri**. Poți căuta după denumire și filtra după tip
-(Fizic/Serviciu).
+(Material/Serviciu).
 
 ### 2.1 Adăugarea în coș
 

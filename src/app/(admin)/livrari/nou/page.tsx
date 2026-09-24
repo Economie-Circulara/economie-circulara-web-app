@@ -39,7 +39,7 @@ export default async function LivrareNouaPage({ searchParams }: LivrareNouaPageP
     <div className="space-y-6">
       <PageHeader
         title="Planifică livrare"
-        description={`${order.orderNumber ?? "Draft"} · ${order.clientName}`}
+        description={`${order.orderNumber ?? "Ciornă"} · ${order.clientName}`}
         breadcrumbs={[
           { label: "Comenzi", href: "/comenzi" },
           { label: order.orderNumber ?? "Comandă", href: `/comenzi/${order.id}` },

@@ -197,7 +197,7 @@ test("D. stoc: lot nou, blocare lot, audit + export CSV", async ({ page }) => {
   console.log(`[CSV] audit stoc -> ${download.suggestedFilename()}`);
 });
 
-test("E. proces reciclare (output variabil)", async ({ page }) => {
+test("E. proces reciclare", async ({ page }) => {
   await login(page, "admin@demo.local");
 
   await page.goto("/productie");
@@ -206,8 +206,8 @@ test("E. proces reciclare (output variabil)", async ({ page }) => {
   await page.goto("/productie/nou");
   await shot(page, "admin-process-wizard");
 
-  await page.getByRole("button", { name: /Output variabil/ }).click();
-  await label(page, "Material input").selectOption({ label: "Moloz" });
+  await page.getByRole("button", { name: /Reciclare/ }).click();
+  await label(page, "Material de reciclat").selectOption({ label: "Moloz" });
   await page.getByPlaceholder("0").first().fill("60");
   const confirm = page.getByRole("button", { name: /Finalizează procesul/ });
   await expect(confirm).toBeEnabled({ timeout: 20_000 });
@@ -215,12 +215,12 @@ test("E. proces reciclare (output variabil)", async ({ page }) => {
   await expect(page).toHaveURL(/\/productie\/[0-9a-f-]+$/, { timeout: 30_000 });
 });
 
-test("F. proces productie (output fix, consum FIFO) + detaliu Sankey", async ({ page }) => {
+test("F. proces productie (fabricație) + detaliu Sankey", async ({ page }) => {
   await login(page, "admin@demo.local");
 
   await page.goto("/productie/nou");
   await label(page, "Rețetă / produs").selectOption({ label: "Cărămizi eco" });
-  await label(page, "Cantitate output dorită").fill("30");
+  await label(page, "Cât vrei să produci").fill("30");
   const confirm = page.getByRole("button", { name: /Confirmă și pornește/ });
   await expect(confirm).toBeEnabled({ timeout: 20_000 });
   await confirm.click();
@@ -228,8 +228,8 @@ test("F. proces productie (output fix, consum FIFO) + detaliu Sankey", async ({ 
 
   await shot(page, "admin-process-detail");
   await expect.soft(page.getByText("Flux materiale", { exact: false })).toBeVisible();
-  await expect.soft(page.getByText("Inputuri", { exact: false }).first()).toBeVisible();
-  await expect.soft(page.getByText("Outputuri", { exact: false }).first()).toBeVisible();
+  await expect.soft(page.getByText("Materii prime", { exact: false }).first()).toBeVisible();
+  await expect.soft(page.getByText("Materiale rezultate", { exact: false }).first()).toBeVisible();
 });
 
 test("G. comanda admin -> trimite -> accepta -> livrare -> inchide -> certificat", async ({
