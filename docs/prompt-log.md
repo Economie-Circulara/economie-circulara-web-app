@@ -4,6 +4,14 @@ Jurnal al sarcinilor lucrate de agenti AI in acest repo. Conform regulii 1.2 din
 [`AGENTS.md`](../AGENTS.md), la **fiecare commit** se adauga o intrare aici.
 Cele mai noi intrari sus.
 
+## 2026-09-24 — Claude (Claude Code) — Fix cast enum in seed-ul demo
+
+- **Cerut:** repararea `supabase/demo/seed-demo.sql`, care cadea la evenimentul #14
+  (`COALESCE types order_type and text cannot be matched`).
+- **Facut:** cast explicit `::public.order_type` pe expresia `case` din insert-ul in
+  `orders`; restul expresiilor verificate. Plan:
+  `docs/plans/fix-seed-demo-order-type-cast.md`.
+
 ## 2026-09-24 — Claude (Claude Code) — Redenumiri texte UI: limbaj mai natural
 
 - **Cerut:** redenumire text-only (fara enum-uri DB/identificatori/rute) a
@@ -26,6 +34,7 @@ Cele mai noi intrari sus.
   `pnpm format:check` (curat pe fisierele atinse de acest task).
 - **Impact asistent AI (regula 2.4):** `none` - niciun tool nou/schimbat, doar
   reformulari de texte descriptive trimise modelului (vezi planul).
+
 
 ## 2026-09-20 — Claude Sonnet 5 — Asistent: fix catalog aport + planificarea livrarii
 
