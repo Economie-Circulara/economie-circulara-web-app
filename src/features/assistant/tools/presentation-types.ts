@@ -1,6 +1,7 @@
 import type { Client, ClientAddress } from "@/features/clients/types";
 import type { ItemOption } from "@/features/items/types";
 import type { OrderType } from "@/features/orders/types";
+import type { RecipeDirection } from "@/features/recipes/types";
 
 /**
  * Cardul de confirmare (docs/plans/asistent-contract-capabilitati.md) - doi
@@ -9,7 +10,10 @@ import type { OrderType } from "@/features/orders/types";
  * nevoie STRUCTURAL de o lista de linii cu add/remove + selectii cascadate
  * client -> adresa (reutilizeaza `OrderEditor`, ca la /comenzi/nou).
  */
-export type CardPresentation = GenericPresentation | OrderDraftPresentation;
+export type CardPresentation =
+  | GenericPresentation
+  | OrderDraftPresentation
+  | RecipeDraftPresentation;
 
 export interface PresentationField {
   name: string;
@@ -61,4 +65,23 @@ export interface OrderDraftPresentation {
   renderer: "order_draft";
   draft: OrderDraftValue;
   options: OrderDraftOptions;
+}
+
+/**
+ * Cardul pentru `creeaza_reteta` - o lista de materii prime (item + procent) cu
+ * add/remove, care n-are ce cauta intr-o lista plata de campuri (AGENTS.md §2.4).
+ */
+export interface RecipeDraftValue {
+  direction: RecipeDirection;
+  components: { itemId: string; percentage: number }[];
+}
+
+export interface RecipeDraftPresentation {
+  renderer: "recipe_draft";
+  /** Produsul retetei - rezolvat, nu editabil (alt produs = alta propunere). */
+  itemTitle: string;
+  itemUnit: string;
+  draft: RecipeDraftValue;
+  /** Materialele (fizice, nearhivate) care pot fi materii prime - fara produsul insusi. */
+  componentOptions: { id: string; title: string; unit: string }[];
 }

@@ -583,9 +583,18 @@ managementul utilizatorilor sunt descrise în detaliu în
 ## 13. Asistent AI
 
 Meniul **"Asistent AI"** răspunde la întrebări despre aplicație și poate **propune**
-acțiuni - creează un client nou, creează o comandă (inclusiv de tip **aport**, cu
-materialele aduse de client), trimite o comandă spre acceptare, **planifică o
-livrare**. Orice acțiune se arată întâi într-un **card de confirmare**, neexecutată:
+acțiuni. Orice acțiune se arată întâi într-un **card de confirmare**, neexecutată.
+
+| Zonă | Ce poate propune asistentul |
+| ---- | --------------------------- |
+| Clienți | client nou, modificarea datelor unui client, arhivare |
+| Materiale / abonamente | produs nou, modificare (denumire, UM, vandabil, nelimitat), arhivare |
+| Rețete | rețetă nouă (card cu materiile prime și procentele, editabile), arhivare |
+| Comenzi | comandă nouă (inclusiv **aport**), trimitere spre acceptare, **acceptare** (scade stocul; la aport, materialul intră în stoc), anulare (stocul se reface), ștergerea unei ciorne |
+| Livrări | planificare, anulare înainte de plecare (cu motiv) |
+| Producție | proces cu **cantitate fixă de produs** (rețetă de compunere): cardul arată consumul calculat din rețetă și loturile alese FIFO. Descompunerea (reciclare) se face din ecranul Producție, pentru că cere cantitățile reale rezultate. |
+
+Cum funcționează cardul:
 
 - Câmpurile se afișează cu **denumiri**, nu cu identificatori interni (ex. la
   trimiterea unei comenzi vezi numărul și clientul ei, nu un cod tehnic).

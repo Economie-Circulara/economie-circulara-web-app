@@ -21,12 +21,39 @@ describe("registry de tool-uri", () => {
     expect(names).toContain("itemi_aport");
   });
 
+  it("staff-ul primeste actiunile pe comenzi, catalog, retete si productie", () => {
+    const names = toolsForRole("operator").map((tool) => tool.name);
+    for (const name of [
+      "listeaza_comenzi",
+      "reteta_produs",
+      "accepta_comanda",
+      "anuleaza_comanda",
+      "sterge_ciorna",
+      "anuleaza_livrare",
+      "editeaza_client",
+      "creeaza_item",
+      "editeaza_item",
+      "arhiveaza",
+      "creeaza_reteta",
+      "porneste_productie",
+    ]) {
+      expect(names, name).toContain(name);
+    }
+  });
+
+  it("super-adminul (fara organizatie) nu primeste tool-urile de scriere noi", () => {
+    const writes = toolsForRole("super_admin").filter((tool) => tool.kind === "write");
+    expect(writes).toEqual([]);
+  });
+
   it("clientul nu vede tool-urile de organizatie (aport, livrari)", () => {
     const names = toolsForRole("client").map((tool) => tool.name);
 
     expect(names).not.toContain("itemi_aport");
     expect(names).not.toContain("context_livrare");
     expect(names).not.toContain("planifica_livrare");
+    expect(names).not.toContain("listeaza_comenzi");
+    expect(names).not.toContain("reteta_produs");
   });
 
   it("findTool respecta rolul, nu doar numele", () => {
