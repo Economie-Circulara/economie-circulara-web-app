@@ -23,7 +23,7 @@ export default async function ProductieNouPage() {
     <div className="space-y-6">
       <PageHeader
         title="Pornește proces"
-        description="Producție (output fix) sau reciclare / recondiționare (input fix, output variabil)."
+        description="Fabricație (producție de materiale noi) sau reciclare / recondiționare."
         breadcrumbs={[{ label: "Producție", href: "/productie" }, { label: "Proces nou" }]}
       />
 

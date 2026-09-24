@@ -60,7 +60,7 @@ export default async function EditOrderPage({ params }: EditOrderPageProps) {
         description={`${order.orderNumber ?? "Comandă draft"} · ${order.clientName}`}
         breadcrumbs={[
           { label: "Comenzi", href: "/comenzi" },
-          { label: order.orderNumber ?? "Draft", href: `/comenzi/${id}` },
+          { label: order.orderNumber ?? "Ciornă", href: `/comenzi/${id}` },
           { label: "Editează" },
         ]}
       />

@@ -47,8 +47,8 @@ export interface FixedOutputFormProps {
 }
 
 /**
- * 4a - Output fix (fabricație): alegi rețeta/produsul + cantitatea de output
- * dorită, sistemul calculează automat consumul FIFO pe fiecare componentă,
+ * 4a - Fabricație (output fix): alegi rețeta/produsul + cantitatea dorita,
+ * sistemul calculează automat consumul (FIFO) pe fiecare materie prima,
  * convertit in UM-ul propriu al componentei (`conversion_factor`, migrarea 0028).
  *
  * Fluxul are sens DOAR pentru rețete de `compunere` (itemul rețetei = output,
@@ -227,7 +227,7 @@ export function FixedOutputForm({
           required
           hint={
             selectedRecipe
-              ? `Direcție: ${DIRECTION_SHORT_LABELS[selectedRecipe.direction]}`
+              ? `Metodă: ${DIRECTION_SHORT_LABELS[selectedRecipe.direction]}`
               : undefined
           }
         >
@@ -251,9 +251,9 @@ export function FixedOutputForm({
         {directionMismatch && selectedRecipe ? (
           <div className="space-y-2 rounded-md border border-warn bg-warn/10 px-3 py-2 text-sm">
             <p className="text-warn">
-              Rețeta &quot;{selectedRecipe.itemTitle}&quot; este de <strong>descompunere</strong>:
-              itemul ei este materialul de INTRARE, iar componentele sunt fracțiile REZULTATE.
-              Fabricația cu output fix ar inversa fluxul, așa că nu calculăm nimic aici.
+              Rețeta &quot;{selectedRecipe.itemTitle}&quot; este de <strong>reciclare</strong>:
+              materialul ei este cel de reciclat, iar materiile prime de mai jos sunt materialele
+              REZULTATE. Fabricația ar inversa fluxul, așa că nu calculăm nimic aici.
             </p>
             <Button
               type="button"
@@ -261,7 +261,7 @@ export function FixedOutputForm({
               size="sm"
               onClick={() => onOpenInVariableFlow(selectedRecipe.itemId)}
             >
-              Deschide în &quot;Output variabil - Reciclare&quot; {"->"}
+              Deschide în &quot;Reciclare&quot; {"->"}
             </Button>
           </div>
         ) : null}
@@ -284,7 +284,7 @@ export function FixedOutputForm({
         </FormField>
 
         <FormField
-          label="Cantitate output dorită"
+          label="Cât vrei să produci"
           required
           hint={selectedRecipe ? `Unitate: ${selectedRecipe.unit}` : undefined}
         >
@@ -302,7 +302,7 @@ export function FixedOutputForm({
 
         <div className="rounded-lg border bg-secondary/40 p-4">
           <div className="mb-2 font-mono text-[11px] tracking-wide text-muted-foreground uppercase">
-            Consum calculat (FIFO)
+            Consum calculat
           </div>
           {loadingPreview ? (
             <p className="text-sm text-muted-foreground">Se calculează...</p>
@@ -361,7 +361,7 @@ export function FixedOutputForm({
         </div>
         <div className="flex items-center justify-between gap-4 border-t pt-4">
           <p className="text-sm text-muted-foreground">
-            Total intrare{" "}
+            Total consumat{" "}
             <span className="font-medium tabular-nums text-foreground">{totalIn}</span>{" "}
             {selectedRecipe?.unit} {"->"}{" "}
             <span className="font-medium text-foreground">

@@ -22,7 +22,7 @@ const columns: ColumnDef<RecipeListRow>[] = [
   },
   {
     accessorKey: "direction",
-    header: "Direcție",
+    header: "Metodă",
     cell: ({ row }) => (
       <Badge variant={row.original.direction === "compunere" ? "info" : "accent"}>
         {DIRECTION_SHORT_LABELS[row.original.direction]}
@@ -31,7 +31,7 @@ const columns: ColumnDef<RecipeListRow>[] = [
   },
   {
     accessorKey: "componentCount",
-    header: "Nr. componente",
+    header: "Nr. materiale",
   },
   {
     accessorKey: "percentageSum",

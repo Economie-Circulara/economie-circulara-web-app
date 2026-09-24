@@ -88,7 +88,7 @@ describe("OrderEditor", () => {
   it("adaugă o linie nouă în starea controlată", () => {
     render(<Harness />);
 
-    fireEvent.change(screen.getByLabelText("Item"), { target: { value: "i1" } });
+    fireEvent.change(screen.getByLabelText("Produs"), { target: { value: "i1" } });
     fireEvent.change(screen.getByLabelText("Cantitate"), { target: { value: "3" } });
     fireEvent.click(screen.getByRole("button", { name: "Adaugă linie" }));
 
@@ -142,7 +142,7 @@ describe("OrderEditor", () => {
   it("fără tip ales, catalogul de itemi e dezactivat", () => {
     render(<Harness initial={emptyOrderEditorValue()} />);
 
-    expect(screen.getByLabelText("Item")).toBeDisabled();
+    expect(screen.getByLabelText("Produs")).toBeDisabled();
     expect(screen.getByRole("option", { name: /Alege întâi tipul comenzii/ })).toBeInTheDocument();
   });
 

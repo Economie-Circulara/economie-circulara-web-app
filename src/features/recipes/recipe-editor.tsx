@@ -31,13 +31,7 @@ function RemoveComponentButton({ componentId, itemId }: { componentId: string; i
     <form action={action} className="flex items-center gap-2">
       <input type="hidden" name="component_id" value={componentId} />
       <input type="hidden" name="item_id" value={itemId} />
-      <Button
-        type="submit"
-        variant="ghost"
-        size="icon"
-        disabled={pending}
-        aria-label="Șterge componenta"
-      >
+      <Button type="submit" variant="ghost" size="icon" disabled={pending} aria-label="Șterge">
         <Trash2 className="size-4" />
       </Button>
       {state.error ? <span className="text-xs text-danger">{state.error}</span> : null}
@@ -46,9 +40,10 @@ function RemoveComponentButton({ componentId, itemId }: { componentId: string; i
 }
 
 /**
- * Selectorul de directie al unei retete EXISTENTE. Schimbarea e permisa (retetele
+ * Selectorul de metoda al unei retete EXISTENTE. Schimbarea e permisa (retetele
  * nu au versionare - AGENTS.md §4), dar rastoarna semantica tuturor componentelor
- * deja definite (input <-> output), de-aici avertismentul afisat inainte de submit.
+ * deja definite (materie prima <-> material rezultat), de-aici avertismentul afisat
+ * inainte de submit.
  */
 function DirectionCard({ recipe }: { recipe: RecipeDetail }) {
   const [state, action, pending] = useActionState(
@@ -62,7 +57,7 @@ function DirectionCard({ recipe }: { recipe: RecipeDetail }) {
     <Card>
       <CardHeader>
         <CardTitle className="flex flex-wrap items-center gap-2">
-          Direcția rețetei
+          Metoda rețetei
           <Badge variant="info">{DIRECTION_SHORT_LABELS[recipe.direction]}</Badge>
         </CardTitle>
         <CardDescription>{DIRECTION_DESCRIPTIONS[recipe.direction]}</CardDescription>
@@ -71,7 +66,7 @@ function DirectionCard({ recipe }: { recipe: RecipeDetail }) {
         <form action={action} className="flex flex-wrap items-end gap-3">
           <input type="hidden" name="recipe_id" value={recipe.recipeId} />
           <input type="hidden" name="item_id" value={recipe.itemId} />
-          <FormField label="Direcție" required>
+          <FormField label="Metodă" required>
             {(id) => (
               <select
                 id={id}
@@ -89,13 +84,13 @@ function DirectionCard({ recipe }: { recipe: RecipeDetail }) {
             )}
           </FormField>
           <Button type="submit" variant="outline" disabled={pending || !changed}>
-            {pending ? "Se salvează..." : "Schimbă direcția"}
+            {pending ? "Se salvează..." : "Schimbă metoda"}
           </Button>
         </form>
         {changed ? (
           <p className="mt-2 text-sm text-warn">
-            Atenție: schimbarea direcției inversează sensul tuturor componentelor deja definite -
-            cele {recipe.direction === "compunere" ? "consumate" : "produse"} devin{" "}
+            Atenție: schimbarea metodei inversează sensul tuturor componentelor deja definite - cele{" "}
+            {recipe.direction === "compunere" ? "consumate" : "produse"} devin{" "}
             {recipe.direction === "compunere" ? "produse" : "consumate"}. Verifică procentele și
             factorii de conversie după salvare.
           </p>
@@ -107,7 +102,7 @@ function DirectionCard({ recipe }: { recipe: RecipeDetail }) {
 }
 
 /**
- * Editor de rețetă: directia (compunere/descompunere - migrarea 0028), lista
+ * Editor de rețetă: metoda (compunere/descompunere - migrarea 0028), lista
  * componentelor cu factorul de conversie de UM, formular adaugare/actualizare si
  * suma procentelor (INFORMATIVA - nu blocheaza salvarea daca difera de 100%,
  * regula din handoff/AGENTS.md).
@@ -135,7 +130,8 @@ export function RecipeEditor({
           <CardTitle>{DIRECTION_COMPONENT_ROLE[recipe.direction]}</CardTitle>
           <CardDescription>
             Procentele sunt informative - reteta se poate salva chiar daca suma nu e 100%.
-            Cantitățile se calculează în UM-ul fiecărei componente, prin factorul de conversie.
+            Cantitățile se calculează în unitatea de măsură a fiecărei materii prime, prin factorul
+            de conversie.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -150,7 +146,11 @@ export function RecipeEditor({
           </div>
 
           {recipe.components.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Nicio componentă adăugată încă.</p>
+            <p className="text-sm text-muted-foreground">
+              {recipe.direction === "compunere"
+                ? "Nicio materie primă adăugată încă."
+                : "Niciun material rezultat adăugat încă."}
+            </p>
           ) : (
             <ul className="divide-y rounded-lg border">
               {recipe.components.map((component) => (
@@ -162,7 +162,7 @@ export function RecipeEditor({
                     <span>{component.componentItemTitle}</span>
                     <div className="text-xs text-muted-foreground">
                       {component.unit === recipe.unit ? (
-                        <>UM identică ({component.unit})</>
+                        <>Aceeași unitate de măsură ({component.unit})</>
                       ) : (
                         <>
                           1 {component.unit} = {component.conversionFactor} {recipe.unit}
@@ -184,7 +184,9 @@ export function RecipeEditor({
 
       <Card>
         <CardHeader>
-          <CardTitle>Adaugă componentă</CardTitle>
+          <CardTitle>
+            {recipe.direction === "compunere" ? "Adaugă materie primă" : "Adaugă material rezultat"}
+          </CardTitle>
           <CardDescription>
             Alegerea unui material deja prezent în rețetă îi actualizează procentul și factorul.
           </CardDescription>
@@ -228,15 +230,18 @@ export function RecipeEditor({
               )}
             </FormField>
             <FormField
-              label="Factor conversie UM"
+              label={
+                selectedOption
+                  ? `Câte ${recipe.unit} are un ${selectedOption.unit}?`
+                  : "Câte unități de rețetă are o unitate de materie primă?"
+              }
               required={unitsDiffer}
               hint={
                 selectedOption
-                  ? `1 ${selectedOption.unit} = ? ${recipe.unit}` +
-                    (unitsDiffer
-                      ? " - obligatoriu, UM-urile diferă (ex: 1 mc nisip = 1500 kg beton)."
-                      : " - UM-uri identice, lasă 1.")
-                  : "Câte unități din UM-ul produsului corespund unei unități din UM-ul componentei (implicit 1)."
+                  ? unitsDiffer
+                    ? "Obligatoriu, unitățile de măsură diferă (ex: 1 mc nisip = 1500 kg beton)."
+                    : "Unități de măsură identice, lasă 1."
+                  : "Implicit 1, dacă nu se completează."
               }
             >
               {(id) => (
@@ -258,8 +263,9 @@ export function RecipeEditor({
           </form>
           {unitsDiffer ? (
             <p className="mt-2 text-sm text-warn">
-              UM-ul componentei ({selectedOption!.unit}) diferă de UM-ul produsului ({recipe.unit}).
-              Fără un factor corect, cantitățile calculate la producție vor fi greșite.
+              Unitatea de măsură a materiei prime ({selectedOption!.unit}) diferă de unitatea de
+              măsură a produsului ({recipe.unit}). Fără un factor corect, cantitățile calculate la
+              producție vor fi greșite.
             </p>
           ) : null}
           {state.error ? <p className="mt-2 text-sm text-danger">{state.error}</p> : null}
