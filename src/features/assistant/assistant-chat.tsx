@@ -18,7 +18,6 @@ import {
   ATTACHMENT_BUCKET,
   attachmentReference,
   MAX_ATTACHMENTS_PER_MESSAGE,
-  splitAttachmentReferences,
   validateAttachment,
   type AttachmentMeta,
 } from "./attachment-rules";
@@ -26,6 +25,7 @@ import { ChatInput } from "./chat-input";
 import { MessageMarkdown } from "./message-markdown";
 import { PendingIndicator } from "./pending-indicator";
 import { QuotaCard } from "./quota-card";
+import { UserBubbleContent } from "./user-bubble-content";
 import type { AssistantTurn, PendingAction, QuotaStatus } from "./types";
 
 export interface Bubble {
@@ -69,29 +69,6 @@ async function uploadAttachment(file: File): Promise<AttachmentMeta> {
     });
   if (error) throw new Error("Încărcarea fișierului a eșuat. Încearcă din nou.");
   return prepared.attachment;
-}
-
-/** Continutul unei bule de utilizator: textul + etichetele fisierelor atasate. */
-function UserBubbleContent({ content }: { content: string }) {
-  const { text, attachments } = splitAttachmentReferences(content);
-  return (
-    <>
-      {text}
-      {attachments.length ? (
-        <span className="mt-2 flex flex-wrap gap-1.5">
-          {attachments.map((attachment) => (
-            <span
-              key={attachment.id}
-              className="inline-flex items-center gap-1 rounded-md border bg-card px-2 py-0.5 text-xs"
-            >
-              <Paperclip className="size-3" aria-hidden />
-              {attachment.fileName}
-            </span>
-          ))}
-        </span>
-      ) : null}
-    </>
-  );
 }
 
 export function AssistantChat({

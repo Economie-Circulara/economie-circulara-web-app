@@ -8,6 +8,7 @@ import {
   MAX_IMAGE_BYTES,
   MAX_PDF_BYTES,
   sanitizeFileName,
+  attachmentHref,
   splitAttachmentReferences,
   validateAttachment,
 } from "./attachment-rules";
@@ -90,5 +91,13 @@ describe("referintele la atasamente din mesaj", () => {
       text: "salut\nce faci",
       attachments: [],
     });
+  });
+});
+
+describe("attachmentHref", () => {
+  it("deschide sau descarca prin ruta autentificata", () => {
+    const id = "123e4567-e89b-12d3-a456-426614174000";
+    expect(attachmentHref(id)).toBe(`/asistent/atasamente/${id}`);
+    expect(attachmentHref(id, { download: true })).toBe(`/asistent/atasamente/${id}?descarca=1`);
   });
 });

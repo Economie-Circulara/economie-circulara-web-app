@@ -117,6 +117,15 @@ export function attachmentReference(attachment: Pick<AttachmentMeta, "id" | "fil
   return `📎 [${sanitizeFileName(attachment.fileName)}](attachment:${attachment.id})`;
 }
 
+/**
+ * Ruta prin care utilizatorul deschide (sau descarca) un atasament din chat:
+ * `src/app/(help)/asistent/atasamente/[id]/route.ts`.
+ */
+export function attachmentHref(id: string, options: { download?: boolean } = {}): string {
+  const base = `/asistent/atasamente/${encodeURIComponent(id)}`;
+  return options.download ? `${base}?descarca=1` : base;
+}
+
 const REFERENCE_LINE = /^📎 \[([^\]]+)\]\(attachment:([0-9a-f-]{36})\)$/;
 
 /** Separa textul mesajului de referintele la atasamente (pentru bulele din chat). */

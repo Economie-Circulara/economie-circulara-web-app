@@ -14,14 +14,20 @@ vi.mock("./db", () => ({
 
 const createSignedUploadUrl = vi.fn();
 const download = vi.fn();
+const createSignedUrl = vi.fn();
 vi.mock("@/lib/supabase/admin", () => ({
   createAdminClient: () => ({
-    storage: { from: () => ({ createSignedUploadUrl, download }) },
+    storage: { from: () => ({ createSignedUploadUrl, download, createSignedUrl }) },
   }),
 }));
 
-const { registerAttachment, getAttachment, downloadAttachment, AttachmentError } =
-  await import("./attachments");
+const {
+  registerAttachment,
+  getAttachment,
+  downloadAttachment,
+  attachmentSignedUrl,
+  AttachmentError,
+} = await import("./attachments");
 
 const CTX: ToolContext = { userId: "u1", role: "admin", organizationId: "org-1", clientId: null };
 
@@ -95,5 +101,29 @@ describe("getAttachment / downloadAttachment", () => {
         storagePath: "p",
       }),
     ).rejects.toThrow(/poza\.png/);
+  });
+});
+
+describe("attachmentSignedUrl", () => {
+  const stored = {
+    id: "x",
+    fileName: "retete.pdf",
+    mimeType: "application/pdf",
+    sizeBytes: 1,
+    storagePath: "org-1/u1/x",
+  };
+
+  it("descarcarea foloseste numele original al fisierului", async () => {
+    createSignedUrl.mockResolvedValue({ data: { signedUrl: "https://s" } });
+    expect(await attachmentSignedUrl(stored, { expiresInSeconds: 60, download: true })).toBe(
+      "https://s",
+    );
+    expect(createSignedUrl).toHaveBeenCalledWith("org-1/u1/x", 60, { download: "retete.pdf" });
+  });
+
+  it("afisarea nu cere download", async () => {
+    createSignedUrl.mockResolvedValue({ data: null });
+    expect(await attachmentSignedUrl(stored)).toBeNull();
+    expect(createSignedUrl).toHaveBeenCalledWith("org-1/u1/x", 3600, undefined);
   });
 });
