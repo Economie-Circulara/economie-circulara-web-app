@@ -12,8 +12,8 @@ import {
   deliverOrderAction,
   sendOrderAction,
 } from "./actions";
-import { canTransitionOrderOfType } from "./state-machine";
-import type { OrderDeliveryGuard, OrderStatus, OrderType } from "./types";
+import { canTransitionOrderInFlow, type OrderFlow } from "./state-machine";
+import type { OrderDeliveryGuard, OrderStatus } from "./types";
 
 type TransitionAction = (
   prev: OrderTransitionState,
@@ -94,15 +94,18 @@ export function OrderStatusActions({
   orderId,
   status,
   delivery = null,
-  orderType = "material",
+  flow = "sale",
 }: {
   orderId: string;
   status: OrderStatus;
   delivery?: OrderDeliveryGuard | null;
-  /** `aport`: doar "Anulează" (draft/sent) - acceptarea are buton dedicat (`AcceptIntakeButton`). */
-  orderType?: OrderType;
+  /**
+   * `intake` (aport / retur / garantie): doar "Anulează" (draft/sent) - acceptarea
+   * are buton dedicat (`AcceptIntakeButton` / `AcceptReturnButton`).
+   */
+  flow?: OrderFlow;
 }) {
-  const can = (to: OrderStatus) => canTransitionOrderOfType(status, to, orderType);
+  const can = (to: OrderStatus) => canTransitionOrderInFlow(status, to, flow);
   const canSend = can("sent");
   const canAccept = can("accepted");
   const canDeliverTransition = can("delivered");

@@ -197,16 +197,27 @@ describe("createOrderAction", () => {
 });
 
 describe("acceptIntakeAction", () => {
-  it("accepta aportul prin RPC-ul dedicat (fara masina de stari / notificari)", async () => {
+  it("accepta aportul prin RPC-ul dedicat si notifica clientul cu formularea de aport", async () => {
     requireRole.mockResolvedValue({ id: "u1", organizationId: "org-1" });
-    acceptIntakeOrder.mockResolvedValue({ id: "order-aport", status: "accepted" });
+    getOrderStatus.mockResolvedValue("sent");
+    acceptIntakeOrder.mockResolvedValue({
+      id: "order-aport",
+      clientId: "client-1",
+      status: "accepted",
+    });
 
     const state = await acceptIntakeAction("order-aport");
 
     expect(state.error).toBeNull();
     expect(acceptIntakeOrder).toHaveBeenCalledWith("order-aport");
-    expect(getOrderStatus).not.toHaveBeenCalled();
-    expect(onOrderStatusChanged).not.toHaveBeenCalled();
+    expect(onOrderStatusChanged).toHaveBeenCalledWith({
+      orderId: "order-aport",
+      organizationId: "org-1",
+      clientId: "client-1",
+      fromStatus: "sent",
+      toStatus: "accepted",
+      kind: "intake",
+    });
     expect(revalidatePath).toHaveBeenCalledWith("/stoc");
   });
 
@@ -217,6 +228,7 @@ describe("acceptIntakeAction", () => {
     const state = await acceptIntakeAction("order-1");
 
     expect(state.error).toBe("Comanda nu este de tip aport.");
+    expect(onOrderStatusChanged).not.toHaveBeenCalled();
   });
 });
 

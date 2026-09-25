@@ -1,5 +1,6 @@
 import { generateCertificateForOrder } from "@/features/certificates/service";
 import { sendOrderStatusNotification } from "@/features/notifications/service";
+import type { OrderEmailKind } from "@/features/notifications/templates";
 import type { OrderStatus } from "./types";
 
 export interface OrderStatusChangedEvent {
@@ -8,6 +9,8 @@ export interface OrderStatusChangedEvent {
   clientId: string;
   fromStatus: OrderStatus;
   toStatus: OrderStatus;
+  /** Aport / retur: formularea emailului catre client (implicit comanda de vanzare). */
+  kind?: OrderEmailKind;
 }
 
 /**
@@ -44,6 +47,7 @@ export async function onOrderStatusChanged(event: OrderStatusChangedEvent): Prom
       organizationId: event.organizationId,
       clientId: event.clientId,
       toStatus: event.toStatus,
+      kind: event.kind,
     });
   } catch (err) {
     console.error(`[orders] trimiterea notificarii a eșuat pentru comanda ${event.orderId}:`, err);

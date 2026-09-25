@@ -143,7 +143,9 @@ apărea butoanele:
 
 Materialul returnat intră efectiv în stocul organizației doar **după ce
 organizația inspectează și acceptă** returul (nu automat la trimiterea cererii
-tale).
+tale). Cererea apare în "Comenzile mele" direct ca **Trimisă** (cu număr), cu
+mențiunea "Retur/Garanție pentru comanda originală"; primești un email când e
+acceptată. La fel și cererile de **aport**.
 
 **Închiriere (product-as-a-service):** dacă produsul tău e un abonament
 (închiriere simulată), pe comandă poate apărea o dată estimată de retur al

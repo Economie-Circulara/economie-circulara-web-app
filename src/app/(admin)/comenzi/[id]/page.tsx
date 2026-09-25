@@ -15,11 +15,7 @@ import {
   ORDER_TYPE_LABELS,
 } from "@/features/orders/labels";
 import { OrderStatusActions } from "@/features/orders/order-status-actions";
-import {
-  APORT_JOURNEY,
-  INTAKE_JOURNEY,
-  OrderStatusTimeline,
-} from "@/features/orders/order-status-timeline";
+import { INTAKE_JOURNEY, OrderStatusTimeline } from "@/features/orders/order-status-timeline";
 import { getOrderDetail } from "@/features/orders/queries";
 import { canAcceptIntake } from "@/features/orders/state-machine";
 import { AcceptReturnButton } from "@/features/returns/accept-return-button";
@@ -120,7 +116,7 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
               <Button asChild variant="outline">
                 <Link href={`/livrari/${delivery.id}`}>Vezi livrare</Link>
               </Button>
-            ) : order.status === "accepted" && !isIntakeOrder ? (
+            ) : order.status === "accepted" && !isIntakeOrder && !isReturnOrder ? (
               <Button asChild variant="outline">
                 <Link href={`/livrari/nou?orderId=${order.id}`}>Planifică livrare</Link>
               </Button>
@@ -128,12 +124,15 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
             {isIntakeOrder ? (
               <>
                 {canAcceptIntake(order.status) ? <AcceptIntakeButton orderId={order.id} /> : null}
-                <OrderStatusActions orderId={order.id} status={order.status} orderType="aport" />
+                <OrderStatusActions orderId={order.id} status={order.status} flow="intake" />
               </>
             ) : isReturnOrder ? (
-              order.status === "draft" ? (
-                <AcceptReturnButton returnOrderId={order.id} />
-              ) : null
+              <>
+                {canAcceptIntake(order.status) ? (
+                  <AcceptReturnButton returnOrderId={order.id} />
+                ) : null}
+                <OrderStatusActions orderId={order.id} status={order.status} flow="intake" />
+              </>
             ) : (
               <>
                 <OrderStatusActions
@@ -245,7 +244,7 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
         <h2 className="text-lg font-semibold">Istoric status</h2>
         <OrderStatusTimeline
           status={order.status}
-          journey={isIntakeOrder ? APORT_JOURNEY : isReturnOrder ? INTAKE_JOURNEY : undefined}
+          journey={isIntakeOrder || isReturnOrder ? INTAKE_JOURNEY : undefined}
         />
         <p className="text-xs text-muted-foreground">
           Status curent: {ORDER_STATUS_LABELS[order.status]}.

@@ -285,7 +285,7 @@ describe("createClientAportAction", () => {
   it("daca trimiterea esueaza, semnaleaza eroarea dar pastreaza orderId", async () => {
     requireRole.mockResolvedValue(CLIENT_USER);
     createOrderWithItems.mockResolvedValue({ id: "order-2", status: "draft" });
-    sendOrder.mockRejectedValue(new Error("numar indisponibil"));
+    sendOrder.mockRejectedValueOnce(new Error("numar indisponibil"));
 
     const state = await createClientAportAction(
       initialClientOrderFormState,

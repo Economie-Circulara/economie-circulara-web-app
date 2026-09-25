@@ -13,7 +13,8 @@ import { RepeatOrderButton } from "@/features/client-portal/repeat-order-button"
 import { ORDER_STATUS_BADGE_STATUS, ORDER_STATUS_LABELS } from "@/features/orders/labels";
 import { getOrderDetail } from "@/features/orders/queries";
 import { ReturnActions } from "@/features/returns/return-actions";
-import { getReturnableItems } from "@/features/returns/queries";
+import { ORDER_LINK_TYPE_LABELS } from "@/features/returns/labels";
+import { getReturnLinkForOrder, getReturnableItems } from "@/features/returns/queries";
 import { ALLOWED_RETURN_FLOWS_BY_ORDER_TYPE } from "@/features/returns/types";
 
 export const metadata = { title: "Detalii comandă - Lot cu Lot" };
@@ -55,6 +56,10 @@ export default async function ClientOrderDetailPage({ params }: OrderDetailPageP
   if (!order) notFound();
 
   const isIntakeOrder = order.orderType === "aport";
+  // Cerere de retur/garantie (comanda derivata, `order_links`): produsele vin DE LA
+  // client - fara "Repetă comanda" (ar recomanda exact marfa returnata) si fara livrare.
+  const returnLink = await getReturnLinkForOrder(order.id);
+  const isReturnRequest = returnLink?.linkType === "return" || returnLink?.linkType === "warranty";
 
   // Retur/garantie: doar pe comenzile finalizate. `getReturnableItems` e RLS-scoped
   // (clientul vede doar comenzile proprii), deci nu e nevoie de autorizare aici.
@@ -67,7 +72,7 @@ export default async function ClientOrderDetailPage({ params }: OrderDetailPageP
     isFinished(order.status) && allowedReturnFlows.length > 0
       ? getReturnableItems(order.id)
       : Promise.resolve([]),
-    isIntakeOrder ? Promise.resolve(null) : getClientOrderDelivery(order.id),
+    isIntakeOrder || isReturnRequest ? Promise.resolve(null) : getClientOrderDelivery(order.id),
   ]);
 
   return (
@@ -85,7 +90,7 @@ export default async function ClientOrderDetailPage({ params }: OrderDetailPageP
                 <Link href={`/comenzile-mele/${order.id}/certificat`}>Vezi certificat</Link>
               </Button>
             ) : null}
-            {isIntakeOrder ? null : <RepeatOrderButton items={order.items} />}
+            {isIntakeOrder || isReturnRequest ? null : <RepeatOrderButton items={order.items} />}
             {/* Doar ciornele proprii se pot sterge (migrarea 0035). */}
             {order.status === "draft" ? (
               <ConfirmActionButton
@@ -101,8 +106,16 @@ export default async function ClientOrderDetailPage({ params }: OrderDetailPageP
         }
       />
 
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         <StatusBadge group="order" status={ORDER_STATUS_BADGE_STATUS[order.status]} />
+        {returnLink ? (
+          <span className="text-sm text-muted-foreground">
+            {ORDER_LINK_TYPE_LABELS[returnLink.linkType]} pentru{" "}
+            <Link href={`/comenzile-mele/${returnLink.originalOrderId}`} className="underline">
+              comanda originală
+            </Link>
+          </span>
+        ) : null}
       </div>
 
       <div className={delivery ? "grid gap-4 lg:grid-cols-2" : undefined}>
@@ -136,7 +149,11 @@ export default async function ClientOrderDetailPage({ params }: OrderDetailPageP
 
       <section className="space-y-3">
         <h2 className="text-lg font-semibold">
-          {isIntakeOrder ? "Materiale aduse" : "Produse comandate"}
+          {isIntakeOrder
+            ? "Materiale aduse"
+            : isReturnRequest
+              ? "Produse returnate"
+              : "Produse comandate"}
         </h2>
         {order.items.length === 0 ? (
           <p className="text-sm text-muted-foreground">Comanda nu are linii.</p>

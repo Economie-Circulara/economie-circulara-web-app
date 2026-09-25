@@ -1,4 +1,4 @@
-import type { OrderStatus, OrderType } from "./types";
+import type { OrderLinkType, OrderStatus, OrderType } from "./types";
 
 /**
  * Masina de stari a comenzii (AGENTS.md §4 + mockup): draft -> sent -> accepted ->
@@ -45,25 +45,44 @@ export function isCancellable(status: OrderStatus): boolean {
 }
 
 /**
- * Tranzitiile GENERICE (butoanele din `OrderStatusActions`) permise pentru o comanda
- * de un anumit tip. O comanda `aport` nu parcurge masina de stari de vanzare
- * (migrarile 0031/0042): se accepta DOAR prin `accept_intake_order` (buton dedicat
- * "Acceptă aport"), iar generic se poate doar anula cat timp nu a intrat in stoc
- * (`draft`/`sent`). Anularea unui aport acceptat ar lasa loturile create in stoc -
- * interzisa si in DB (garda AP005, 0042).
+ * Fluxul unei comenzi: `sale` (vanzare - masina de stari completa) sau `intake`
+ * (comenzi care CREEAZA stoc: aport - 0031/0042 - si comenzile-retur/garantie -
+ * 0010/0044). Un `intake` se accepta DOAR prin RPC-ul dedicat (butoanele "Acceptă
+ * aport" / "Acceptă retur") si nu trece prin sent -> delivered -> closed.
  */
-export function canTransitionOrderOfType(
+export type OrderFlow = "sale" | "intake";
+
+/** Fluxul comenzii din tipul ei si din legatura cu comanda originala (`order_links`). */
+export function orderFlowOf(
+  orderType: OrderType,
+  linkType: OrderLinkType | null | undefined,
+): OrderFlow {
+  return orderType === "aport" || linkType === "return" || linkType === "warranty"
+    ? "intake"
+    : "sale";
+}
+
+/**
+ * Tranzitiile GENERICE (butoanele din `OrderStatusActions`) permise intr-un flux.
+ * Pe `intake` doar anularea (respingerea cererii), cat timp nimic n-a intrat in
+ * stoc (`draft`/`sent`). Anularea unui intake acceptat ar lasa loturile create in
+ * stoc - interzisa si in DB (gardele AP005 / RT005, 0042 / 0044).
+ */
+export function canTransitionOrderInFlow(
   from: OrderStatus,
   to: OrderStatus,
-  orderType: OrderType,
+  flow: OrderFlow,
 ): boolean {
-  if (orderType === "aport") {
+  if (flow === "intake") {
     return to === "cancelled" && (from === "draft" || from === "sent");
   }
   return canTransitionOrder(from, to);
 }
 
-/** Aportul se accepta (intra in stoc) din `draft` (creat de staff) sau `sent` (trimis din portal). */
+/**
+ * Un intake (aport / retur / garantie) se accepta din `draft` (creat de staff) sau
+ * `sent` (trimis din portalul clientului).
+ */
 export function canAcceptIntake(status: OrderStatus): boolean {
   return status === "draft" || status === "sent";
 }

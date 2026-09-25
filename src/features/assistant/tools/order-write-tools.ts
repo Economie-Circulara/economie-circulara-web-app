@@ -102,10 +102,18 @@ export const acceptaComanda: AssistantTool<OrderIdInput> = {
     const organizationId = requireOrg(ctx);
     const order = await requireOrder(input.order_id);
 
-    // Comanda-aport nu parcurge masina de stari de vanzare si nu trimite notificari
-    // de livrare - identic cu `acceptIntakeAction` (AGENTS.md §4, migrarea 0031).
+    // Comanda-aport nu parcurge masina de stari de vanzare; emailul catre client are
+    // formularea de aport - identic cu `acceptIntakeAction` (migrarile 0031/0042).
     if (order.orderType === "aport") {
       const accepted = await acceptIntakeOrder(order.id);
+      await onOrderStatusChanged({
+        orderId: accepted.id,
+        organizationId,
+        clientId: accepted.clientId,
+        fromStatus: order.status,
+        toStatus: "accepted",
+        kind: "intake",
+      });
       return {
         order_id: accepted.id,
         numar: order.orderNumber,

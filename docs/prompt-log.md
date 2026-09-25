@@ -4,6 +4,17 @@ Jurnal al sarcinilor lucrate de agenti AI in acest repo. Conform regulii 1.2 din
 [`AGENTS.md`](../AGENTS.md), la **fiecare commit** se adauga o intrare aici.
 Cele mai noi intrari sus.
 
+## 2026-09-25 — Claude Opus 5.5 (Claude Code) — Retur/garantie din portal trimise + notificari aport/retur
+
+- **Cerut:** rezolvarea celor 3 inconsistente gasite: retur/garantie din portal raman
+  ciorna; "Repetă comanda" pe retur; fara email la acceptarea aportului.
+- **Facut:** portalul trimite cererile de retur/garantie (si inlocuirea); migrarea 0044 -
+  `accept_return_order` din `sent` + garda RT005; flux `intake` in state machine
+  (aport + retur: doar "Acceptă ..." + "Anulează", fara livrare/repetare); email la
+  acceptarea aportului/returului cu formulare proprie (`OrderEmailKind`); teste unitare +
+  B27 (suitele SQL rulate pe Postgres local: trec); plan
+  `docs/plans/retur-client-trimis-notificari.md`, manual, AGENTS.md.
+
 ## 2026-09-25 — Claude Opus 5.5 (Claude Code) — Portal client: fara itemi arhivati pe comenzi/aport
 
 - **Cerut:** clientul putea face aport cu un material arhivat; alte inconsistente client/admin?

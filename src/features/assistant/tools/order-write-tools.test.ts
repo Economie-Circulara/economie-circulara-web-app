@@ -68,10 +68,11 @@ describe("accepta_comanda", () => {
     expect(result).toMatchObject({ status: "accepted", link: "/comenzi/o1" });
   });
 
-  it("aport: RPC-ul dedicat, fara masina de stari de vanzare si fara notificare", async () => {
-    vi.mocked(getOrderDetail).mockResolvedValue(order({ orderType: "aport", status: "draft" }));
+  it("aport: RPC-ul dedicat (fara masina de stari de vanzare), email cu formularea de aport", async () => {
+    vi.mocked(getOrderDetail).mockResolvedValue(order({ orderType: "aport", status: "sent" }));
     vi.mocked(orderService.acceptIntakeOrder).mockResolvedValue({
       id: "o1",
+      clientId: "c1",
       status: "accepted",
     } as never);
 
@@ -79,7 +80,9 @@ describe("accepta_comanda", () => {
 
     expect(orderService.acceptIntakeOrder).toHaveBeenCalledWith("o1");
     expect(orderService.acceptOrder).not.toHaveBeenCalled();
-    expect(onOrderStatusChanged).not.toHaveBeenCalled();
+    expect(onOrderStatusChanged).toHaveBeenCalledWith(
+      expect.objectContaining({ fromStatus: "sent", toStatus: "accepted", kind: "intake" }),
+    );
   });
 
   it("o ciorna de vanzare nu se poate accepta direct (trebuie trimisa intai)", async () => {

@@ -294,7 +294,16 @@ Testele unitare sunt **colocate** langa cod (`*.test.ts` / `*.test.tsx`).
     din `sent` sau o anuleaza (respinge). Aportul creat de staff se accepta direct din
     `draft`. Un aport **acceptat nu se anuleaza** (garda DB `AP005`): `cancel_order`
     reface doar consumul, iar aportul a CREAT loturi. Butoanele generice pe un aport
-    trec prin `canTransitionOrderOfType` (`orders/state-machine.ts`) - doar "Anulează".
+    trec prin `canTransitionOrderInFlow` (`orders/state-machine.ts`, flux `intake`) -
+    doar "Anulează".
+  - **Acelasi tipar pentru retur/garantie cerute din portal** (decizie 2026-09-25,
+    migrarea `0044`): cererea clientului e trimisa (`sent`, cu numar; la garantie si
+    comanda de inlocuire), staff-ul o accepta din `sent` (`accept_return_order`) sau
+    o anuleaza; un retur acceptat nu se anuleaza (`RT005`). Aportul si returul sunt
+    fluxul `intake` (`orderFlowOf`): fara "Repetă comanda", fara livrare, traseu
+    `draft -> sent -> accepted`. Acceptarea lor trimite emailul catre client cu
+    formularea potrivita (`kind: "intake" | "return"` in `onOrderStatusChanged`) - nu
+    "în curs de pregătire pentru livrare".
 - **Eligibilitatea de retur/garantie depinde de tipul comenzii, nu doar de status**
   (decizie 2026-09, `ALLOWED_RETURN_FLOWS_BY_ORDER_TYPE` in
   `src/features/returns/types.ts`): retur PUR (`order_links.link_type = 'return'`,

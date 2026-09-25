@@ -10,18 +10,12 @@ import type { OrderStatus } from "./types";
 const JOURNEY: readonly OrderStatus[] = ["draft", "sent", "accepted", "delivered", "closed"];
 
 /**
- * Traseul comenzilor care intra in stoc in loc sa iasa (aport - migrarea 0030, si
- * retur/garanție - migrarea 0010): `draft -> accepted`, prin RPC-ul dedicat. Nu
- * trec prin sent/delivered/closed - nu se livreaza nimic catre client.
+ * Traseul comenzilor care intra in stoc in loc sa iasa (aport - 0030, si
+ * retur/garanție - 0010): `draft -> sent -> accepted`, acceptate prin RPC-ul
+ * dedicat. `sent` = cerere trimisa din portalul clientului (0042/0044); cele create
+ * de staff sar direct `draft -> accepted`. Nu trec prin delivered/closed.
  */
-export const INTAKE_JOURNEY: readonly OrderStatus[] = ["draft", "accepted"];
-
-/**
- * Traseul unui aport: ca `INTAKE_JOURNEY`, dar cu pasul `sent` - aportul trimis din
- * portalul clientului asteapta aprobarea in `sent` (migrarea 0042). Un aport creat
- * de staff sare direct `draft -> accepted` (pasul `sent` ramane doar neatins).
- */
-export const APORT_JOURNEY: readonly OrderStatus[] = ["draft", "sent", "accepted"];
+export const INTAKE_JOURNEY: readonly OrderStatus[] = ["draft", "sent", "accepted"];
 
 /**
  * Explicatii RO in limbaj simplu pentru fiecare status - afisate la hover (desktop,

@@ -477,8 +477,12 @@ materialul a venit de la client, nu către el.
   comandă de **înlocuire** (comandă de vânzare obișnuită, care parcurge fluxul
   normal Ciornă -> Trimisă -> Acceptată -> Livrată -> Închisă).
 
-Comanda-retur/garanție nou creată apare inițial ca **Ciornă**; pe ea, în loc de
-butoanele generice de tranziție, apare butonul dedicat **"Acceptă retur"** -
+Comanda-retur/garanție creată de staff apare inițial ca **Ciornă**; cea cerută de
+client din portal sosește direct ca **Trimisă** (împreună cu comanda de înlocuire,
+la garanție). Pe ea, în loc de butoanele generice de tranziție, apar **"Acceptă
+retur"** și **"Anulează"** (respingerea cererii). Un retur acceptat nu se mai poate
+anula. Clientul primește email la acceptare, cu formularea de retur/aport (nu de
+livrare). **"Acceptă retur"** -
 acceptarea unui retur **adaugă** materialul înapoi în stoc (după inspecție/
 acceptare manuală), spre deosebire de acceptarea unei comenzi de vânzare, care
 scade stocul.
