@@ -87,29 +87,17 @@ ei. **"Reactivează"** îi redă accesul, cu același rol.
 
 ![ecranul "Utilizatori" cu formularul de invitare](img/admin-users.png)
 
-### 2.2 Gap cunoscut: invitarea unui client {#gap-cunoscut-invitarea-unui-client}
+### 2.2 Invitarea unui client {#gap-cunoscut-invitarea-unui-client}
 
-**La data redactării acestui ghid, ecranul "Utilizatori" permite doar invitarea
-de Operatori și Administratori - nu există încă un formular dedicat pentru
-crearea contului de logare (rol `client`) al unei firme client**, deși structura
-de date (schema bazei de date) suportă rolul client, legat de o firmă din
-"Clienți". Fluxul de business intenționat (conform `docs/handoff.md`) este:
+Contul de logare al unei firme client (rol `client`, **un singur utilizator per
+firmă**) se creează prin invitație, trimisă de un administrator:
 
-- Adminul creează firma client în "Clienți" (secțiunea 3 din manualul
-  admin/operator).
-- Adminul invită contul de logare al persoanei de contact a firmei respective,
-  cu rol `client`, legat de acea firmă (`client_id`).
-- Clientul primește emailul de invitație și își setează parola, la fel ca un
-  operator.
+- **automat**, la adăugarea clientului în "Clienți", dacă are completat **Email**;
+- din pagina clientului - **"Invită în portal"**, sau **"Retrimite invitația"**
+  cât timp clientul nu și-a activat contul (de ex. linkul a expirat);
+- din "Utilizatori" - formularul de invitare a unui client.
 
-**Până când acest formular este livrat în interfață**, crearea unui cont de
-client se poate face doar tehnic, de către echipa de dezvoltare/operare, direct
-prin Supabase (invitație `auth.admin.inviteUserByEmail` + inserare manuală a
-rândului `profiles` cu `role='client'` și `client_id` = firma corespunzătoare din
-tabela `clients`). Contactează echipa tehnică pentru fiecare cont de client
-necesar, până la livrarea acestei funcționalități în UI.
-
----
+Clientul primește emailul de invitație și își setează parola, la fel ca un operator.
 
 ## 3. Super-admin - administrarea organizațiilor platformei
 

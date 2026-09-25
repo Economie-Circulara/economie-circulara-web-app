@@ -6,36 +6,82 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { FormField } from "@/components/form-field";
 import { initialUserMgmtState } from "@/features/settings/action-state";
-import { inviteClientAction } from "@/features/settings/user-actions";
+import type { ClientPortalStatus } from "@/features/settings/queries";
+import { inviteClientAction, resendClientInviteAction } from "@/features/settings/user-actions";
 
 export interface ClientPortalInviteProps {
   clientId: string;
   defaultEmail: string | null;
-  /** Firma are deja un profil `client` legat (`profiles.client_id`). */
-  hasPortalAccess: boolean;
+  /** Starea contului din portal (vezi `getClientPortalStatus`). */
+  portal: ClientPortalStatus;
   /** Doar admin poate invita (aceeasi regula ca /setari/utilizatori). */
   canInvite: boolean;
 }
 
 /**
- * Afordanta de invitare in portal de pe `/clienti/[id]`: daca firma are deja un
- * utilizator legat arata un indicator, altfel (doar pentru admin) ofera un buton
- * "Invită în portal" care deschide acelasi formular/mecanism folosit in
- * /setari/utilizatori (`inviteClientAction` -> `sendClientInvite`), pre-completat
- * cu emailul firmei.
+ * Afordanta de invitare in portal de pe `/clienti/[id]`:
+ * - cont activ -> indicator;
+ * - invitatie trimisa, cont neactivat -> indicator + (admin) "Retrimite invitația"
+ *   (`resendClientInviteAction`, catre emailul contului deja creat);
+ * - fara cont -> (admin) "Invită în portal", acelasi mecanism ca /setari/utilizatori
+ *   (`inviteClientAction` -> `sendClientInvite`), pre-completat cu emailul firmei.
  */
 export function ClientPortalInvite({
   clientId,
   defaultEmail,
-  hasPortalAccess,
+  portal,
   canInvite,
 }: ClientPortalInviteProps) {
-  const [open, setOpen] = useState(false);
-  const [state, action, pending] = useActionState(inviteClientAction, initialUserMgmtState);
-
-  if (hasPortalAccess) {
+  if (portal.status === "active") {
     return <Badge variant="ok">Are cont în portal</Badge>;
   }
+  if (portal.status === "pending") {
+    return <PendingInvite clientId={clientId} email={portal.email} canInvite={canInvite} />;
+  }
+  return <NewInvite clientId={clientId} defaultEmail={defaultEmail} canInvite={canInvite} />;
+}
+
+function PendingInvite({
+  clientId,
+  email,
+  canInvite,
+}: {
+  clientId: string;
+  email: string | null;
+  canInvite: boolean;
+}) {
+  const [state, action, pending] = useActionState(resendClientInviteAction, initialUserMgmtState);
+
+  return (
+    <form action={action} className="flex flex-wrap items-center justify-end gap-3">
+      <input type="hidden" name="client_id" value={clientId} />
+      <Badge variant="neutral" title={email ?? undefined}>
+        Invitație trimisă{email ? ` - ${email}` : ""}
+      </Badge>
+      {canInvite ? (
+        <Button type="submit" variant="outline" disabled={pending}>
+          {pending ? "Se trimite..." : "Retrimite invitația"}
+        </Button>
+      ) : null}
+      {state.message ? (
+        <p className="w-full text-right text-sm text-primary">{state.message}</p>
+      ) : null}
+      {state.error ? <p className="w-full text-right text-sm text-danger">{state.error}</p> : null}
+    </form>
+  );
+}
+
+function NewInvite({
+  clientId,
+  defaultEmail,
+  canInvite,
+}: {
+  clientId: string;
+  defaultEmail: string | null;
+  canInvite: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const [state, action, pending] = useActionState(inviteClientAction, initialUserMgmtState);
 
   if (state.message) {
     return <p className="text-sm text-primary">{state.message}</p>;

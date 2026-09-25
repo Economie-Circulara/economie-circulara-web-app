@@ -75,7 +75,10 @@ Ecranul **"Clienți"** listează firmele existente, cu o casetă **"Căutare"**
 3. Completează, opțional, secțiunea **"Contact"**: Email, Telefon, Persoană de
    contact, Note, și bifa **"Este și furnizor (materiale/deșeuri)"** dacă firma
    aduce și materiale la reciclare.
-4. Apasă **"Creează clientul"**.
+4. Apasă **"Creează clientul"**. Dacă ești administrator și ai completat
+   **Email**, clientul primește **automat** un email de invitație în portal
+   (își setează parola și se poate loga). Un client adăugat de un operator se
+   invită de un administrator, din pagina clientului.
 
 ![formularul "Adaugă client" cu butonul "Caută" lângă CUI](img/admin-client-new.png)
 
@@ -84,7 +87,10 @@ Ecranul **"Clienți"** listează firmele existente, cu o casetă **"Căutare"**
 Din listă, click pe o firmă deschide ecranul de detaliu, cu secțiunile:
 
 - **"Date firmă"** - același formular ca la creare, editabil (buton
-  **"Salvează modificările"**).
+  **"Salvează modificările"**). Lângă titlu apare starea contului din portal:
+  **"Are cont în portal"**, **"Invitație trimisă"** (clientul nu și-a activat
+  încă contul - administratorul poate apăsa **"Retrimite invitația"**, de ex.
+  dacă linkul a expirat) sau, pentru administrator, **"Invită în portal"**.
 - **"Adrese de livrare"** - poate avea mai multe adrese; una poate fi marcată
   implicită.
 - **"Documente"** - încărcare de fișiere atașate clientului (contracte semnate,

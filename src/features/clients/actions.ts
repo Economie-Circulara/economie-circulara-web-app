@@ -53,13 +53,13 @@ function readClientFields(formData: FormData): {
 }
 
 /**
- * Creeaza un client nou (ecranul /clienti/nou) - doar staff. Optional, admin poate
- * bifa "Trimite acces în portal": dupa ce clientul e creat, trimite invitatia
- * folosind acelasi nucleu (`sendClientInvite`) ca formularul dedicat din
- * /setari/utilizatori - vezi src/features/settings/user-actions.ts. Un esec la
- * invitare NU anuleaza crearea clientului (staff poate invita oricand mai tarziu
- * din /setari/utilizatori); eroarea e transmisa mai departe prin query string catre
- * pagina de detaliu, la care se face redirect in orice caz.
+ * Creeaza un client nou (ecranul /clienti/nou) - doar staff. Daca clientul are
+ * email si userul curent e admin, i se trimite AUTOMAT invitatia in portal, cu
+ * acelasi nucleu (`sendClientInvite`) ca formularul din /setari/utilizatori.
+ * Invitarea ramane doar a adminului: un client creat de operator se invita din
+ * `/clienti/[id]`. Un esec la invitare NU anuleaza crearea clientului; eroarea e
+ * transmisa prin query string catre pagina de detaliu (redirect in orice caz), de
+ * unde invitatia se poate (re)trimite.
  */
 export async function createClientAction(
   _prev: ClientFormState,
@@ -69,8 +69,6 @@ export async function createClientAction(
   const { fields, error } = readClientFields(formData);
   if (!fields) return { error };
   if (!user.organizationId) return { error: "Utilizatorul curent nu are o organizație asociată." };
-
-  const sendInvite = checkbox(formData.get("send_invite"));
 
   let clientId: string;
   try {
@@ -97,15 +95,10 @@ export async function createClientAction(
   }
 
   let inviteWarning: string | null = null;
-  if (sendInvite) {
-    if (!fields.email) {
-      inviteWarning =
-        "Clientul a fost creat, dar invitația nu a putut fi trimisă: completează adresa de email.";
-    } else {
-      const inviteResult = await sendClientInvite(clientId, fields.email);
-      if (inviteResult.error) {
-        inviteWarning = `Clientul a fost creat, dar invitația nu a putut fi trimisă: ${inviteResult.error}`;
-      }
+  if (fields.email && user.role === "admin") {
+    const inviteResult = await sendClientInvite(clientId, fields.email);
+    if (inviteResult.error) {
+      inviteWarning = `Clientul a fost creat, dar invitația nu a putut fi trimisă: ${inviteResult.error}`;
     }
   }
 

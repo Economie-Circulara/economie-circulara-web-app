@@ -16,7 +16,7 @@ import {
 import { ClientForm } from "@/features/clients/client-form";
 import { ClientPortalInvite } from "@/features/clients/invite-portal-access";
 import { getClient, listClientAddresses } from "@/features/clients/queries";
-import { clientHasPortalAccess } from "@/features/settings/queries";
+import { getClientPortalStatus } from "@/features/settings/queries";
 import { DocumentList } from "@/features/documents/document-list";
 import { DocumentUpload } from "@/features/documents/document-upload";
 import { listDocuments } from "@/features/documents/service";
@@ -41,10 +41,10 @@ export default async function ClientDetailPage({ params, searchParams }: ClientD
   const client = await getClient(id);
   if (!client) notFound();
 
-  const [addresses, documents, hasPortalAccess] = await Promise.all([
+  const [addresses, documents, portal] = await Promise.all([
     listClientAddresses(id),
     listDocuments("client", id),
-    clientHasPortalAccess(id),
+    getClientPortalStatus(id),
   ]);
 
   const revalidateTarget = `/clienti/${id}`;
@@ -96,7 +96,7 @@ export default async function ClientDetailPage({ params, searchParams }: ClientD
           <ClientPortalInvite
             clientId={id}
             defaultEmail={client.email}
-            hasPortalAccess={hasPortalAccess}
+            portal={portal}
             canInvite={user.role === "admin"}
           />
         </div>
