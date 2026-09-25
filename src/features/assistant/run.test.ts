@@ -32,7 +32,7 @@ vi.mock("./tools/registry", () => ({
 const { getQuotaStatus, quotaMessage, trackUsage } = await import("./quota");
 const service = await import("./service");
 const { findTool } = await import("./tools/registry");
-const { confirmAction, rejectAction, runAssistantTurn } = await import("./run");
+const { confirmAction, rejectAction, runAssistantTurn, MAX_STEPS } = await import("./run");
 const { InvalidToolArgumentsError } = await import("./tools/types");
 
 const CTX: ToolContext = {
@@ -52,15 +52,21 @@ const QUOTA = {
 
 /** Furnizor scriptat: fiecare apel consuma urmatorul raspuns din coada. */
 class ScriptedProvider implements ChatProvider {
-  readonly calls: { messages: unknown[] }[] = [];
+  readonly calls: { messages: unknown[]; tools: unknown[] }[] = [];
 
   constructor(
     private readonly script: Partial<ChatCompletion>[],
     readonly name: string = "scripted",
   ) {}
 
-  async complete({ messages }: { messages: unknown[] }): Promise<ChatCompletion> {
-    this.calls.push({ messages: [...messages] });
+  async complete({
+    messages,
+    tools,
+  }: {
+    messages: unknown[];
+    tools: unknown[];
+  }): Promise<ChatCompletion> {
+    this.calls.push({ messages: [...messages], tools });
     const next = this.script.shift() ?? { content: "gata" };
     return {
       content: next.content ?? "",
@@ -269,6 +275,61 @@ describe("runAssistantTurn", () => {
     // Scrierea tot trece prin confirmare umana - nimic nu s-a executat.
     expect(write.execute).not.toHaveBeenCalled();
     expect(turn.pendingAction?.tool).toBe("creeaza_client");
+  });
+});
+
+describe("runAssistantTurn - limita de pasi", () => {
+  const loopingCalls = () =>
+    Array.from({ length: MAX_STEPS }, (_, index) => ({
+      toolCalls: [{ id: `t${index}`, name: "cauta", arguments: "{}" }],
+    }));
+
+  it("la limita, cere modelului un rezumat FARA tool-uri in loc de mesajul generic", async () => {
+    vi.mocked(findTool).mockReturnValue(readTool() as never);
+    const provider = new ScriptedProvider([
+      ...loopingCalls(),
+      { content: "Am găsit clientul ACME. Ce cantitate de nisip vrei?" },
+    ]);
+
+    const turn = await runAssistantTurn({
+      conversationId: null,
+      message: "fă o comandă",
+      ctx: CTX,
+      provider,
+    });
+
+    expect(provider.calls).toHaveLength(MAX_STEPS + 1);
+    expect(provider.calls[MAX_STEPS].tools).toEqual([]);
+    expect(turn.reply).toBe("Am găsit clientul ACME. Ce cantitate de nisip vrei?");
+  });
+
+  it("daca rezumatul esueaza, ramane mesajul generic", async () => {
+    vi.mocked(findTool).mockReturnValue(readTool() as never);
+    const provider = new ScriptedProvider([...loopingCalls(), { content: "   " }]);
+
+    const turn = await runAssistantTurn({
+      conversationId: null,
+      message: "fă o comandă",
+      ctx: CTX,
+      provider,
+    });
+
+    expect(turn.reply).toMatch(/pași mai mici/);
+  });
+
+  it("un rezultat de tool foarte lung ajunge la model ca JSON valid", async () => {
+    const rows = Array.from({ length: 500 }, (_, index) => ({ item_id: `i${index}` }));
+    vi.mocked(findTool).mockReturnValue(readTool(vi.fn().mockResolvedValue(rows)) as never);
+    const provider = new ScriptedProvider([
+      { toolCalls: [{ id: "t1", name: "cauta", arguments: "{}" }] },
+      { content: "gata" },
+    ]);
+
+    await runAssistantTurn({ conversationId: null, message: "listează", ctx: CTX, provider });
+
+    const toolMessage = (provider.calls[1].messages as { role: string; content: string }[]).at(-1);
+    expect(toolMessage?.role).toBe("tool");
+    expect(JSON.parse(toolMessage?.content ?? "").trunchiat).toBe(true);
   });
 });
 

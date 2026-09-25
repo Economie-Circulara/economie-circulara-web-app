@@ -20,6 +20,7 @@ import {
   resolveProposal,
   saveProposal,
 } from "./service";
+import { serializeToolResult } from "./tool-result";
 import { findTool, toolDefinitions } from "./tools/registry";
 import { InvalidToolArgumentsError, type AssistantTool } from "./tools/types";
 import type { AssistantTurn, PendingAction, ToolContext } from "./types";
@@ -34,8 +35,22 @@ import type { AssistantTurn, PendingAction, ToolContext } from "./types";
  * (`confirmAction`) - vezi docs/plans/asistent-contract-capabilitati.md.
  */
 
-/** Cate runde de model acceptam intr-o tura (citire -> citire -> raspuns). */
-const MAX_STEPS = 5;
+/**
+ * Cate runde de model acceptam intr-o tura (citire -> citire -> raspuns). Fiecare runda
+ * = UN apel de tool (fara apeluri paralele), deci o comanda cu client + 3 produse +
+ * verificare de stoc are nevoie usor de 6-7 runde; la 5 utilizatorul primea des
+ * „împarte cererea în pași” (docs/plans/asistent-performanta-quick-wins.md).
+ */
+export const MAX_STEPS = 12;
+
+/** Instructiunea pentru ultimul apel, fara tool-uri, cand s-au terminat rundele. */
+const OUT_OF_STEPS_PROMPT =
+  "Ai atins numărul maxim de pași pentru această cerere. NU mai apela tool-uri. " +
+  "Spune-i utilizatorului pe scurt ce ai aflat până acum (cu datele concrete găsite) " +
+  "și ce îți mai lipsește ca să termini - o întrebare concretă, nu o scuză generică.";
+
+const OUT_OF_STEPS_FALLBACK =
+  "Nu am reușit să duc cererea la capăt în pașii disponibili. Reformulează-o sau împarte-o în pași mai mici.";
 
 function toolArguments(call: ProviderToolCall): Record<string, unknown> {
   try {
@@ -48,7 +63,7 @@ function toolArguments(call: ProviderToolCall): Record<string, unknown> {
 
 /** Rezultatul unui tool, trimis inapoi modelului ca mesaj `tool`. */
 function toolResultMessage(toolCallId: string, payload: unknown): ChatMessage {
-  return { role: "tool", toolCallId, content: JSON.stringify(payload).slice(0, 6000) };
+  return { role: "tool", toolCallId, content: serializeToolResult(payload) };
 }
 
 function assistantCallMessage(call: ProviderToolCall, reasoningContent?: string): ChatMessage {
@@ -220,11 +235,29 @@ async function converse(input: {
     }
   }
 
-  return {
-    reply:
-      "Nu am reușit să duc cererea la capăt în pașii disponibili. Reformulează-o sau împarte-o în pași mai mici.",
-    pendingAction: null,
-  };
+  return { reply: await summarizeOutOfSteps(provider, messages), pendingAction: null };
+}
+
+/**
+ * Rundele s-au terminat: in loc de un mesaj generic (care arunca tot ce a gasit
+ * modelul), cerem un rezumat FARA tool-uri - utilizatorul vede ce s-a aflat si ce
+ * lipseste. Daca si apelul asta esueaza, ramane mesajul generic.
+ */
+async function summarizeOutOfSteps(provider: ChatProvider, messages: ChatMessage[]) {
+  try {
+    const completion = await provider.complete({
+      messages: [...messages, { role: "user", content: OUT_OF_STEPS_PROMPT }],
+      tools: [],
+    });
+    await trackUsage({
+      messages: 0,
+      inputTokens: completion.usage.inputTokens,
+      outputTokens: completion.usage.outputTokens,
+    });
+    return completion.content.trim() || OUT_OF_STEPS_FALLBACK;
+  } catch {
+    return OUT_OF_STEPS_FALLBACK;
+  }
 }
 
 /**
