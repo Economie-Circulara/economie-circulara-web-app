@@ -603,6 +603,9 @@ Cum funcționează cardul:
   înainte de a confirma.
 - Apasă **"Confirmă și execută"** ca acțiunea să se producă efectiv, sau
   **"Renunță"** ca să o anulezi fără niciun efect.
+- După execuție, asistentul spune ce s-a făcut (ex. „Am adăugat clientul X”) și pune un
+  link direct către înregistrare. Dacă acțiunea nu a reușit, explică motivul, confirmă că
+  nu s-a modificat nimic și îți propune să corectezi datele.
 - Dacă un câmp completat e invalid, asistentul explică ce trebuie corectat -
   cardul rămâne deschis, poți încerca din nou fără să reformulezi cererea.
 - După o confirmare reușită, asistentul poate continua singur spre pasul următor

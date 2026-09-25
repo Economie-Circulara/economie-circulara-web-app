@@ -5,6 +5,7 @@ import {
   listIntakeItemOptions,
   listSellableItemOptions,
 } from "@/features/orders/queries";
+import { ORDER_TYPE_LABELS } from "@/features/orders/labels";
 import type { OrderType } from "@/features/orders/types";
 import { listClients } from "@/features/clients/queries";
 import { createOrderWithItems, sendOrder } from "@/features/orders/service";
@@ -14,6 +15,7 @@ import type { PlanDeliveryRouteChoice } from "@/features/deliveries/types";
 import { computeRouteBetween } from "@/features/routing/route-service";
 import { getDefaultSite, getSiteById } from "@/features/routing/site-queries";
 import type { OrganizationSite } from "@/features/routing/site-types";
+import { resultField } from "../result-summary";
 import type { ToolContext } from "../types";
 import { CATALOG_WRITE_TOOLS } from "./catalog-write-tools";
 import { ORDER_WRITE_TOOLS } from "./order-write-tools";
@@ -90,6 +92,8 @@ export const creeazaClient: AssistantTool<CreateClientToolInput> = {
     };
   },
   summary: (input) => `Creează clientul „${input.denumire}" (CUI ${input.cui})`,
+  resultSummary: (input, result) =>
+    `Am adăugat clientul **${resultField(result, "denumire") ?? input.denumire}** (CUI ${input.cui}).`,
   presentation: async (input): Promise<CardPresentation> => ({
     renderer: "generic",
     fields: [
@@ -306,6 +310,10 @@ export const creeazaComanda: AssistantTool<CreateOrderToolInput> = {
   },
   summary: (input) =>
     `Creează o comandă cu ${input.linii.length} ${input.linii.length === 1 ? "linie" : "linii"}`,
+  resultSummary: (input, result) => {
+    const number = resultField(result, "numar");
+    return `Am creat comanda${number ? ` **${number}**` : ""} (${ORDER_TYPE_LABELS[input.tip_comanda].toLowerCase()}, ${input.linii.length} ${input.linii.length === 1 ? "linie" : "linii"}), în status Ciornă.`;
+  },
   presentation: async (input): Promise<CardPresentation> => {
     // AMBELE cataloage, ca ecranul /comenzi/nou: `material`/`serviciu` folosesc
     // itemii vandabili, `aport` itemii fizici trasati (inclusiv nevandabili - ex.
@@ -368,6 +376,7 @@ export const trimiteComanda: AssistantTool<{ order_id: string }> = {
   kind: "write",
   parse: (args) => ({ order_id: requiredString(asObject(args), "order_id") }),
   summary: () => "Înaintează comanda spre aprobare",
+  resultSummary: () => "Am înaintat comanda spre aprobare. Stocul se scade abia la acceptare.",
   presentation: async (input): Promise<CardPresentation> => {
     // ID-ul comenzii ramane o valoare interna - utilizatorul vede eticheta rezolvata
     // (numar + client), nu UUID-ul brut. Campul NU e editabil: schimbarea comenzii
@@ -492,6 +501,16 @@ export const planificaLivrare: AssistantTool<PlanDeliveryToolInput> = {
     };
   },
   summary: (input) => `Planifică livrarea comenzii pe ${input.data_programata}`,
+  resultSummary: (input, result) => {
+    const km = resultField(result, "distanta_km");
+    const routeError = resultField(result, "ruta_eroare");
+    const route = km
+      ? ` Ruta recomandată: ${km} km.`
+      : routeError
+        ? ` Ruta nu s-a putut calcula (${routeError}) - o poți recalcula din ecranul livrării.`
+        : "";
+    return `Am planificat livrarea pe ${input.data_programata}.${route}`;
+  },
   presentation: async (input): Promise<CardPresentation> => {
     const resolved = await resolvePlanDelivery(input);
     return {

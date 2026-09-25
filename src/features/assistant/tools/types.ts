@@ -32,8 +32,14 @@ export interface AssistantTool<TInput = Record<string, unknown>> {
   version: number;
   /** Valideaza si normalizeaza argumentele modelului. Arunca `InvalidToolArgumentsError`. */
   parse(args: unknown): TInput;
-  /** Titlul cardului de confirmare / linia de rezultat (doar pentru `write`). */
+  /** Titlul cardului de confirmare (doar pentru `write`) - la imperativ („Creează clientul X”). */
   summary?(input: TInput): string;
+  /**
+   * Ce s-a intamplat, dupa executie, la timpul trecut („Am adăugat clientul **X**.”) -
+   * primeste si rezultatul (`execute`). Linkul din `result.link` se adauga automat
+   * (`result-summary.ts`). Lipsa = „Gata: <summary>.”.
+   */
+  resultSummary?(input: TInput, result: unknown): string;
   /**
    * Payload-ul TIPAT al cardului de confirmare (doar pentru `write`, OBLIGATORIU -
    * verificat de `tools/registry.test.ts`). Poate citi din DB (rezolva ID-uri la
