@@ -377,6 +377,14 @@ Testele unitare sunt **colocate** langa cod (`*.test.ts` / `*.test.tsx`).
     un item arhivat DEJA LIVRAT lui (exceptia de retur de mai sus) si nu verifica
     `sellable`. Pe o comanda de **aport** exceptia nu se aplica: item arhivat = AR001
     pentru orice rol (migrarea `0043`).
+  - **Adrese de livrare: arhivare, nu stergere, daca au istoric** (decizie
+    2026-09-25, migrarea `0046`, `client_addresses.archived_at`): "Sterge" pe o adresa
+    folosita deja pe o comanda o ARHIVEAZA (`removeAddress`, staff si client) - o
+    stergere fizica ar goli adresa din comenzile vechi (`on delete set null`). Tot
+    arhivata se creeaza si adresa **ad hoc** a clientului ("doar pentru această
+    comandă"). Pickerele si agenda filtreaza `archived_at is null`. Clientul isi
+    gestioneaza adresele din `/adresele-mele`; pe server, adresa aleasa in portal
+    trebuie sa fie una ACTIVA a clientului (`resolveDeliveryAddress`).
   - Loturi: **"Anulează lotul" doar daca nimic nu s-a consumat** si lotul e o
     intrare manuala (nu output de proces / retur / aport). Nu sterge nimic: scrie un
     eveniment de corectie `adjustment` (`-initial_qty`) in `stock_events`,

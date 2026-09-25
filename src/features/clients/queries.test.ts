@@ -134,7 +134,8 @@ describe("listClientAddresses", () => {
       error: null,
     });
     const orderDefault = vi.fn().mockReturnValue({ order: orderCreated });
-    const eq = vi.fn().mockReturnValue({ order: orderDefault });
+    const is = vi.fn().mockReturnValue({ order: orderDefault });
+    const eq = vi.fn().mockReturnValue({ is });
     const select = vi.fn().mockReturnValue({ eq });
     const from = vi.fn().mockReturnValue({ select });
     createClient.mockResolvedValue({ from });
@@ -142,6 +143,8 @@ describe("listClientAddresses", () => {
     const result = await listClientAddresses("c1");
 
     expect(eq).toHaveBeenCalledWith("client_id", "c1");
+    // Adresele arhivate (ad hoc / sterse dupa folosire, 0046) nu apar in agenda.
+    expect(is).toHaveBeenCalledWith("archived_at", null);
     expect(orderDefault).toHaveBeenCalledWith("is_default", { ascending: false });
     expect(result).toHaveLength(1);
   });

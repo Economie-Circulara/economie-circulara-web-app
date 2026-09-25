@@ -68,8 +68,11 @@ panoul **"Coș"**, din dreapta ecranului, cu numărul de bucăți/cantitate cure
 
 În panoul "Coș", completează, opțional:
 
-- **"Adresă livrare"** - alege una dintre adresele de livrare înregistrate ale
-  firmei tale (dacă nu alegi niciuna, comanda pleacă fără adresă precizată).
+- **"Adresă livrare"** - alege una dintre adresele firmei tale (cea implicită e
+  preselectată) sau **"+ Adresă nouă…"**: completezi adresa și, opțional, o
+  etichetă. Cu bifa **"Salvează în adresele mele"** adresa rămâne în agendă;
+  debifată, se folosește doar pentru această comandă. Dacă nu alegi nicio adresă,
+  comanda pleacă fără adresă precizată. La fel funcționează și cererea de aport.
 - **"Data livrare"** - dată dorită (opțional).
 - **"Observații"** - text liber (opțional).
 
@@ -84,6 +87,13 @@ organizație - contactează organizația (telefon/email) pentru orice modificare
 necesară pe o comandă deja trimisă.
 
 ---
+
+### 2.4 Adresele mele
+
+În meniul **"Adresele mele"** îți gestionezi singur adresele de livrare și de aport:
+**"+ Adaugă adresă"**, **"Editează"**, **"Șterge"** și bifa **"Adresă implicită"**
+(preselectată în formulare). O adresă deja folosită pe o comandă nu dispare din
+comanda respectivă când o ștergi - doar nu mai apare în listă.
 
 ## 3. Comenzile mele
 
