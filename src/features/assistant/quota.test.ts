@@ -25,6 +25,7 @@ function mockDb(options: {
   org?: { ai_enabled: boolean; monthly: number; dailyPercent: number } | null;
   usage?: { user_id: string; day: string; messages: number; cost_micros: number }[];
   creditMicros?: number;
+  grants?: number[];
 }) {
   const rpc = vi.fn().mockResolvedValue({ data: 0, error: null });
 
@@ -44,6 +45,15 @@ function mockDb(options: {
                     }
                   : null,
               }),
+            }),
+          }),
+        };
+      }
+      if (table === "ai_credit_grants") {
+        return {
+          select: () => ({
+            eq: () => ({
+              eq: async () => ({ data: (options.grants ?? []).map((credits) => ({ credits })) }),
             }),
           }),
         };
@@ -105,6 +115,28 @@ describe("getQuotaStatus (credite)", () => {
     expect(quota.estimatedMessagesLeft).toBe(214);
     expect(quota.warning).toBe(false);
     expect(quota.blockedReason).toBeNull();
+  });
+
+  it("creditele extra (top-up) ale lunii se adauga peste buget", async () => {
+    mockDb({
+      org: { ai_enabled: true, monthly: 100, dailyPercent: 0 },
+      usage: [{ user_id: "u2", day: "2026-09-02", messages: 10, cost_micros: 100000 }],
+      grants: [300, 200],
+    });
+
+    const quota = await getQuotaStatus(CTX, NOW);
+
+    expect(quota.monthlyBase).toBe(100);
+    expect(quota.monthlyBonus).toBe(500);
+    expect(quota.monthlyLimit).toBe(600);
+    expect(quota.blockedReason).toBeNull();
+  });
+
+  it("o organizatie nelimitata ramane nelimitata (top-up-ul nu o limiteaza)", async () => {
+    mockDb({ org: { ai_enabled: true, monthly: 0, dailyPercent: 0 }, usage: [], grants: [500] });
+    const quota = await getQuotaStatus(CTX, NOW);
+    expect(quota.monthlyLimit).toBe(0);
+    expect(quota.monthlyBonus).toBe(0);
   });
 
   it("valoarea creditului vine din setarile platformei", async () => {

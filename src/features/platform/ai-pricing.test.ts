@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
+  describeLimitChange,
+  orgCreditStatus,
+  validateCreditGrant,
   validateCreditSettings,
   validateOrgAiLimits,
   costMicros,
@@ -97,5 +100,69 @@ describe("validateCreditSettings / validateOrgAiLimits", () => {
     expect(validateOrgAiLimits({ monthlyCredits: 0, dailyPercent: 0 })).toBeNull();
     expect(validateOrgAiLimits({ monthlyCredits: -1, dailyPercent: 20 })).toMatch(/Bugetul/);
     expect(validateOrgAiLimits({ monthlyCredits: 2000, dailyPercent: 150 })).toMatch(/Procentul/);
+  });
+});
+
+describe("orgCreditStatus", () => {
+  const base = { enabled: true, monthlyBase: 2000, monthlyBonus: 0 };
+
+  it("OK / peste 80% / epuizat, cu creditele extra adunate la buget", () => {
+    expect(orgCreditStatus({ ...base, usedCredits: 500 })).toEqual({
+      limit: 2000,
+      percent: 25,
+      state: "ok",
+    });
+    expect(orgCreditStatus({ ...base, usedCredits: 1700 }).state).toBe("warning");
+    expect(orgCreditStatus({ ...base, usedCredits: 2000 }).state).toBe("blocked");
+    expect(orgCreditStatus({ ...base, monthlyBonus: 500, usedCredits: 2000 })).toEqual({
+      limit: 2500,
+      percent: 80,
+      state: "warning",
+    });
+  });
+
+  it("oprit are prioritate; bugetul 0 e nelimitat", () => {
+    expect(orgCreditStatus({ ...base, enabled: false, usedCredits: 9999 }).state).toBe("disabled");
+    expect(orgCreditStatus({ ...base, monthlyBase: 0, usedCredits: 9999 })).toEqual({
+      limit: 0,
+      percent: null,
+      state: "unlimited",
+    });
+  });
+});
+
+describe("validateCreditGrant", () => {
+  it("credite intregi pozitive si motiv obligatoriu", () => {
+    expect(validateCreditGrant({ credits: 500, reason: "cerere client, factura 12" })).toBeNull();
+    expect(validateCreditGrant({ credits: 0, reason: "motiv" })).toMatch(/întreg pozitiv/);
+    expect(validateCreditGrant({ credits: 1.5, reason: "motiv" })).toMatch(/întreg pozitiv/);
+    expect(validateCreditGrant({ credits: 500, reason: null })).toMatch(/obligatoriu/);
+    expect(validateCreditGrant({ credits: 500, reason: "  a " })).toMatch(/obligatoriu/);
+  });
+});
+
+describe("describeLimitChange", () => {
+  it("top-up: credite + motiv", () => {
+    expect(
+      describeLimitChange({
+        type: "grant",
+        before: null,
+        after: { credits: 500, month: "2026-09-01", reason: "factura 12" },
+      }),
+    ).toBe("+500 credite pentru luna aceasta - factura 12");
+  });
+
+  it("limite: doar campurile schimbate, in limbaj clar", () => {
+    expect(
+      describeLimitChange({
+        type: "limits",
+        before: {
+          ai_enabled: true,
+          ai_monthly_credit_limit: 2000,
+          ai_daily_user_credit_percent: 20,
+        },
+        after: { ai_enabled: false, ai_monthly_credit_limit: 0, ai_daily_user_credit_percent: 20 },
+      }),
+    ).toBe("asistent: activ → oprit; buget lunar: 2000 credite → nelimitat");
   });
 });

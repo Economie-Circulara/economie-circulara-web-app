@@ -135,3 +135,93 @@ export function validateOrgAiLimits(input: {
   }
   return null;
 }
+
+export type OrgCreditState = "disabled" | "blocked" | "warning" | "ok" | "unlimited";
+
+/** Ordinea in lista super-adminului: problemele primele. */
+export const ORG_CREDIT_STATE_ORDER: Record<OrgCreditState, number> = {
+  blocked: 0,
+  warning: 1,
+  disabled: 2,
+  ok: 3,
+  unlimited: 4,
+};
+
+export const ORG_CREDIT_STATE_LABELS: Record<OrgCreditState, string> = {
+  blocked: "Buget epuizat",
+  warning: "Peste 80%",
+  disabled: "Oprit",
+  ok: "OK",
+  unlimited: "Nelimitat",
+};
+
+/**
+ * Situatia pe luna curenta a unei organizatii - aceeasi regula ca `computeQuota` din
+ * asistent: bugetul efectiv = buget + credite extra; 0 = nelimitat; avertizare de la 80%.
+ */
+export function orgCreditStatus(input: {
+  enabled: boolean;
+  monthlyBase: number;
+  monthlyBonus: number;
+  usedCredits: number;
+}): { limit: number; percent: number | null; state: OrgCreditState } {
+  const limit = input.monthlyBase > 0 ? input.monthlyBase + input.monthlyBonus : 0;
+  const percent = limit > 0 ? Math.round((input.usedCredits / limit) * 100) : null;
+  let state: OrgCreditState;
+  if (!input.enabled) state = "disabled";
+  else if (limit === 0) state = "unlimited";
+  else if (input.usedCredits >= limit) state = "blocked";
+  else if (input.usedCredits >= limit * 0.8) state = "warning";
+  else state = "ok";
+  return { limit, percent, state };
+}
+
+/** Top-up: credite intregi pozitive + motiv obligatoriu. `null` = valid. */
+export function validateCreditGrant(input: {
+  credits: number;
+  reason: string | null;
+}): string | null {
+  if (!Number.isInteger(input.credits) || input.credits <= 0 || input.credits > 10_000_000) {
+    return "Numărul de credite extra trebuie să fie un întreg pozitiv.";
+  }
+  if (!input.reason || input.reason.trim().length < 3) {
+    return "Motivul e obligatoriu (ex. „cerere client, factura 12”).";
+  }
+  if (input.reason.length > 500) return "Motivul poate avea cel mult 500 de caractere.";
+  return null;
+}
+
+const LIMIT_FIELD_LABELS: Record<string, string> = {
+  ai_enabled: "asistent",
+  ai_monthly_credit_limit: "buget lunar",
+  ai_daily_user_credit_percent: "% pe zi",
+  ai_monthly_message_limit: "limită mesaje (veche)",
+  ai_daily_user_message_limit: "limită mesaje/zi (veche)",
+};
+
+function formatLimitValue(key: string, value: unknown): string {
+  if (key === "ai_enabled") return value ? "activ" : "oprit";
+  if (key === "ai_daily_user_credit_percent") return `${value}%`;
+  if (key === "ai_monthly_credit_limit") return value === 0 ? "nelimitat" : `${value} credite`;
+  return String(value);
+}
+
+/** Descrierea unei intrari din jurnalul `ai_limit_changes`, pentru super-admin. */
+export function describeLimitChange(change: {
+  type: "limits" | "grant";
+  before: Record<string, unknown> | null;
+  after: Record<string, unknown>;
+}): string {
+  if (change.type === "grant") {
+    return `+${change.after.credits} credite pentru luna aceasta - ${String(change.after.reason ?? "")}`;
+  }
+  const parts = Object.keys(LIMIT_FIELD_LABELS).flatMap((key) => {
+    const before = change.before?.[key];
+    const after = change.after[key];
+    if (before === after) return [];
+    return [
+      `${LIMIT_FIELD_LABELS[key]}: ${formatLimitValue(key, before)} → ${formatLimitValue(key, after)}`,
+    ];
+  });
+  return parts.length ? parts.join("; ") : "fără modificări";
+}

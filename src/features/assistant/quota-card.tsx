@@ -65,6 +65,13 @@ export function QuotaCard({ quota, className }: { quota: QuotaStatus; className?
           </div>
         )}
 
+        {!unlimited && quota.monthlyBonus > 0 ? (
+          <p className="text-xs text-muted-foreground">
+            Buget: {number.format(quota.monthlyBase)} + {number.format(quota.monthlyBonus)} credite
+            extra luna aceasta.
+          </p>
+        ) : null}
+
         {!unlimited ? (
           <p className={cn("text-xs text-muted-foreground", quota.warning && "text-warn")}>
             {quota.warning

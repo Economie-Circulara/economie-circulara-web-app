@@ -70,7 +70,10 @@ interface UsageAggregateRow {
 /** Calculul pur al quota-ei (testabil fara DB). */
 export function computeQuota(input: {
   enabled: boolean;
+  /** Bugetul lunar obisnuit (0 = nelimitat). */
   monthlyLimit: number;
+  /** Top-up-urile lunii curente (docs/plans/asistent-credite-control-super-admin.md). */
+  monthlyBonus?: number;
   dailyPercent: number;
   creditMicros: number;
   rows: UsageAggregateRow[];
@@ -85,29 +88,35 @@ export function computeQuota(input: {
   const messagesThisMonth = input.rows.reduce((total, row) => total + row.messages, 0);
 
   const monthlyUsed = creditsFromMicros(monthlyCost, input.creditMicros);
+  const monthlyBase = input.monthlyLimit;
+  // Nelimitat ramane nelimitat; altfel creditele extra se adauga peste buget.
+  const monthlyBonus = monthlyBase > 0 ? Math.max(input.monthlyBonus ?? 0, 0) : 0;
+  const monthlyLimit = monthlyBase > 0 ? monthlyBase + monthlyBonus : 0;
   const dailyUsed = creditsFromMicros(dailyCost, input.creditMicros);
   const dailyLimit =
-    input.monthlyLimit > 0 && input.dailyPercent > 0
-      ? Math.max(Math.ceil((input.monthlyLimit * input.dailyPercent) / 100), 1)
+    monthlyLimit > 0 && input.dailyPercent > 0
+      ? Math.max(Math.ceil((monthlyLimit * input.dailyPercent) / 100), 1)
       : 0;
 
   // Estimarea „intrebari ramase” doar dupa ce avem cateva mesaje - altfel media minte.
   const averagePerMessage = messagesThisMonth >= 3 ? monthlyUsed / messagesThisMonth : null;
-  const remaining = Math.max(input.monthlyLimit - monthlyUsed, 0);
+  const remaining = Math.max(monthlyLimit - monthlyUsed, 0);
   const estimatedMessagesLeft =
-    input.monthlyLimit > 0 && averagePerMessage !== null
+    monthlyLimit > 0 && averagePerMessage !== null
       ? Math.floor(remaining / Math.max(averagePerMessage, 1))
       : null;
 
   const status = {
-    monthlyLimit: input.monthlyLimit,
+    monthlyLimit,
+    monthlyBase,
+    monthlyBonus,
     monthlyUsed,
     dailyLimit,
     dailyUsed,
     dailyPercent: input.dailyPercent,
     messagesThisMonth,
     estimatedMessagesLeft,
-    warning: input.monthlyLimit > 0 && monthlyUsed >= input.monthlyLimit * WARNING_THRESHOLD,
+    warning: monthlyLimit > 0 && monthlyUsed >= monthlyLimit * WARNING_THRESHOLD,
   };
   return { ...status, blockedReason: blockedReason({ enabled: input.enabled, ...status }) };
 }
@@ -119,7 +128,7 @@ export async function getQuotaStatus(ctx: ToolContext, now = new Date()): Promis
   let dailyPercent: number = DEFAULT_LIMITS.dailyPercent;
   let enabled = true;
 
-  const [orgResult, settings, usageResult] = await Promise.all([
+  const [orgResult, settings, usageResult, grantsResult] = await Promise.all([
     ctx.organizationId
       ? db
           .from("organizations")
@@ -132,6 +141,14 @@ export async function getQuotaStatus(ctx: ToolContext, now = new Date()): Promis
       .from("assistant_usage")
       .select("user_id, day, messages, cost_micros")
       .gte("day", monthStart(now)),
+    // Top-up-urile lunii (RLS: staff-ul organizatiei; clientul nu le vede).
+    ctx.organizationId
+      ? db
+          .from("ai_credit_grants")
+          .select("credits")
+          .eq("organization_id", ctx.organizationId)
+          .eq("month", monthStart(now))
+      : Promise.resolve({ data: [] }),
   ]);
 
   const org = orgResult.data as OrganizationAiRow | null;
@@ -143,9 +160,15 @@ export async function getQuotaStatus(ctx: ToolContext, now = new Date()): Promis
 
   // Consumul lunar al organizatiei: RLS lasa staff-ul sa vada toate liniile org-ului,
   // iar un client doar pe ale lui - suma e corecta in ambele cazuri pentru ce se afiseaza.
+  const monthlyBonus = ((grantsResult.data ?? []) as { credits: number }[]).reduce(
+    (total, grant) => total + grant.credits,
+    0,
+  );
+
   return computeQuota({
     enabled,
     monthlyLimit,
+    monthlyBonus,
     dailyPercent,
     creditMicros: settings.creditMicros,
     rows: (usageResult.data ?? []) as UsageAggregateRow[],

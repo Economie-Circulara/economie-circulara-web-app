@@ -198,6 +198,18 @@ Limita e „moale”: dacă bugetul se termină în timpul unui răspuns, răspu
 normal, iar următorul mesaj e blocat. Adminul organizației nu își poate ridica singur
 limitele.
 
+**Credite pe organizații - luna aceasta.** Pentru fiecare organizație vezi creditele
+folosite luna aceasta din bugetul efectiv, procentul și starea (**Buget epuizat**, **Peste
+80%**, **Oprit**, **OK**, **Nelimitat**); organizațiile cu probleme apar primele. Tot acolo:
+
+- **Oprire / pornire**: bifa „Activ” oprește imediat asistentul pentru toată organizația.
+- **Top-up**: „+ credite luna aceasta”, cu motiv obligatoriu (ex. „cerere client, factura
+  12”). Creditele extra se adaugă peste buget doar pentru luna curentă și expiră la
+  sfârșitul ei; administratorii organizației le văd pe cardul de consum („2.000 + 500
+  credite extra”). Un top-up nu se poate șterge - dacă a fost greșit, ajustează bugetul.
+- **Jurnal**: fiecare modificare de limite și fiecare top-up rămân înregistrate, cu data,
+  autorul și ce s-a schimbat.
+
 ## 4. Operare tehnică (echipa de dezvoltare/operare)
 
 Această secțiune este tehnică - se adresează persoanei/echipei care menține

@@ -35,6 +35,8 @@ import { extractRecipeFromTextAction } from "./ai-extract-actions";
 const USER = { id: "u1", role: "admin", organizationId: "org-1", clientId: null };
 const QUOTA = {
   monthlyLimit: 200,
+  monthlyBase: 200,
+  monthlyBonus: 0,
   monthlyUsed: 1,
   dailyLimit: 20,
   dailyUsed: 1,

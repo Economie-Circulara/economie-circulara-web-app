@@ -300,4 +300,41 @@ begin;
   select pg_temp.assert('T12 adminul nu poate schimba valoarea creditului', count(*), 0) from changed;
 rollback;
 
+-- ===== TEST 13: top-up de credite (0040) - doar super-admin; jurnal automat =====
+begin;
+  set local role authenticated;
+  set local request.jwt.claims = '{"sub":"a1111111-1111-1111-1111-111111111111"}';
+  do $$
+  begin
+    begin
+      insert into public.ai_credit_grants (organization_id, credits, reason)
+        values ('a0000000-0000-0000-0000-00000000000a', 500, 'mi-am dat singur');
+      raise exception 'FAIL: T13 adminul si-a dat singur credite';
+    exception when insufficient_privilege then
+      raise notice 'PASS: T13 adminul nu isi poate da credite';
+    end;
+  end $$;
+rollback;
+
+-- Ca postgres (context de serviciu): top-up + schimbare de limite -> doua intrari in jurnal.
+begin;
+  insert into public.ai_credit_grants (organization_id, credits, reason)
+    values ('a0000000-0000-0000-0000-00000000000a', 500, 'cerere client, factura 12');
+  update public.organizations set ai_monthly_credit_limit = 3000
+    where id = 'a0000000-0000-0000-0000-00000000000a';
+  select pg_temp.assert('T13 jurnalul are top-up-ul si schimbarea de limite', count(*), 2)
+    from public.ai_limit_changes where organization_id = 'a0000000-0000-0000-0000-00000000000a';
+
+  -- Staff-ul organizatiei vede top-up-ul (bugetul efectiv), dar nu si jurnalul.
+  set local role authenticated;
+  set local request.jwt.claims = '{"sub":"a2222222-2222-2222-2222-222222222222"}';
+  select pg_temp.assert('T13 operatorul vede top-up-ul organizatiei', count(*), 1)
+    from public.ai_credit_grants;
+  select pg_temp.assert('T13 operatorul nu vede jurnalul', count(*), 0)
+    from public.ai_limit_changes;
+  set local request.jwt.claims = '{"sub":"a3333333-3333-3333-3333-333333333333"}';
+  select pg_temp.assert('T13 alt tenant nu vede top-up-ul', count(*), 0)
+    from public.ai_credit_grants;
+rollback;
+
 select '*** TOATE TESTELE RLS DE ASISTENT AU TRECUT ***' as result;

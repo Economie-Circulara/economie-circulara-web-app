@@ -239,6 +239,12 @@ Testele unitare sunt **colocate** langa cod (`*.test.ts` / `*.test.tsx`).
   schimbate DOAR de super-admin (`/platform/ai`) - adminul organizatiei nu isi poate
   ridica singur plafonul (trigger `app.enforce_ai_limits`, altfel `organizations_update`
   din 0001 i-ar permite-o).
+  - **Top-up = credite EXTRA doar pentru luna curenta** (decizie 2026-09-25, migrarea
+    `0040`, `ai_credit_grants`): se adauga peste bugetul lunar si EXPIRA la sfarsitul
+    lunii (nu se reporteaza); append-only, cu motiv obligatoriu, doar super-admin; o
+    organizatie cu buget 0 (nelimitat) nu primeste top-up. Orice schimbare de limite AI
+    si orice top-up se jurnalizeaza AUTOMAT in DB (`ai_limit_changes`, trigger-e), cu
+    autorul si valorile inainte/dupa - jurnalul nu se scrie din aplicatie.
 
 - **Consumul AI se masoara per apel de model, cu costul calculat in DB** (decizie
   2026-09-25, migrarea `0037`, `docs/plans/asistent-consum-real.md`): tokenii se
