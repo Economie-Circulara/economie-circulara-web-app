@@ -61,7 +61,10 @@ async function uploadAttachment(file: File): Promise<AttachmentMeta> {
 
   const { error } = await createClient()
     .storage.from(ATTACHMENT_BUCKET)
-    .uploadToSignedUrl(prepared.path, prepared.token, file, { contentType: file.type });
+    // Tipul canonic hotarat de server (ex. `.md` fara tip in browser -> text/markdown).
+    .uploadToSignedUrl(prepared.path, prepared.token, file, {
+      contentType: prepared.attachment.mimeType,
+    });
   if (error) throw new Error("Încărcarea fișierului a eșuat. Încearcă din nou.");
   return prepared.attachment;
 }
@@ -355,8 +358,8 @@ export function AssistantChat({
                 type="button"
                 variant="outline"
                 size="icon"
-                aria-label="Atașează imagine sau PDF"
-                title="Atașează imagine sau PDF"
+                aria-label="Atașează imagine, PDF sau fișier text"
+                title="Atașează imagine, PDF sau fișier text"
                 disabled={blocked || isPending || attachments.length >= MAX_ATTACHMENTS_PER_MESSAGE}
                 onClick={() => fileInputRef.current?.click()}
               >

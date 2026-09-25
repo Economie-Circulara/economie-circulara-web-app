@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
+  ATTACHMENT_ACCEPT,
   attachmentReference,
+  isReadableDocument,
+  MAX_TEXT_BYTES,
+  resolveMimeType,
   MAX_IMAGE_BYTES,
   MAX_PDF_BYTES,
   sanitizeFileName,
@@ -31,6 +35,34 @@ describe("validateAttachment", () => {
     expect(
       validateAttachment({ name: "a.exe", type: "application/x-msdownload", size: 10 }),
     ).toMatch(/neacceptat/);
+  });
+});
+
+describe("documente text", () => {
+  it("tipul se deduce din extensie (browserele dau des tip gol sau gresit)", () => {
+    expect(resolveMimeType("note.md", "")).toBe("text/markdown");
+    expect(resolveMimeType("export.CSV", "application/vnd.ms-excel")).toBe("text/csv");
+    expect(resolveMimeType("pagina.htm", "text/html")).toBe("text/html");
+    expect(resolveMimeType("poza.png", "image/png")).toBe("image/png");
+    expect(resolveMimeType("fara-extensie", "text/plain")).toBe("text/plain");
+  });
+
+  it("accepta fisiere text pana la 2MB, refuza tipurile necunoscute", () => {
+    expect(validateAttachment({ name: "r.md", type: "", size: MAX_TEXT_BYTES })).toBeNull();
+    expect(
+      validateAttachment({ name: "r.csv", type: "text/csv", size: MAX_TEXT_BYTES + 1 }),
+    ).toMatch(/2MB/);
+    expect(
+      validateAttachment({ name: "r.docx", type: "application/octet-stream", size: 10 }),
+    ).toMatch(/neacceptat/);
+  });
+
+  it("selectorul de fisiere accepta si extensiile (nu doar tipurile)", () => {
+    expect(ATTACHMENT_ACCEPT).toContain(".md");
+    expect(ATTACHMENT_ACCEPT).toContain("text/csv");
+    expect(isReadableDocument("application/pdf")).toBe(true);
+    expect(isReadableDocument("application/json")).toBe(true);
+    expect(isReadableDocument("image/png")).toBe(false);
   });
 });
 

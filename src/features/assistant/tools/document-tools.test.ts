@@ -27,7 +27,7 @@ vi.mock("../pdf-text", async (importOriginal) => ({
 }));
 
 const recipeService = await import("@/features/recipes/service");
-const { getAttachment } = await import("../attachments");
+const { getAttachment, downloadAttachment } = await import("../attachments");
 const { extractPdfText } = await import("../pdf-text");
 const { citesteDocument, importaRetete } = await import("./document-tools");
 const { InvalidToolArgumentsError } = await import("./types");
@@ -85,6 +85,29 @@ describe("citeste_document", () => {
     expect(await citesteDocument.execute({ attachment_id: "a2", de_la: 0 }, CTX)).toMatchObject({
       eroare: expect.stringMatching(/nu e al utilizatorului/),
     });
+  });
+
+  it("citeste si fisiere text (CSV exportat din Excel, cu BOM), fara `pagini`", async () => {
+    vi.mocked(getAttachment).mockResolvedValue({
+      ...PDF,
+      fileName: "retete.csv",
+      mimeType: "text/csv",
+    });
+    const csv = "\uFEFFprodus;material;procent\nBeton C20;nisip;70\n";
+    // Blob-ul din jsdom n-are `arrayBuffer`; in Node (runtime-ul real) il are.
+    vi.mocked(downloadAttachment).mockResolvedValueOnce({
+      arrayBuffer: async () => new TextEncoder().encode(csv).buffer,
+    } as unknown as Blob);
+
+    const result = (await citesteDocument.execute(
+      { attachment_id: "a1", de_la: 0 },
+      CTX,
+    )) as Record<string, unknown>;
+
+    expect(result.text).toBe("produs;material;procent\nBeton C20;nisip;70");
+    expect(result.tip).toBe("text/csv");
+    expect(result).not.toHaveProperty("pagini");
+    expect(extractPdfText).not.toHaveBeenCalled();
   });
 
   it("are plafon de rezultat mai mare decat implicitul (textul e rezultatul)", () => {

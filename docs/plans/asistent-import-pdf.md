@@ -37,6 +37,16 @@ viziune; etapa separata, cu alegerea furnizorului - ex. Mistral OCR, hosting UE)
   `recipe_draft`, refolosit de `recipe_import`.
 - System prompt: regula 15 (documente).
 
+## Extra: documente text (cerut in timpul task-ului)
+
+Pe langa PDF, se pot atasa si citi fisiere text intalnite in practica: TXT, Markdown,
+CSV/TSV (export din Excel), HTML (convertit la text - fara tag-uri, scripturi, stiluri),
+JSON, XML - max. 2MB. Tipul se deduce din EXTENSIE (`resolveMimeType`): browserele dau des
+un tip gol (`.md`) sau gresit (`.csv` -> `application/vnd.ms-excel` pe Windows). Migrarea
+`0038_assistant_text_attachments.sql` extinde bucket-ul si constrangerea din
+`assistant_attachments`. `document-text.ts` alege extragerea dupa tip; BOM-ul UTF-8 al
+CSV-urilor din Excel se elimina. DOCX/XLSX raman pentru mai tarziu (cer parsere dedicate).
+
 ## Impact asupra asistentului (regula 2.4)
 
 `read`: `citeste_document`. `write`: `importa_retete`, rander dedicat `recipe_import`
