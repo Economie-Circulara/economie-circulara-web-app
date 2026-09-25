@@ -103,6 +103,10 @@ livrare, data de livrare, observațiile transmise și lista produselor comandate
 (denumire + cantitate + unitate de măsură - **fără prețuri**, ca peste tot în
 platformă).
 
+După ce organizația planifică livrarea, apare și cardul **"Transport"**: data
+programată, transportatorul, vehiculul (nr. de înmatriculare), șoferul, destinația,
+codul UIT de e-Transport (după declarare) și dacă recepția a fost confirmată.
+
 ### 3.3 Ștergerea unei ciorne
 
 Dacă ai o comandă rămasă în status **Ciornă** (nu a fost trimisă către

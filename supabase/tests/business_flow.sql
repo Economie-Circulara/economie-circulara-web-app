@@ -1017,4 +1017,50 @@ begin;
   end $$;
 rollback;
 
+-- ===========================================================================
+-- B24: client_order_delivery (0041) - clientul vede livrarea ACTIVA a comenzii
+--      PROPRII (subset de campuri), nu si pe a altui client, nici una anulata.
+-- ===========================================================================
+begin;
+  set local role authenticated;
+  set local request.jwt.claims = '{"sub":"b0000000-0000-0000-0000-0000000000b1"}';
+
+  insert into public.clients (id, organization_id, cui, name)
+  values ('cccc0000-0000-0000-0000-0000000000c9', :org, 'RO999', 'Alt client');
+  insert into public.orders (id, organization_id, client_id, order_type, status, created_by)
+  values
+    ('eeee0000-0000-0000-0000-00000000ee12', :org, :client_demo, 'material', 'accepted',
+     'b0000000-0000-0000-0000-0000000000b1'),
+    ('eeee0000-0000-0000-0000-00000000ee13', :org, 'cccc0000-0000-0000-0000-0000000000c9',
+     'material', 'accepted', 'b0000000-0000-0000-0000-0000000000b1'),
+    ('eeee0000-0000-0000-0000-00000000ee14', :org, :client_demo, 'material', 'accepted',
+     'b0000000-0000-0000-0000-0000000000b1');
+  insert into public.deliveries (id, organization_id, order_id, scheduled_date, carrier_name,
+    vehicle_plate, driver_name, route_origin, route_destination)
+  values
+    ('dddd0000-0000-0000-0000-00000000dd03', :org, 'eeee0000-0000-0000-0000-00000000ee12',
+     current_date, 'Fan Courier', 'B-33-GRD', 'Ionel', 'Depozit', 'Santier client'),
+    ('dddd0000-0000-0000-0000-00000000dd04', :org, 'eeee0000-0000-0000-0000-00000000ee13',
+     current_date, 'Alt transportator', 'B-44-XYZ', 'Vasile', 'Depozit', 'Alt santier'),
+    ('dddd0000-0000-0000-0000-00000000dd05', :org, 'eeee0000-0000-0000-0000-00000000ee14',
+     current_date, 'Anulat SRL', 'B-55-ANU', 'Gheorghe', 'Depozit', 'Santier');
+  select public.cancel_delivery('dddd0000-0000-0000-0000-00000000dd05', 'test');
+
+  set local request.jwt.claims = '{"sub":"b0000000-0000-0000-0000-0000000000b3"}';
+  select pg_temp.assert_num('B24 clientul nu citeste direct deliveries (RLS staff)', count(*), 0)
+  from public.deliveries;
+  select pg_temp.assert_eq('B24 clientul vede livrarea comenzii proprii', carrier_name,
+    'Fan Courier')
+  from public.client_order_delivery('eeee0000-0000-0000-0000-00000000ee12');
+  select pg_temp.assert_num('B24 livrarea comenzii altui client: 0 randuri', count(*), 0)
+  from public.client_order_delivery('eeee0000-0000-0000-0000-00000000ee13');
+  select pg_temp.assert_num('B24 livrarea anulata nu apare', count(*), 0)
+  from public.client_order_delivery('eeee0000-0000-0000-0000-00000000ee14');
+
+  -- staff-ul are ecranul /livrari; RPC-ul e doar pentru portalul clientului
+  set local request.jwt.claims = '{"sub":"b0000000-0000-0000-0000-0000000000b1"}';
+  select pg_temp.assert_num('B24 RPC-ul nu intoarce nimic pt. staff', count(*), 0)
+  from public.client_order_delivery('eeee0000-0000-0000-0000-00000000ee12');
+rollback;
+
 select '*** TOATE TESTELE FUNCTIONALE DE BUSINESS AU TRECUT ***' as result;

@@ -206,6 +206,13 @@ Testele unitare sunt **colocate** langa cod (`*.test.ts` / `*.test.tsx`).
   poate edita itemii comenzilor acceptate direct prin Data API (hardening in
   migrarea `0003_rls_hardening.sql` - politici client constiente de status +
   trigger anti-escaladare pe `profiles`).
+- **Clientul vede livrarea comenzii proprii, dar NU randul `deliveries`** (decizie
+  2026-09-25, migrarea `0041`): tabelul ramane RLS doar-staff; portalul citeste prin
+  RPC-ul `client_order_delivery` (security definer, verifica explicit client activ +
+  comanda proprie + livrare neanulata) DOAR campurile utile clientului - data
+  programata, transportator, vehicul, sofer, destinatie, cod UIT, receptie. Erorile
+  e-Transport, ruta calculata, punctul de plecare si notele de receptie raman interne.
+  Orice camp nou expus clientului se adauga in RPC, nu printr-o politica de SELECT.
 - **O organizatie suspendata (`organizations.status = 'suspended'`) blocheaza
   accesul userilor ei** (admin/operator/client), pe DOUA linii: aplicatie
   (`middleware.ts` + `getCurrentUser`/`requireUser` din `session.ts` redirectioneaza

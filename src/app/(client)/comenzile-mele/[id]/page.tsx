@@ -7,6 +7,8 @@ import { PageHeader } from "@/components/page-header";
 import { StatusBadge } from "@/components/status-badge";
 import { requireRole } from "@/features/auth/session";
 import { deleteOwnDraftOrderAction } from "@/features/client-portal/actions";
+import { ClientDeliveryCard } from "@/features/client-portal/client-delivery-card";
+import { getClientOrderDelivery } from "@/features/client-portal/queries";
 import { RepeatOrderButton } from "@/features/client-portal/repeat-order-button";
 import { ORDER_STATUS_BADGE_STATUS, ORDER_STATUS_LABELS } from "@/features/orders/labels";
 import { getOrderDetail } from "@/features/orders/queries";
@@ -59,10 +61,14 @@ export default async function ClientOrderDetailPage({ params }: OrderDetailPageP
   // ...si doar pe tipurile de comanda care permit fluxul cerut (migrarea 0030:
   // retur si garantie pe `material`/`serviciu`, nimic pe `aport`).
   const allowedReturnFlows = ALLOWED_RETURN_FLOWS_BY_ORDER_TYPE[order.orderType];
-  const returnableItems =
+  // Livrarea planificata de staff (0041): exista doar pe comenzi acceptate/livrate,
+  // niciodata pe un aport (materialul vine de la client, nu pleaca spre el).
+  const [returnableItems, delivery] = await Promise.all([
     isFinished(order.status) && allowedReturnFlows.length > 0
-      ? await getReturnableItems(order.id)
-      : [];
+      ? getReturnableItems(order.id)
+      : Promise.resolve([]),
+    isIntakeOrder ? Promise.resolve(null) : getClientOrderDelivery(order.id),
+  ]);
 
   return (
     <div className="space-y-8">
@@ -99,31 +105,34 @@ export default async function ClientOrderDetailPage({ params }: OrderDetailPageP
         <StatusBadge group="order" status={ORDER_STATUS_BADGE_STATUS[order.status]} />
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">{isIntakeOrder ? "Aport" : "Livrare"}</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-1 text-sm">
-          <p>
-            <span className="text-muted-foreground">Adresă: </span>
-            {order.deliveryAddress
-              ? `${order.deliveryAddressLabel ? `${order.deliveryAddressLabel} - ` : ""}${order.deliveryAddress}`
-              : "Neprecizată"}
-          </p>
-          <p>
-            <span className="text-muted-foreground">
-              {isIntakeOrder ? "Data aportului: " : "Data livrare: "}
-            </span>
-            {formatDate(order.deliveryDate)}
-          </p>
-          {order.notes ? (
+      <div className={delivery ? "grid gap-4 lg:grid-cols-2" : undefined}>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">{isIntakeOrder ? "Aport" : "Livrare"}</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-1 text-sm">
             <p>
-              <span className="text-muted-foreground">Observații: </span>
-              {order.notes}
+              <span className="text-muted-foreground">Adresă: </span>
+              {order.deliveryAddress
+                ? `${order.deliveryAddressLabel ? `${order.deliveryAddressLabel} - ` : ""}${order.deliveryAddress}`
+                : "Neprecizată"}
             </p>
-          ) : null}
-        </CardContent>
-      </Card>
+            <p>
+              <span className="text-muted-foreground">
+                {isIntakeOrder ? "Data aportului: " : "Data livrare: "}
+              </span>
+              {formatDate(order.deliveryDate)}
+            </p>
+            {order.notes ? (
+              <p>
+                <span className="text-muted-foreground">Observații: </span>
+                {order.notes}
+              </p>
+            ) : null}
+          </CardContent>
+        </Card>
+        {delivery ? <ClientDeliveryCard delivery={delivery} /> : null}
+      </div>
 
       <section className="space-y-3">
         <h2 className="text-lg font-semibold">
