@@ -49,6 +49,8 @@ const CTX: ToolContext = {
 
 const QUOTA = {
   monthlyLimit: 200,
+  monthlyBase: 200,
+  monthlyBonus: 0,
   monthlyUsed: 3,
   dailyLimit: 20,
   dailyUsed: 1,

@@ -4,6 +4,16 @@ Jurnal al sarcinilor lucrate de agenti AI in acest repo. Conform regulii 1.2 din
 [`AGENTS.md`](../AGENTS.md), la **fiecare commit** se adauga o intrare aici.
 Cele mai noi intrari sus.
 
+## 2026-09-25 — Claude Opus 5.5 (Claude Code) — Asistent AI: control super-admin pe creditele organizatiilor
+
+- **Cerut:** vizibilitate si control super-admin pe creditele fiecarei organizatii (stop,
+  top-up), cu varianta recomandata (creditele extra expira la sfarsitul lunii).
+- **Facut:** migrarea 0040 (`ai_credit_grants` append-only + jurnal `ai_limit_changes`
+  scris de trigger-e); quota cu bugetul efectiv (buget + top-up); cardul arata creditele
+  extra; `/platform/ai` - situatia pe luna curenta per organizatie (stare, procent,
+  problemele primele), top-up cu motiv, jurnal. Plan:
+  `docs/plans/asistent-credite-control-super-admin.md`.
+
 ## 2026-09-25 — Claude Opus 5.5 (Claude Code) — Asistent AI: quota in credite AI (etapa 2)
 
 - **Cerut:** in UI, „Mesaje incluse luna aceasta” -> o explicatie serioasa (tooltip) si un

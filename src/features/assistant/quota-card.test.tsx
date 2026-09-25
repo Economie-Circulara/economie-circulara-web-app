@@ -5,6 +5,8 @@ import type { QuotaStatus } from "./types";
 
 const QUOTA: QuotaStatus = {
   monthlyLimit: 2000,
+  monthlyBase: 2000,
+  monthlyBonus: 0,
   monthlyUsed: 680,
   dailyLimit: 400,
   dailyUsed: 25,
@@ -33,6 +35,13 @@ describe("QuotaCard", () => {
     expect(note).toMatch(/cât a lucrat asistentul/);
     expect(note).toMatch(/comun pentru toată organizația/);
     expect(note).toMatch(/cel mult 20%/);
+  });
+
+  it("arata creditele extra ale lunii, cand exista", () => {
+    render(
+      <QuotaCard quota={{ ...QUOTA, monthlyLimit: 2500, monthlyBase: 2000, monthlyBonus: 500 }} />,
+    );
+    expect(screen.getByText(/Buget: 2.000 \+ 500 credite\s+extra luna aceasta/)).toBeTruthy();
   });
 
   it("peste 80%: avertizare; nelimitat: fara bara", () => {

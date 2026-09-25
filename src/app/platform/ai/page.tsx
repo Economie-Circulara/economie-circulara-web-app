@@ -10,8 +10,22 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { requireRole } from "@/features/auth/session";
-import { currentPrices, DEFAULT_PRICE_MODEL, formatUsd } from "@/features/platform/ai-pricing";
-import { CreditSettingsForm, OrganizationAiLimitsForm } from "@/features/platform/ai-limits-forms";
+import {
+  currentPrices,
+  DEFAULT_PRICE_MODEL,
+  describeLimitChange,
+  formatUsd,
+  ORG_CREDIT_STATE_LABELS,
+  ORG_CREDIT_STATE_ORDER,
+  orgCreditStatus,
+  type OrgCreditState,
+} from "@/features/platform/ai-pricing";
+import { Badge, type BadgeVariant } from "@/components/ui/badge";
+import {
+  CreditSettingsForm,
+  GrantCreditsForm,
+  OrganizationAiLimitsForm,
+} from "@/features/platform/ai-limits-forms";
 import {
   getAiPlatformSettings,
   listModelPrices,
@@ -24,6 +38,14 @@ import { ModelPriceForm } from "@/features/platform/model-price-form";
 export const metadata = { title: "Consum AI - Platforma Lot cu Lot" };
 
 const number = new Intl.NumberFormat("ro-RO");
+
+const STATE_BADGE: Record<OrgCreditState, BadgeVariant> = {
+  blocked: "danger",
+  warning: "warn",
+  disabled: "neutral",
+  ok: "ok",
+  unlimited: "info",
+};
 
 function cacheRate(totals: UsageTotals): string {
   const input = totals.inputCacheHit + totals.inputCacheMiss;
@@ -48,6 +70,21 @@ export default async function PlatformAiPage() {
     listOrganizationAiLimits(),
   ]);
   const current = currentPrices(prices);
+  const organizationsByState = organizations
+    .map((organization) => ({
+      organization,
+      status: orgCreditStatus({
+        enabled: organization.enabled,
+        monthlyBase: organization.monthlyCredits,
+        monthlyBonus: organization.bonusCredits,
+        usedCredits: organization.usedCredits,
+      }),
+    }))
+    .sort(
+      (a, b) =>
+        ORG_CREDIT_STATE_ORDER[a.status.state] - ORG_CREDIT_STATE_ORDER[b.status.state] ||
+        (b.status.percent ?? 0) - (a.status.percent ?? 0),
+    );
   const unpriced = usage.byModel.filter((row) => row.defaultPriceRequests > 0);
 
   return (
@@ -169,18 +206,75 @@ export default async function PlatformAiPage() {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardContent className="space-y-2 p-5">
-          <h2 className="text-sm font-semibold">Limite pe organizație</h2>
-          <p className="text-xs text-muted-foreground">
-            Bugetul lunar e comun pentru organizație (0 = nelimitat); „% pe zi” limitează cât poate
-            folosi un singur utilizator într-o zi din acest buget (0 = fără plafon zilnic).
-          </p>
-          {organizations.map((organization) => (
-            <OrganizationAiLimitsForm key={organization.id} organization={organization} />
-          ))}
-        </CardContent>
-      </Card>
+      <section className="space-y-3">
+        <h2 className="text-sm font-semibold">Credite pe organizații - luna aceasta</h2>
+        <p className="text-xs text-muted-foreground">
+          Bugetul lunar e comun pentru organizație (0 = nelimitat); „% pe zi” limitează cât poate
+          folosi un singur utilizator într-o zi. Creditele extra se adaugă doar pentru luna curentă
+          și expiră la sfârșitul ei. Orice modificare rămâne în jurnal. Organizațiile cu probleme
+          apar primele.
+        </p>
+        {organizationsByState.map(({ organization, status }) => (
+          <Card key={organization.id}>
+            <CardContent className="space-y-3 p-4">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <p className="font-medium">{organization.name}</p>
+                <div className="flex items-center gap-2 text-sm">
+                  <span>
+                    {number.format(organization.usedCredits)}
+                    {status.limit > 0 ? ` / ${number.format(status.limit)}` : ""} credite
+                    {status.percent !== null ? ` (${status.percent}%)` : ""}
+                  </span>
+                  <Badge variant={STATE_BADGE[status.state]}>
+                    {ORG_CREDIT_STATE_LABELS[status.state]}
+                  </Badge>
+                </div>
+              </div>
+              {status.limit > 0 ? (
+                <div className="h-1.5 w-full overflow-hidden rounded-full bg-secondary">
+                  <div
+                    className={
+                      status.state === "blocked"
+                        ? "h-full bg-danger"
+                        : status.state === "warning"
+                          ? "h-full bg-warn"
+                          : "h-full bg-primary"
+                    }
+                    style={{ width: `${Math.min(status.percent ?? 0, 100)}%` }}
+                  />
+                </div>
+              ) : null}
+              {organization.bonusCredits > 0 ? (
+                <p className="text-xs text-muted-foreground">
+                  Buget {number.format(organization.monthlyCredits)} +{" "}
+                  {number.format(organization.bonusCredits)} credite extra luna aceasta.
+                </p>
+              ) : null}
+              <OrganizationAiLimitsForm organization={organization} />
+              {organization.monthlyCredits > 0 ? (
+                <GrantCreditsForm organizationId={organization.id} />
+              ) : null}
+              {organization.changes.length ? (
+                <details className="text-xs">
+                  <summary className="cursor-pointer text-muted-foreground">
+                    Jurnal ({organization.changes.length} recente)
+                  </summary>
+                  <ul className="mt-2 space-y-1">
+                    {organization.changes.map((change) => (
+                      <li key={change.id}>
+                        <span className="text-muted-foreground">
+                          {formatDate(change.createdAt)} · {change.changedBy ?? "sistem"}:
+                        </span>{" "}
+                        {describeLimitChange(change)}
+                      </li>
+                    ))}
+                  </ul>
+                </details>
+              ) : null}
+            </CardContent>
+          </Card>
+        ))}
+      </section>
 
       <section className="space-y-2">
         <h2 className="text-sm font-semibold">Prețuri (USD / 1M tokeni)</h2>

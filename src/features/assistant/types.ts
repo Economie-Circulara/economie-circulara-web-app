@@ -66,8 +66,12 @@ export interface PendingAction {
  * un credit = un cost fix intern; fiecare raspuns consuma dupa costul lui real.
  */
 export interface QuotaStatus {
-  /** Bugetul lunar al organizatiei, in credite. 0 = nelimitat. */
+  /** Bugetul EFECTIV al lunii (buget + credite extra), in credite. 0 = nelimitat. */
   monthlyLimit: number;
+  /** Bugetul lunar obisnuit al organizatiei (fara top-up). */
+  monthlyBase: number;
+  /** Credite extra acordate de super-admin doar pentru luna curenta (top-up). */
+  monthlyBonus: number;
   monthlyUsed: number;
   /** Plafonul zilnic al utilizatorului, in credite (procent din bugetul lunar). 0 = fara plafon. */
   dailyLimit: number;

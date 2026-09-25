@@ -15,7 +15,10 @@ interface UntypedClient {
       | "ai_usage_events"
       | "assistant_usage"
       | "organizations"
-      | "ai_platform_settings",
+      | "ai_platform_settings"
+      | "ai_credit_grants"
+      | "ai_limit_changes"
+      | "profiles",
   ): any;
 }
 
@@ -194,35 +197,143 @@ export async function getAiPlatformSettings(): Promise<AiPlatformSettings> {
   };
 }
 
+export interface AiLimitChange {
+  id: string;
+  type: "limits" | "grant";
+  before: Record<string, unknown> | null;
+  after: Record<string, unknown>;
+  changedBy: string | null;
+  createdAt: string;
+}
+
 export interface OrganizationAiLimits {
   id: string;
   name: string;
   enabled: boolean;
   monthlyCredits: number;
   dailyPercent: number;
+  /** Luna curenta: credite folosite (din cost) si credite extra acordate. */
+  usedCredits: number;
+  bonusCredits: number;
+  /** Ultimele modificari (limite + top-up-uri), cele mai noi primele. */
+  changes: AiLimitChange[];
 }
 
-/** Limitele AI ale tuturor organizatiilor (super-admin, RLS `organizations_select`). */
-export async function listOrganizationAiLimits(): Promise<OrganizationAiLimits[]> {
+interface OrgRow {
+  id: string;
+  name: string;
+  ai_enabled: boolean;
+  ai_monthly_credit_limit: number;
+  ai_daily_user_credit_percent: number;
+}
+
+interface ChangeRow {
+  id: string;
+  organization_id: string;
+  change_type: "limits" | "grant";
+  before: Record<string, unknown> | null;
+  after: Record<string, unknown>;
+  changed_by: string | null;
+  created_at: string;
+}
+
+/** Prima zi a lunii curente (UTC) - aceeasi conventie ca `assistant/quota.ts#monthStart`. */
+function currentMonth(now: Date): string {
+  return `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, "0")}-01`;
+}
+
+/** Agregare pura: consumul lunii (micro-USD -> credite) si top-up-urile, pe organizatie. */
+export function buildOrganizationAiLimits(input: {
+  orgs: OrgRow[];
+  usage: { organization_id: string; cost_micros: number | string }[];
+  grants: { organization_id: string; credits: number }[];
+  changes: ChangeRow[];
+  emails: Map<string, string>;
+  creditMicros: number;
+  changesPerOrg?: number;
+}): OrganizationAiLimits[] {
+  const cost = new Map<string, number>();
+  for (const row of input.usage) {
+    cost.set(
+      row.organization_id,
+      (cost.get(row.organization_id) ?? 0) + (Number(row.cost_micros) || 0),
+    );
+  }
+  const bonus = new Map<string, number>();
+  for (const grant of input.grants) {
+    bonus.set(grant.organization_id, (bonus.get(grant.organization_id) ?? 0) + grant.credits);
+  }
+  const changes = new Map<string, AiLimitChange[]>();
+  for (const row of input.changes) {
+    const list = changes.get(row.organization_id) ?? [];
+    if (list.length >= (input.changesPerOrg ?? 5)) continue;
+    list.push({
+      id: row.id,
+      type: row.change_type,
+      before: row.before,
+      after: row.after,
+      changedBy: row.changed_by ? (input.emails.get(row.changed_by) ?? "utilizator șters") : null,
+      createdAt: row.created_at,
+    });
+    changes.set(row.organization_id, list);
+  }
+
+  return input.orgs.map((org) => {
+    const micros = cost.get(org.id) ?? 0;
+    return {
+      id: org.id,
+      name: org.name,
+      enabled: org.ai_enabled,
+      monthlyCredits: org.ai_monthly_credit_limit,
+      dailyPercent: org.ai_daily_user_credit_percent,
+      usedCredits: micros > 0 ? Math.ceil(micros / Math.max(input.creditMicros, 1)) : 0,
+      bonusCredits: bonus.get(org.id) ?? 0,
+      changes: changes.get(org.id) ?? [],
+    };
+  });
+}
+
+/**
+ * Limitele AI + situatia pe luna curenta a tuturor organizatiilor (super-admin: RLS
+ * permite citirea completa pe `organizations`, `assistant_usage`, grant-uri si jurnal).
+ */
+export async function listOrganizationAiLimits(now = new Date()): Promise<OrganizationAiLimits[]> {
   const client = await db();
-  const { data, error } = await client
-    .from("organizations")
-    .select("id, name, ai_enabled, ai_monthly_credit_limit, ai_daily_user_credit_percent")
-    .order("name");
-  if (error) throw new Error("Nu am putut încărca limitele AI ale organizațiilor.");
-  return (
-    (data ?? []) as {
-      id: string;
-      name: string;
-      ai_enabled: boolean;
-      ai_monthly_credit_limit: number;
-      ai_daily_user_credit_percent: number;
-    }[]
-  ).map((row) => ({
-    id: row.id,
-    name: row.name,
-    enabled: row.ai_enabled,
-    monthlyCredits: row.ai_monthly_credit_limit,
-    dailyPercent: row.ai_daily_user_credit_percent,
-  }));
+  const month = currentMonth(now);
+  const [orgs, usage, grants, changes, settings] = await Promise.all([
+    client
+      .from("organizations")
+      .select("id, name, ai_enabled, ai_monthly_credit_limit, ai_daily_user_credit_percent")
+      .order("name"),
+    client.from("assistant_usage").select("organization_id, cost_micros").gte("day", month),
+    client.from("ai_credit_grants").select("organization_id, credits").eq("month", month),
+    client
+      .from("ai_limit_changes")
+      .select("id, organization_id, change_type, before, after, changed_by, created_at")
+      .order("created_at", { ascending: false })
+      .limit(500),
+    getAiPlatformSettings(),
+  ]);
+  if (orgs.error) throw new Error("Nu am putut încărca limitele AI ale organizațiilor.");
+
+  const changeRows = (changes.data ?? []) as ChangeRow[];
+  const authorIds = [
+    ...new Set(changeRows.flatMap((row) => (row.changed_by ? [row.changed_by] : []))),
+  ];
+  const emails = new Map<string, string>();
+  if (authorIds.length) {
+    const { data } = await client.from("profiles").select("id, email").in("id", authorIds);
+    for (const profile of (data ?? []) as { id: string; email: string | null }[]) {
+      if (profile.email) emails.set(profile.id, profile.email);
+    }
+  }
+
+  return buildOrganizationAiLimits({
+    orgs: (orgs.data ?? []) as OrgRow[],
+    usage: (usage.data ?? []) as { organization_id: string; cost_micros: number | string }[],
+    grants: (grants.data ?? []) as { organization_id: string; credits: number }[],
+    changes: changeRows,
+    emails,
+    creditMicros: settings.creditMicros,
+  });
 }
