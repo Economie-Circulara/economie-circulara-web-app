@@ -187,4 +187,43 @@ begin;
     from public.assistant_tool_calls where id = 'a8888888-8888-8888-8888-888888888888';
 rollback;
 
+-- ===== TEST 10: atasamentele (0036) sunt personale si legate de organizatie =====
+insert into public.assistant_attachments (id, organization_id, user_id, storage_path, file_name, mime_type, size_bytes) values
+  ('a7777777-7777-7777-7777-777777777777','a0000000-0000-0000-0000-00000000000a','a2222222-2222-2222-2222-222222222222',
+   'a0000000-0000-0000-0000-00000000000a/a2222222-2222-2222-2222-222222222222/a7777777-7777-7777-7777-777777777777',
+   'retete.pdf','application/pdf',1024);
+
+begin;
+  set local role authenticated;
+  set local request.jwt.claims = '{"sub":"a2222222-2222-2222-2222-222222222222"}';
+  select pg_temp.assert('T10 operatorul isi vede atasamentul', count(*), 1)
+    from public.assistant_attachments;
+rollback;
+
+begin;
+  set local role authenticated;
+  set local request.jwt.claims = '{"sub":"a1111111-1111-1111-1111-111111111111"}';
+  select pg_temp.assert('T10 adminul NU vede atasamentul operatorului', count(*), 0)
+    from public.assistant_attachments;
+
+  -- Nu poate inregistra un atasament in numele altui utilizator / in alta organizatie.
+  do $$
+  begin
+    begin
+      insert into public.assistant_attachments (organization_id, user_id, storage_path, file_name, mime_type, size_bytes)
+        values ('a0000000-0000-0000-0000-00000000000b','a1111111-1111-1111-1111-111111111111','x/y/z','a.pdf','application/pdf',10);
+      raise exception 'FAIL: T10 a permis un atasament in alta organizatie';
+    exception when insufficient_privilege then
+      raise notice 'PASS: T10 atasamentul in alta organizatie e respins';
+    end;
+  end $$;
+rollback;
+
+begin;
+  set local role authenticated;
+  set local request.jwt.claims = '{"sub":"a3333333-3333-3333-3333-333333333333"}';
+  select pg_temp.assert('T10 alt tenant nu vede atasamentul', count(*), 0)
+    from public.assistant_attachments;
+rollback;
+
 select '*** TOATE TESTELE RLS DE ASISTENT AU TRECUT ***' as result;

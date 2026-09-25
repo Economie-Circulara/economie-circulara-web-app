@@ -132,3 +132,21 @@ export async function setItemArchived(id: string, archive: boolean): Promise<voi
   if (error) throw new Error(error.message ?? "Nu am putut actualiza materialul sau serviciul.");
   if (!data) throw new Error("Materialul sau serviciul nu există sau nu ai acces la el.");
 }
+
+/**
+ * Seteaza doar poza unui item (URL-ul public din `item-images`, vezi
+ * `image-storage.ts`). Folosit de asistent (`seteaza_imagine_produs`); pe sesiunea
+ * utilizatorului, deci RLS (`items_staff_all`) decide accesul.
+ */
+export async function setItemImageUrl(id: string, imageUrl: string): Promise<void> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("items")
+    .update({ image_url: imageUrl })
+    .eq("id", id)
+    .select("id")
+    .maybeSingle();
+
+  if (error) throw new Error(error.message ?? "Nu am putut salva imaginea produsului.");
+  if (!data) throw new Error("Produsul nu există sau nu ai acces la el.");
+}

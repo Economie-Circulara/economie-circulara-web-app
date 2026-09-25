@@ -70,6 +70,7 @@ export type AssistantTable =
   | "assistant_messages"
   | "assistant_tool_calls"
   | "assistant_usage"
+  | "assistant_attachments"
   | "organizations";
 
 interface UntypedSupabase {
