@@ -4,6 +4,17 @@ Jurnal al sarcinilor lucrate de agenti AI in acest repo. Conform regulii 1.2 din
 [`AGENTS.md`](../AGENTS.md), la **fiecare commit** se adauga o intrare aici.
 Cele mai noi intrari sus.
 
+## 2026-09-24 — Claude Opus 5.5 (Claude Code) — Asistent AI: actiuni noi cu card de confirmare
+
+- **Cerut:** carduri de actiune si pentru editare client, acceptare/anulare comenzi,
+  produse, retete, productie.
+- **Facut:** 10 tool-uri de scriere noi (`accepta_comanda`, `anuleaza_comanda`,
+  `sterge_ciorna`, `anuleaza_livrare`, `editeaza_client`, `creeaza_item`,
+  `editeaza_item`, `arhiveaza`, `creeaza_reteta` cu card dedicat `recipe_draft`,
+  `porneste_productie`) + 2 de citire (`listeaza_comenzi`, `reteta_produs`), toate pe
+  serviciile existente; system prompt, manual §13 si AGENTS.md actualizate
+  (acceptarea din asistent e acum permisa). Plan: `docs/plans/asistent-actiuni-noi.md`.
+
 ## 2026-09-24 — Claude Opus 5.5 (Claude Code) — Asistent AI: performanta, partea 2
 
 - **Cerut:** al doilea PR cu imbunatatirile structurale ale asistentului (dupa quick wins).

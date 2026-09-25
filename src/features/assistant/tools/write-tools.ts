@@ -15,6 +15,9 @@ import { computeRouteBetween } from "@/features/routing/route-service";
 import { getDefaultSite, getSiteById } from "@/features/routing/site-queries";
 import type { OrganizationSite } from "@/features/routing/site-types";
 import type { ToolContext } from "../types";
+import { CATALOG_WRITE_TOOLS } from "./catalog-write-tools";
+import { ORDER_WRITE_TOOLS } from "./order-write-tools";
+import { PRODUCTION_WRITE_TOOLS } from "./production-tools";
 import type { CardPresentation } from "./presentation-types";
 import {
   asObject,
@@ -630,4 +633,7 @@ export const WRITE_TOOLS = [
   creeazaComanda,
   trimiteComanda,
   planificaLivrare,
+  ...ORDER_WRITE_TOOLS,
+  ...CATALOG_WRITE_TOOLS,
+  ...PRODUCTION_WRITE_TOOLS,
 ] as unknown as AssistantTool<never>[];

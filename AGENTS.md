@@ -222,6 +222,12 @@ Testele unitare sunt **colocate** langa cod (`*.test.ts` / `*.test.tsx`).
   intai o PROPUNERE (`assistant_tool_calls.status = 'proposed'`), executata doar dupa
   confirmarea utilizatorului pe argumentele afisate - asta acopera si greselile
   modelului, si prompt injection-ul din date.
+- **Asistentul poate ACCEPTA si ANULA comenzi** (decizie 2026-09-24, anterior exclus
+  explicit): tot prin card de confirmare care spune efectul pe stoc (scade la
+  acceptare / se reface la anulare), si doar la cererea explicita a utilizatorului
+  (system prompt). Productia din asistent e limitata la „cantitate fixa de produs”
+  (reteta de `compunere`, consum FIFO calculat); descompunerea ramane in
+  `/productie/nou`, pentru ca cere cantitatile reale rezultate.
 - **Quota de asistent e o limita comerciala, nu una tehnica**: se numara MESAJE
   (lunar per organizatie + plafon zilnic per utilizator; `0` = nelimitat), iar
   coloanele `organizations.ai_*` pot fi schimbate DOAR de super-admin - adminul

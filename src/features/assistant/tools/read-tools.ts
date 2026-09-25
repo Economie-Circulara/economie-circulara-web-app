@@ -8,13 +8,16 @@ import { getDeliveryByOrderId } from "@/features/deliveries/queries";
 import { PLANNABLE_ORDER_STATUS } from "@/features/deliveries/service";
 import { itemHref } from "@/features/items/item-links";
 import { listItems } from "@/features/items/queries";
-import { getOrderDetail, listIntakeItemOptions } from "@/features/orders/queries";
+import { ORDER_STATUS_OPTIONS } from "@/features/orders/labels";
+import { getOrderDetail, listIntakeItemOptions, listOrders } from "@/features/orders/queries";
+import type { OrderStatus } from "@/features/orders/types";
 import { listSites } from "@/features/routing/site-queries";
 import { globalSearch } from "@/features/search/service";
 import { listLots } from "@/features/stock/queries";
 import { searchManual } from "../docs-search";
 import type { ToolContext } from "../types";
 import { fuzzyFilter } from "./fuzzy-match";
+import { PRODUCTION_READ_TOOLS } from "./production-tools";
 import {
   asObject,
   InvalidToolArgumentsError,
@@ -301,6 +304,59 @@ export const stocDisponibil: AssistantTool<{ item: string | null }> = {
   },
 };
 
+export const listeazaComenzi: AssistantTool<{
+  status: OrderStatus | null;
+  cautare: string | null;
+}> = {
+  name: "listeaza_comenzi",
+  description:
+    "Listează comenzile organizației (cele mai recente primele), opțional filtrate după status " +
+    "și după numărul comenzii sau denumirea clientului. Folosește-l ca să găsești `order_id`-ul " +
+    "pentru acceptare, anulare, ștergere ciornă sau livrare.",
+  parameters: {
+    type: "object",
+    additionalProperties: false,
+    properties: {
+      status: { type: "string", enum: ORDER_STATUS_OPTIONS },
+      cautare: { type: "string", description: "Număr comandă sau denumire client." },
+    },
+  },
+  roles: ["super_admin", "admin", "operator"],
+  version: 1,
+  kind: "read",
+  parse: (args) => {
+    const raw = asObject(args);
+    const status = optionalString(raw, "status") as OrderStatus | null;
+    if (status && !ORDER_STATUS_OPTIONS.includes(status)) {
+      throw new InvalidToolArgumentsError(
+        `Status invalid. Valori permise: ${ORDER_STATUS_OPTIONS.join(", ")}.`,
+      );
+    }
+    return { status, cautare: optionalString(raw, "cautare") };
+  },
+  execute: async (input) => {
+    const orders = await searchWithFallback(
+      input.cautare,
+      (search) =>
+        listOrders({
+          ...(input.status ? { status: input.status } : {}),
+          ...(search ? { search } : {}),
+        }),
+      (order) => `${order.orderNumber ?? ""} ${order.clientName}`,
+    );
+    return orders.slice(0, LIMIT).map((order) => ({
+      order_id: order.id,
+      numar: order.orderNumber,
+      client: order.clientName,
+      tip: order.orderType,
+      status: order.status,
+      produse: order.itemsSummary,
+      are_livrare: order.delivery !== null,
+      link: `/comenzi/${order.id}`,
+    }));
+  },
+};
+
 export const READ_TOOLS: AssistantTool<never>[] = [
   cautaInManual,
   cauta,
@@ -310,4 +366,6 @@ export const READ_TOOLS: AssistantTool<never>[] = [
   itemiAport,
   stocDisponibil,
   contextLivrare,
+  listeazaComenzi,
+  ...PRODUCTION_READ_TOOLS,
 ] as unknown as AssistantTool<never>[];
