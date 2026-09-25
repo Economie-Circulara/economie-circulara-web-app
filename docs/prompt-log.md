@@ -20,6 +20,23 @@ Cele mai noi intrari sus.
   `recipe_import` (potrivire automata nume -> materiale, corectabila, o singura
   confirmare, raport creat/sarit); editorul de materii prime extras si partajat. Plan:
   `docs/plans/asistent-import-pdf.md`.
+## 2026-09-25 — Claude Opus 5.5 (Claude Code) — Asistent AI: masurarea consumului real (etapa 1)
+
+- **Cerut:** plan aprobat (credite AI, ~$2/org/luna, cost vizibil doar adminilor, limita
+  moale; preturile gestionate de super-admin) + PR.
+- **Facut:** migrarea 0037 (preturi versionate, registru per apel, RPC cu cost calculat
+  in DB); parsarea usage-ului complet (cache hit/miss, rationament, model din raspuns);
+  `recordUsage` unic in locul `trackUsage`; ecranul `/platform/ai` (consum pe organizatii
+  si modele, preturi + istoric, pret nou). Quota ramane pe mesaje (etapa 2). Plan:
+  `docs/plans/asistent-consum-real.md`.
+
+## 2026-09-25 — Claude Opus 5.5 (Claude Code) — Asistent AI: plan pentru consum real (tokeni + cost)
+
+- **Cerut:** un plan pentru o contorizare mai realista a consumului AI (nu doar numar de
+  mesaje), pe baza datelor de usage/cost exportate din DeepSeek.
+- **Facut:** analiza datelor (cost per request, cache hit, impartirea costului) si planul
+  `docs/plans/asistent-consum-real.md` (masurare exacta, credite AI, limite, rapoarte,
+  etape, decizii de luat). Doar plan - fara cod.
 
 ## 2026-09-25 — Claude Opus 5.5 (Claude Code) — Asistent AI: atasamente in chat + imagine pe produs; textarea
 

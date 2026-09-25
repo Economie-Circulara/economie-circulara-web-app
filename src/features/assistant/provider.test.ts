@@ -4,6 +4,7 @@ import {
   getChatProvider,
   MockChatProvider,
   OpenAiCompatibleProvider,
+  parseUsage,
 } from "./provider";
 
 const TOOLS = [
@@ -52,7 +53,15 @@ describe("OpenAiCompatibleProvider", () => {
     expect(body.tool_choice).toBe("auto");
 
     expect(completion.toolCalls).toEqual([{ id: "t1", name: "cauta", arguments: '{"text":"x"}' }]);
-    expect(completion.usage).toEqual({ inputTokens: 100, outputTokens: 20 });
+    expect(completion.usage).toEqual({
+      inputTokens: 100,
+      outputTokens: 20,
+      cacheHitTokens: 0,
+      cacheMissTokens: 100,
+      reasoningTokens: 0,
+    });
+    // Fara `model` in raspuns, ramane cel configurat.
+    expect(completion.model).toBe("model-x");
   });
 
   it("pentru DeepSeek cu thinking activat, trimite `thinking` si citeste reasoning_content", async () => {
@@ -209,6 +218,62 @@ describe("OpenAiCompatibleProvider", () => {
     expect(bodyOf(0).messages[1].reasoning_content).toBe("");
     expect(bodyOf(1).messages[1]).not.toHaveProperty("reasoning_content");
   });
+});
+
+describe("parseUsage", () => {
+  it("DeepSeek: cache hit / miss si tokenii de rationament", () => {
+    expect(
+      parseUsage({
+        prompt_tokens: 10000,
+        completion_tokens: 540,
+        prompt_cache_hit_tokens: 7900,
+        prompt_cache_miss_tokens: 2100,
+        completion_tokens_details: { reasoning_tokens: 120 },
+      }),
+    ).toEqual({
+      inputTokens: 10000,
+      outputTokens: 540,
+      cacheHitTokens: 7900,
+      cacheMissTokens: 2100,
+      reasoningTokens: 120,
+    });
+  });
+
+  it("OpenAI: `prompt_tokens_details.cached_tokens`; restul e input nou", () => {
+    expect(
+      parseUsage({
+        prompt_tokens: 1000,
+        completion_tokens: 10,
+        prompt_tokens_details: { cached_tokens: 600 },
+      }),
+    ).toMatchObject({ cacheHitTokens: 600, cacheMissTokens: 400 });
+  });
+
+  it("fara usage -> zero peste tot", () => {
+    expect(parseUsage(undefined)).toEqual({
+      inputTokens: 0,
+      outputTokens: 0,
+      cacheHitTokens: 0,
+      cacheMissTokens: 0,
+      reasoningTokens: 0,
+    });
+  });
+});
+
+it("modelul raportat de furnizor are prioritate fata de cel configurat", async () => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ model: "deepseek-v4-pro", choices: [{ message: { content: "ok" } }] }),
+    }),
+  );
+  const completion = await new OpenAiCompatibleProvider(
+    "https://api.deepseek.com",
+    "k",
+    "deepseek-chat",
+  ).complete({ messages: [], tools: [] });
+  expect(completion.model).toBe("deepseek-v4-pro");
 });
 
 describe("MockChatProvider", () => {

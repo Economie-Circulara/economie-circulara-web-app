@@ -7,7 +7,7 @@ import {
   getChatProvider,
   isChatProviderConfigured,
 } from "@/features/assistant/provider";
-import { getQuotaStatus, quotaMessage, trackUsage } from "@/features/assistant/quota";
+import { getQuotaStatus, quotaMessage, recordUsage } from "@/features/assistant/quota";
 import type { ToolContext } from "@/features/assistant/types";
 import { buildExtractionMessages } from "./ai-extract-prompt";
 import { parseExtractedRecipe, RecipeExtractionError } from "./ai-extract-parse";
@@ -97,10 +97,11 @@ export async function extractRecipeFromTextAction(input: {
     content = completion.content;
     // Un apel AI in plus - conteaza in aceeasi quota de mesaje ca fluxul asistentului
     // (AGENTS.md §2.4/quota.ts) - altfel functia asta ar fi un "asistent gratuit".
-    await trackUsage({
+    await recordUsage({
+      feature: "recipe_extract",
       messages: 1,
-      inputTokens: completion.usage.inputTokens,
-      outputTokens: completion.usage.outputTokens,
+      model: completion.model,
+      usage: completion.usage,
     });
   } catch (err) {
     return emptyResult({

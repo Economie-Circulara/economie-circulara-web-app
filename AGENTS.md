@@ -234,6 +234,16 @@ Testele unitare sunt **colocate** langa cod (`*.test.ts` / `*.test.tsx`).
   organizatiei nu isi poate ridica singur plafonul (trigger
   `app.enforce_ai_limits`, altfel `organizations_update` din 0001 i-ar permite-o).
 
+- **Consumul AI se masoara per apel de model, cu costul calculat in DB** (decizie
+  2026-09-25, migrarea `0037`, `docs/plans/asistent-consum-real.md`): tokenii se
+  raporteaza separat (input din cache / input nou / output), modelul e cel din
+  RASPUNSUL furnizorului (numele din factura), iar costul se calculeaza de RPC-ul
+  `assistant_record_usage` cu pretul valabil in acel moment (`ai_model_prices`,
+  versionat, append-only, gestionat de super-admin in `/platform/ai`) si se salveaza -
+  istoricul nu se recalculeaza. **Orice apel AI nou trece prin `recordUsage`**
+  (`assistant/quota.ts`), niciodata printr-un RPC propriu. Urmeaza (etapa 2): quota in
+  credite AI calculate din cost, limita moale, cost per raspuns vizibil doar adminilor.
+
 - **Planificarea rutelor (Task X7, `src/features/routing/`) foloseste Google Maps
   Platform, in spatele unui adapter (`RoutingProvider`, ca la e-Transport)** - implicit
   `MockRoutingProvider` (fara `GOOGLE_MAPS_API_KEY`). Doua reguli de business/legale

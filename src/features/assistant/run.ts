@@ -8,7 +8,7 @@ import {
   type ProviderToolCall,
 } from "./provider";
 import { systemPrompt } from "./prompt";
-import { getQuotaStatus, quotaMessage, trackUsage } from "./quota";
+import { getQuotaStatus, quotaMessage, recordUsage } from "./quota";
 import {
   appendMessage,
   claimProposal,
@@ -117,7 +117,7 @@ export async function runAssistantTurn({
     }));
 
   await appendMessage({ conversationId: id, role: "user", content: message });
-  await trackUsage({ messages: 1 });
+  await recordUsage({ feature: "assistant", messages: 1, conversationId: id });
 
   const org = await getCurrentOrg();
   const history = (await listMessages(id)).slice(-HISTORY_LIMIT);
@@ -202,10 +202,11 @@ async function converse(input: {
       throw err;
     }
 
-    await trackUsage({
-      messages: 0,
-      inputTokens: completion.usage.inputTokens,
-      outputTokens: completion.usage.outputTokens,
+    await recordUsage({
+      feature: "assistant",
+      conversationId: id,
+      model: completion.model,
+      usage: completion.usage,
     });
 
     const calls = completion.toolCalls;
@@ -272,7 +273,7 @@ async function converse(input: {
     }
   }
 
-  return { reply: await summarizeOutOfSteps(provider, messages), pendingAction: null, facts };
+  return { reply: await summarizeOutOfSteps(id, provider, messages), pendingAction: null, facts };
 }
 
 /** Executa un apel de CITIRE; erorile devin rezultat pentru model, nu exceptii. */
@@ -329,16 +330,17 @@ async function saveFacts(conversationId: string, facts: ToolFact[]) {
  * modelul), cerem un rezumat FARA tool-uri - utilizatorul vede ce s-a aflat si ce
  * lipseste. Daca si apelul asta esueaza, ramane mesajul generic.
  */
-async function summarizeOutOfSteps(provider: ChatProvider, messages: ChatMessage[]) {
+async function summarizeOutOfSteps(id: string, provider: ChatProvider, messages: ChatMessage[]) {
   try {
     const completion = await provider.complete({
       messages: [...messages, { role: "user", content: OUT_OF_STEPS_PROMPT }],
       tools: [],
     });
-    await trackUsage({
-      messages: 0,
-      inputTokens: completion.usage.inputTokens,
-      outputTokens: completion.usage.outputTokens,
+    await recordUsage({
+      feature: "assistant",
+      conversationId: id,
+      model: completion.model,
+      usage: completion.usage,
     });
     return completion.content.trim() || OUT_OF_STEPS_FALLBACK;
   } catch {

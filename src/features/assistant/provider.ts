@@ -49,9 +49,30 @@ export interface ToolDefinition {
 export interface ChatCompletion {
   content: string;
   toolCalls: ProviderToolCall[];
-  usage: { inputTokens: number; outputTokens: number };
+  usage: TokenUsage;
+  /**
+   * Modelul care a raspuns, exact cum il raporteaza furnizorul (`payload.model`, ex.
+   * `deepseek-v4-pro`) - numele din factura, dupa care se cauta pretul
+   * (`ai_model_prices`). Lipsa (mock) = nu se inregistreaza cost.
+   */
+  model?: string;
   /** CoT-ul modelului, daca furnizorul suporta thinking mode (ex. DeepSeek). */
   reasoningContent?: string;
+}
+
+/**
+ * Tokenii unui apel. `inputTokens` = TOTAL input (cache + nou). Detalierea e optionala:
+ * DeepSeek o da (`prompt_cache_hit_tokens` / `prompt_cache_miss_tokens`), OpenAI prin
+ * `prompt_tokens_details.cached_tokens`; lipsa = tot input-ul e considerat nou (varianta
+ * scumpa - nu subestimam costul). Vezi docs/plans/asistent-consum-real.md.
+ */
+export interface TokenUsage {
+  inputTokens: number;
+  outputTokens: number;
+  cacheHitTokens?: number;
+  cacheMissTokens?: number;
+  /** Tokenii de rationament (thinking mode) - inclusi deja in `outputTokens`. */
+  reasoningTokens?: number;
 }
 
 export interface ChatProvider {
@@ -139,7 +160,17 @@ interface OpenAiResponse {
       reasoning_content?: string | null;
     };
   }[];
-  usage?: { prompt_tokens?: number; completion_tokens?: number };
+  model?: string;
+  usage?: {
+    prompt_tokens?: number;
+    completion_tokens?: number;
+    /** DeepSeek */
+    prompt_cache_hit_tokens?: number;
+    prompt_cache_miss_tokens?: number;
+    /** OpenAI si compatibile */
+    prompt_tokens_details?: { cached_tokens?: number };
+    completion_tokens_details?: { reasoning_tokens?: number };
+  };
   error?: { message?: string };
 }
 
@@ -247,13 +278,25 @@ export class OpenAiCompatibleProvider implements ChatProvider {
             ]
           : [],
       ),
-      usage: {
-        inputTokens: payload.usage?.prompt_tokens ?? 0,
-        outputTokens: payload.usage?.completion_tokens ?? 0,
-      },
+      usage: parseUsage(payload.usage),
+      model: payload.model ?? this.model,
       ...(message?.reasoning_content ? { reasoningContent: message.reasoning_content } : {}),
     };
   }
+}
+
+/** Tokenii din raspunsul furnizorului, cu detalierea cache / rationament cand exista. */
+export function parseUsage(usage: OpenAiResponse["usage"]): TokenUsage {
+  const input = usage?.prompt_tokens ?? 0;
+  const hit = usage?.prompt_cache_hit_tokens ?? usage?.prompt_tokens_details?.cached_tokens ?? 0;
+  const miss = usage?.prompt_cache_miss_tokens ?? Math.max(input - hit, 0);
+  return {
+    inputTokens: input || hit + miss,
+    outputTokens: usage?.completion_tokens ?? 0,
+    cacheHitTokens: hit,
+    cacheMissTokens: miss,
+    reasoningTokens: usage?.completion_tokens_details?.reasoning_tokens ?? 0,
+  };
 }
 
 /** Furnizorul activ: cel real daca sunt configurate cheile, altfel mock-ul. */

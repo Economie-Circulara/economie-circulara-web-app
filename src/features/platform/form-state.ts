@@ -23,3 +23,11 @@ export interface OrgStatusState {
 }
 
 export const initialOrgStatusState: OrgStatusState = { error: null };
+
+/** Formularul de pret nou pentru un model AI (`/platform/ai`). */
+export interface ModelPriceFormState {
+  error: string | null;
+  message: string | null;
+}
+
+export const initialModelPriceFormState: ModelPriceFormState = { error: null, message: null };
