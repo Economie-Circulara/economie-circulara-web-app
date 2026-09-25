@@ -14,6 +14,7 @@ import { globalSearch } from "@/features/search/service";
 import { listLots } from "@/features/stock/queries";
 import { searchManual } from "../docs-search";
 import type { ToolContext } from "../types";
+import { fuzzyFilter } from "./fuzzy-match";
 import {
   asObject,
   InvalidToolArgumentsError,
@@ -24,6 +25,22 @@ import {
 
 /** Cate randuri trimitem modelului - suficient pentru a raspunde, fara a inunda contextul. */
 const LIMIT = 10;
+
+/**
+ * Cautare in doi timpi: intai filtrul din DB (`ilike`, rapid), iar daca nu gaseste
+ * nimic, lista completa filtrata tolerant (`fuzzy-match.ts`) - „Beton SRL” gaseste
+ * „SC BETON S.R.L.”. O cautare goala costa modelului o runda in plus.
+ */
+async function searchWithFallback<T>(
+  query: string | null,
+  load: (search: string | null) => Promise<T[]>,
+  textOf: (row: T) => string,
+): Promise<T[]> {
+  if (!query) return load(null);
+  const direct = await load(query);
+  if (direct.length > 0) return direct;
+  return fuzzyFilter(await load(null), query, textOf);
+}
 
 export const cautaInManual: AssistantTool<{ intrebare: string }> = {
   name: "cauta_in_manual",
@@ -115,7 +132,11 @@ export const listeazaClienti: AssistantTool<{ cautare: string | null }> = {
   kind: "read",
   parse: (args) => ({ cautare: optionalString(asObject(args), "cautare") }),
   execute: async (input) => {
-    const clients = await listClients(input.cautare ? { search: input.cautare } : {});
+    const clients = await searchWithFallback(
+      input.cautare,
+      (search) => listClients(search ? { search } : {}),
+      (client) => `${client.name} ${client.cui ?? ""}`,
+    );
     return clients.slice(0, LIMIT).map((client) => ({
       client_id: client.id,
       denumire: client.name,
@@ -141,10 +162,11 @@ export const itemiVandabili: AssistantTool<{ cautare: string | null }> = {
   kind: "read",
   parse: (args) => ({ cautare: optionalString(asObject(args), "cautare") }),
   execute: async (input) => {
-    const items = await listItems({
-      sellable: true,
-      ...(input.cautare ? { search: input.cautare } : {}),
-    });
+    const items = await searchWithFallback(
+      input.cautare,
+      (search) => listItems({ sellable: true, ...(search ? { search } : {}) }),
+      (item) => item.title,
+    );
     return items.slice(0, LIMIT).map((item) => ({
       item_id: item.id,
       denumire: item.title,
@@ -174,9 +196,8 @@ export const itemiAport: AssistantTool<{ cautare: string | null }> = {
     // (`listIntakeItemOptions`) - filtrarea dupa denumire se face aici, interogarea
     // neavand parametru de cautare.
     const items = await listIntakeItemOptions();
-    const search = input.cautare?.toLowerCase();
-    const filtered = search
-      ? items.filter((item) => item.title.toLowerCase().includes(search))
+    const filtered = input.cautare
+      ? fuzzyFilter(items, input.cautare, (item) => item.title)
       : items;
 
     return filtered.slice(0, LIMIT).map((item) => ({
@@ -267,9 +288,7 @@ export const stocDisponibil: AssistantTool<{ item: string | null }> = {
   parse: (args) => ({ item: optionalString(asObject(args), "item") }),
   execute: async (input) => {
     const lots = await listLots();
-    const filtered = input.item
-      ? lots.filter((lot) => lot.itemTitle.toLowerCase().includes(input.item!.toLowerCase()))
-      : lots;
+    const filtered = input.item ? fuzzyFilter(lots, input.item, (lot) => lot.itemTitle) : lots;
 
     return filtered.slice(0, LIMIT).map((lot) => ({
       item: lot.itemTitle,

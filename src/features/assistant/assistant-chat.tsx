@@ -12,6 +12,7 @@ import {
   sendAssistantMessageAction,
 } from "./actions";
 import { MessageMarkdown } from "./message-markdown";
+import { PendingIndicator } from "./pending-indicator";
 import { QuotaCard } from "./quota-card";
 import type { AssistantTurn, PendingAction, QuotaStatus } from "./types";
 
@@ -47,7 +48,7 @@ export function AssistantChat({
 
   const blocked = quota.blockedReason !== null;
 
-  // Scroll la ultimul mesaj - si la aparitia bulei "Mă gândesc...", ca userul sa vada
+  // Scroll la ultimul mesaj - si la aparitia indicatorului de lucru (`PendingIndicator`), ca userul sa vada
   // imediat ca a pornit un raspuns, nu doar cand acesta soseste.
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
@@ -172,11 +173,7 @@ export function AssistantChat({
               )}
             </div>
           ))}
-          {isPending ? (
-            <p className="text-sm text-muted-foreground" role="status">
-              Mă gândesc...
-            </p>
-          ) : null}
+          {isPending ? <PendingIndicator /> : null}
           <div ref={messagesEndRef} />
         </div>
 

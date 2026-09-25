@@ -20,6 +20,7 @@ import {
   resolveProposal,
   saveProposal,
 } from "./service";
+import { compactFacts, formatFacts, historyToMessages, type ToolFact } from "./facts";
 import { serializeToolResult } from "./tool-result";
 import { findTool, toolDefinitions } from "./tools/registry";
 import { InvalidToolArgumentsError, type AssistantTool } from "./tools/types";
@@ -66,8 +67,8 @@ function toolResultMessage(toolCallId: string, payload: unknown): ChatMessage {
   return { role: "tool", toolCallId, content: serializeToolResult(payload) };
 }
 
-function assistantCallMessage(call: ProviderToolCall, reasoningContent?: string): ChatMessage {
-  return { role: "assistant", content: "", toolCalls: [call], reasoningContent };
+function assistantCallMessage(calls: ProviderToolCall[], reasoningContent?: string): ChatMessage {
+  return { role: "assistant", content: "", toolCalls: calls, reasoningContent };
 }
 
 async function pendingActionFrom(
@@ -121,14 +122,12 @@ export async function runAssistantTurn({
   const history = (await listMessages(id)).slice(-HISTORY_LIMIT);
   const messages: ChatMessage[] = [
     { role: "system", content: systemPrompt(ctx, org?.name ?? PLATFORM_NAME) },
-    ...history.map((entry) => ({
-      role: entry.role === "tool" ? ("assistant" as const) : entry.role,
-      content: entry.content,
-    })),
+    ...historyToMessages(history),
   ];
 
   const outcome = await converse({ id, ctx, provider, messages });
 
+  await saveFacts(id, outcome.facts);
   await appendMessage({ conversationId: id, role: "assistant", content: outcome.reply });
 
   return {
@@ -139,22 +138,39 @@ export async function runAssistantTurn({
   };
 }
 
-/** Bucla model <-> tool-uri, pana la un raspuns final sau la o propunere de scriere. */
+interface ConverseOutcome {
+  reply: string;
+  pendingAction: PendingAction | null;
+  /** Ce s-a gasit prin tool-urile de citire - salvat intre ture (`facts.ts`). */
+  facts: ToolFact[];
+}
+
+/**
+ * Bucla model <-> tool-uri, pana la un raspuns final sau la o propunere de scriere.
+ *
+ * Tool-urile de CITIRE pot veni mai multe intr-o runda (ex. toate produsele unei comenzi
+ * cautate deodata) si se executa toate - o runda per tool umplea rapid `MAX_STEPS`. O
+ * runda care contine o SCRIERE produce o singura propunere (prima scriere); restul
+ * apelurilor din runda se ignora - regula „o actiune o data” ramane neschimbata.
+ */
 async function converse(input: {
   id: string;
   ctx: ToolContext;
   provider: ChatProvider;
   messages: ChatMessage[];
-}): Promise<{ reply: string; pendingAction: PendingAction | null }> {
+}): Promise<ConverseOutcome> {
   const { id, ctx, provider } = input;
   const messages = [...input.messages];
+  const facts: ToolFact[] = [];
 
   for (let step = 0; step < MAX_STEPS; step++) {
     let completion;
     try {
       completion = await provider.complete({ messages, tools: toolDefinitions(ctx.role) });
     } catch (err) {
-      if (err instanceof ChatProviderError) return { reply: err.message, pendingAction: null };
+      if (err instanceof ChatProviderError) {
+        return { reply: err.message, pendingAction: null, facts };
+      }
       throw err;
     }
 
@@ -164,41 +180,36 @@ async function converse(input: {
       outputTokens: completion.usage.outputTokens,
     });
 
-    const call = completion.toolCalls[0];
-    if (!call) {
+    const calls = completion.toolCalls;
+    if (calls.length === 0) {
       return {
         reply: completion.content.trim() || "Nu am un răspuns pentru asta.",
         pendingAction: null,
+        facts,
       };
     }
 
-    const tool = findTool(call.name, ctx.role);
-    if (!tool) {
-      messages.push(assistantCallMessage(call, completion.reasoningContent));
-      messages.push(
-        toolResultMessage(call.id, { eroare: `Tool necunoscut sau nepermis: ${call.name}.` }),
-      );
-      continue;
-    }
+    const writeCall = calls.find((call) => findTool(call.name, ctx.role)?.kind === "write");
+    if (writeCall) {
+      const tool = findTool(writeCall.name, ctx.role)!;
+      const rawArgs = toolArguments(writeCall);
+      let parsed: never;
+      try {
+        parsed = tool.parse(rawArgs) as never;
+      } catch (err) {
+        const reason =
+          err instanceof InvalidToolArgumentsError ? err.message : "Argumente invalide.";
+        messages.push(assistantCallMessage([writeCall], completion.reasoningContent));
+        messages.push(toolResultMessage(writeCall.id, { eroare: reason }));
+        continue;
+      }
 
-    const rawArgs = toolArguments(call);
-    let parsed: never;
-    try {
-      parsed = tool.parse(rawArgs) as never;
-    } catch (err) {
-      const reason = err instanceof InvalidToolArgumentsError ? err.message : "Argumente invalide.";
-      messages.push(assistantCallMessage(call, completion.reasoningContent));
-      messages.push(toolResultMessage(call.id, { eroare: reason }));
-      continue;
-    }
-
-    if (tool.kind === "write") {
       const toolCallId = await saveProposal({
         conversationId: id,
         tool: tool.name,
         toolVersion: tool.version,
         arguments: rawArgs,
-        providerCallId: call.id,
+        providerCallId: writeCall.id,
         reasoningContent: completion.reasoningContent,
       });
       return {
@@ -206,36 +217,69 @@ async function converse(input: {
           completion.content.trim() ||
           "Am pregătit acțiunea de mai jos. Verific-o și confirm-o ca să o execut.",
         pendingAction: await pendingActionFrom(tool, parsed, toolCallId, ctx),
+        facts,
       };
     }
 
-    try {
-      const result = await tool.execute(parsed, ctx);
-      await logReadCall({
-        conversationId: id,
-        tool: tool.name,
-        toolVersion: tool.version,
-        arguments: rawArgs,
-        ok: true,
-      });
-      messages.push(assistantCallMessage(call, completion.reasoningContent));
-      messages.push(toolResultMessage(call.id, result));
-    } catch (err) {
-      const reason = err instanceof Error ? err.message : "Eroare la execuția tool-ului.";
-      await logReadCall({
-        conversationId: id,
-        tool: tool.name,
-        toolVersion: tool.version,
-        arguments: rawArgs,
-        ok: false,
-        error: reason,
-      });
-      messages.push(assistantCallMessage(call, completion.reasoningContent));
-      messages.push(toolResultMessage(call.id, { eroare: reason }));
+    messages.push(assistantCallMessage(calls, completion.reasoningContent));
+    const results = await Promise.all(calls.map((call) => executeReadCall(id, call, ctx)));
+    for (const [index, call] of calls.entries()) {
+      const result = results[index];
+      messages.push(toolResultMessage(call.id, result.payload));
+      if (result.ok) facts.push({ tool: call.name, records: compactFacts(result.payload) });
     }
   }
 
-  return { reply: await summarizeOutOfSteps(provider, messages), pendingAction: null };
+  return { reply: await summarizeOutOfSteps(provider, messages), pendingAction: null, facts };
+}
+
+/** Executa un apel de CITIRE; erorile devin rezultat pentru model, nu exceptii. */
+async function executeReadCall(
+  conversationId: string,
+  call: ProviderToolCall,
+  ctx: ToolContext,
+): Promise<{ ok: boolean; payload: unknown }> {
+  const tool = findTool(call.name, ctx.role);
+  if (!tool)
+    return { ok: false, payload: { eroare: `Tool necunoscut sau nepermis: ${call.name}.` } };
+
+  const rawArgs = toolArguments(call);
+  let parsed: never;
+  try {
+    parsed = tool.parse(rawArgs) as never;
+  } catch (err) {
+    const reason = err instanceof InvalidToolArgumentsError ? err.message : "Argumente invalide.";
+    return { ok: false, payload: { eroare: reason } };
+  }
+
+  try {
+    const result = await tool.execute(parsed, ctx);
+    await logReadCall({
+      conversationId,
+      tool: tool.name,
+      toolVersion: tool.version,
+      arguments: rawArgs,
+      ok: true,
+    });
+    return { ok: true, payload: result };
+  } catch (err) {
+    const reason = err instanceof Error ? err.message : "Eroare la execuția tool-ului.";
+    await logReadCall({
+      conversationId,
+      tool: tool.name,
+      toolVersion: tool.version,
+      arguments: rawArgs,
+      ok: false,
+      error: reason,
+    });
+    return { ok: false, payload: { eroare: reason } };
+  }
+}
+
+/** Salveaza datele de referinta ale turei (mesaj `tool`, ascuns in UI), daca exista. */
+async function saveFacts(conversationId: string, facts: ToolFact[]) {
+  const content = formatFacts(facts);
+  if (content) await appendMessage({ conversationId, role: "tool", content });
 }
 
 /**
@@ -287,11 +331,8 @@ async function messagesForContinuation(input: {
 
   return [
     { role: "system", content: systemPrompt(input.ctx, org?.name ?? PLATFORM_NAME) },
-    ...history.map((entry) => ({
-      role: entry.role === "tool" ? ("assistant" as const) : entry.role,
-      content: entry.content,
-    })),
-    assistantCallMessage(call, input.reasoningContent ?? undefined),
+    ...historyToMessages(history),
+    assistantCallMessage([call], input.reasoningContent ?? undefined),
     toolResultMessage(input.toolCallId, input.result),
   ];
 }
@@ -377,6 +418,7 @@ export async function confirmAction(input: {
 
   let reply: string;
   let pendingAction: PendingAction | null = null;
+  const facts: ToolFact[] = [];
   try {
     // GARDA 3 - executie efectiva.
     const result = await tool.execute(parsed, ctx);
@@ -388,6 +430,8 @@ export async function confirmAction(input: {
       result,
     });
     reply = `Gata: ${tool.summary?.(parsed) ?? tool.name}.`;
+    // Ex. `client_id`-ul clientului tocmai creat - refolosibil in turele urmatoare.
+    facts.push({ tool: tool.name, records: compactFacts(result) });
 
     // Continuarea automata a obiectivului multi-pas (docs/plans/asistent-contract-capabilitati.md,
     // decizia 2): DOAR pe furnizor real. `MockChatProvider` decide dupa ULTIMUL mesaj
@@ -413,6 +457,7 @@ export async function confirmAction(input: {
         });
         if (continuation.reply.trim()) reply = `${reply}\n\n${continuation.reply.trim()}`;
         pendingAction = continuation.pendingAction;
+        facts.push(...continuation.facts);
       } catch {
         // Best-effort: daca modelul nu poate fi contactat pentru continuare, utilizatorul
         // tot vede confirmarea deterministă de mai sus - nu transformam asta intr-o eroare.
@@ -430,6 +475,7 @@ export async function confirmAction(input: {
     reply = `Acțiunea nu a putut fi executată: ${reason}`;
   }
 
+  await saveFacts(proposal.conversationId, facts);
   await appendMessage({
     conversationId: proposal.conversationId,
     role: "assistant",
