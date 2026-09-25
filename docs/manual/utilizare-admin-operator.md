@@ -607,7 +607,9 @@ credite a consumat.
 rând nou. Cu butonul 📎 de lângă câmpul de mesaj poți atașa până la 3 fișiere: imagini
 (PNG, JPEG, WEBP, GIF, max. 2MB), PDF (max. 10MB) sau fișiere text - TXT, Markdown,
 CSV/TSV (ex. un export din Excel), HTML, JSON, XML (max. 2MB). Fișierele sunt private - le vezi
-doar tu și asistentul. Exemplu: atașează o poză și scrie „pune poza asta pe produsul
+doar tu și asistentul. Fișierele trimise apar în mesaj: click pe nume îl deschide
+într-un tab nou (imaginile și PDF-urile se văd direct în browser), iar iconița de lângă îl
+descarcă. Exemplu: atașează o poză și scrie „pune poza asta pe produsul
 Nisip spălat” - asistentul îți arată produsul și poza într-un card de confirmare.
 Atenție: asistentul nu „vede” conținutul imaginilor, doar numele fișierului.
 

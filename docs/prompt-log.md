@@ -4,6 +4,14 @@ Jurnal al sarcinilor lucrate de agenti AI in acest repo. Conform regulii 1.2 din
 [`AGENTS.md`](../AGENTS.md), la **fiecare commit** se adauga o intrare aici.
 Cele mai noi intrari sus.
 
+## 2026-09-25 — Claude Opus 5.5 (Claude Code) — Asistent AI: vizualizare / descarcare atasamente
+
+- **Cerut:** in asistentul AI, atasamentele din chat sa poata fi vazute (sau macar descarcate).
+- **Facut:** ruta `/asistent/atasamente/[id]` (RLS prin `getAttachment`, redirect catre URL
+  semnat de 60s; `?descarca=1` descarca pe numele original); in bula de mesaj numele
+  fisierului deschide fisierul, iconita il descarca (`user-bubble-content.tsx`); teste,
+  plan `docs/plans/asistent-atasamente-vizualizare.md`, manual.
+
 ## 2026-09-25 — Claude Opus 5.5 (Claude Code) — Asistent AI: control super-admin pe creditele organizatiilor
 
 - **Cerut:** vizibilitate si control super-admin pe creditele fiecarei organizatii (stop,

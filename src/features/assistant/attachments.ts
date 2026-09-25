@@ -118,13 +118,30 @@ export async function downloadAttachment(attachment: StoredAttachment): Promise<
   return data;
 }
 
+/**
+ * URL semnat, de scurta durata, catre fisier. Cu `download`, Storage raspunde cu
+ * `Content-Disposition: attachment` pe numele original (descarcare, nu afisare).
+ * Primeste DOAR un atasament obtinut prin `getAttachment`.
+ */
+export async function attachmentSignedUrl(
+  attachment: StoredAttachment,
+  options: { expiresInSeconds?: number; download?: boolean } = {},
+): Promise<string | null> {
+  const { expiresInSeconds = 3600, download = false } = options;
+  const { data } = await createAdminClient()
+    .storage.from(ATTACHMENT_BUCKET)
+    .createSignedUrl(
+      attachment.storagePath,
+      expiresInSeconds,
+      download ? { download: attachment.fileName } : undefined,
+    );
+  return data?.signedUrl ?? null;
+}
+
 /** URL temporar pentru previzualizare (ex. imaginea din cardul de confirmare). */
 export async function attachmentPreviewUrl(
   attachment: StoredAttachment,
   expiresInSeconds = 3600,
 ): Promise<string | null> {
-  const { data } = await createAdminClient()
-    .storage.from(ATTACHMENT_BUCKET)
-    .createSignedUrl(attachment.storagePath, expiresInSeconds);
-  return data?.signedUrl ?? null;
+  return attachmentSignedUrl(attachment, { expiresInSeconds });
 }
