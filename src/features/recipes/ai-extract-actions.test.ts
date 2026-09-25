@@ -23,12 +23,12 @@ vi.mock("@/features/assistant/provider", () => ({
   ChatProviderError,
 }));
 
-const { getQuotaStatus, quotaMessage, trackUsage } = vi.hoisted(() => ({
+const { getQuotaStatus, quotaMessage, recordUsage } = vi.hoisted(() => ({
   getQuotaStatus: vi.fn(),
   quotaMessage: vi.fn(),
-  trackUsage: vi.fn(),
+  recordUsage: vi.fn(),
 }));
-vi.mock("@/features/assistant/quota", () => ({ getQuotaStatus, quotaMessage, trackUsage }));
+vi.mock("@/features/assistant/quota", () => ({ getQuotaStatus, quotaMessage, recordUsage }));
 
 import { extractRecipeFromTextAction } from "./ai-extract-actions";
 
@@ -60,7 +60,7 @@ function setupHappyPath() {
   isChatProviderConfigured.mockReturnValue(true);
   getQuotaStatus.mockResolvedValue(QUOTA);
   quotaMessage.mockReturnValue(null);
-  trackUsage.mockResolvedValue(undefined);
+  recordUsage.mockResolvedValue(undefined);
   listItemOptions.mockResolvedValue([{ id: "item-ciment", title: "Ciment", unit: "kg" }]);
 }
 
@@ -108,6 +108,7 @@ describe("extractRecipeFromTextAction", () => {
       content: VALID_RESPONSE,
       toolCalls: [],
       usage: { inputTokens: 42, outputTokens: 7 },
+      model: "deepseek-v4-pro",
     });
     getChatProvider.mockReturnValue({ name: "test", complete });
 
@@ -139,7 +140,12 @@ describe("extractRecipeFromTextAction", () => {
         confidence: expect.any(Number),
       },
     ]);
-    expect(trackUsage).toHaveBeenCalledWith({ messages: 1, inputTokens: 42, outputTokens: 7 });
+    expect(recordUsage).toHaveBeenCalledWith({
+      feature: "recipe_extract",
+      messages: 1,
+      model: "deepseek-v4-pro",
+      usage: { inputTokens: 42, outputTokens: 7 },
+    });
     expect(listItemOptions).toHaveBeenCalledWith({ kind: "physical", excludeId: "item-produs" });
   });
 
@@ -152,7 +158,7 @@ describe("extractRecipeFromTextAction", () => {
 
     expect(result.ok).toBe(false);
     expect(result.error).toBe("Furnizorul a picat.");
-    expect(trackUsage).not.toHaveBeenCalled();
+    expect(recordUsage).not.toHaveBeenCalled();
   });
 
   it("arata o eroare prietenoasa cand raspunsul AI nu poate fi interpretat ca rețetă", async () => {
@@ -170,6 +176,6 @@ describe("extractRecipeFromTextAction", () => {
     expect(result.error).toBeTruthy();
     // Consumul de quota se intampla la primirea raspunsului (indiferent daca modelul
     // a raspuns util) - a esuat parsarea, nu apelul catre furnizor.
-    expect(trackUsage).toHaveBeenCalledTimes(1);
+    expect(recordUsage).toHaveBeenCalledTimes(1);
   });
 });

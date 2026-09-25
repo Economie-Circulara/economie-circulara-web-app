@@ -1,10 +1,12 @@
 import { assistantDb, type AssistantUsageRow, type OrganizationAiRow } from "./db";
+import type { TokenUsage } from "./provider";
 import type { QuotaStatus, ToolContext } from "./types";
 
 /**
  * Quota asistentului. Numaram MESAJE, nu tokeni: e usor de explicat clientului
- * ("200 de mesaje pe luna") si de pus pe un card de pret. Tokenii se contorizeaza in
- * paralel, pentru costul intern, dar nu se arata utilizatorului.
+ * ("200 de mesaje pe luna") si de pus pe un card de pret. In paralel se masoara exact
+ * tokenii (cache / nou / output) si costul fiecarui apel de model (`recordUsage`,
+ * migrarea 0037) - baza pentru trecerea la credite (docs/plans/asistent-consum-real.md).
  *
  * Doua limite, ca sa fie si corect, si previzibil:
  *  - lunara, per ORGANIZATIE - bugetul platit;
@@ -99,16 +101,45 @@ export function quotaMessage(quota: QuotaStatus): string | null {
   }
 }
 
-/** Incrementeaza consumul (atomic, prin RPC - vezi 0020_assistant.sql). */
-export async function trackUsage(input: {
+/** Ce functie AI a consumat - coloana `ai_usage_events.feature` (migrarea 0037). */
+export type UsageFeature = "assistant" | "recipe_extract";
+
+/** Argumentele RPC-ului `assistant_record_usage` (pur - testabil fara DB). */
+export function recordUsageArgs(input: {
+  feature: UsageFeature;
   messages?: number;
-  inputTokens?: number;
-  outputTokens?: number;
-}): Promise<void> {
+  model?: string | null;
+  conversationId?: string | null;
+  usage?: TokenUsage;
+}): Record<string, string | number | null> {
+  const usage = input.usage;
+  const hit = Math.max(usage?.cacheHitTokens ?? 0, 0);
+  // Fara detaliere de la furnizor, tot input-ul e considerat NOU (nu subestimam costul).
+  const miss = Math.max(usage?.cacheMissTokens ?? (usage?.inputTokens ?? 0) - hit, 0);
+  return {
+    p_feature: input.feature,
+    p_model: input.model ?? null,
+    p_conversation_id: input.conversationId ?? null,
+    p_messages: input.messages ?? 0,
+    p_input_cache_hit: Math.round(hit),
+    p_input_cache_miss: Math.round(miss),
+    p_output_tokens: Math.round(Math.max(usage?.outputTokens ?? 0, 0)),
+    p_reasoning_tokens: Math.round(Math.max(usage?.reasoningTokens ?? 0, 0)),
+  };
+}
+
+/**
+ * PUNCTUL UNIC de contorizare (docs/plans/asistent-consum-real.md): orice mesaj al
+ * utilizatorului (`messages: 1`, fara model) si orice apel de model (`model` + `usage`)
+ * trec pe aici. Costul il calculeaza DB-ul (`assistant_record_usage`, 0037) cu pretul
+ * valabil acum - aplicatia raporteaza doar tokeni. Esecul contorizarii nu strica
+ * raspunsul utilizatorului: se jurnalizeaza si atat.
+ */
+export async function recordUsage(input: Parameters<typeof recordUsageArgs>[0]): Promise<void> {
+  const args = recordUsageArgs(input);
+  // Nimic de inregistrat: nici mesaj, nici apel de model (ex. furnizorul mock).
+  if (!args.p_messages && !args.p_model) return;
   const db = await assistantDb();
-  await db.rpc("assistant_track_usage", {
-    p_messages: input.messages ?? 1,
-    p_input_tokens: input.inputTokens ?? 0,
-    p_output_tokens: input.outputTokens ?? 0,
-  });
+  const { error } = await db.rpc("assistant_record_usage", args);
+  if (error) console.error("[asistent] contorizarea consumului a esuat", error);
 }
