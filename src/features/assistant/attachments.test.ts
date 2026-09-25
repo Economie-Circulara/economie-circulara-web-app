@@ -54,6 +54,16 @@ describe("registerAttachment", () => {
     expect(result.attachment.id).toBe(row.id);
   });
 
+  it("salveaza tipul canonic (un `.md` fara tip din browser devine text/markdown)", async () => {
+    insert.mockResolvedValue({ error: null });
+    createSignedUploadUrl.mockResolvedValue({ data: { token: "tok" }, error: null });
+
+    const result = await registerAttachment(CTX, { name: "note.md", type: "", size: 10 });
+
+    expect(insert.mock.calls[0][0].mime_type).toBe("text/markdown");
+    expect(result.attachment.mimeType).toBe("text/markdown");
+  });
+
   it("refuza un fisier invalid inainte de orice scriere", async () => {
     await expect(
       registerAttachment(CTX, { name: "a.exe", type: "application/x-msdownload", size: 5 }),

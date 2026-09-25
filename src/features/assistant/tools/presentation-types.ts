@@ -13,7 +13,8 @@ import type { RecipeDirection } from "@/features/recipes/types";
 export type CardPresentation =
   | GenericPresentation
   | OrderDraftPresentation
-  | RecipeDraftPresentation;
+  | RecipeDraftPresentation
+  | RecipeImportPresentation;
 
 export interface PresentationField {
   name: string;
@@ -87,4 +88,29 @@ export interface RecipeDraftPresentation {
   draft: RecipeDraftValue;
   /** Materialele (fizice, nearhivate) care pot fi materii prime - fara produsul insusi. */
   componentOptions: { id: string; title: string; unit: string }[];
+}
+
+/**
+ * Cardul pentru `importa_retete`: mai multe retete extrase dintr-un document, fiecare
+ * cu produs + metoda + materii prime potrivite (sau nu) cu materialele organizatiei.
+ * Utilizatorul corecteaza potrivirile, debifeaza ce nu vrea si confirma o singura data.
+ */
+export interface RecipeImportDraft {
+  /** Numele produsului, asa cum apare in document. */
+  sourceName: string;
+  itemId: string | null;
+  direction: RecipeDirection;
+  included: boolean;
+  components: { sourceName: string; itemId: string | null; percentage: number }[];
+}
+
+export interface RecipeImportPresentation {
+  renderer: "recipe_import";
+  /** Numele documentului sursa (atasamentul), daca e cunoscut. */
+  sourceLabel: string | null;
+  recipes: RecipeImportDraft[];
+  /** Materialele fizice nearhivate - produse posibile si materii prime posibile. */
+  itemOptions: { id: string; title: string; unit: string }[];
+  /** Produsele care au DEJA o reteta (una singura per produs) - nu pot fi importate. */
+  itemsWithRecipe: string[];
 }

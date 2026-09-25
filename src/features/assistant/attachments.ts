@@ -1,6 +1,7 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import {
   ATTACHMENT_BUCKET,
+  resolveMimeType,
   sanitizeFileName,
   validateAttachment,
   type AttachmentMeta,
@@ -60,6 +61,8 @@ export async function registerAttachment(
   const error = validateAttachment(file);
   if (error) throw new AttachmentError(error);
 
+  // Tipul canonic (dupa extensie pentru documentele text) - cel acceptat de bucket.
+  const mimeType = resolveMimeType(file.name, file.type);
   const id = crypto.randomUUID();
   const path = `${ctx.organizationId}/${ctx.userId}/${id}`;
   const fileName = sanitizeFileName(file.name);
@@ -71,7 +74,7 @@ export async function registerAttachment(
     user_id: ctx.userId,
     storage_path: path,
     file_name: fileName,
-    mime_type: file.type,
+    mime_type: mimeType,
     size_bytes: file.size,
   });
   if (insertError) throw new AttachmentError("Nu am putut înregistra atașamentul.");
@@ -82,7 +85,7 @@ export async function registerAttachment(
   if (signError || !data) throw new AttachmentError("Nu am putut pregăti încărcarea fișierului.");
 
   return {
-    attachment: { id, fileName, mimeType: file.type, sizeBytes: file.size },
+    attachment: { id, fileName, mimeType, sizeBytes: file.size },
     path,
     token: data.token,
   };

@@ -19,6 +19,7 @@ import { resultField } from "../result-summary";
 import type { ToolContext } from "../types";
 import { ATTACHMENT_WRITE_TOOLS } from "./attachment-write-tools";
 import { CATALOG_WRITE_TOOLS } from "./catalog-write-tools";
+import { DOCUMENT_WRITE_TOOLS } from "./document-tools";
 import { ORDER_WRITE_TOOLS } from "./order-write-tools";
 import { PRODUCTION_WRITE_TOOLS } from "./production-tools";
 import type { CardPresentation } from "./presentation-types";
@@ -657,4 +658,5 @@ export const WRITE_TOOLS = [
   ...CATALOG_WRITE_TOOLS,
   ...PRODUCTION_WRITE_TOOLS,
   ...ATTACHMENT_WRITE_TOOLS,
+  ...DOCUMENT_WRITE_TOOLS,
 ] as unknown as AssistantTool<never>[];

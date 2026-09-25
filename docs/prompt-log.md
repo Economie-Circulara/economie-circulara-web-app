@@ -4,6 +4,22 @@ Jurnal al sarcinilor lucrate de agenti AI in acest repo. Conform regulii 1.2 din
 [`AGENTS.md`](../AGENTS.md), la **fiecare commit** se adauga o intrare aici.
 Cele mai noi intrari sus.
 
+## 2026-09-25 — Claude Opus 5.5 (Claude Code) — Asistent AI: atasamente text (TXT, MD, CSV, HTML, JSON, XML)
+
+- **Cerut:** upload in chat si pentru fisiere text / Markdown / HTML - formate intalnite
+  in cazuri reale.
+- **Facut:** tipuri text acceptate (tip canonic dedus din extensie), migrarea 0038
+  (bucket + constrangere), `document-text.ts` (HTML -> text, BOM eliminat),
+  `citeste_document` citeste toate formatele; manual + system prompt actualizate.
+
+## 2026-09-25 — Claude Opus 5.5 (Claude Code) — Asistent AI: import de retete dintr-un PDF atasat
+
+- **Cerut:** PDF atasat in chat cu o lista de retete -> AI-ul extrage si adauga in sistem.
+- **Facut:** `pdf-text.ts` (unpdf, detectie PDF scanat); tool `citeste_document` (text pe
+  bucati, plafon de rezultat propriu); tool `importa_retete` cu card dedicat
+  `recipe_import` (potrivire automata nume -> materiale, corectabila, o singura
+  confirmare, raport creat/sarit); editorul de materii prime extras si partajat. Plan:
+  `docs/plans/asistent-import-pdf.md`.
 ## 2026-09-25 — Claude Opus 5.5 (Claude Code) — Asistent AI: masurarea consumului real (etapa 1)
 
 - **Cerut:** plan aprobat (credite AI, ~$2/org/luna, cost vizibil doar adminilor, limita

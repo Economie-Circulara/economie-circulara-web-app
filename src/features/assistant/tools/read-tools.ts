@@ -16,6 +16,7 @@ import { globalSearch } from "@/features/search/service";
 import { listLots } from "@/features/stock/queries";
 import { searchManual } from "../docs-search";
 import type { ToolContext } from "../types";
+import { DOCUMENT_READ_TOOLS } from "./document-tools";
 import { fuzzyFilter } from "./fuzzy-match";
 import { PRODUCTION_READ_TOOLS } from "./production-tools";
 import {
@@ -368,4 +369,5 @@ export const READ_TOOLS: AssistantTool<never>[] = [
   contextLivrare,
   listeazaComenzi,
   ...PRODUCTION_READ_TOOLS,
+  ...DOCUMENT_READ_TOOLS,
 ] as unknown as AssistantTool<never>[];
