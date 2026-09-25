@@ -92,7 +92,9 @@ Fluxul hosted trebuie sa trimita tokenul magic direct la callback-ul aplicatiei.
 **Authentication -> URL Configuration** seteaza:
 
 - **Site URL:** `https://www.lotculot.eu`
-- **Redirect URLs:** `https://www.lotculot.eu/auth/callback`
+- **Redirect URLs:** `https://www.lotculot.eu/auth/callback` + cate o intrare
+  `https://<domeniu-tenant>/auth/callback` pentru fiecare organizatie cu domeniu propriu
+  (vezi 3.1).
 
 In **Authentication -> Email Templates -> Magic Link**, linkul butonului trebuie sa fie:
 
@@ -134,6 +136,32 @@ confirmare explicita sau OTP numeric.
 > `docs/handoff.md` si T1.3 din plan.
 
 ---
+
+### 3.1 Domeniu propriu pentru o organizatie (tenant)
+
+Fiecare organizatie poate lucra pe domeniul ei (ex. `trasabilitate.firma-a.ro`), pe
+acelasi deploy si aceeasi baza (plan: `docs/plans/multi-domain-tenant-profiles.md`).
+Pasi, per organizatie:
+
+1. **DNS (la client):** `CNAME trasabilitate.firma-a.ro -> cname.vercel-dns.com`.
+2. **Vercel:** Project -> Settings -> Domains -> adauga domeniul (certificatul HTTPS se
+   emite automat dupa propagarea DNS).
+3. **Supabase:** Authentication -> URL Configuration -> Redirect URLs -> adauga
+   `https://trasabilitate.firma-a.ro/auth/callback`. Fara pas, Supabase respinge
+   `redirectTo` si trimite userul pe Site URL.
+4. **Aplicatie:** seteaza `organizations.custom_domain = 'trasabilitate.firma-a.ro'`
+   (doar host, lowercase, fara `https://` si fara cale).
+
+Efecte:
+
+- invitatiile (admin, staff, client), magic link-ul, resetarea parolei si login-ul
+  Google ajung pe domeniul organizatiei;
+- un user al organizatiei intrat pe alt domeniu e delogat acolo si trimis la login pe
+  domeniul lui (`?error=wrong_domain`); super-adminul lucreaza pe orice domeniu;
+- garda nu se aplica pe `localhost` si pe preview-urile `*.vercel.app`.
+
+Verificare: invita un user de test -> linkul din email e pe domeniul organizatiei;
+logheaza-te cu el pe `www.lotculot.eu` -> ajungi pe login-ul domeniului organizatiei.
 
 ## 4. Environment Claude Code on the web (ca agentul sa ruleze tot de-aici)
 

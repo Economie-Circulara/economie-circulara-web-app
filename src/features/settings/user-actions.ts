@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { getSiteOrigin } from "@/lib/site-url";
+import { getOrganizationOrigin } from "@/features/auth/origin";
 import { getCurrentUser } from "@/features/auth/session";
 import { getClient } from "@/features/clients/queries";
 import type { UserMgmtState } from "./action-state";
@@ -32,7 +32,7 @@ export async function inviteStaffAction(
   }
 
   const adminClient = createAdminClient();
-  const origin = await getSiteOrigin();
+  const origin = await getOrganizationOrigin(admin.organizationId);
 
   const { data, error } = await adminClient.auth.admin.inviteUserByEmail(email, {
     redirectTo: `${origin}/auth/callback?next=/set-password`,
@@ -110,7 +110,7 @@ export async function sendClientInvite(clientId: string, rawEmail: string): Prom
     return { error: "Aceasta firma are deja un utilizator client asociat.", message: null };
   }
 
-  const origin = await getSiteOrigin();
+  const origin = await getOrganizationOrigin(admin.organizationId);
   const { data, error } = await adminClient.auth.admin.inviteUserByEmail(email, {
     redirectTo: `${origin}/auth/callback?next=/set-password`,
   });

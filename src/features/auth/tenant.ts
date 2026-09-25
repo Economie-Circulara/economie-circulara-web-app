@@ -57,6 +57,16 @@ export function normalizeHost(host: string | null | undefined): string {
   return host.split(":")[0]!.trim().toLowerCase();
 }
 
+/** Host de dezvoltare: gol, `localhost`, `*.localhost` sau IP. */
+function isLocalHost(host: string): boolean {
+  return (
+    host === "" ||
+    host === "localhost" ||
+    host.endsWith(".localhost") ||
+    /^\d{1,3}(\.\d{1,3}){3}$/.test(host)
+  );
+}
+
 function isValidSlug(value: string): boolean {
   return SLUG_RE.test(value);
 }
@@ -78,11 +88,7 @@ export function resolveTenant(
   const normHost = normalizeHost(host);
   const root = normalizeHost(rootDomain);
 
-  const isLocal =
-    normHost === "" ||
-    normHost === "localhost" ||
-    normHost.endsWith(".localhost") ||
-    /^\d{1,3}(\.\d{1,3}){3}$/.test(normHost);
+  const isLocal = isLocalHost(normHost);
 
   // 1 + 2: rezolvare pe baza de host (doar daca avem un root domain configurat).
   if (root && !isLocal) {
@@ -115,4 +121,30 @@ function fromPath(pathname: string): TenantHint {
     return { slug: first, customDomain: null, source: "path" };
   }
   return { slug: null, customDomain: null, source: "none" };
+}
+
+/**
+ * Hosturi pe care garda de domeniu NU se aplica: dezvoltare locala, e2e si
+ * preview-urile Vercel. Altfel un user cu organizatie pe domeniu propriu ar fi trimis
+ * din `localhost` / `*.vercel.app` direct in productie.
+ */
+function isExemptFromDomainGuard(host: string): boolean {
+  return isLocalHost(host) || host.endsWith(".vercel.app");
+}
+
+/**
+ * Garda de domeniu (plan multi-domain-tenant-profiles, T2): userul unei organizatii
+ * cu `custom_domain` lucreaza DOAR pe acel domeniu. Intoarce domeniul pe care trebuie
+ * redirectionat, sau `null` daca cererea e deja pe domeniul corect / organizatia n-are
+ * domeniu propriu / userul n-are organizatie (super-admin) / hostul e exceptat.
+ */
+export function tenantDomainRedirect(
+  host: string | null | undefined,
+  orgCustomDomain: string | null | undefined,
+): string | null {
+  const expected = normalizeHost(orgCustomDomain);
+  if (!expected) return null;
+  const current = normalizeHost(host);
+  if (isExemptFromDomainGuard(current) || current === expected) return null;
+  return expected;
 }

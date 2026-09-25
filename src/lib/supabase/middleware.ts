@@ -4,6 +4,7 @@ import { getSupabaseEnv } from "@/lib/env";
 import type { Database } from "@/lib/database.types";
 import {
   resolveTenant,
+  tenantDomainRedirect,
   TENANT_DOMAIN_HEADER,
   TENANT_SLUG_HEADER,
   type TenantHint,
@@ -41,6 +42,16 @@ function requestHeadersWithTenant(request: NextRequest, tenant: TenantHint): Hea
   if (tenant.slug) headers.set(TENANT_SLUG_HEADER, tenant.slug);
   if (tenant.customDomain) headers.set(TENANT_DOMAIN_HEADER, tenant.customDomain);
   return headers;
+}
+
+/**
+ * Redirect care pastreaza cookie-urile scrise de Supabase pe `supabaseResponse` (ex.
+ * stergerea sesiunii dupa `signOut`) - un `NextResponse.redirect` nou le-ar pierde.
+ */
+function redirectKeepingCookies(url: URL, supabaseResponse: NextResponse): NextResponse {
+  const response = NextResponse.redirect(url);
+  supabaseResponse.cookies.getAll().forEach((cookie) => response.cookies.set(cookie));
+  return response;
 }
 
 /**
@@ -117,9 +128,27 @@ export async function updateSession(request: NextRequest) {
     // scurt `organizations(status)` e refuzat de PostgREST (PGRST201).
     const { data: profile } = await supabase
       .from("profiles")
-      .select("organization_id, status, organizations!profiles_organization_id_fkey(status)")
+      .select(
+        "organization_id, status, organizations!profiles_organization_id_fkey(status, custom_domain)",
+      )
       .eq("id", user.id)
       .single();
+
+    // Garda de domeniu (plan multi-domain-tenant-profiles, T2): userul unei organizatii
+    // cu domeniu propriu lucreaza doar acolo. Sesiunea nu se poate muta intre domenii
+    // (cookie-urile sunt per host), deci o inchidem pe hostul curent si trimitem userul
+    // la login pe domeniul corect. `scope: "local"` - `global` ar revoca si sesiunea
+    // valida de pe domeniul organizatiei.
+    const correctDomain = tenantDomainRedirect(
+      request.headers.get("host"),
+      profile?.organizations?.custom_domain,
+    );
+    if (correctDomain) {
+      await supabase.auth.signOut({ scope: "local" });
+      const target = new URL(`https://${correctDomain}/login`);
+      target.searchParams.set("error", "wrong_domain");
+      return redirectKeepingCookies(target, supabaseResponse);
+    }
 
     if (profile?.organization_id && profile.organizations?.status === "suspended") {
       const suspendedUrl = request.nextUrl.clone();

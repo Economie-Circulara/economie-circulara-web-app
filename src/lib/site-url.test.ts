@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { resolveSiteOrigin } from "./site-url";
+import { orgOrigin, resolveSiteOrigin } from "./site-url";
 
 describe("resolveSiteOrigin", () => {
   it("foloseste URL-ul canonic configurat in locul hostului cererii", () => {
@@ -28,5 +28,16 @@ describe("resolveSiteOrigin", () => {
 
   it("respinge protocoale care nu pot fi folosite pentru callback-uri web", () => {
     expect(() => resolveSiteOrigin({ configuredUrl: "javascript:alert(1)" })).toThrow(/http/i);
+  });
+});
+
+describe("orgOrigin", () => {
+  it("foloseste domeniul propriu al organizatiei, mereu pe https", () => {
+    expect(orgOrigin(" Trace.Acme.ro ", "https://www.lotculot.eu")).toBe("https://trace.acme.ro");
+  });
+
+  it("cade pe originea canonica cand organizatia nu are domeniu", () => {
+    expect(orgOrigin(null, "https://www.lotculot.eu")).toBe("https://www.lotculot.eu");
+    expect(orgOrigin("  ", "https://www.lotculot.eu")).toBe("https://www.lotculot.eu");
   });
 });

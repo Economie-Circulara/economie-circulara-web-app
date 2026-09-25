@@ -4,6 +4,18 @@ Jurnal al sarcinilor lucrate de agenti AI in acest repo. Conform regulii 1.2 din
 [`AGENTS.md`](../AGENTS.md), la **fiecare commit** se adauga o intrare aici.
 Cele mai noi intrari sus.
 
+## 2026-09-25 — Claude Opus 5.5 (Claude Code) — Domeniu propriu per tenant: linkuri + garda (T1 + T2)
+
+- **Cerut:** teme selectabile (default + 3) in plan; implementare T1 + T2.
+- **Facut:** plan actualizat (T5 = sistem de teme cu 4 teme, coloana
+  `organizations.theme` setata de super-admin). T1: `src/features/auth/origin.ts`
+  (`getOrganizationOrigin` pt. invitatii, `getOriginForEmail` pt. magic link,
+  `getRequestTenantOrigin` pt. OAuth/resetare - PKCE ramane pe hostul cererii, validat
+  contra `custom_domain`), `orgOrigin()` in `site-url.ts`. T2: `tenantDomainRedirect()`
+  in `tenant.ts` + garda in middleware (signOut local + redirect la login pe domeniul
+  organizatiei, `error=wrong_domain`; exceptati super-admin, localhost, `*.vercel.app`).
+  Setup: `docs/setup.md` 3.1. Teste noi/actualizate pe toate cele de mai sus.
+
 ## 2026-09-25 — Claude Opus 5.5 (Claude Code) — Plan: domeniu propriu per tenant + diferentiere
 
 - **Cerut:** analiza + intrebari + plan pentru livrarea la doi clienti (fonduri UE) pe

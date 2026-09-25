@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { getSiteOrigin } from "@/lib/site-url";
+import { getOriginForEmail, getRequestTenantOrigin } from "./origin";
 import { getCurrentUser, homePathForRole } from "./session";
 import type { AuthState } from "./form-state";
 
@@ -46,7 +46,8 @@ export async function signInWithMagicLinkAction(
     email,
     options: {
       shouldCreateUser: false, // doar utilizatori existenti (invitati de admin)
-      emailRedirectTo: `${await getSiteOrigin()}/auth/callback`,
+      // Linkul (token_hash) nu depinde de host -> direct pe domeniul organizatiei userului.
+      emailRedirectTo: `${await getOriginForEmail(email)}/auth/callback`,
     },
   });
   if (error) {
@@ -60,7 +61,8 @@ export async function signInWithGoogleAction(): Promise<void> {
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
-    options: { redirectTo: `${await getSiteOrigin()}/auth/callback` },
+    // PKCE: callback-ul trebuie sa revina pe hostul care a pornit fluxul (cookie verifier).
+    options: { redirectTo: `${await getRequestTenantOrigin()}/auth/callback` },
   });
   if (error || !data?.url) redirect("/login?error=oauth");
   redirect(data.url);
@@ -76,7 +78,7 @@ export async function requestPasswordResetAction(
 
   const supabase = await createClient();
   await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${await getSiteOrigin()}/auth/callback?next=/set-password`,
+    redirectTo: `${await getRequestTenantOrigin()}/auth/callback?next=/set-password`,
   });
   // Mesaj neutru (nu dezvaluim daca emailul exista).
   return {

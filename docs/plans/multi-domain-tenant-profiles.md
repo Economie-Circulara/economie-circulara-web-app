@@ -27,30 +27,35 @@ Aceeasi codebase, acelasi proiect Vercel, aceeasi baza Supabase, dar:
 
 ### T1 - Originea linkurilor per organizatie
 
-- `src/lib/site-url.ts`: `getOrgOrigin(org)` -> `https://<custom_domain>` daca exista,
-  altfel `<slug>.<NEXT_PUBLIC_ROOT_DOMAIN>` (daca root e setat), altfel `getSiteOrigin()`.
-- Folosit peste tot unde se genereaza linkuri pentru un user al unui tenant:
-  - `settings/user-actions.ts` (invitatii staff/client) -> org-ul adminului;
-  - `platform/actions.ts` (super-adminul invita adminul unei organizatii) -> org-ul
-    **tinta**, nu domeniul de pe care lucreaza super-adminul;
-  - `auth/actions.ts` (magic link, OAuth, reset parola) -> tenantul rezolvat din host
-    (userul e deja pe domeniul corect; T2 garanteaza asta).
-- Teste unitare: custom domain, fallback subdomeniu, fallback canonic, org-tinta la invitatia
-  din platforma.
+- `src/lib/site-url.ts`: `orgOrigin(customDomain, fallback)` pur -> `https://<custom_domain>`
+  daca org-ul are domeniu, altfel originea canonica (`NEXT_PUBLIC_SITE_URL`). Fara
+  fallback pe `<slug>.<root>`: ar cere DNS wildcard neconfigurat azi.
+- `src/features/auth/origin.ts` (server):
+  - `getOrganizationOrigin(orgId)` - domeniul organizatiei TINTA (invitatii din
+    `/setari/utilizatori` si din `/platform`, unde super-adminul lucreaza de pe alt domeniu);
+  - `getOriginForEmail(email)` - magic link: domeniul organizatiei careia ii apartine
+    emailul (lookup server-side, raspunsul catre browser ramane identic);
+  - `getRequestTenantOrigin()` - hostul cererii, DOAR daca e `custom_domain` al unei
+    organizatii active (validat prin `org_branding`), altfel originea canonica. Folosit
+    la OAuth si resetare parola: ambele sunt PKCE, iar cookie-ul verifier traieste pe
+    hostul care a initiat cererea, deci callback-ul trebuie sa ramana pe acelasi host.
+- Magic link-ul si invitatiile nu depind de host (template `token_hash` / flux implicit
+  cu bridge), deci pot sari direct pe domeniul organizatiei.
 
 ### T2 - Garda de domeniu
 
-- `middleware.ts` / `src/lib/supabase/middleware.ts`: dupa `getUser()`, pe rutele
-  protejate, daca userul are `organization_id` si organizatia are `custom_domain`
-  diferit de host -> `signOut` local + redirect la `https://<custom_domain>/login`.
-  (Sesiunea nu se poate transfera intre domenii - cookie-urile sunt per domeniu.)
-- Super-adminul (fara organizatie) e exceptat.
-- Login pe domeniul unui tenant: callback-ul verifica si el apartenenta (a doua linie)
-  -> `/login?error=wrong_tenant` cu link catre domeniul corect.
-- Domeniul platformei (`lotculot.eu`) ramane pentru super-admin si pentru organizatiile
-  fara `custom_domain`.
-- Teste: `middleware.test.ts` (user A pe domeniul B, super-admin, org fara domeniu),
-  `auth/callback/route.test.ts`.
+- Pur, in `tenant.ts`: `tenantDomainRedirect(host, orgCustomDomain)` -> domeniul corect
+  sau `null`. Nu se aplica pe host local (`localhost`, IP, `*.localhost`) si pe
+  preview-urile Vercel (`*.vercel.app`) - altfel dev/e2e/QA ar fi aruncate in productie.
+- `src/lib/supabase/middleware.ts`: pe rutele protejate, daca userul are organizatie cu
+  `custom_domain` diferit de host -> `signOut({ scope: "local" })` (DOAR sesiunea de pe
+  acest domeniu; `global` ar invalida si sesiunea valida de pe domeniul corect) +
+  redirect la `https://<custom_domain>/login?error=wrong_domain`, cu cookie-urile sterse
+  copiate pe raspunsul de redirect.
+- Super-adminul (fara organizatie) si organizatiile fara `custom_domain` nu sunt afectate.
+- Login: mesaj pentru `error=wrong_domain`.
+- Teste: functia pura + `middleware.test.ts` (A pe domeniul B, domeniu corect,
+  super-admin, localhost).
 
 ### T3 - Profil de tenant + nume de produs
 
@@ -74,18 +79,35 @@ Aceeasi codebase, acelasi proiect Vercel, aceeasi baza Supabase, dar:
 - Profil B propus (de validat vizual): meniu plat, „Producție” + „Rapoarte” sus, grup
   „Vânzări” (Comenzi, Livrări, Clienți); dashboard orientat pe reciclare/productie.
 
-### T5 - Diferentiere vizuala
+### T5 - Sistem de teme (decizie 2026-09-25)
 
-- Profilul da: `font` (2-3 variante preincarcate prin `next/font`), `radius`,
-  `sidebarVariant` (`light` | `dark`), `loginLayout` (`centered` | `split`).
-- Aplicate prin CSS variables / `data-*` pe `<html>` in layout-ul radacina (tema pe
-  culori ramane din DB, ca acum).
-- Verificare vizuala cu Playwright (screenshot default vs profil B).
+Tot ce tine de ASPECT e grupat in **teme cu nume**, alese per organizatie; ce tine de
+ORGANIZARE (meniu, dashboard, nume produs, text footer PDF) ramane in profil (T3/T4).
+
+- `src/config/themes.ts`: `ThemeKey` + definitii. O tema = paleta completa (light + dark:
+  fundal, suprafete, sidebar, brand/accent, culori grafice), font (`next/font`), raza
+  colturilor, densitate, pattern de fundal (SVG inline in CSS), `sidebarVariant`,
+  `loginLayout`, stil header PDF.
+- Aplicare: `data-theme="<key>"` pe `<html>` + blocuri CSS `[data-theme=...]` in
+  `globals.css`; valorile non-CSS (login, sidebar, PDF) citite din definitie.
+- **4 teme**: `default` (aspectul actual) + 3 noi, distincte vizibil (propunere, de
+  validat pe showcase):
+  - `teren` - ton cald/pamantiu, font umanist, colturi mari, pattern discret de puncte,
+    sidebar deschis, login split cu imagine;
+  - `industrial` - gri-antracit + accent portocaliu, font condensat, colturi mici, grila
+    fina, sidebar inchis, login centrat;
+  - `ciclu` - verde-teal, font geometric, colturi medii, pattern de linii/curbe, sidebar
+    colorat, login split.
+- Migrare: `organizations.theme text not null default 'default'` + check pe cheile
+  cunoscute; modificabila **doar de super-admin** (acelasi model ca `ai_*`). Selector in
+  `/platform`. `primary_color`/`secondary_color` raman override optional peste tema.
+- `/showcase?theme=<key>` pentru previzualizare; test: fiecare tema defineste toate
+  variabilele cerute.
 
 ### T6 - Header/footer PDF per profil
 
-- Certificat, aviz, raport PDF: header (logo + nume produs + culoare) si footer (text
-  din profil, ex. date firma / „Document generat de <productName>”) din profil.
+- Certificat, aviz, raport PDF: stilul header-ului (layout + culori) din TEMA, textul
+  din footer (ex. date firma / „Document generat de <productName>”) din PROFIL.
 - Test: randarea foloseste valorile din profil (fara snapshot binar).
 
 ### T7 - Configurare si documentatie

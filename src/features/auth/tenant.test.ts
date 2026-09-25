@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { normalizeHost, resolveTenant } from "./tenant";
+import { normalizeHost, resolveTenant, tenantDomainRedirect } from "./tenant";
 
 const ROOT = "lotculot.eu";
 
@@ -65,5 +65,28 @@ describe("resolveTenant - path (dev / fara root domain)", () => {
   });
   it("path gol => none", () => {
     expect(resolveTenant("localhost", "/", ROOT).slug).toBeNull();
+  });
+});
+
+describe("tenantDomainRedirect", () => {
+  it("trimite userul pe domeniul organizatiei cand e pe alt domeniu", () => {
+    expect(tenantDomainRedirect("trace.firma-b.ro", "trace.firma-a.ro")).toBe("trace.firma-a.ro");
+    expect(tenantDomainRedirect("www.lotculot.eu", "trace.firma-a.ro")).toBe("trace.firma-a.ro");
+  });
+
+  it("nu redirectioneaza pe domeniul corect (case/port ignorate)", () => {
+    expect(tenantDomainRedirect("Trace.Firma-A.ro:443", "trace.firma-a.ro")).toBeNull();
+  });
+
+  it("nu redirectioneaza fara domeniu propriu sau fara organizatie (super-admin)", () => {
+    expect(tenantDomainRedirect("trace.firma-b.ro", null)).toBeNull();
+    expect(tenantDomainRedirect("trace.firma-b.ro", undefined)).toBeNull();
+  });
+
+  it("nu se aplica pe dev, e2e si preview-uri Vercel", () => {
+    expect(tenantDomainRedirect("localhost:3000", "trace.firma-a.ro")).toBeNull();
+    expect(tenantDomainRedirect("127.0.0.1:3000", "trace.firma-a.ro")).toBeNull();
+    expect(tenantDomainRedirect("acme.localhost:3000", "trace.firma-a.ro")).toBeNull();
+    expect(tenantDomainRedirect("app-git-x.vercel.app", "trace.firma-a.ro")).toBeNull();
   });
 });

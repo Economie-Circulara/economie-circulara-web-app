@@ -30,10 +30,10 @@ vi.mock("next/navigation", () => ({ redirect }));
 const { revalidatePath } = vi.hoisted(() => ({ revalidatePath: vi.fn() }));
 vi.mock("next/cache", () => ({ revalidatePath }));
 
-const { getSiteOrigin } = vi.hoisted(() => ({
-  getSiteOrigin: vi.fn().mockResolvedValue("https://www.lotculot.eu"),
+const { getOrganizationOrigin } = vi.hoisted(() => ({
+  getOrganizationOrigin: vi.fn().mockResolvedValue("https://trace.acme.ro"),
 }));
-vi.mock("@/lib/site-url", () => ({ getSiteOrigin }));
+vi.mock("@/features/auth/origin", () => ({ getOrganizationOrigin }));
 
 import {
   createOrganizationAction,
@@ -100,8 +100,10 @@ describe("createOrganizationAction", () => {
     expect(inviteOrganizationAdmin).toHaveBeenCalledWith(
       "org-1",
       "admin@acme.ro",
-      "https://www.lotculot.eu/auth/callback?next=/set-password",
+      "https://trace.acme.ro/auth/callback?next=/set-password",
     );
+    // Linkul duce pe domeniul organizatiei TINTA, nu pe cel al super-adminului.
+    expect(getOrganizationOrigin).toHaveBeenCalledWith("org-1");
     expect(revalidatePath).toHaveBeenCalledWith("/platform");
   });
 

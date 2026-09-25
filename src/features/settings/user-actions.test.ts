@@ -1,10 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // Mocks (nu spies - AGENTS.md §2.2).
-const { getSiteOrigin } = vi.hoisted(() => ({
-  getSiteOrigin: vi.fn().mockResolvedValue("https://www.lotculot.eu"),
+const { getOrganizationOrigin } = vi.hoisted(() => ({
+  getOrganizationOrigin: vi.fn().mockResolvedValue("https://trace.acme.ro"),
 }));
-vi.mock("@/lib/site-url", () => ({ getSiteOrigin }));
+vi.mock("@/features/auth/origin", () => ({ getOrganizationOrigin }));
 
 const { revalidatePath } = vi.hoisted(() => ({ revalidatePath: vi.fn() }));
 vi.mock("next/cache", () => ({ revalidatePath }));
@@ -194,8 +194,9 @@ describe("inviteClientAction - flux fericit", () => {
       formData({ client_id: "client-1", email: "Client@Acme.ro" }),
     );
 
+    expect(getOrganizationOrigin).toHaveBeenCalledWith("org-1");
     expect(inviteUserByEmail).toHaveBeenCalledWith("client@acme.ro", {
-      redirectTo: "https://www.lotculot.eu/auth/callback?next=/set-password",
+      redirectTo: "https://trace.acme.ro/auth/callback?next=/set-password",
     });
     expect(insert).toHaveBeenCalledWith({
       id: "user-1",

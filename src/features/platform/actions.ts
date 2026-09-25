@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireRole } from "@/features/auth/session";
-import { getSiteOrigin } from "@/lib/site-url";
+import { getOrganizationOrigin } from "@/features/auth/origin";
 import { isValidSlug } from "./slug";
 import {
   InviteFailedError,
@@ -90,7 +90,8 @@ export async function createOrganizationAction(
     };
   }
 
-  const origin = await getSiteOrigin();
+  // Domeniul organizatiei TINTA, nu cel de pe care lucreaza super-adminul.
+  const origin = await getOrganizationOrigin(organizationId);
   try {
     await inviteOrganizationAdmin(
       organizationId,
