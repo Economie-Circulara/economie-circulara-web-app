@@ -1,4 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import type { ClientReceiptFormState } from "./action-state";
+import { ConfirmReceiptForm } from "./confirm-receipt-form";
 import type { ClientOrderDelivery } from "./types";
 
 const dateFormatter = new Intl.DateTimeFormat("ro-RO", { dateStyle: "medium" });
@@ -20,7 +22,20 @@ function Row({ label, value }: { label: string; value: string }) {
  * Cardul "Transport" din /comenzile-mele/[id]: livrarea planificata de staff, doar
  * campurile expuse clientului de RPC-ul `client_order_delivery` (0041).
  */
-export function ClientDeliveryCard({ delivery }: { delivery: ClientOrderDelivery }) {
+export function ClientDeliveryCard({
+  delivery,
+  confirmAction,
+}: {
+  delivery: ClientOrderDelivery;
+  /**
+   * Doar pe o comanda `accepted` cu receptie neconfirmata: clientul confirma el
+   * receptia (0045). Lipsa -> fara formular.
+   */
+  confirmAction?: (
+    prev: ClientReceiptFormState,
+    formData: FormData,
+  ) => Promise<ClientReceiptFormState>;
+}) {
   return (
     <Card>
       <CardHeader>
@@ -44,6 +59,9 @@ export function ClientDeliveryCard({ delivery }: { delivery: ClientOrderDelivery
               : "neconfirmată"
           }
         />
+        {confirmAction && !delivery.receivedAt ? (
+          <ConfirmReceiptForm action={confirmAction} />
+        ) : null}
       </CardContent>
     </Card>
   );

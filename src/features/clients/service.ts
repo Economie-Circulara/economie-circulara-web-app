@@ -145,6 +145,11 @@ export interface UpsertAddressInput {
   label?: string | null;
   address: string;
   isDefault: boolean;
+  /**
+   * Adresa AD HOC (0046): creata direct arhivata - folosita pe o singura comanda,
+   * fara sa apara in agenda / pickere. Doar la creare.
+   */
+  adHoc?: boolean;
 }
 
 /**
@@ -158,7 +163,7 @@ export interface UpsertAddressInput {
 export async function upsertAddress(input: UpsertAddressInput): Promise<ClientAddress> {
   const supabase = await createClient();
 
-  if (input.isDefault) {
+  if (input.isDefault && !input.adHoc) {
     let clearQuery = supabase
       .from("client_addresses")
       .update({ is_default: false })
@@ -175,7 +180,8 @@ export async function upsertAddress(input: UpsertAddressInput): Promise<ClientAd
     organization_id: input.organizationId,
     label: input.label ?? null,
     address: input.address,
-    is_default: input.isDefault,
+    is_default: input.adHoc ? false : input.isDefault,
+    ...(input.adHoc && !input.id ? { archived_at: new Date().toISOString() } : {}),
   };
 
   const { data, error } = input.id
@@ -186,11 +192,38 @@ export async function upsertAddress(input: UpsertAddressInput): Promise<ClientAd
   return mapAddress(data);
 }
 
-/** Sterge o adresa de livrare. */
+/** Sterge fizic o adresa de livrare (vezi `removeAddress` pentru calea din UI). */
 export async function deleteAddress(id: string): Promise<void> {
   const supabase = await createClient();
   const { error } = await supabase.from("client_addresses").delete().eq("id", id);
   if (error) throw new Error("Nu am putut șterge adresa.");
+}
+
+/**
+ * "Sterge" o adresa din agenda (0046). Daca e deja folosita pe o comanda, doar o
+ * ARHIVEAZA (ascunsa din agenda si pickere, pastrata pe comenzile vechi - o stergere
+ * fizica le-ar goli adresa, `on delete set null`); altfel o sterge fizic.
+ * Intoarce ce s-a intamplat, pentru mesajul din UI.
+ */
+export async function removeAddress(id: string): Promise<"deleted" | "archived"> {
+  const supabase = await createClient();
+  const { count, error: usageError } = await supabase
+    .from("orders")
+    .select("id", { count: "exact", head: true })
+    .eq("delivery_address_id", id);
+  if (usageError) throw new Error("Nu am putut verifica folosirea adresei.");
+
+  if ((count ?? 0) > 0) {
+    const { error } = await supabase
+      .from("client_addresses")
+      .update({ archived_at: new Date().toISOString(), is_default: false })
+      .eq("id", id);
+    if (error) throw new Error("Nu am putut șterge adresa.");
+    return "archived";
+  }
+
+  await deleteAddress(id);
+  return "deleted";
 }
 
 /**

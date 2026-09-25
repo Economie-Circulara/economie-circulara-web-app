@@ -8,7 +8,12 @@ import { listIntakeItemOptions } from "@/features/orders/queries";
 import type { OrderLineInput } from "@/features/orders/types";
 import { splitAvailableLines } from "./cart-logic";
 import { listCatalogItems } from "./queries";
-import type { ClientOrderFormState } from "./action-state";
+import type { AddressFormState } from "@/features/clients/action-state";
+import { listClientAddresses } from "@/features/clients/queries";
+import { removeAddress, upsertAddress } from "@/features/clients/service";
+import { onOrderStatusChanged } from "@/features/orders/notifications";
+import type { ClientOrderFormState, ClientReceiptFormState } from "./action-state";
+import { confirmClientDeliveryReceipt } from "./delivery-receipt";
 
 function clean(value: FormDataEntryValue | null): string | null {
   const s = String(value ?? "").trim();
@@ -53,6 +58,52 @@ function unavailableLinesError(lines: OrderLineInput[], allowed: { id: string }[
   return unavailable.length > 0
     ? "Unele produse nu mai sunt disponibile (au fost scoase din catalog). Elimină-le și încearcă din nou."
     : null;
+}
+
+/** Valoarea optiunii "+ Adresă nouă…" din `DeliveryAddressField`. */
+const NEW_ADDRESS_VALUE = "__new__";
+
+/**
+ * Adresa de livrare/aport aleasa in portal (0046), rezolvata pe server:
+ * - "" -> fara adresa;
+ * - o adresa ACTIVA a clientului (inainte nu se verifica - orice id trecea);
+ * - "+ Adresă nouă…" -> o creeaza acum: in agenda (bifa "Salvează în adresele mele")
+ *   sau AD HOC (arhivata - doar pe aceasta comanda).
+ */
+async function resolveDeliveryAddress(
+  formData: FormData,
+  clientId: string,
+  organizationId: string,
+): Promise<{ addressId: string | null; error: string | null }> {
+  const choice = clean(formData.get("delivery_address_id"));
+  if (!choice) return { addressId: null, error: null };
+
+  if (choice === NEW_ADDRESS_VALUE) {
+    const address = clean(formData.get("new_address"));
+    if (!address) return { addressId: null, error: "Completează adresa nouă." };
+    try {
+      const created = await upsertAddress({
+        clientId,
+        organizationId,
+        label: clean(formData.get("new_address_label")),
+        address,
+        isDefault: false,
+        adHoc: formData.get("save_address") !== "on",
+      });
+      return { addressId: created.id, error: null };
+    } catch (err) {
+      return {
+        addressId: null,
+        error: err instanceof Error ? err.message : "Nu am putut salva adresa.",
+      };
+    }
+  }
+
+  const own = await listClientAddresses(clientId);
+  if (!own.some((a) => a.id === choice)) {
+    return { addressId: null, error: "Adresa aleasă nu mai este disponibilă. Alege alta." };
+  }
+  return { addressId: choice, error: null };
 }
 
 /**
@@ -107,6 +158,8 @@ export async function createClientOrderAction(
   }
   const unavailableError = unavailableLinesError(lines, await listCatalogItems());
   if (unavailableError) return { error: unavailableError, orderId: null };
+  const delivery = await resolveDeliveryAddress(formData, user.clientId, user.organizationId);
+  if (delivery.error) return { error: delivery.error, orderId: null };
 
   let orderId: string;
   try {
@@ -119,7 +172,7 @@ export async function createClientOrderAction(
       // separat, in afara scope-ului acestui task.
       orderType: "material",
       createdByAdmin: false,
-      deliveryAddressId: clean(formData.get("delivery_address_id")),
+      deliveryAddressId: delivery.addressId,
       deliveryDate: clean(formData.get("delivery_date")),
       notes: clean(formData.get("notes")),
       lines,
@@ -165,6 +218,8 @@ export async function createClientAportAction(
   }
   const unavailableError = unavailableLinesError(lines, await listIntakeItemOptions());
   if (unavailableError) return { error: unavailableError, orderId: null };
+  const delivery = await resolveDeliveryAddress(formData, user.clientId, user.organizationId);
+  if (delivery.error) return { error: delivery.error, orderId: null };
 
   let orderId: string;
   try {
@@ -173,7 +228,7 @@ export async function createClientAportAction(
       clientId: user.clientId,
       orderType: "aport",
       createdByAdmin: false,
-      deliveryAddressId: clean(formData.get("delivery_address_id")),
+      deliveryAddressId: delivery.addressId,
       deliveryDate: clean(formData.get("delivery_date")),
       notes: clean(formData.get("notes")),
       lines,
@@ -212,4 +267,110 @@ export async function deleteOwnDraftOrderAction(orderId: string): Promise<Delete
 
   revalidatePath("/comenzile-mele");
   redirect("/comenzile-mele");
+}
+
+/**
+ * Clientul confirma receptia livrarii comenzii proprii (cardul "Transport" din
+ * /comenzile-mele/[id], migrarea 0045). Legata cu `.bind(null, orderId)` in pagina.
+ * RPC-ul face autorizarea si tranzitia `accepted -> delivered` atomic; aici doar
+ * validam numele si trimitem emailul "Livrată" (ca la confirmarea facuta de staff,
+ * `deliveries/service.ts#confirmDeliveryReceipt`). Inchiderea ramane la staff.
+ */
+export async function confirmOwnDeliveryReceiptAction(
+  orderId: string,
+  _prev: ClientReceiptFormState,
+  formData: FormData,
+): Promise<ClientReceiptFormState> {
+  const user = await requireRole(["client"]);
+  const receivedByName = clean(formData.get("received_by_name"));
+  if (!receivedByName) {
+    return { error: "Completează numele persoanei care a primit marfa.", done: false };
+  }
+
+  try {
+    await confirmClientDeliveryReceipt(orderId, receivedByName, clean(formData.get("notes")));
+  } catch (err) {
+    return {
+      error: err instanceof Error ? err.message : "Nu am putut confirma recepția.",
+      done: false,
+    };
+  }
+
+  try {
+    await onOrderStatusChanged({
+      orderId,
+      organizationId: user.organizationId ?? "",
+      clientId: user.clientId ?? "",
+      fromStatus: "accepted",
+      toStatus: "delivered",
+    });
+  } catch (err) {
+    // Receptia e deja salvata - emailul nu trebuie sa anuleze confirmarea.
+    console.error(`[client-portal] notificarea "Livrată" a eșuat pentru ${orderId}:`, err);
+  }
+
+  revalidatePath("/comenzile-mele");
+  revalidatePath(`/comenzile-mele/${orderId}`);
+  return { error: null, done: true };
+}
+
+function revalidateAddressPages(): void {
+  revalidatePath("/adresele-mele");
+  revalidatePath("/catalog");
+  revalidatePath("/aport-nou");
+}
+
+/**
+ * Clientul isi adauga / editeaza o adresa in agenda (/adresele-mele, 0046). Firma si
+ * organizatia vin din sesiune, nu din formular; RLS (`client_addresses_client_*`,
+ * 0014/0016) impune oricum `client_id = app.client_id()`.
+ */
+export async function upsertOwnAddressAction(
+  _prev: AddressFormState,
+  formData: FormData,
+): Promise<AddressFormState> {
+  const user = await requireRole(["client"]);
+  if (!user.organizationId || !user.clientId) {
+    return { error: "Contul curent nu este asociat unei firme client." };
+  }
+  const address = clean(formData.get("address"));
+  if (!address) return { error: "Adresa este obligatorie." };
+
+  try {
+    await upsertAddress({
+      id: clean(formData.get("id")) ?? undefined,
+      clientId: user.clientId,
+      organizationId: user.organizationId,
+      label: clean(formData.get("label")),
+      address,
+      isDefault: formData.get("is_default") === "on",
+    });
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : "Nu am putut salva adresa." };
+  }
+
+  revalidateAddressPages();
+  return { error: null };
+}
+
+/**
+ * Clientul isi "sterge" o adresa din agenda: arhivata daca a fost folosita pe o
+ * comanda (istoricul ramane), stearsa fizic altfel - `removeAddress` (0046).
+ */
+export async function deleteOwnAddressAction(
+  _prev: AddressFormState,
+  formData: FormData,
+): Promise<AddressFormState> {
+  await requireRole(["client"]);
+  const id = clean(formData.get("id"));
+  if (!id) return { error: "Adresă invalidă." };
+
+  try {
+    await removeAddress(id);
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : "Nu am putut șterge adresa." };
+  }
+
+  revalidateAddressPages();
+  return { error: null };
 }

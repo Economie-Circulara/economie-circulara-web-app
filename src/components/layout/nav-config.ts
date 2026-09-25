@@ -28,7 +28,8 @@ export type NavIconName =
   | "assistant"
   | "users-admin"
   | "stations"
-  | "aport";
+  | "aport"
+  | "addresses";
 
 export interface NavItem {
   label: string;
@@ -137,6 +138,7 @@ export const CLIENT_NAV: NavItem[] = [
     icon: "documents",
     roles: ["client"],
   },
+  { label: "Adresele mele", href: "/adresele-mele", icon: "addresses", roles: ["client"] },
 ];
 
 /**

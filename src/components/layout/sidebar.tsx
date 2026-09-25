@@ -15,6 +15,7 @@ import {
   LayoutDashboard,
   LayoutGrid,
   MapPin,
+  MapPinHouse,
   Menu,
   Package,
   Recycle,
@@ -69,6 +70,7 @@ const NAV_ICONS: Record<NavIconName, LucideIcon> = {
   "users-admin": UserCog,
   stations: MapPin,
   aport: Recycle,
+  addresses: MapPinHouse,
 };
 
 export interface SidebarProps {

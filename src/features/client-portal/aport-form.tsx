@@ -12,6 +12,7 @@ import type { ClientAddress } from "@/features/clients/types";
 import type { ItemOption } from "@/features/items/types";
 import { initialClientOrderFormState } from "./action-state";
 import { createClientAportAction } from "./actions";
+import { DeliveryAddressField } from "./delivery-address-field";
 
 const selectClassName =
   "flex h-9 w-full rounded-md border border-input bg-card px-3 py-1 text-sm shadow-xs outline-none " +
@@ -179,25 +180,7 @@ export function AportForm({ items, addresses }: AportFormProps) {
           <CardTitle className="text-base">Detalii aport</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <FormField label="Adresă" hint="Opțional.">
-            {(id) => (
-              <select
-                id={id}
-                name="delivery_address_id"
-                defaultValue=""
-                className={selectClassName}
-              >
-                <option value="">Fără adresă precizată</option>
-                {addresses.map((address) => (
-                  <option key={address.id} value={address.id}>
-                    {address.label ? `${address.label} - ` : ""}
-                    {address.address}
-                    {address.isDefault ? " (implicită)" : ""}
-                  </option>
-                ))}
-              </select>
-            )}
-          </FormField>
+          <DeliveryAddressField addresses={addresses} label="Adresă" hint="Opțional." />
 
           <FormField label="Dată dorită" hint="Opțional - când poți aduce materialul.">
             {(id) => <Input id={id} name="delivery_date" type="date" />}

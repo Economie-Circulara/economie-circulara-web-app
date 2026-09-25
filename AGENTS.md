@@ -213,6 +213,13 @@ Testele unitare sunt **colocate** langa cod (`*.test.ts` / `*.test.tsx`).
   programata, transportator, vehicul, sofer, destinatie, cod UIT, receptie. Erorile
   e-Transport, ruta calculata, punctul de plecare si notele de receptie raman interne.
   Orice camp nou expus clientului se adauga in RPC, nu printr-o politica de SELECT.
+- **Clientul poate confirma RECEPTIA livrarii din portal, dar NU inchide comanda**
+  (decizie 2026-09-25, migrarea `0045`): RPC `client_confirm_delivery_receipt`
+  (security definer, comanda proprie `accepted`, livrare activa neconfirmata, nume
+  obligatoriu) scrie receptia (`received_via_portal = true`) si trece comanda in
+  `delivered` ATOMIC. Varianta staff (`/livrari/[id]`) ramane; cine confirma primul
+  castiga (DR003 la a doua confirmare). Inchiderea (-> `closed`) ramane la staff:
+  emite certificatul de trasabilitate, adica atestarea ORGANIZATIEI.
 - **O organizatie suspendata (`organizations.status = 'suspended'`) blocheaza
   accesul userilor ei** (admin/operator/client), pe DOUA linii: aplicatie
   (`middleware.ts` + `getCurrentUser`/`requireUser` din `session.ts` redirectioneaza
@@ -370,6 +377,14 @@ Testele unitare sunt **colocate** langa cod (`*.test.ts` / `*.test.tsx`).
     un item arhivat DEJA LIVRAT lui (exceptia de retur de mai sus) si nu verifica
     `sellable`. Pe o comanda de **aport** exceptia nu se aplica: item arhivat = AR001
     pentru orice rol (migrarea `0043`).
+  - **Adrese de livrare: arhivare, nu stergere, daca au istoric** (decizie
+    2026-09-25, migrarea `0046`, `client_addresses.archived_at`): "Sterge" pe o adresa
+    folosita deja pe o comanda o ARHIVEAZA (`removeAddress`, staff si client) - o
+    stergere fizica ar goli adresa din comenzile vechi (`on delete set null`). Tot
+    arhivata se creeaza si adresa **ad hoc** a clientului ("doar pentru această
+    comandă"). Pickerele si agenda filtreaza `archived_at is null`. Clientul isi
+    gestioneaza adresele din `/adresele-mele`; pe server, adresa aleasa in portal
+    trebuie sa fie una ACTIVA a clientului (`resolveDeliveryAddress`).
   - Loturi: **"Anulează lotul" doar daca nimic nu s-a consumat** si lotul e o
     intrare manuala (nu output de proces / retur / aport). Nu sterge nimic: scrie un
     eveniment de corectie `adjustment` (`-initial_qty`) in `stock_events`,

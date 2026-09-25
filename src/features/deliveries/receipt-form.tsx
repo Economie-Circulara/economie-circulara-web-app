@@ -13,6 +13,8 @@ export interface ReceiptFormProps {
   receivedAt: string | null;
   receivedByName: string | null;
   receiptNotes: string | null;
+  /** Receptia a fost confirmata de client din portal (0045), nu de staff. */
+  receivedViaPortal?: boolean;
 }
 
 const dateTimeFormatter = new Intl.DateTimeFormat("ro-RO", {
@@ -31,6 +33,7 @@ export function ReceiptForm({
   receivedAt,
   receivedByName,
   receiptNotes,
+  receivedViaPortal = false,
 }: ReceiptFormProps) {
   const [state, formAction, pending] = useActionState(
     confirmDeliveryReceiptAction,
@@ -40,7 +43,12 @@ export function ReceiptForm({
   if (receivedAt) {
     return (
       <div className="space-y-1 text-sm">
-        <Badge variant="ok">Recepționată</Badge>
+        <div className="flex flex-wrap items-center gap-2">
+          <Badge variant="ok">Recepționată</Badge>
+          {receivedViaPortal ? (
+            <span className="text-xs text-muted-foreground">confirmată de client în portal</span>
+          ) : null}
+        </div>
         <p>
           <span className="text-muted-foreground">Confirmat de: </span>
           {receivedByName ?? "-"}

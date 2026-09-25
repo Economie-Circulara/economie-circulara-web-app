@@ -20,6 +20,23 @@ vi.mock("./queries", () => ({ listCatalogItems }));
 const { listIntakeItemOptions } = vi.hoisted(() => ({ listIntakeItemOptions: vi.fn() }));
 vi.mock("@/features/orders/queries", () => ({ listIntakeItemOptions }));
 
+const { confirmClientDeliveryReceipt } = vi.hoisted(() => ({
+  confirmClientDeliveryReceipt: vi.fn(),
+}));
+vi.mock("./delivery-receipt", () => ({ confirmClientDeliveryReceipt }));
+
+const { onOrderStatusChanged } = vi.hoisted(() => ({ onOrderStatusChanged: vi.fn() }));
+vi.mock("@/features/orders/notifications", () => ({ onOrderStatusChanged }));
+
+const { listClientAddresses } = vi.hoisted(() => ({ listClientAddresses: vi.fn() }));
+vi.mock("@/features/clients/queries", () => ({ listClientAddresses }));
+
+const { upsertAddress, removeAddress } = vi.hoisted(() => ({
+  upsertAddress: vi.fn(),
+  removeAddress: vi.fn(),
+}));
+vi.mock("@/features/clients/service", () => ({ upsertAddress, removeAddress }));
+
 const { revalidatePath } = vi.hoisted(() => ({ revalidatePath: vi.fn() }));
 vi.mock("next/cache", () => ({ revalidatePath }));
 
@@ -30,11 +47,14 @@ const { redirect } = vi.hoisted(() => ({
 }));
 vi.mock("next/navigation", () => ({ redirect }));
 
-import { initialClientOrderFormState } from "./action-state";
+import { initialClientOrderFormState, initialClientReceiptFormState } from "./action-state";
 import {
+  confirmOwnDeliveryReceiptAction,
   createClientAportAction,
   createClientOrderAction,
+  deleteOwnAddressAction,
   deleteOwnDraftOrderAction,
+  upsertOwnAddressAction,
 } from "./actions";
 
 beforeEach(() => {
@@ -42,6 +62,8 @@ beforeEach(() => {
   const available = ["item-1", "item-2"].map((id) => ({ id }));
   listCatalogItems.mockResolvedValue(available);
   listIntakeItemOptions.mockResolvedValue(available);
+  // Adresa folosita in teste e o adresa activa a clientului.
+  listClientAddresses.mockResolvedValue([{ id: "addr-1" }]);
 });
 
 afterEach(() => {
@@ -327,5 +349,215 @@ describe("deleteOwnDraftOrderAction (migrarea 0035)", () => {
     const result = await deleteOwnDraftOrderAction("");
     expect(result.error).toMatch(/invalidă/);
     expect(deleteDraftOrder).not.toHaveBeenCalled();
+  });
+});
+
+describe("confirmOwnDeliveryReceiptAction (migrarea 0045)", () => {
+  it("cere numele persoanei, fara sa apeleze RPC-ul", async () => {
+    requireRole.mockResolvedValue(CLIENT_USER);
+
+    const state = await confirmOwnDeliveryReceiptAction(
+      "order-1",
+      initialClientReceiptFormState,
+      formData({ received_by_name: "  " }),
+    );
+
+    expect(state.error).toMatch(/numele/i);
+    expect(confirmClientDeliveryReceipt).not.toHaveBeenCalled();
+  });
+
+  it("confirma receptia prin RPC si trimite emailul 'Livrată'", async () => {
+    requireRole.mockResolvedValue(CLIENT_USER);
+    confirmClientDeliveryReceipt.mockResolvedValue(undefined);
+
+    const state = await confirmOwnDeliveryReceiptAction(
+      "order-1",
+      initialClientReceiptFormState,
+      formData({ received_by_name: " Maria Pop ", notes: "2 paleti deteriorati" }),
+    );
+
+    expect(requireRole).toHaveBeenCalledWith(["client"]);
+    expect(confirmClientDeliveryReceipt).toHaveBeenCalledWith(
+      "order-1",
+      "Maria Pop",
+      "2 paleti deteriorati",
+    );
+    expect(onOrderStatusChanged).toHaveBeenCalledWith({
+      orderId: "order-1",
+      organizationId: "org-1",
+      clientId: "client-1",
+      fromStatus: "accepted",
+      toStatus: "delivered",
+    });
+    expect(revalidatePath).toHaveBeenCalledWith("/comenzile-mele/order-1");
+    expect(state).toEqual({ error: null, done: true });
+  });
+
+  it("intoarce mesajul RPC-ului (ex. receptie deja confirmata), fara email", async () => {
+    requireRole.mockResolvedValue(CLIENT_USER);
+    confirmClientDeliveryReceipt.mockRejectedValueOnce(
+      new Error("Recepția acestei livrări a fost deja confirmată."),
+    );
+
+    const state = await confirmOwnDeliveryReceiptAction(
+      "order-1",
+      initialClientReceiptFormState,
+      formData({ received_by_name: "Maria Pop" }),
+    );
+
+    expect(state).toEqual({
+      error: "Recepția acestei livrări a fost deja confirmată.",
+      done: false,
+    });
+    expect(onOrderStatusChanged).not.toHaveBeenCalled();
+  });
+
+  it("o eroare la email nu anuleaza confirmarea deja salvata", async () => {
+    requireRole.mockResolvedValue(CLIENT_USER);
+    confirmClientDeliveryReceipt.mockResolvedValue(undefined);
+    onOrderStatusChanged.mockRejectedValueOnce(new Error("smtp down"));
+    const consoleError = vi.fn();
+    vi.stubGlobal("console", { ...console, error: consoleError });
+
+    const state = await confirmOwnDeliveryReceiptAction(
+      "order-1",
+      initialClientReceiptFormState,
+      formData({ received_by_name: "Maria Pop" }),
+    );
+
+    vi.unstubAllGlobals();
+    expect(state).toEqual({ error: null, done: true });
+    expect(consoleError).toHaveBeenCalled();
+  });
+});
+
+describe("adresa de livrare/aport din portal (0046)", () => {
+  const LINE = { item_id: "item-1", quantity: "1" };
+
+  it("respinge o adresa care nu e (sau nu mai e) a clientului, fara sa creeze comanda", async () => {
+    requireRole.mockResolvedValue(CLIENT_USER);
+
+    const state = await createClientOrderAction(
+      initialClientOrderFormState,
+      formData({ ...LINE, delivery_address_id: "addr-strain" }),
+    );
+
+    expect(listClientAddresses).toHaveBeenCalledWith("client-1");
+    expect(state.error).toMatch(/nu mai este disponibilă/);
+    expect(createOrderWithItems).not.toHaveBeenCalled();
+  });
+
+  it("adresa noua bifata 'Salvează' -> in agenda, apoi pe comanda", async () => {
+    requireRole.mockResolvedValue(CLIENT_USER);
+    upsertAddress.mockResolvedValue({ id: "addr-new" });
+    createOrderWithItems.mockResolvedValue({ id: "order-1" });
+    sendOrder.mockResolvedValue({ id: "order-1", status: "sent" });
+
+    await createClientOrderAction(
+      initialClientOrderFormState,
+      formData({
+        ...LINE,
+        delivery_address_id: "__new__",
+        new_address: " Str. Noua 5, Iași ",
+        new_address_label: "Șantier",
+        save_address: "on",
+      }),
+    );
+
+    expect(upsertAddress).toHaveBeenCalledWith({
+      clientId: "client-1",
+      organizationId: "org-1",
+      label: "Șantier",
+      address: "Str. Noua 5, Iași",
+      isDefault: false,
+      adHoc: false,
+    });
+    expect(createOrderWithItems).toHaveBeenCalledWith(
+      expect.objectContaining({ deliveryAddressId: "addr-new" }),
+    );
+  });
+
+  it("adresa noua nebifata -> ad hoc (doar pe aceasta cerere de aport)", async () => {
+    requireRole.mockResolvedValue(CLIENT_USER);
+    upsertAddress.mockResolvedValue({ id: "addr-adhoc" });
+    createOrderWithItems.mockResolvedValue({ id: "order-2" });
+    sendOrder.mockResolvedValue({ id: "order-2", status: "sent" });
+
+    await createClientAportAction(
+      initialClientOrderFormState,
+      formData({ ...LINE, delivery_address_id: "__new__", new_address: "Str. X 1" }),
+    );
+
+    expect(upsertAddress).toHaveBeenCalledWith(expect.objectContaining({ adHoc: true }));
+    expect(createOrderWithItems).toHaveBeenCalledWith(
+      expect.objectContaining({ orderType: "aport", deliveryAddressId: "addr-adhoc" }),
+    );
+  });
+
+  it("adresa noua goala -> eroare, nimic creat", async () => {
+    requireRole.mockResolvedValue(CLIENT_USER);
+
+    const state = await createClientOrderAction(
+      initialClientOrderFormState,
+      formData({ ...LINE, delivery_address_id: "__new__", new_address: "  " }),
+    );
+
+    expect(state.error).toMatch(/adresa nouă/);
+    expect(upsertAddress).not.toHaveBeenCalled();
+    expect(createOrderWithItems).not.toHaveBeenCalled();
+  });
+
+  it("fara adresa aleasa -> comanda fara adresa, fara verificari suplimentare", async () => {
+    requireRole.mockResolvedValue(CLIENT_USER);
+    createOrderWithItems.mockResolvedValue({ id: "order-3" });
+    sendOrder.mockResolvedValue({ id: "order-3", status: "sent" });
+
+    await createClientOrderAction(initialClientOrderFormState, formData(LINE));
+
+    expect(listClientAddresses).not.toHaveBeenCalled();
+    expect(createOrderWithItems).toHaveBeenCalledWith(
+      expect.objectContaining({ deliveryAddressId: null }),
+    );
+  });
+});
+
+describe("agenda de adrese a clientului (/adresele-mele, 0046)", () => {
+  it("salveaza adresa pe firma din sesiune (ignora client_id din formular)", async () => {
+    requireRole.mockResolvedValue(CLIENT_USER);
+    upsertAddress.mockResolvedValue({ id: "addr-1" });
+
+    const state = await upsertOwnAddressAction(
+      { error: null },
+      formData({ client_id: "alt-client", address: "Str. A 1", is_default: "on" }),
+    );
+
+    expect(requireRole).toHaveBeenCalledWith(["client"]);
+    expect(upsertAddress).toHaveBeenCalledWith({
+      id: undefined,
+      clientId: "client-1",
+      organizationId: "org-1",
+      label: null,
+      address: "Str. A 1",
+      isDefault: true,
+    });
+    expect(revalidatePath).toHaveBeenCalledWith("/adresele-mele");
+    expect(state.error).toBeNull();
+  });
+
+  it("adresa goala -> eroare", async () => {
+    requireRole.mockResolvedValue(CLIENT_USER);
+    const state = await upsertOwnAddressAction({ error: null }, formData({ address: " " }));
+    expect(state.error).toMatch(/obligatorie/);
+    expect(upsertAddress).not.toHaveBeenCalled();
+  });
+
+  it("stergerea trece prin removeAddress (arhivare daca e folosita pe comenzi)", async () => {
+    requireRole.mockResolvedValue(CLIENT_USER);
+    removeAddress.mockResolvedValue("archived");
+
+    const state = await deleteOwnAddressAction({ error: null }, formData({ id: "addr-1" }));
+
+    expect(removeAddress).toHaveBeenCalledWith("addr-1");
+    expect(state.error).toBeNull();
   });
 });
