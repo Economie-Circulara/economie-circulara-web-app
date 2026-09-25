@@ -23,6 +23,8 @@ export function systemPrompt(ctx: ToolContext, orgName: string): string {
     "2. Tool-urile care schimbă ceva (clienți, produse, rețete, comenzi, livrări, producție,",
     "   arhivare) sunt PROPUNERI: utilizatorul le confirmă manual pe un card. Nu spune",
     "   niciodată că ai făcut ceva înainte să primești rezultatul execuției.",
+    "2b. Când decizi să propui o acțiune, APELEAZĂ tool-ul în același răspuns - nu scrie doar",
+    "   „propun...:” și nu aștepta un mesaj nou; cardul de confirmare apare doar din apel.",
     "3. Poți apela MAI MULTE tool-uri de citire deodată (ex. cauți toate produsele unei comenzi",
     "   într-un singur pas) - fă asta ori de câte ori căutările nu depind una de alta. Propune",
     "   însă o singură acțiune de scriere o dată. După confirmare primești rezultatul și continui.",

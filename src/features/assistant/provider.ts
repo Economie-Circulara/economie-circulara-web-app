@@ -59,12 +59,31 @@ export interface ChatProvider {
   complete(input: { messages: ChatMessage[]; tools: ToolDefinition[] }): Promise<ChatCompletion>;
 }
 
-/** Furnizorul nu e configurat sau a raspuns cu eroare - mesaj afisabil utilizatorului. */
+/**
+ * Furnizorul nu e configurat sau a raspuns cu eroare. `message` e textul AFISAT
+ * utilizatorului (romana, fara jargon); `detail` e eroarea bruta a furnizorului
+ * (ex. „The reasoning_content in the thinking mode must be passed back...”) - doar
+ * pentru log, nu ajunge in chat.
+ */
 export class ChatProviderError extends Error {
-  constructor(message: string) {
+  constructor(
+    message: string,
+    readonly detail: string | null = null,
+  ) {
     super(message);
     this.name = "ChatProviderError";
   }
+}
+
+/** Mesajul pentru utilizator, dupa statusul HTTP al furnizorului. */
+export function providerErrorMessage(status: number): string {
+  if (status === 429) {
+    return "Furnizorul AI e suprasolicitat momentan. Încearcă din nou peste câteva secunde.";
+  }
+  if (status === 401 || status === 403) {
+    return "Asistentul nu se poate conecta la furnizorul AI (cheie invalidă). Anunță administratorul.";
+  }
+  return "Furnizorul AI a răspuns cu o eroare. Încearcă din nou; dacă se repetă, anunță administratorul.";
 }
 
 const MOCK_INTRO =
@@ -177,7 +196,14 @@ export class OpenAiCompatibleProvider implements ChatProvider {
               }
             : {}),
           ...(message.toolCallId ? { tool_call_id: message.toolCallId } : {}),
-          ...(message.reasoningContent ? { reasoning_content: message.reasoningContent } : {}),
+          ...(message.reasoningContent
+            ? { reasoning_content: message.reasoningContent }
+            : // Plasa de siguranta: in thinking mode DeepSeek respinge (400) un mesaj
+              // assistant cu tool_calls fara `reasoning_content` - ex. o propunere
+              // salvata cand thinking era oprit, continuata dupa ce a fost pornit.
+              thinking && message.role === "assistant" && message.toolCalls?.length
+              ? { reasoning_content: "" }
+              : {}),
         })),
         ...(tools.length
           ? {
@@ -202,9 +228,9 @@ export class OpenAiCompatibleProvider implements ChatProvider {
     const payload = (await response.json().catch(() => null)) as OpenAiResponse | null;
 
     if (!response.ok || !payload) {
-      throw new ChatProviderError(
-        payload?.error?.message ?? `Furnizorul AI a răspuns cu eroare (${response.status}).`,
-      );
+      const detail = payload?.error?.message ?? `HTTP ${response.status}`;
+      console.error(`[asistent] eroare furnizor AI (${response.status}): ${detail}`);
+      throw new ChatProviderError(providerErrorMessage(response.status), detail);
     }
 
     const message = payload.choices?.[0]?.message;

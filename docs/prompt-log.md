@@ -4,6 +4,16 @@ Jurnal al sarcinilor lucrate de agenti AI in acest repo. Conform regulii 1.2 din
 [`AGENTS.md`](../AGENTS.md), la **fiecare commit** se adauga o intrare aici.
 Cele mai noi intrari sus.
 
+## 2026-09-25 — Claude Opus 5.5 (Claude Code) — Asistent AI: fix continuare DeepSeek + actiuni anuntate
+
+- **Cerut:** doua probleme raportate: cardul aparea abia dupa un mesaj in plus („Propun
+  crearea clientului:” fara apel), iar dupa confirmare apărea eroarea bruta DeepSeek
+  despre `reasoning_content`.
+- **Facut:** continuarea trimite un singur mesaj assistant (cu CoT) dupa ultimul user;
+  `reasoning_content` gol ca plasa de siguranta; erorile furnizorului au mesaj in romana
+  (brutul doar in log); impuls unic cand modelul anunta o actiune fara apel. Plan:
+  `docs/plans/asistent-fix-continuare-deepseek.md`.
+
 ## 2026-09-24 — Claude Opus 5.5 (Claude Code) — Asistent AI: actiuni noi cu card de confirmare
 
 - **Cerut:** carduri de actiune si pentru editare client, acceptare/anulare comenzi,

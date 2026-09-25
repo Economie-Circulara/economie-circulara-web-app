@@ -143,7 +143,29 @@ interface ConverseOutcome {
   pendingAction: PendingAction | null;
   /** Ce s-a gasit prin tool-urile de citire - salvat intre ture (`facts.ts`). */
   facts: ToolFact[];
+  /** Furnizorul AI a raspuns cu eroare - `reply` e mesajul afisabil al erorii. */
+  providerFailed?: boolean;
 }
+
+/**
+ * Modelele (DeepSeek in special) incheie uneori runda ANUNTAND o actiune
+ * („Propun mai întâi crearea clientului:”) fara sa apeleze tool-ul - utilizatorul
+ * trebuia sa scrie inca un mesaj ca sa apara cardul. Recunoastem anuntul (text care
+ * se termina in „:” sau care spune ca propune/pregateste ceva, fara sa intrebe) si
+ * cerem o singura data, in aceeasi tura, apelul efectiv.
+ */
+export function looksLikeAnnouncedAction(text: string): boolean {
+  const trimmed = text.trim();
+  if (!trimmed || trimmed.includes("?")) return false;
+  if (trimmed.endsWith(":")) return true;
+  return /\b(propun|pregătesc|pregatesc|voi propune|voi crea|creez acum)\b/i.test(
+    trimmed.slice(-200),
+  );
+}
+
+const ANNOUNCED_ACTION_NUDGE =
+  "Ai anunțat o acțiune, dar nu ai apelat tool-ul. Apelează-l acum, în acest răspuns " +
+  "(utilizatorul o confirmă pe card). Dacă îți lipsește o informație, întreab-o direct.";
 
 /**
  * Bucla model <-> tool-uri, pana la un raspuns final sau la o propunere de scriere.
@@ -162,6 +184,11 @@ async function converse(input: {
   const { id, ctx, provider } = input;
   const messages = [...input.messages];
   const facts: ToolFact[] = [];
+  let nudged = false;
+  /** Textul anuntului (daca a fost nevoie de impuls) - pastrat in raspunsul final. */
+  let announced: string | null = null;
+  const withAnnouncement = (reply: string) =>
+    announced && !reply.includes(announced) ? `${announced}\n\n${reply}` : reply;
 
   for (let step = 0; step < MAX_STEPS; step++) {
     let completion;
@@ -169,7 +196,7 @@ async function converse(input: {
       completion = await provider.complete({ messages, tools: toolDefinitions(ctx.role) });
     } catch (err) {
       if (err instanceof ChatProviderError) {
-        return { reply: err.message, pendingAction: null, facts };
+        return { reply: err.message, pendingAction: null, facts, providerFailed: true };
       }
       throw err;
     }
@@ -182,8 +209,19 @@ async function converse(input: {
 
     const calls = completion.toolCalls;
     if (calls.length === 0) {
+      if (!nudged && looksLikeAnnouncedAction(completion.content)) {
+        nudged = true;
+        announced = completion.content.trim();
+        messages.push({
+          role: "assistant",
+          content: completion.content,
+          reasoningContent: completion.reasoningContent,
+        });
+        messages.push({ role: "user", content: ANNOUNCED_ACTION_NUDGE });
+        continue;
+      }
       return {
-        reply: completion.content.trim() || "Nu am un răspuns pentru asta.",
+        reply: withAnnouncement(completion.content.trim() || "Nu am un răspuns pentru asta."),
         pendingAction: null,
         facts,
       };
@@ -213,9 +251,10 @@ async function converse(input: {
         reasoningContent: completion.reasoningContent,
       });
       return {
-        reply:
+        reply: withAnnouncement(
           completion.content.trim() ||
-          "Am pregătit acțiunea de mai jos. Verific-o și confirm-o ca să o execut.",
+            "Am pregătit acțiunea de mai jos. Verific-o și confirm-o ca să o execut.",
+        ),
         pendingAction: await pendingActionFrom(tool, parsed, toolCallId, ctx),
         facts,
       };
@@ -329,10 +368,24 @@ async function messagesForContinuation(input: {
     arguments: JSON.stringify(input.args),
   };
 
+  // Istoricul persistat se termina cu raspunsul-text al propunerii („Am pregătit
+  // acțiunea...”), salvat DUPA ultimul mesaj al utilizatorului. Il scoatem si il
+  // punem ca text pe mesajul assistant(tool_calls): in thinking mode DeepSeek cere
+  // `reasoning_content` pe FIECARE mesaj assistant de dupa ultimul mesaj user, iar
+  // raspunsul-text nu il avea -> 400 „reasoning_content ... must be passed back”.
+  const previous = historyToMessages(history);
+  const trailing: string[] = [];
+  while (previous.length > 0 && previous[previous.length - 1].role === "assistant") {
+    trailing.unshift(previous.pop()!.content);
+  }
+
   return [
     { role: "system", content: systemPrompt(input.ctx, org?.name ?? PLATFORM_NAME) },
-    ...historyToMessages(history),
-    assistantCallMessage([call], input.reasoningContent ?? undefined),
+    ...previous,
+    {
+      ...assistantCallMessage([call], input.reasoningContent ?? undefined),
+      content: trailing.join("\n\n"),
+    },
     toolResultMessage(input.toolCallId, input.result),
   ];
 }
@@ -455,7 +508,12 @@ export async function confirmAction(input: {
           provider,
           messages: continuationMessages,
         });
-        if (continuation.reply.trim()) reply = `${reply}\n\n${continuation.reply.trim()}`;
+        if (continuation.providerFailed) {
+          // Actiunea S-A executat - nu amestecam eroarea furnizorului in confirmare.
+          reply = `${reply}\n\nNu am putut continua automat cu pasul următor. Scrie-mi „continuă” și reiau de aici.`;
+        } else if (continuation.reply.trim()) {
+          reply = `${reply}\n\n${continuation.reply.trim()}`;
+        }
         pendingAction = continuation.pendingAction;
         facts.push(...continuation.facts);
       } catch {

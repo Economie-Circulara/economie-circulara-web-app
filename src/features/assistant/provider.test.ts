@@ -159,6 +159,56 @@ describe("OpenAiCompatibleProvider", () => {
 
     await expect(provider.complete({ messages: [], tools: [] })).rejects.toThrow(ChatProviderError);
   });
+
+  it("mesajul afisat e in romana; eroarea bruta a furnizorului ramane doar in `detail`", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 400,
+        json: async () => ({
+          error: { message: "The reasoning_content in the thinking mode must be passed back" },
+        }),
+      }),
+    );
+    vi.stubGlobal("console", { ...console, error: vi.fn() });
+    const provider = new OpenAiCompatibleProvider("https://api.deepseek.com", "k", "m", true);
+
+    const error = await provider.complete({ messages: [], tools: [] }).catch((err) => err);
+
+    expect(error).toBeInstanceOf(ChatProviderError);
+    expect(error.message).not.toMatch(/reasoning_content/);
+    expect(error.message).toMatch(/Furnizorul AI/);
+    expect(error.detail).toMatch(/reasoning_content/);
+  });
+
+  it("thinking activ: un mesaj assistant cu tool_calls fara CoT primeste reasoning_content gol", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ choices: [{ message: { content: "ok" } }] }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    const call = { id: "t1", name: "cauta", arguments: "{}" };
+    const messages = [
+      { role: "user" as const, content: "x" },
+      { role: "assistant" as const, content: "", toolCalls: [call] },
+      { role: "tool" as const, content: "{}", toolCallId: "t1" },
+    ];
+
+    await new OpenAiCompatibleProvider("https://api.deepseek.com", "k", "m", true).complete({
+      messages,
+      tools: TOOLS,
+    });
+    await new OpenAiCompatibleProvider("https://api.deepseek.com", "k", "m").complete({
+      messages,
+      tools: TOOLS,
+    });
+
+    const bodyOf = (index: number) =>
+      JSON.parse((fetchMock.mock.calls[index][1] as { body: string }).body);
+    expect(bodyOf(0).messages[1].reasoning_content).toBe("");
+    expect(bodyOf(1).messages[1]).not.toHaveProperty("reasoning_content");
+  });
 });
 
 describe("MockChatProvider", () => {
