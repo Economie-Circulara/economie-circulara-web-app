@@ -4,6 +4,17 @@ Jurnal al sarcinilor lucrate de agenti AI in acest repo. Conform regulii 1.2 din
 [`AGENTS.md`](../AGENTS.md), la **fiecare commit** se adauga o intrare aici.
 Cele mai noi intrari sus.
 
+## 2026-09-25 — Claude Opus 5.5 (Claude Code) — Portal client: confirmarea receptiei livrarii
+
+- **Cerut:** clientul sa poata confirma receptia livrarii (inchiderea comenzii ramane la
+  staff, dupa discutie - emite certificatul organizatiei). PR nou.
+- **Facut:** migrarea 0045 - `deliveries.received_via_portal` + RPC
+  `client_confirm_delivery_receipt` (security definer, atomic: receptie + `delivered`,
+  coduri DR001-DR004); `confirmOwnDeliveryReceiptAction` + formular in cardul "Transport"
+  (email "Livrată"); staff vede "confirmată de client în portal"; teste unitare + B28
+  (suitele SQL rulate pe Postgres local: trec); plan `docs/plans/client-confirma-receptia.md`,
+  manual, AGENTS.md.
+
 ## 2026-09-25 — Claude Opus 5.5 (Claude Code) — Retur/garantie din portal trimise + notificari aport/retur
 
 - **Cerut:** rezolvarea celor 3 inconsistente gasite: retur/garantie din portal raman

@@ -8,7 +8,9 @@ import { listIntakeItemOptions } from "@/features/orders/queries";
 import type { OrderLineInput } from "@/features/orders/types";
 import { splitAvailableLines } from "./cart-logic";
 import { listCatalogItems } from "./queries";
-import type { ClientOrderFormState } from "./action-state";
+import { onOrderStatusChanged } from "@/features/orders/notifications";
+import type { ClientOrderFormState, ClientReceiptFormState } from "./action-state";
+import { confirmClientDeliveryReceipt } from "./delivery-receipt";
 
 function clean(value: FormDataEntryValue | null): string | null {
   const s = String(value ?? "").trim();
@@ -212,4 +214,49 @@ export async function deleteOwnDraftOrderAction(orderId: string): Promise<Delete
 
   revalidatePath("/comenzile-mele");
   redirect("/comenzile-mele");
+}
+
+/**
+ * Clientul confirma receptia livrarii comenzii proprii (cardul "Transport" din
+ * /comenzile-mele/[id], migrarea 0045). Legata cu `.bind(null, orderId)` in pagina.
+ * RPC-ul face autorizarea si tranzitia `accepted -> delivered` atomic; aici doar
+ * validam numele si trimitem emailul "Livrată" (ca la confirmarea facuta de staff,
+ * `deliveries/service.ts#confirmDeliveryReceipt`). Inchiderea ramane la staff.
+ */
+export async function confirmOwnDeliveryReceiptAction(
+  orderId: string,
+  _prev: ClientReceiptFormState,
+  formData: FormData,
+): Promise<ClientReceiptFormState> {
+  const user = await requireRole(["client"]);
+  const receivedByName = clean(formData.get("received_by_name"));
+  if (!receivedByName) {
+    return { error: "Completează numele persoanei care a primit marfa.", done: false };
+  }
+
+  try {
+    await confirmClientDeliveryReceipt(orderId, receivedByName, clean(formData.get("notes")));
+  } catch (err) {
+    return {
+      error: err instanceof Error ? err.message : "Nu am putut confirma recepția.",
+      done: false,
+    };
+  }
+
+  try {
+    await onOrderStatusChanged({
+      orderId,
+      organizationId: user.organizationId ?? "",
+      clientId: user.clientId ?? "",
+      fromStatus: "accepted",
+      toStatus: "delivered",
+    });
+  } catch (err) {
+    // Receptia e deja salvata - emailul nu trebuie sa anuleze confirmarea.
+    console.error(`[client-portal] notificarea "Livrată" a eșuat pentru ${orderId}:`, err);
+  }
+
+  revalidatePath("/comenzile-mele");
+  revalidatePath(`/comenzile-mele/${orderId}`);
+  return { error: null, done: true };
 }

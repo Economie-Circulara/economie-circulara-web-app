@@ -1,5 +1,5 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { ClientDeliveryCard } from "./client-delivery-card";
 import type { ClientOrderDelivery } from "./types";
 
@@ -44,5 +44,30 @@ describe("ClientDeliveryCard", () => {
     );
     expect(screen.getByText("UIT123")).toBeInTheDocument();
     expect(screen.getByText(/confirmată de Maria Pop/)).toBeInTheDocument();
+  });
+});
+
+describe("ClientDeliveryCard - confirmarea receptiei (0045)", () => {
+  const action = vi.fn();
+
+  it("arata formularul cand primeste actiunea si receptia nu e confirmata", () => {
+    render(<ClientDeliveryCard delivery={delivery()} confirmAction={action} />);
+    expect(screen.getByRole("button", { name: "Confirmă recepția" })).toBeInTheDocument();
+    expect(screen.getByLabelText(/Primit de/)).toBeInTheDocument();
+  });
+
+  it("fara actiune (comanda nu e confirmata) - fara formular", () => {
+    render(<ClientDeliveryCard delivery={delivery()} />);
+    expect(screen.queryByRole("button", { name: "Confirmă recepția" })).not.toBeInTheDocument();
+  });
+
+  it("receptie deja confirmata - fara formular, chiar daca primeste actiunea", () => {
+    render(
+      <ClientDeliveryCard
+        delivery={delivery({ receivedAt: "2026-10-04T10:00:00Z", receivedByName: "Maria" })}
+        confirmAction={action}
+      />,
+    );
+    expect(screen.queryByRole("button", { name: "Confirmă recepția" })).not.toBeInTheDocument();
   });
 });

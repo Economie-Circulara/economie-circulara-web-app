@@ -1224,4 +1224,98 @@ begin;
   from public.orders where id = 'eeee0000-0000-0000-0000-00000000ee22';
 rollback;
 
+-- ===========================================================================
+-- B28: clientul confirma receptia livrarii din portal (0045) - atomic: receptie
+--      + comanda `delivered`; nu de doua ori (DR003), nu pe comanda altui client
+--      (DR001), nu pe o comanda neconfirmata (DR002), nu fara nume (DR004).
+-- ===========================================================================
+begin;
+  set local role authenticated;
+  set local request.jwt.claims = '{"sub":"b0000000-0000-0000-0000-0000000000b1"}';
+
+  insert into public.clients (id, organization_id, cui, name)
+  values ('cccc0000-0000-0000-0000-0000000000ca', :org, 'RO998', 'Alt client B28');
+  insert into public.orders (id, organization_id, client_id, order_type, status, created_by)
+  values
+    ('eeee0000-0000-0000-0000-00000000ee23', :org, :client_demo, 'material', 'accepted',
+     'b0000000-0000-0000-0000-0000000000b1'),
+    ('eeee0000-0000-0000-0000-00000000ee24', :org, 'cccc0000-0000-0000-0000-0000000000ca',
+     'material', 'accepted', 'b0000000-0000-0000-0000-0000000000b1'),
+    ('eeee0000-0000-0000-0000-00000000ee25', :org, :client_demo, 'material', 'sent',
+     'b0000000-0000-0000-0000-0000000000b1');
+  insert into public.deliveries (id, organization_id, order_id, scheduled_date, carrier_name,
+    vehicle_plate, driver_name, route_origin, route_destination)
+  values
+    ('dddd0000-0000-0000-0000-00000000dd06', :org, 'eeee0000-0000-0000-0000-00000000ee23',
+     current_date, 'Fan Courier', 'B-33-GRD', 'Ionel', 'Depozit', 'Santier'),
+    ('dddd0000-0000-0000-0000-00000000dd07', :org, 'eeee0000-0000-0000-0000-00000000ee24',
+     current_date, 'Alt', 'B-44-XYZ', 'Vasile', 'Depozit', 'Alt santier'),
+    ('dddd0000-0000-0000-0000-00000000dd08', :org, 'eeee0000-0000-0000-0000-00000000ee25',
+     current_date, 'Alt', 'B-55-XYZ', 'Gheorghe', 'Depozit', 'Santier');
+
+  set local request.jwt.claims = '{"sub":"b0000000-0000-0000-0000-0000000000b3"}';
+
+  do $$
+  begin
+    begin
+      perform public.client_confirm_delivery_receipt(
+        'eeee0000-0000-0000-0000-00000000ee23'::uuid, '   ', null);
+      raise exception 'FAIL: B28 confirmare fara nume acceptata';
+    exception
+      when sqlstate 'DR004' then raise notice 'PASS: B28 nume obligatoriu (DR004)';
+    end;
+  end $$;
+
+  select public.client_confirm_delivery_receipt(
+    'eeee0000-0000-0000-0000-00000000ee23', ' Maria Pop ', 'ok');
+
+  set local request.jwt.claims = '{"sub":"b0000000-0000-0000-0000-0000000000b1"}';
+  select pg_temp.assert_eq('B28 receptie salvata (nume, portal)',
+    received_by_name || '|' || received_via_portal::text || '|' || (received_at is not null)::text,
+    'Maria Pop|true|true')
+  from public.deliveries where id = 'dddd0000-0000-0000-0000-00000000dd06';
+  select pg_temp.assert_eq('B28 comanda trece in delivered',
+    status::text || '|' || (delivered_at is not null)::text, 'delivered|true')
+  from public.orders where id = 'eeee0000-0000-0000-0000-00000000ee23';
+
+  set local request.jwt.claims = '{"sub":"b0000000-0000-0000-0000-0000000000b3"}';
+  do $$
+  begin
+    begin
+      perform public.client_confirm_delivery_receipt(
+        'eeee0000-0000-0000-0000-00000000ee23'::uuid, 'Maria Pop', null);
+      raise exception 'FAIL: B28 receptie confirmata de doua ori';
+    exception
+      when sqlstate 'DR003' then raise notice 'PASS: B28 a doua confirmare respinsa (DR003)';
+    end;
+    begin
+      perform public.client_confirm_delivery_receipt(
+        'eeee0000-0000-0000-0000-00000000ee24'::uuid, 'Maria Pop', null);
+      raise exception 'FAIL: B28 clientul a confirmat livrarea altui client';
+    exception
+      when sqlstate 'DR001' then raise notice 'PASS: B28 comanda altui client respinsa (DR001)';
+    end;
+    begin
+      perform public.client_confirm_delivery_receipt(
+        'eeee0000-0000-0000-0000-00000000ee25'::uuid, 'Maria Pop', null);
+      raise exception 'FAIL: B28 receptie pe comanda neconfirmata';
+    exception
+      when sqlstate 'DR002' then raise notice 'PASS: B28 comanda neconfirmata respinsa (DR002)';
+    end;
+  end $$;
+
+  -- staff-ul nu foloseste RPC-ul clientului (are ecranul /livrari)
+  set local request.jwt.claims = '{"sub":"b0000000-0000-0000-0000-0000000000b1"}';
+  do $$
+  begin
+    begin
+      perform public.client_confirm_delivery_receipt(
+        'eeee0000-0000-0000-0000-00000000ee25'::uuid, 'Admin', null);
+      raise exception 'FAIL: B28 staff-ul a folosit RPC-ul clientului';
+    exception
+      when sqlstate 'DR001' then raise notice 'PASS: B28 RPC-ul refuza staff-ul (DR001)';
+    end;
+  end $$;
+rollback;
+
 select '*** TOATE TESTELE FUNCTIONALE DE BUSINESS AU TRECUT ***' as result;

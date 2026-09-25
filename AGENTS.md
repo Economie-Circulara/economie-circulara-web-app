@@ -213,6 +213,13 @@ Testele unitare sunt **colocate** langa cod (`*.test.ts` / `*.test.tsx`).
   programata, transportator, vehicul, sofer, destinatie, cod UIT, receptie. Erorile
   e-Transport, ruta calculata, punctul de plecare si notele de receptie raman interne.
   Orice camp nou expus clientului se adauga in RPC, nu printr-o politica de SELECT.
+- **Clientul poate confirma RECEPTIA livrarii din portal, dar NU inchide comanda**
+  (decizie 2026-09-25, migrarea `0045`): RPC `client_confirm_delivery_receipt`
+  (security definer, comanda proprie `accepted`, livrare activa neconfirmata, nume
+  obligatoriu) scrie receptia (`received_via_portal = true`) si trece comanda in
+  `delivered` ATOMIC. Varianta staff (`/livrari/[id]`) ramane; cine confirma primul
+  castiga (DR003 la a doua confirmare). Inchiderea (-> `closed`) ramane la staff:
+  emite certificatul de trasabilitate, adica atestarea ORGANIZATIEI.
 - **O organizatie suspendata (`organizations.status = 'suspended'`) blocheaza
   accesul userilor ei** (admin/operator/client), pe DOUA linii: aplicatie
   (`middleware.ts` + `getCurrentUser`/`requireUser` din `session.ts` redirectioneaza

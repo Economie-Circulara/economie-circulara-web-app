@@ -202,7 +202,12 @@ function deliveryDetail(overrides: Partial<DeliveryDetail> = {}): DeliveryDetail
       selection: null,
       computedAt: null,
     },
-    receipt: { receivedAt: null, receivedByName: null, receiptNotes: null },
+    receipt: {
+      receivedAt: null,
+      receivedByName: null,
+      receiptNotes: null,
+      receivedViaPortal: false,
+    },
     createdAt: "2026-07-01T00:00:00.000Z",
     updatedAt: "2026-07-01T00:00:00.000Z",
     orderNumber: "CMD-2026-0001",
