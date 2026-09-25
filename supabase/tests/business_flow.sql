@@ -1318,4 +1318,45 @@ begin;
   end $$;
 rollback;
 
+-- ===========================================================================
+-- B29: agenda de adrese a clientului (0046) - clientul isi adauga adrese, nu poate
+--      scrie adresa altui client, iar o adresa arhivata (ad hoc / stearsa dupa
+--      folosire) ramane vizibila pe comanda care o foloseste.
+-- ===========================================================================
+begin;
+  set local role authenticated;
+  set local request.jwt.claims = '{"sub":"b0000000-0000-0000-0000-0000000000b1"}';
+  insert into public.clients (id, organization_id, cui, name)
+  values ('cccc0000-0000-0000-0000-0000000000cb', :org, 'RO997', 'Alt client B29');
+
+  set local request.jwt.claims = '{"sub":"b0000000-0000-0000-0000-0000000000b3"}';
+  insert into public.client_addresses (id, organization_id, client_id, label, address, archived_at)
+  values ('aaaa0000-0000-0000-0000-0000000000a9', :org, :client_demo, 'Ad hoc',
+          'Santier temporar, Str. X 3', now());
+  select pg_temp.assert_num('B29 clientul isi adauga adresa (ad hoc, arhivata)', count(*), 1)
+  from public.client_addresses where id = 'aaaa0000-0000-0000-0000-0000000000a9';
+
+  do $$
+  begin
+    begin
+      insert into public.client_addresses (organization_id, client_id, address)
+      values ('a0000000-0000-0000-0000-0000000000a1', 'cccc0000-0000-0000-0000-0000000000cb',
+              'Adresa altui client');
+      raise exception 'FAIL: B29 clientul a scris adresa altui client';
+    exception
+      when insufficient_privilege then
+        raise notice 'PASS: B29 adresa altui client respinsa (RLS)';
+    end;
+  end $$;
+
+  insert into public.orders (id, organization_id, client_id, order_type, status, created_by,
+    delivery_address_id)
+  values ('eeee0000-0000-0000-0000-00000000ee26', :org, :client_demo, 'material', 'draft',
+          'b0000000-0000-0000-0000-0000000000b3', 'aaaa0000-0000-0000-0000-0000000000a9');
+  select pg_temp.assert_eq('B29 comanda afiseaza adresa arhivata', a.address,
+    'Santier temporar, Str. X 3')
+  from public.orders o join public.client_addresses a on a.id = o.delivery_address_id
+  where o.id = 'eeee0000-0000-0000-0000-00000000ee26';
+rollback;
+
 select '*** TOATE TESTELE FUNCTIONALE DE BUSINESS AU TRECUT ***' as result;

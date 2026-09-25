@@ -287,6 +287,7 @@ export type Database = {
       client_addresses: {
         Row: {
           address: string
+          archived_at: string | null
           client_id: string
           county: string | null
           county_code: string | null
@@ -306,6 +307,7 @@ export type Database = {
         }
         Insert: {
           address: string
+          archived_at?: string | null
           client_id: string
           county?: string | null
           county_code?: string | null
@@ -325,6 +327,7 @@ export type Database = {
         }
         Update: {
           address?: string
+          archived_at?: string | null
           client_id?: string
           county?: string | null
           county_code?: string | null
@@ -361,7 +364,7 @@ export type Database = {
       }
       clients: {
         Row: {
-          archived_at: string | null
+          archived_at?: string | null
           archived_by: string | null
           contact_person: string | null
           created_at: string

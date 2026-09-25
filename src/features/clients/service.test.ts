@@ -7,6 +7,7 @@ import {
   DuplicateCuiError,
   createClientRecord,
   deleteAddress,
+  removeAddress,
   updateClientRecord,
   upsertAddress,
 } from "./service";
@@ -225,5 +226,65 @@ describe("deleteAddress", () => {
     createClient.mockResolvedValue({ from: vi.fn().mockReturnValue({ delete: del }) });
 
     await expect(deleteAddress("addr-1")).rejects.toThrow("Nu am putut șterge adresa.");
+  });
+});
+
+describe("removeAddress (0046)", () => {
+  function mockFrom(usageCount: number) {
+    const usageEq = vi.fn().mockResolvedValue({ count: usageCount, error: null });
+    const usageSelect = vi.fn().mockReturnValue({ eq: usageEq });
+    const updateEq = vi.fn().mockResolvedValue({ error: null });
+    const update = vi.fn().mockReturnValue({ eq: updateEq });
+    const deleteEq = vi.fn().mockResolvedValue({ error: null });
+    const del = vi.fn().mockReturnValue({ eq: deleteEq });
+    const from = vi.fn((table: string) =>
+      table === "orders" ? { select: usageSelect } : { update, delete: del },
+    );
+    createClient.mockResolvedValue({ from });
+    return { usageEq, update, del };
+  }
+
+  it("adresa folosita pe o comanda -> arhivata, nu stearsa (istoricul comenzii ramane)", async () => {
+    const { usageEq, update, del } = mockFrom(2);
+
+    await expect(removeAddress("addr-1")).resolves.toBe("archived");
+
+    expect(usageEq).toHaveBeenCalledWith("delivery_address_id", "addr-1");
+    expect(update).toHaveBeenCalledWith(
+      expect.objectContaining({ archived_at: expect.any(String), is_default: false }),
+    );
+    expect(del).not.toHaveBeenCalled();
+  });
+
+  it("adresa nefolosita -> stearsa fizic", async () => {
+    const { update, del } = mockFrom(0);
+
+    await expect(removeAddress("addr-1")).resolves.toBe("deleted");
+
+    expect(del).toHaveBeenCalled();
+    expect(update).not.toHaveBeenCalled();
+  });
+});
+
+describe("upsertAddress - adresa ad hoc (0046)", () => {
+  it("se creeaza direct arhivata, niciodata implicita, fara sa atinga implicita existenta", async () => {
+    const single = vi.fn().mockResolvedValue({ data: addressRow(), error: null });
+    const select = vi.fn().mockReturnValue({ single });
+    const insert = vi.fn().mockReturnValue({ select });
+    const update = vi.fn();
+    createClient.mockResolvedValue({ from: vi.fn().mockReturnValue({ insert, update }) });
+
+    await upsertAddress({
+      clientId: "client-1",
+      organizationId: "org-1",
+      address: "Șantier temporar, Str. X 3",
+      isDefault: true,
+      adHoc: true,
+    });
+
+    expect(update).not.toHaveBeenCalled();
+    expect(insert).toHaveBeenCalledWith(
+      expect.objectContaining({ is_default: false, archived_at: expect.any(String) }),
+    );
   });
 });

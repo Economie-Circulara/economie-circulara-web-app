@@ -7,21 +7,31 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { EmptyState } from "@/components/empty-state";
 import { FormField } from "@/components/form-field";
-import { initialAddressFormState } from "./action-state";
+import { initialAddressFormState, type AddressFormState } from "./action-state";
 import { deleteAddressAction, upsertAddressAction } from "./actions";
 import { DEFAULT_ADDRESS_LABEL } from "./labels";
 import type { ClientAddress } from "./types";
+
+/** Actiune de formular pe adrese - staff (implicit) sau client (`/adresele-mele`, 0046). */
+type AddressAction = (prev: AddressFormState, formData: FormData) => Promise<AddressFormState>;
+
+interface AddressActions {
+  upsertAction: AddressAction;
+  deleteAction: AddressAction;
+}
 
 function AddressFormCard({
   clientId,
   address,
   onCancel,
+  upsertAction,
 }: {
   clientId: string;
   address?: ClientAddress;
   onCancel?: () => void;
+  upsertAction: AddressAction;
 }) {
-  const [state, action, pending] = useActionState(upsertAddressAction, initialAddressFormState);
+  const [state, action, pending] = useActionState(upsertAction, initialAddressFormState);
 
   return (
     <form action={action} className="space-y-3 rounded-lg border bg-card p-4">
@@ -63,17 +73,30 @@ function AddressFormCard({
   );
 }
 
-function AddressRow({ clientId, address }: { clientId: string; address: ClientAddress }) {
+function AddressRow({
+  clientId,
+  address,
+  actions,
+}: {
+  clientId: string;
+  address: ClientAddress;
+  actions: AddressActions;
+}) {
   const [editing, setEditing] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [deleteState, deleteAction, deletePending] = useActionState(
-    deleteAddressAction,
+    actions.deleteAction,
     initialAddressFormState,
   );
 
   if (editing) {
     return (
-      <AddressFormCard clientId={clientId} address={address} onCancel={() => setEditing(false)} />
+      <AddressFormCard
+        clientId={clientId}
+        address={address}
+        onCancel={() => setEditing(false)}
+        upsertAction={actions.upsertAction}
+      />
     );
   }
 
@@ -121,11 +144,27 @@ function AddressRow({ clientId, address }: { clientId: string; address: ClientAd
 export interface AddressSectionProps {
   clientId: string;
   addresses: ClientAddress[];
+  /** Actiunile clientului (`/adresele-mele`); implicit cele de staff. */
+  upsertAction?: AddressAction;
+  deleteAction?: AddressAction;
+  /** Textul starii goale (difera intre staff si portalul clientului). */
+  emptyDescription?: string;
 }
 
-/** Sectiunea "Adrese de livrare" din /clienti/[id] - CRUD + o singura adresa implicita. */
-export function AddressSection({ clientId, addresses }: AddressSectionProps) {
+/**
+ * Sectiunea "Adrese de livrare" - CRUD + o singura adresa implicita. Folosita in
+ * /clienti/[id] (staff) si in /adresele-mele (clientul, cu actiunile lui). Stergerea
+ * unei adrese folosite deja pe o comanda o arhiveaza (0046), ca istoricul sa ramana.
+ */
+export function AddressSection({
+  clientId,
+  addresses,
+  upsertAction = upsertAddressAction,
+  deleteAction = deleteAddressAction,
+  emptyDescription = "Adaugă prima adresă pentru livrările acestui client.",
+}: AddressSectionProps) {
   const [addingNew, setAddingNew] = useState(false);
+  const actions: AddressActions = { upsertAction, deleteAction };
 
   return (
     <div className="space-y-3">
@@ -133,18 +172,22 @@ export function AddressSection({ clientId, addresses }: AddressSectionProps) {
         <EmptyState
           icon={<MapPin />}
           title="Nicio adresă de livrare"
-          description="Adaugă prima adresă pentru livrările acestui client."
+          description={emptyDescription}
         />
       ) : (
         <div className="space-y-2">
           {addresses.map((address) => (
-            <AddressRow key={address.id} clientId={clientId} address={address} />
+            <AddressRow key={address.id} clientId={clientId} address={address} actions={actions} />
           ))}
         </div>
       )}
 
       {addingNew ? (
-        <AddressFormCard clientId={clientId} onCancel={() => setAddingNew(false)} />
+        <AddressFormCard
+          clientId={clientId}
+          onCancel={() => setAddingNew(false)}
+          upsertAction={upsertAction}
+        />
       ) : (
         <Button type="button" variant="outline" onClick={() => setAddingNew(true)}>
           + Adaugă adresă
