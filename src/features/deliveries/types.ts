@@ -26,6 +26,8 @@ export interface DeliveryReceiptInfo {
   receivedAt: string | null;
   receivedByName: string | null;
   receiptNotes: string | null;
+  /** Confirmata de client din portal (0045, `client_confirm_delivery_receipt`). */
+  receivedViaPortal: boolean;
 }
 
 /** O linie de produs a livrarii (preluata din liniile comenzii - vezi AGENTS.md §4: fara livrari partiale). */

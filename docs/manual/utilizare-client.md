@@ -107,6 +107,12 @@ După ce organizația planifică livrarea, apare și cardul **"Transport"**: dat
 programată, transportatorul, vehiculul (nr. de înmatriculare), șoferul, destinația,
 codul UIT de e-Transport (după declarare) și dacă recepția a fost confirmată.
 
+Când marfa ajunge la tine, poți confirma chiar tu recepția, direct din cardul
+**"Transport"**: completezi **"Primit de"** (numele persoanei care a recepționat) și,
+opțional, observații, apoi **"Confirmă recepția"**. Comanda trece în **Livrată**.
+Închiderea comenzii (și emiterea certificatului de trasabilitate) rămâne la
+organizație.
+
 Cererile de **aport** (material pe care îl aduci tu către organizație, din
 **"Aport material"**) apar tot aici, direct ca **Trimise** - organizația le acceptă
 la recepția materialului sau le respinge.

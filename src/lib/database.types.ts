@@ -449,6 +449,7 @@ export type Database = {
           receipt_notes: string | null
           received_at: string | null
           received_by_name: string | null
+          received_via_portal: boolean
           route_alternatives: Json | null
           route_computed_at: string | null
           route_destination: string
@@ -482,6 +483,7 @@ export type Database = {
           receipt_notes?: string | null
           received_at?: string | null
           received_by_name?: string | null
+          received_via_portal?: boolean
           route_alternatives?: Json | null
           route_computed_at?: string | null
           route_destination: string
@@ -515,6 +517,7 @@ export type Database = {
           receipt_notes?: string | null
           received_at?: string | null
           received_by_name?: string | null
+          received_via_portal?: boolean
           route_alternatives?: Json | null
           route_computed_at?: string | null
           route_destination?: string
@@ -1857,6 +1860,10 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      client_confirm_delivery_receipt: {
+        Args: { p_notes?: string; p_order_id: string; p_received_by_name: string }
+        Returns: undefined
       }
       client_order_delivery: {
         Args: { p_order_id: string }

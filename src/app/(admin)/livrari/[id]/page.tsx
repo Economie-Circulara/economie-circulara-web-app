@@ -129,6 +129,7 @@ export default async function DeliveryDetailPage({ params }: DeliveryDetailPageP
               receivedAt={delivery.receipt.receivedAt}
               receivedByName={delivery.receipt.receivedByName}
               receiptNotes={delivery.receipt.receiptNotes}
+              receivedViaPortal={delivery.receipt.receivedViaPortal}
             />
           </CardContent>
         </Card>

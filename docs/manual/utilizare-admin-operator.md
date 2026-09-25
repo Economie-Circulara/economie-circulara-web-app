@@ -533,7 +533,9 @@ poate fi marcat **implicit** (preselectat la planificarea unei livrări noi).
 - **"Confirmarea recepției"** - după ce clientul confirmă (verbal, telefonic sau
   pe avizul semnat) că a primit marfa, completează **numele persoanei care a
   recepționat** și, opțional, observații, apoi apasă **"Confirmă recepția"**.
-  Data confirmării se salvează automat.
+  Data confirmării se salvează automat. Clientul poate confirma și singur recepția,
+  din portal; în acest caz apare mențiunea **"confirmată de client în portal"**, iar
+  comanda trece automat în **Livrată**.
 - **"Declarare RO e-Transport"** - avizul de însoțire a mărfii se declară în RO
   e-Transport (ANAF) prin serviciul terț **Socrate.io** (pentru transporturile
   care depășesc pragurile legale). Codul **UIT** rezultat se stochează pe

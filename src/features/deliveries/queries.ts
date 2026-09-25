@@ -31,6 +31,7 @@ type DeliveryCoreRow = Pick<
   | "received_at"
   | "received_by_name"
   | "receipt_notes"
+  | "received_via_portal"
   | "created_at"
   | "updated_at"
 >;
@@ -64,6 +65,7 @@ export function mapDelivery(row: DeliveryCoreRow): DeliveryRecord {
       receivedAt: row.received_at,
       receivedByName: row.received_by_name,
       receiptNotes: row.receipt_notes,
+      receivedViaPortal: row.received_via_portal,
     },
     createdAt: row.created_at,
     updatedAt: row.updated_at,
@@ -74,7 +76,7 @@ export function mapDelivery(row: DeliveryCoreRow): DeliveryRecord {
 // `string` simplu, iar clientul Supabase tipat are nevoie de LITERALUL exact ca sa
 // infereze corect coloanele din `.select(...)` (altfel `GenericStringError`).
 // prettier-ignore
-export const DELIVERY_CORE_COLUMNS = "id, organization_id, order_id, scheduled_date, carrier_name, vehicle_plate, driver_name, route_origin, route_destination, uit_code, declaration_status, declaration_error, origin_site_id, route_distance_m, route_duration_s, route_polyline, route_alternatives, route_selected_index, route_selection, route_computed_at, received_at, received_by_name, receipt_notes, created_at, updated_at";
+export const DELIVERY_CORE_COLUMNS = "id, organization_id, order_id, scheduled_date, carrier_name, vehicle_plate, driver_name, route_origin, route_destination, uit_code, declaration_status, declaration_error, origin_site_id, route_distance_m, route_duration_s, route_polyline, route_alternatives, route_selected_index, route_selection, route_computed_at, received_at, received_by_name, receipt_notes, received_via_portal, created_at, updated_at";
 const CORE_COLUMNS = DELIVERY_CORE_COLUMNS;
 
 /** Livrarea unei comenzi, daca a fost deja planificata (`null` altfel - unique(order_id)). */

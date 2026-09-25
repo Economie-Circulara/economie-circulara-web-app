@@ -6,7 +6,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageHeader } from "@/components/page-header";
 import { StatusBadge } from "@/components/status-badge";
 import { requireRole } from "@/features/auth/session";
-import { deleteOwnDraftOrderAction } from "@/features/client-portal/actions";
+import {
+  confirmOwnDeliveryReceiptAction,
+  deleteOwnDraftOrderAction,
+} from "@/features/client-portal/actions";
 import { ClientDeliveryCard } from "@/features/client-portal/client-delivery-card";
 import { getClientOrderDelivery } from "@/features/client-portal/queries";
 import { RepeatOrderButton } from "@/features/client-portal/repeat-order-button";
@@ -144,7 +147,16 @@ export default async function ClientOrderDetailPage({ params }: OrderDetailPageP
             ) : null}
           </CardContent>
         </Card>
-        {delivery ? <ClientDeliveryCard delivery={delivery} /> : null}
+        {delivery ? (
+          <ClientDeliveryCard
+            delivery={delivery}
+            confirmAction={
+              order.status === "accepted" && !delivery.receivedAt
+                ? confirmOwnDeliveryReceiptAction.bind(null, order.id)
+                : undefined
+            }
+          />
+        ) : null}
       </div>
 
       <section className="space-y-3">

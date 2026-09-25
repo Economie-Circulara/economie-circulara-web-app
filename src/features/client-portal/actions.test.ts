@@ -20,6 +20,14 @@ vi.mock("./queries", () => ({ listCatalogItems }));
 const { listIntakeItemOptions } = vi.hoisted(() => ({ listIntakeItemOptions: vi.fn() }));
 vi.mock("@/features/orders/queries", () => ({ listIntakeItemOptions }));
 
+const { confirmClientDeliveryReceipt } = vi.hoisted(() => ({
+  confirmClientDeliveryReceipt: vi.fn(),
+}));
+vi.mock("./delivery-receipt", () => ({ confirmClientDeliveryReceipt }));
+
+const { onOrderStatusChanged } = vi.hoisted(() => ({ onOrderStatusChanged: vi.fn() }));
+vi.mock("@/features/orders/notifications", () => ({ onOrderStatusChanged }));
+
 const { revalidatePath } = vi.hoisted(() => ({ revalidatePath: vi.fn() }));
 vi.mock("next/cache", () => ({ revalidatePath }));
 
@@ -30,8 +38,9 @@ const { redirect } = vi.hoisted(() => ({
 }));
 vi.mock("next/navigation", () => ({ redirect }));
 
-import { initialClientOrderFormState } from "./action-state";
+import { initialClientOrderFormState, initialClientReceiptFormState } from "./action-state";
 import {
+  confirmOwnDeliveryReceiptAction,
   createClientAportAction,
   createClientOrderAction,
   deleteOwnDraftOrderAction,
@@ -327,5 +336,84 @@ describe("deleteOwnDraftOrderAction (migrarea 0035)", () => {
     const result = await deleteOwnDraftOrderAction("");
     expect(result.error).toMatch(/invalidă/);
     expect(deleteDraftOrder).not.toHaveBeenCalled();
+  });
+});
+
+describe("confirmOwnDeliveryReceiptAction (migrarea 0045)", () => {
+  it("cere numele persoanei, fara sa apeleze RPC-ul", async () => {
+    requireRole.mockResolvedValue(CLIENT_USER);
+
+    const state = await confirmOwnDeliveryReceiptAction(
+      "order-1",
+      initialClientReceiptFormState,
+      formData({ received_by_name: "  " }),
+    );
+
+    expect(state.error).toMatch(/numele/i);
+    expect(confirmClientDeliveryReceipt).not.toHaveBeenCalled();
+  });
+
+  it("confirma receptia prin RPC si trimite emailul 'Livrată'", async () => {
+    requireRole.mockResolvedValue(CLIENT_USER);
+    confirmClientDeliveryReceipt.mockResolvedValue(undefined);
+
+    const state = await confirmOwnDeliveryReceiptAction(
+      "order-1",
+      initialClientReceiptFormState,
+      formData({ received_by_name: " Maria Pop ", notes: "2 paleti deteriorati" }),
+    );
+
+    expect(requireRole).toHaveBeenCalledWith(["client"]);
+    expect(confirmClientDeliveryReceipt).toHaveBeenCalledWith(
+      "order-1",
+      "Maria Pop",
+      "2 paleti deteriorati",
+    );
+    expect(onOrderStatusChanged).toHaveBeenCalledWith({
+      orderId: "order-1",
+      organizationId: "org-1",
+      clientId: "client-1",
+      fromStatus: "accepted",
+      toStatus: "delivered",
+    });
+    expect(revalidatePath).toHaveBeenCalledWith("/comenzile-mele/order-1");
+    expect(state).toEqual({ error: null, done: true });
+  });
+
+  it("intoarce mesajul RPC-ului (ex. receptie deja confirmata), fara email", async () => {
+    requireRole.mockResolvedValue(CLIENT_USER);
+    confirmClientDeliveryReceipt.mockRejectedValueOnce(
+      new Error("Recepția acestei livrări a fost deja confirmată."),
+    );
+
+    const state = await confirmOwnDeliveryReceiptAction(
+      "order-1",
+      initialClientReceiptFormState,
+      formData({ received_by_name: "Maria Pop" }),
+    );
+
+    expect(state).toEqual({
+      error: "Recepția acestei livrări a fost deja confirmată.",
+      done: false,
+    });
+    expect(onOrderStatusChanged).not.toHaveBeenCalled();
+  });
+
+  it("o eroare la email nu anuleaza confirmarea deja salvata", async () => {
+    requireRole.mockResolvedValue(CLIENT_USER);
+    confirmClientDeliveryReceipt.mockResolvedValue(undefined);
+    onOrderStatusChanged.mockRejectedValueOnce(new Error("smtp down"));
+    const consoleError = vi.fn();
+    vi.stubGlobal("console", { ...console, error: consoleError });
+
+    const state = await confirmOwnDeliveryReceiptAction(
+      "order-1",
+      initialClientReceiptFormState,
+      formData({ received_by_name: "Maria Pop" }),
+    );
+
+    vi.unstubAllGlobals();
+    expect(state).toEqual({ error: null, done: true });
+    expect(consoleError).toHaveBeenCalled();
   });
 });

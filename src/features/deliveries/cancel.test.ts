@@ -34,7 +34,12 @@ function delivery(overrides: Record<string, unknown> = {}) {
   return {
     declarationStatus: "not_declared" as const,
     uitCode: null,
-    receipt: { receivedAt: null, receivedByName: null, receiptNotes: null },
+    receipt: {
+      receivedAt: null,
+      receivedByName: null,
+      receiptNotes: null,
+      receivedViaPortal: false,
+    },
     ...overrides,
   };
 }
@@ -58,7 +63,14 @@ describe("canCancelDelivery / hasDeliveryDeparted", () => {
   it("receptie confirmata = plecata (si ajunsa)", () => {
     expect(
       canCancelDelivery(
-        delivery({ receipt: { receivedAt: "t", receivedByName: "Ion", receiptNotes: null } }),
+        delivery({
+          receipt: {
+            receivedAt: "t",
+            receivedByName: "Ion",
+            receiptNotes: null,
+            receivedViaPortal: false,
+          },
+        }),
       ),
     ).toBe(false);
   });
