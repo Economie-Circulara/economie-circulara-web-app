@@ -4,6 +4,16 @@ Jurnal al sarcinilor lucrate de agenti AI in acest repo. Conform regulii 1.2 din
 [`AGENTS.md`](../AGENTS.md), la **fiecare commit** se adauga o intrare aici.
 Cele mai noi intrari sus.
 
+## 2026-09-25 — Claude Opus 5.5 (Claude Code) — Asistent AI: masurarea consumului real (etapa 1)
+
+- **Cerut:** plan aprobat (credite AI, ~$2/org/luna, cost vizibil doar adminilor, limita
+  moale; preturile gestionate de super-admin) + PR.
+- **Facut:** migrarea 0037 (preturi versionate, registru per apel, RPC cu cost calculat
+  in DB); parsarea usage-ului complet (cache hit/miss, rationament, model din raspuns);
+  `recordUsage` unic in locul `trackUsage`; ecranul `/platform/ai` (consum pe organizatii
+  si modele, preturi + istoric, pret nou). Quota ramane pe mesaje (etapa 2). Plan:
+  `docs/plans/asistent-consum-real.md`.
+
 ## 2026-09-25 — Claude Opus 5.5 (Claude Code) — Asistent AI: plan pentru consum real (tokeni + cost)
 
 - **Cerut:** un plan pentru o contorizare mai realista a consumului AI (nu doar numar de

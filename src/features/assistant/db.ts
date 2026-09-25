@@ -75,7 +75,7 @@ export type AssistantTable =
 
 interface UntypedSupabase {
   from(table: AssistantTable): any;
-  rpc(fn: string, args: Record<string, number>): Promise<{ error: unknown }>;
+  rpc(fn: string, args: Record<string, string | number | null>): Promise<{ error: unknown }>;
 }
 
 /** Clientul sesiunii curente, pentru tabelele care inca nu sunt in tipurile generate. */

@@ -1,6 +1,6 @@
 # Asistent AI - consum real (tokeni + cost), nu doar numar de mesaje
 
-Status: **PLAN - de validat inainte de implementare.**
+Status: **validat 2026-09-25** (deciziile - sectiunea 5). **Etapa 1 implementata** (sectiunea 6).
 
 ## 1. Ce avem azi
 
@@ -123,8 +123,9 @@ consuma credite dupa costul real, rotunjit in sus (minim 1). Pe card:
 
 ## 4. Etape de implementare propuse
 
-1. **Masurare** (fara schimbari vizibile): parsare usage complet, `ai_usage_events`,
-   `ai_model_prices`, `recordUsage` unic, cost calculat. Quota ramane pe mesaje. ~1 PR.
+1. **Masurare** (fara schimbari vizibile pentru utilizatori): parsare usage complet,
+   `ai_usage_events`, `ai_model_prices` + ecranul de super-admin `/platform/ai`,
+   `recordUsage` unic, cost calculat. Quota ramane pe mesaje. ~1 PR.
 2. **Credite + limite**: migrare `ai_monthly_credit_limit`, zilnic ca procent, plafon per
    tura, card nou, mesaje de blocare; conversie automata a planurilor existente (200 mesaje
    -> credite echivalente din media masurata in etapa 1). ~1 PR.
@@ -135,13 +136,48 @@ consuma credite dupa costul real, rotunjit in sus (minim 1). Pe card:
 Etapa 1 merita facuta oricum: dupa 1-2 saptamani de date reale stim exact cat costa un
 mesaj mediu si putem alege corect valoarea creditului si bugetele.
 
-## 5. Decizii necesare
+## 5. Decizii (2026-09-25)
 
-1. Unitatea: credite (recomandat) / mesaje / altceva?
-2. Valoarea bugetului inclus in plan (ex. $2/org/luna ≈ 2.000 credite)?
-3. Costul per raspuns vizibil tuturor sau doar adminilor?
-4. Limita moale (tura curenta se termina) - ok?
-5. Preturile modelelor: editabile de super-admin in aplicatie (recomandat) sau din `.env`?
+1. Unitatea: **credite AI** - da.
+2. Buget inclus: **~$2/organizatie/luna ≈ 2.000 credite** - da (valoarea exacta a
+   creditului se fixeaza dupa datele din etapa 1).
+3. Costul per raspuns: **vizibil doar adminilor** - da.
+4. **Limita moale** (tura curenta se termina, urmatorul mesaj e blocat) - da.
+5. Preturile modelelor: **in super-admin** - design mai jos.
+
+### 5.1 Gestionarea preturilor (super-admin)
+
+- **Tabel versionat, append-only** `ai_model_prices` (model, pret per 1M tokeni pentru
+  input din cache / input nou / output, `valid_from`, cine l-a introdus, nota). Un pret nou
+  NU modifica randul vechi - adauga o versiune; costul fiecarui apel se calculeaza la
+  inregistrare cu versiunea valabila atunci si se salveaza (`cost_micros`) -> istoricul si
+  rapoartele nu se schimba retroactiv cand DeepSeek isi schimba preturile.
+- **Modelul se ia din raspunsul furnizorului** (`payload.model`, ex. `deepseek-v4-pro`),
+  nu din `ASSISTANT_MODEL` - numele din raspuns e cel din factura (vezi CSV-urile).
+- **Pret implicit (`*`)**: folosit pentru un model fara pret propriu, setat conservator
+  (preturile celui mai scump model). Ecranul de super-admin arata explicit „modele folosite
+  fara pret propriu” ca sa fie completate.
+- **Calculul se face in DB** (RPC `security definer`): tenantii nu pot citi preturile si
+  nici scrie costuri - pot doar raporta tokenii propriului apel.
+- **Ecran `/platform/ai`**: preturile curente + istoric, formular „pret nou” (cu
+  `valid_from`, implicit acum), consumul pe ultimele 30 de zile pe organizatie (request-uri,
+  tokeni cache/nou/output, cost USD, cost mediu per mesaj) si pe model.
+- Mai tarziu (etapa 3): import CSV DeepSeek (cele atasate) pentru reconciliere - diferenta
+  dintre costul calculat si cel facturat (ex. reduceri off-peak).
+
+## 6. Etapa 1 - ce s-a implementat
+
+- Migrarea `0037_ai_usage_metering.sql`: `ai_model_prices` (seed: `deepseek-v4-pro`,
+  `deepseek-flash`, `*`), `ai_usage_events`, coloane noi pe `assistant_usage`
+  (`requests`, `input_cache_hit`, `cost_micros`), RPC `assistant_record_usage`.
+- `provider.ts#parseUsage`: cache hit/miss (DeepSeek + OpenAI), tokeni de rationament,
+  modelul din raspuns.
+- `quota.ts#recordUsage` inlocuieste `trackUsage` - folosit de asistent (mesaj, fiecare
+  pas, rezumatul la limita de pasi, continuarea dupa confirmare) si de extragerea de
+  retete din text.
+- `/platform/ai` (super-admin): totaluri, pe organizatii, pe modele, preturi + istoric,
+  formular de pret nou, avertisment pentru modele fara pret propriu.
+- Quota ramane pe mesaje (neschimbata pentru utilizatori).
 
 ## Impact asupra asistentului (regula 2.4)
 

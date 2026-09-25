@@ -160,6 +160,31 @@ o organizație suspendată.
 
 ---
 
+### 3.4 Consumul AI și prețurile modelelor
+
+Din lista organizațiilor, butonul **„Consum AI”** (`/platform/ai`) arată costul real al
+asistentului AI în ultimele 30 de zile:
+
+- totaluri (cost, apeluri de model, cât din input a venit din cache, output);
+- **pe organizații**: mesaje, apeluri, cost și cost mediu pe mesaj;
+- **pe modele**: tokeni noi / din cache / output și cost pe apel.
+
+Costul fiecărui apel se calculează **în momentul apelului**, cu prețul valabil atunci, și
+se păstrează - dacă furnizorul își schimbă prețurile, istoricul nu se modifică.
+
+**Prețurile** (USD pe 1 milion de tokeni, separat pentru input din cache, input nou și
+output) se gestionează tot aici:
+
+- un preț nou **adaugă o versiune** (cu data de la care e valabil); versiunile vechi rămân
+  în istoric;
+- numele modelului trebuie să fie **exact cel din factura furnizorului** (ex.
+  `deepseek-v4-pro`) - e numele pe care furnizorul îl raportează la fiecare apel;
+- „`*`” e prețul implicit, folosit pentru un model fără preț propriu. Dacă apare un astfel
+  de model, pagina afișează un avertisment - adaugă-i prețul.
+
+Deocamdată limitele organizațiilor rămân pe **număr de mesaje**; trecerea la credite AI
+calculate din costul real e etapa următoare (vezi `docs/plans/asistent-consum-real.md`).
+
 ## 4. Operare tehnică (echipa de dezvoltare/operare)
 
 Această secțiune este tehnică - se adresează persoanei/echipei care menține

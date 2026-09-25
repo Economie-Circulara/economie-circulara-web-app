@@ -4,7 +4,7 @@ import type { ToolContext } from "./types";
 vi.mock("./db", () => ({ assistantDb: vi.fn() }));
 
 const { assistantDb } = await import("./db");
-const { DEFAULT_LIMITS, getQuotaStatus, monthStart, quotaMessage, trackUsage } =
+const { DEFAULT_LIMITS, getQuotaStatus, monthStart, quotaMessage, recordUsage, recordUsageArgs } =
   await import("./quota");
 
 const CTX: ToolContext = { userId: "u1", role: "admin", organizationId: "org-1", clientId: null };
@@ -123,16 +123,74 @@ describe("getQuotaStatus", () => {
   });
 });
 
-describe("trackUsage", () => {
-  it("incrementeaza atomic, prin RPC", async () => {
+describe("recordUsageArgs", () => {
+  it("separa input-ul din cache de cel nou, ca in raspunsul DeepSeek", () => {
+    expect(
+      recordUsageArgs({
+        feature: "assistant",
+        model: "deepseek-v4-pro",
+        conversationId: "c1",
+        usage: {
+          inputTokens: 10000,
+          outputTokens: 540,
+          cacheHitTokens: 7900,
+          cacheMissTokens: 2100,
+          reasoningTokens: 120,
+        },
+      }),
+    ).toEqual({
+      p_feature: "assistant",
+      p_model: "deepseek-v4-pro",
+      p_conversation_id: "c1",
+      p_messages: 0,
+      p_input_cache_hit: 7900,
+      p_input_cache_miss: 2100,
+      p_output_tokens: 540,
+      p_reasoning_tokens: 120,
+    });
+  });
+
+  it("fara detaliere de cache, tot input-ul e NOU (nu subestimam costul)", () => {
+    const args = recordUsageArgs({
+      feature: "recipe_extract",
+      model: "x",
+      usage: { inputTokens: 500, outputTokens: 10 },
+    });
+    expect(args.p_input_cache_hit).toBe(0);
+    expect(args.p_input_cache_miss).toBe(500);
+  });
+});
+
+describe("recordUsage", () => {
+  it("un singur RPC atomic; costul il calculeaza DB-ul", async () => {
     const { rpc } = mockDb({ org: null, usage: [] });
 
-    await trackUsage({ messages: 1, inputTokens: 120, outputTokens: 45 });
-
-    expect(rpc).toHaveBeenCalledWith("assistant_track_usage", {
-      p_messages: 1,
-      p_input_tokens: 120,
-      p_output_tokens: 45,
+    await recordUsage({
+      feature: "assistant",
+      model: "deepseek-flash",
+      usage: { inputTokens: 120, outputTokens: 45 },
     });
+
+    expect(rpc).toHaveBeenCalledWith(
+      "assistant_record_usage",
+      expect.objectContaining({ p_model: "deepseek-flash", p_input_cache_miss: 120 }),
+    );
+  });
+
+  it("nimic de inregistrat (mock fara model, fara mesaj) -> niciun RPC", async () => {
+    const { rpc } = mockDb({ org: null, usage: [] });
+    await recordUsage({ feature: "assistant", usage: { inputTokens: 0, outputTokens: 0 } });
+    expect(rpc).not.toHaveBeenCalled();
+  });
+
+  it("o eroare de contorizare nu strica raspunsul (se jurnalizeaza)", async () => {
+    const { rpc } = mockDb({ org: null, usage: [] });
+    rpc.mockResolvedValue({ error: { message: "boom" } });
+    const error = vi.fn();
+    vi.stubGlobal("console", { ...console, error });
+
+    await expect(recordUsage({ feature: "assistant", messages: 1 })).resolves.toBeUndefined();
+    expect(error).toHaveBeenCalled();
+    vi.unstubAllGlobals();
   });
 });

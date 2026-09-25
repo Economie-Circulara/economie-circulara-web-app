@@ -9,7 +9,7 @@ vi.mock("@/features/auth/queries", () => ({
 vi.mock("./quota", () => ({
   getQuotaStatus: vi.fn(),
   quotaMessage: vi.fn().mockReturnValue(null),
-  trackUsage: vi.fn().mockResolvedValue(undefined),
+  recordUsage: vi.fn().mockResolvedValue(undefined),
 }));
 
 vi.mock("./service", () => ({
@@ -29,7 +29,7 @@ vi.mock("./tools/registry", () => ({
   toolDefinitions: vi.fn().mockReturnValue([]),
 }));
 
-const { getQuotaStatus, quotaMessage, trackUsage } = await import("./quota");
+const { getQuotaStatus, quotaMessage, recordUsage } = await import("./quota");
 const service = await import("./service");
 const { findTool } = await import("./tools/registry");
 const { confirmAction, rejectAction, runAssistantTurn, MAX_STEPS, looksLikeAnnouncedAction } =
@@ -75,6 +75,7 @@ class ScriptedProvider implements ChatProvider {
       content: next.content ?? "",
       toolCalls: next.toolCalls ?? [],
       usage: next.usage ?? { inputTokens: 10, outputTokens: 5 },
+      model: next.model ?? "test-model",
     };
   }
 }
@@ -251,7 +252,7 @@ describe("runAssistantTurn", () => {
     });
 
     expect(provider.calls).toHaveLength(0);
-    expect(trackUsage).not.toHaveBeenCalled();
+    expect(recordUsage).not.toHaveBeenCalled();
     expect(turn.reply).toContain("mesajele incluse");
   });
 
@@ -379,6 +380,38 @@ describe("runAssistantTurn - citiri paralele si date de referinta", () => {
     const sent = provider.calls[0].messages as { role: string; content: string }[];
     expect(sent.map((message) => message.role)).toEqual(["system", "user", "assistant", "user"]);
     expect(sent[2].content).toContain("client_id c1");
+  });
+});
+
+describe("runAssistantTurn - contorizarea consumului", () => {
+  it("un mesaj = 1 in quota; fiecare apel de model e inregistrat cu modelul si tokenii lui", async () => {
+    vi.mocked(findTool).mockReturnValue(readTool() as never);
+    const provider = new ScriptedProvider([
+      {
+        toolCalls: [{ id: "t1", name: "cauta", arguments: "{}" }],
+        usage: { inputTokens: 1000, outputTokens: 50, cacheHitTokens: 800, cacheMissTokens: 200 },
+        model: "deepseek-v4-pro",
+      },
+      { content: "gata", usage: { inputTokens: 1200, outputTokens: 80 }, model: "deepseek-v4-pro" },
+    ]);
+
+    await runAssistantTurn({ conversationId: null, message: "x", ctx: CTX, provider });
+
+    expect(vi.mocked(recordUsage).mock.calls.map((call) => call[0])).toEqual([
+      { feature: "assistant", messages: 1, conversationId: "conv-1" },
+      {
+        feature: "assistant",
+        conversationId: "conv-1",
+        model: "deepseek-v4-pro",
+        usage: { inputTokens: 1000, outputTokens: 50, cacheHitTokens: 800, cacheMissTokens: 200 },
+      },
+      {
+        feature: "assistant",
+        conversationId: "conv-1",
+        model: "deepseek-v4-pro",
+        usage: { inputTokens: 1200, outputTokens: 80 },
+      },
+    ]);
   });
 });
 
