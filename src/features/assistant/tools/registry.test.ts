@@ -36,6 +36,7 @@ describe("registry de tool-uri", () => {
       "arhiveaza",
       "creeaza_reteta",
       "porneste_productie",
+      "seteaza_imagine_produs",
     ]) {
       expect(names, name).toContain(name);
     }
