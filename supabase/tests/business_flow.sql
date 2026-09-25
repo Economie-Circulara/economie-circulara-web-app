@@ -1115,4 +1115,57 @@ begin;
   from public.orders where id = 'eeee0000-0000-0000-0000-00000000ee16';
 rollback;
 
+-- ===========================================================================
+-- B26: aport cu item ARHIVAT (0043) - respins (AR001) pentru client, chiar daca
+--      itemul i-a fost livrat (exceptia de retur nu se aplica aportului), si pentru
+--      staff. Returul clientului pe acelasi item ramane permis (vezi B23).
+-- ===========================================================================
+begin;
+  set local role authenticated;
+  set local request.jwt.claims = '{"sub":"b0000000-0000-0000-0000-0000000000b1"}';
+  insert into public.orders (id, organization_id, client_id, order_type, status, created_by)
+  values
+    ('eeee0000-0000-0000-0000-00000000ee17', :org, :client_demo, 'material', 'delivered',
+     'b0000000-0000-0000-0000-0000000000b1'),
+    ('eeee0000-0000-0000-0000-00000000ee18', :org, :client_demo, 'aport', 'draft',
+     'b0000000-0000-0000-0000-0000000000b1');
+  insert into public.order_items (organization_id, order_id, item_id, quantity)
+  values (:org, 'eeee0000-0000-0000-0000-00000000ee17', :item_caramizi, 5);
+  update public.items set archived_at = now() where id = :item_caramizi;
+
+  do $$
+  declare v_item uuid;
+  begin
+    select id into v_item from public.items
+      where organization_id = 'a0000000-0000-0000-0000-0000000000a1' and title = 'Cărămizi eco';
+    begin
+      insert into public.order_items (organization_id, order_id, item_id, quantity)
+      values ('a0000000-0000-0000-0000-0000000000a1', 'eeee0000-0000-0000-0000-00000000ee18',
+              v_item, 1);
+      raise exception 'FAIL: B26 staff-ul a pus un item arhivat pe un aport';
+    exception
+      when sqlstate 'AR001' then raise notice 'PASS: B26 aport staff cu item arhivat respins (AR001)';
+    end;
+  end $$;
+
+  set local request.jwt.claims = '{"sub":"b0000000-0000-0000-0000-0000000000b3"}';
+  insert into public.orders (id, organization_id, client_id, order_type, status, created_by)
+  values ('eeee0000-0000-0000-0000-00000000ee19', :org, :client_demo, 'aport', 'draft',
+          'b0000000-0000-0000-0000-0000000000b3');
+  do $$
+  declare v_item uuid;
+  begin
+    select id into v_item from public.items
+      where organization_id = 'a0000000-0000-0000-0000-0000000000a1' and title = 'Cărămizi eco';
+    begin
+      insert into public.order_items (organization_id, order_id, item_id, quantity)
+      values ('a0000000-0000-0000-0000-0000000000a1', 'eeee0000-0000-0000-0000-00000000ee19',
+              v_item, 1);
+      raise exception 'FAIL: B26 clientul a pus un item arhivat (livrat) pe un aport';
+    exception
+      when sqlstate 'AR001' then raise notice 'PASS: B26 aport client cu item arhivat livrat respins (AR001)';
+    end;
+  end $$;
+rollback;
+
 select '*** TOATE TESTELE FUNCTIONALE DE BUSINESS AU TRECUT ***' as result;

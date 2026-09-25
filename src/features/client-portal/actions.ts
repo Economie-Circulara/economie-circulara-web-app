@@ -4,7 +4,10 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireRole } from "@/features/auth/session";
 import { createOrderWithItems, deleteDraftOrder, sendOrder } from "@/features/orders/service";
+import { listIntakeItemOptions } from "@/features/orders/queries";
 import type { OrderLineInput } from "@/features/orders/types";
+import { splitAvailableLines } from "./cart-logic";
+import { listCatalogItems } from "./queries";
 import type { ClientOrderFormState } from "./action-state";
 
 function clean(value: FormDataEntryValue | null): string | null {
@@ -35,6 +38,21 @@ function readLines(formData: FormData): OrderLineInput[] {
     if (itemId && quantity) lines.push({ itemId, quantity });
   }
   return lines;
+}
+
+/**
+ * Garda server-side: liniile trimise din portal trebuie sa fie in lista CURENTA de
+ * itemi permisi clientului (catalogul vandabil, respectiv materialele de aport) -
+ * ambele liste exclud itemii arhivati (0035). Fara ea, un item arhivat ajuns in cos
+ * prin "Repetă comanda" sau dintr-un cos vechi ar trece: trigger-ul DB
+ * `reject_archived_references` lasa clientul sa foloseasca un item arhivat deja
+ * livrat lui (exceptia pentru retur/garantie), iar RLS nu verifica `sellable`.
+ */
+function unavailableLinesError(lines: OrderLineInput[], allowed: { id: string }[]): string | null {
+  const { unavailable } = splitAvailableLines(lines, new Set(allowed.map((i) => i.id)));
+  return unavailable.length > 0
+    ? "Unele produse nu mai sunt disponibile (au fost scoase din catalog). Elimină-le și încearcă din nou."
+    : null;
 }
 
 /**
@@ -87,6 +105,8 @@ export async function createClientOrderAction(
   if (lines.length === 0) {
     return { error: "Coșul este gol - adaugă cel puțin un produs.", orderId: null };
   }
+  const unavailableError = unavailableLinesError(lines, await listCatalogItems());
+  if (unavailableError) return { error: unavailableError, orderId: null };
 
   let orderId: string;
   try {
@@ -143,6 +163,8 @@ export async function createClientAportAction(
       orderId: null,
     };
   }
+  const unavailableError = unavailableLinesError(lines, await listIntakeItemOptions());
+  if (unavailableError) return { error: unavailableError, orderId: null };
 
   let orderId: string;
   try {

@@ -353,6 +353,14 @@ Testele unitare sunt **colocate** langa cod (`*.test.ts` / `*.test.tsx`).
     pune un item arhivat pe o comanda doar daca i-a fost deja livrat (apare pe o
     comanda proprie `delivered`/`closed`) - criteriul folosit de trigger-ul
     `app.reject_archived_references` pentru cererile de retur/garantie din portal.
+  - **Liniile trimise din portal se valideaza pe server fata de lista CURENTA de
+    itemi permisi** (decizie 2026-09-25): catalogul vandabil pt. comenzi, materialele
+    de aport pt. aport - ambele fara arhivate (`unavailableLinesError` in
+    `client-portal/actions.ts`). Motiv: cosul (`localStorage`, "Repetă comanda") poate
+    contine itemi scosi intre timp din catalog, iar DB-ul lasa clientul sa foloseasca
+    un item arhivat DEJA LIVRAT lui (exceptia de retur de mai sus) si nu verifica
+    `sellable`. Pe o comanda de **aport** exceptia nu se aplica: item arhivat = AR001
+    pentru orice rol (migrarea `0043`).
   - Loturi: **"Anulează lotul" doar daca nimic nu s-a consumat** si lotul e o
     intrare manuala (nu output de proces / retur / aport). Nu sterge nimic: scrie un
     eveniment de corectie `adjustment` (`-initial_qty`) in `stock_events`,

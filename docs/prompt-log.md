@@ -4,6 +4,15 @@ Jurnal al sarcinilor lucrate de agenti AI in acest repo. Conform regulii 1.2 din
 [`AGENTS.md`](../AGENTS.md), la **fiecare commit** se adauga o intrare aici.
 Cele mai noi intrari sus.
 
+## 2026-09-25 — Claude Opus 5.5 (Claude Code) — Portal client: fara itemi arhivati pe comenzi/aport
+
+- **Cerut:** clientul putea face aport cu un material arhivat; alte inconsistente client/admin?
+- **Facut:** validare server-side a liniilor din portal fata de catalog / materialele de
+  aport (fara arhivate); `/catalog` nu mai trimite liniile indisponibile din cos (mesaj +
+  "Scoate din coș"); migrarea 0043 - item arhivat pe un aport = AR001 pt. orice rol;
+  teste unitare + B26 (suitele SQL rulate pe Postgres local: trec); plan
+  `docs/plans/portal-itemi-indisponibili.md`, AGENTS.md.
+
 ## 2026-09-25 — Claude Opus 5.5 (Claude Code) — Aportul trimis din portal nu mai ramane ciorna
 
 - **Cerut:** aportul creat de client apare ca ciorna (si la admin); pentru client e trimis

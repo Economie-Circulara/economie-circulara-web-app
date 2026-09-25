@@ -53,3 +53,21 @@ export function linesFromOrder(items: OrderItemRow[]): CartLine[] {
     quantity: item.quantity,
   }));
 }
+
+/**
+ * Imparte liniile (cos / cerere) in disponibile si indisponibile fata de lista
+ * curenta de itemi permisi (catalogul vandabil sau materialele de aport). Un item
+ * arhivat / scos din catalog dupa ce a ajuns in cos (ex. prin "Repetă comanda" sau
+ * un cos vechi din `localStorage`) cade in `unavailable`.
+ */
+export function splitAvailableLines<T extends { itemId: string }>(
+  lines: T[],
+  allowedItemIds: ReadonlySet<string>,
+): { available: T[]; unavailable: T[] } {
+  const available: T[] = [];
+  const unavailable: T[] = [];
+  for (const line of lines) {
+    (allowedItemIds.has(line.itemId) ? available : unavailable).push(line);
+  }
+  return { available, unavailable };
+}
