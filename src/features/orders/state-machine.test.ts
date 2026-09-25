@@ -2,7 +2,9 @@ import { describe, expect, it } from "vitest";
 import {
   InvalidOrderTransitionError,
   assertOrderTransition,
+  canAcceptIntake,
   canTransitionOrder,
+  canTransitionOrderOfType,
   isCancellable,
 } from "./state-machine";
 
@@ -70,5 +72,33 @@ describe("isCancellable", () => {
 
   it.each(["delivered", "closed", "cancelled"] as const)("%s NU este anulabil", (status) => {
     expect(isCancellable(status)).toBe(false);
+  });
+});
+
+describe("canTransitionOrderOfType", () => {
+  it("pentru material/serviciu urmeaza masina de stari obisnuita", () => {
+    expect(canTransitionOrderOfType("sent", "accepted", "material")).toBe(true);
+    expect(canTransitionOrderOfType("accepted", "delivered", "serviciu")).toBe(true);
+  });
+
+  it("aportul nu are tranzitii generice de vanzare", () => {
+    expect(canTransitionOrderOfType("draft", "sent", "aport")).toBe(false);
+    expect(canTransitionOrderOfType("sent", "accepted", "aport")).toBe(false);
+    expect(canTransitionOrderOfType("accepted", "delivered", "aport")).toBe(false);
+  });
+
+  it("aportul se poate anula doar inainte sa intre in stoc", () => {
+    expect(canTransitionOrderOfType("draft", "cancelled", "aport")).toBe(true);
+    expect(canTransitionOrderOfType("sent", "cancelled", "aport")).toBe(true);
+    expect(canTransitionOrderOfType("accepted", "cancelled", "aport")).toBe(false);
+  });
+});
+
+describe("canAcceptIntake", () => {
+  it("accepta aportul din draft (staff) si sent (portal)", () => {
+    expect(canAcceptIntake("draft")).toBe(true);
+    expect(canAcceptIntake("sent")).toBe(true);
+    expect(canAcceptIntake("accepted")).toBe(false);
+    expect(canAcceptIntake("cancelled")).toBe(false);
   });
 });

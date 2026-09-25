@@ -286,8 +286,15 @@ Testele unitare sunt **colocate** langa cod (`*.test.ts` / `*.test.tsx`).
     `aport_client`, `lots.client_id` completat (singura cale prin care un lot stie
     de la ce CLIENT provine) si `quality_status = 'unchecked'` - materialul unui
     tert nu e verificat in momentul receptiei, QC-ul se face dupa. Comanda-aport NU
-    intra in masina de stari de vanzare: `draft -> accepted` si se opreste acolo,
+    intra in masina de stari de vanzare: `draft|sent -> accepted` si se opreste acolo,
     exact ca o comanda-retur; `accept_order` (fluxul de vanzare) o refuza explicit.
+    **Aportul trimis de CLIENT din portal nu ramane ciorna** (decizie 2026-09-25,
+    migrarea `0042`): pentru client cererea e trimisa spre aprobare, deci portalul o
+    trece `draft -> sent` (cu numar), ca orice comanda de client; staff-ul o accepta
+    din `sent` sau o anuleaza (respinge). Aportul creat de staff se accepta direct din
+    `draft`. Un aport **acceptat nu se anuleaza** (garda DB `AP005`): `cancel_order`
+    reface doar consumul, iar aportul a CREAT loturi. Butoanele generice pe un aport
+    trec prin `canTransitionOrderOfType` (`orders/state-machine.ts`) - doar "Anulează".
 - **Eligibilitatea de retur/garantie depinde de tipul comenzii, nu doar de status**
   (decizie 2026-09, `ALLOWED_RETURN_FLOWS_BY_ORDER_TYPE` in
   `src/features/returns/types.ts`): retur PUR (`order_links.link_type = 'return'`,

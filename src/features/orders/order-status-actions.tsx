@@ -12,8 +12,8 @@ import {
   deliverOrderAction,
   sendOrderAction,
 } from "./actions";
-import { canTransitionOrder } from "./state-machine";
-import type { OrderDeliveryGuard, OrderStatus } from "./types";
+import { canTransitionOrderOfType } from "./state-machine";
+import type { OrderDeliveryGuard, OrderStatus, OrderType } from "./types";
 
 type TransitionAction = (
   prev: OrderTransitionState,
@@ -94,16 +94,20 @@ export function OrderStatusActions({
   orderId,
   status,
   delivery = null,
+  orderType = "material",
 }: {
   orderId: string;
   status: OrderStatus;
   delivery?: OrderDeliveryGuard | null;
+  /** `aport`: doar "Anulează" (draft/sent) - acceptarea are buton dedicat (`AcceptIntakeButton`). */
+  orderType?: OrderType;
 }) {
-  const canSend = canTransitionOrder(status, "sent");
-  const canAccept = canTransitionOrder(status, "accepted");
-  const canDeliverTransition = canTransitionOrder(status, "delivered");
-  const canClose = canTransitionOrder(status, "closed");
-  const canCancel = canTransitionOrder(status, "cancelled");
+  const can = (to: OrderStatus) => canTransitionOrderOfType(status, to, orderType);
+  const canSend = can("sent");
+  const canAccept = can("accepted");
+  const canDeliverTransition = can("delivered");
+  const canClose = can("closed");
+  const canCancel = can("cancelled");
 
   const hasPendingDelivery = delivery != null && delivery.receivedAt == null;
   const showDeliverButton = canDeliverTransition && !hasPendingDelivery;

@@ -105,7 +105,10 @@ const columns: ColumnDef<OrderListRow>[] = [
     header: "Acțiuni",
     cell: ({ row }) => (
       <div className="flex flex-wrap items-start justify-end gap-2">
-        {row.original.status === "accepted" && !row.original.delivery ? (
+        {/* Un aport nu se livreaza (materialul vine de la client). */}
+        {row.original.status === "accepted" &&
+        !row.original.delivery &&
+        row.original.orderType !== "aport" ? (
           <Button asChild size="sm" variant="outline">
             <Link href={`/livrari/nou?orderId=${row.original.id}`}>Planifică livrare</Link>
           </Button>
@@ -114,6 +117,7 @@ const columns: ColumnDef<OrderListRow>[] = [
           orderId={row.original.id}
           status={row.original.status}
           delivery={row.original.delivery}
+          orderType={row.original.orderType}
         />
       </div>
     ),

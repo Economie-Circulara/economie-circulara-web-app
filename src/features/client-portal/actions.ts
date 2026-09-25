@@ -38,6 +38,35 @@ function readLines(formData: FormData): OrderLineInput[] {
 }
 
 /**
+ * Pasul "trimite" comun comenzilor create din portal (catalog si aport): `draft` ->
+ * `sent` + numar de comanda. Din punctul de vedere al clientului comanda e trimisa
+ * spre aprobare in momentul in care apasa butonul - nu ramane ciorna.
+ */
+async function sendCreatedOrder(
+  orderId: string,
+  organizationId: string,
+): Promise<ClientOrderFormState> {
+  try {
+    await sendOrder(orderId, organizationId);
+  } catch (err) {
+    // Comanda a fost salvata ca draft, dar nu a putut fi trimisa (ex. generarea
+    // numarului a esuat) - semnalam eroarea, dar orderId ramane util (utilizatorul
+    // o vede in /comenzile-mele ca "Ciornă" si o poate sterge / reface).
+    revalidatePath("/comenzile-mele");
+    return {
+      error:
+        err instanceof Error
+          ? `Comanda a fost salvată, dar nu a putut fi trimisă: ${err.message}`
+          : "Comanda a fost salvată, dar nu a putut fi trimisă.",
+      orderId,
+    };
+  }
+
+  revalidatePath("/comenzile-mele");
+  return { error: null, orderId };
+}
+
+/**
  * Creeaza + trimite o comanda in numele clientului curent (`created_by_admin:
  * false`): un singur pas din UI (buton "Trimite comanda", ca in mockup), desi la
  * nivel de date trece prin doua stari (`draft` -> `sent`, RLS `orders_client_update`
@@ -83,33 +112,16 @@ export async function createClientOrderAction(
     };
   }
 
-  try {
-    await sendOrder(orderId, user.organizationId);
-  } catch (err) {
-    // Comanda a fost salvata ca draft, dar nu a putut fi trimisa (ex. generarea
-    // numarului a esuat) - semnalam eroarea, dar orderId ramane util (utilizatorul
-    // poate incerca din nou din /comenzile-mele, comanda apare acolo ca "Ciornă").
-    revalidatePath("/comenzile-mele");
-    return {
-      error:
-        err instanceof Error
-          ? `Comanda a fost salvată, dar nu a putut fi trimisă: ${err.message}`
-          : "Comanda a fost salvată, dar nu a putut fi trimisă.",
-      orderId,
-    };
-  }
-
-  revalidatePath("/comenzile-mele");
-  return { error: null, orderId };
+  return sendCreatedOrder(orderId, user.organizationId);
 }
 
 /**
  * Creeaza o cerere de aport (client -> organizatie, materialul e adus DE CATRE
  * client, ex. moloz de demolare) in numele clientului curent: comanda de tip
- * `aport`, `created_by_admin: false`. Spre deosebire de `createClientOrderAction`
- * de mai sus, comanda RAMANE `draft` - nu se apeleaza `sendOrder` (aportul nu are
- * un pas "trimisa" separat, vezi comentariul din 0031_aport_intake.sql: staff-ul
- * accepta direct din draft, cu `AcceptIntakeButton`/`accept_intake_order`).
+ * `aport`, `created_by_admin: false`, apoi TRIMISA (`draft` -> `sent`), exact ca
+ * `createClientOrderAction`: pentru client cererea e trimisa spre aprobare, nu o
+ * ciorna (decizie 2026-09-25, migrarea 0042 - `accept_intake_order` accepta acum si
+ * din `sent`; staff-ul o accepta sau o anuleaza de acolo).
  * Acceptarea (care CRESTE stocul) ramane exclusiv la staff - portalul clientului
  * nu apeleaza niciodata `accept_intake_order`, doar creeaza cererea; RPC-ul are
  * oricum propria garda `app.is_staff_of` (AP004) daca ar fi apelat direct prin
@@ -132,6 +144,7 @@ export async function createClientAportAction(
     };
   }
 
+  let orderId: string;
   try {
     const order = await createOrderWithItems({
       organizationId: user.organizationId,
@@ -143,14 +156,15 @@ export async function createClientAportAction(
       notes: clean(formData.get("notes")),
       lines,
     });
-    revalidatePath("/comenzile-mele");
-    return { error: null, orderId: order.id };
+    orderId = order.id;
   } catch (err) {
     return {
       error: err instanceof Error ? err.message : "Nu am putut trimite cererea de aport.",
       orderId: null,
     };
   }
+
+  return sendCreatedOrder(orderId, user.organizationId);
 }
 
 /** Rezultatul stergerii unei ciorne din portal (dialogul de confirmare). */

@@ -15,8 +15,13 @@ import {
   ORDER_TYPE_LABELS,
 } from "@/features/orders/labels";
 import { OrderStatusActions } from "@/features/orders/order-status-actions";
-import { INTAKE_JOURNEY, OrderStatusTimeline } from "@/features/orders/order-status-timeline";
+import {
+  APORT_JOURNEY,
+  INTAKE_JOURNEY,
+  OrderStatusTimeline,
+} from "@/features/orders/order-status-timeline";
 import { getOrderDetail } from "@/features/orders/queries";
+import { canAcceptIntake } from "@/features/orders/state-machine";
 import { AcceptReturnButton } from "@/features/returns/accept-return-button";
 import { ORDER_LINK_TYPE_LABELS } from "@/features/returns/labels";
 import { getReturnableItems, getReturnLinkForOrder } from "@/features/returns/queries";
@@ -59,8 +64,8 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
   const delivery = await getDeliveryByOrderId(id);
 
   // Comanda de tip `aport` (migrarea 0030) NU parcurge masina de stari de vanzare:
-  // are o singura actiune, "Acceptă aport", care creste stocul (`accept_intake_order`)
-  // si o lasa in `accepted` - exact tiparul comenzii-retur de mai jos.
+  // "Acceptă aport" (din draft sau sent - trimis din portal, 0042) creste stocul
+  // (`accept_intake_order`) si o lasa in `accepted`; altfel se poate doar anula.
   const isIntakeOrder = order.orderType === "aport";
 
   const returnLink = await getReturnLinkForOrder(id);
@@ -115,15 +120,16 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
               <Button asChild variant="outline">
                 <Link href={`/livrari/${delivery.id}`}>Vezi livrare</Link>
               </Button>
-            ) : order.status === "accepted" ? (
+            ) : order.status === "accepted" && !isIntakeOrder ? (
               <Button asChild variant="outline">
                 <Link href={`/livrari/nou?orderId=${order.id}`}>Planifică livrare</Link>
               </Button>
             ) : null}
             {isIntakeOrder ? (
-              order.status === "draft" ? (
-                <AcceptIntakeButton orderId={order.id} />
-              ) : null
+              <>
+                {canAcceptIntake(order.status) ? <AcceptIntakeButton orderId={order.id} /> : null}
+                <OrderStatusActions orderId={order.id} status={order.status} orderType="aport" />
+              </>
             ) : isReturnOrder ? (
               order.status === "draft" ? (
                 <AcceptReturnButton returnOrderId={order.id} />
@@ -239,7 +245,7 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
         <h2 className="text-lg font-semibold">Istoric status</h2>
         <OrderStatusTimeline
           status={order.status}
-          journey={isIntakeOrder || isReturnOrder ? INTAKE_JOURNEY : undefined}
+          journey={isIntakeOrder ? APORT_JOURNEY : isReturnOrder ? INTAKE_JOURNEY : undefined}
         />
         <p className="text-xs text-muted-foreground">
           Status curent: {ORDER_STATUS_LABELS[order.status]}.

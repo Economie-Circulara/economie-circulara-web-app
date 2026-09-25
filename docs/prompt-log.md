@@ -4,6 +4,16 @@ Jurnal al sarcinilor lucrate de agenti AI in acest repo. Conform regulii 1.2 din
 [`AGENTS.md`](../AGENTS.md), la **fiecare commit** se adauga o intrare aici.
 Cele mai noi intrari sus.
 
+## 2026-09-25 — Claude Opus 5.5 (Claude Code) — Aportul trimis din portal nu mai ramane ciorna
+
+- **Cerut:** aportul creat de client apare ca ciorna (si la admin); pentru client e trimis
+  spre aprobare.
+- **Facut:** portalul trimite aportul (`draft -> sent`); migrarea 0042 -
+  `accept_intake_order` accepta si din `sent` + garda AP005 (aport acceptat nu se
+  anuleaza); staff: pe aport doar "Acceptă aport" + "Anulează" (fara butoanele de
+  vanzare/livrare), traseu `APORT_JOURNEY`; teste unitare + B25 (suitele SQL rulate pe
+  Postgres local: trec); plan `docs/plans/aport-client-trimis.md`, manual, AGENTS.md.
+
 ## 2026-09-25 — Claude Opus 5.5 (Claude Code) — Portal client: detaliile livrarii comenzii
 
 - **Cerut:** clientul, pe detaliul unei comenzi, nu vede livrarea planificata (adminul o vede).

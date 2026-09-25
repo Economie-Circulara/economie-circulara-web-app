@@ -17,6 +17,13 @@ const JOURNEY: readonly OrderStatus[] = ["draft", "sent", "accepted", "delivered
 export const INTAKE_JOURNEY: readonly OrderStatus[] = ["draft", "accepted"];
 
 /**
+ * Traseul unui aport: ca `INTAKE_JOURNEY`, dar cu pasul `sent` - aportul trimis din
+ * portalul clientului asteapta aprobarea in `sent` (migrarea 0042). Un aport creat
+ * de staff sare direct `draft -> accepted` (pasul `sent` ramane doar neatins).
+ */
+export const APORT_JOURNEY: readonly OrderStatus[] = ["draft", "sent", "accepted"];
+
+/**
  * Explicatii RO in limbaj simplu pentru fiecare status - afisate la hover (desktop,
  * `title`) SI la tap (mobil, expandare inline sub stepper - vezi comentariul
  * componentei mai jos).

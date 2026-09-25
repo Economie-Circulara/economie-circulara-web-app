@@ -178,9 +178,10 @@ describe("createClientAportAction", () => {
     expect(createOrderWithItems).not.toHaveBeenCalled();
   });
 
-  it("creeaza comanda aport draft, created_by_admin=false, si NU o trimite", async () => {
+  it("creeaza comanda aport cu created_by_admin=false apoi o trimite (draft -> sent)", async () => {
     requireRole.mockResolvedValue(CLIENT_USER);
     createOrderWithItems.mockResolvedValue({ id: "order-2", status: "draft" });
+    sendOrder.mockResolvedValue({ id: "order-2", status: "sent" });
 
     const state = await createClientAportAction(
       initialClientOrderFormState,
@@ -203,9 +204,8 @@ describe("createClientAportAction", () => {
       notes: "Moloz de demolare",
       lines: [{ itemId: "item-1", quantity: 500 }],
     });
-    // Spre deosebire de createClientOrderAction, aportul ramane draft - nu se
-    // trimite (nu exista pas "sent" separat, staff-ul accepta direct din draft).
-    expect(sendOrder).not.toHaveBeenCalled();
+    // Pentru client cererea e trimisa spre aprobare, nu ciorna (migrarea 0042).
+    expect(sendOrder).toHaveBeenCalledWith("order-2", "org-1");
     expect(revalidatePath).toHaveBeenCalledWith("/comenzile-mele");
     expect(state).toEqual({ error: null, orderId: "order-2" });
   });
@@ -239,6 +239,23 @@ describe("createClientAportAction", () => {
     );
 
     expect(state).toEqual({ error: "Nu am putut crea comanda.", orderId: null });
+    expect(sendOrder).not.toHaveBeenCalled();
+  });
+
+  it("daca trimiterea esueaza, semnaleaza eroarea dar pastreaza orderId", async () => {
+    requireRole.mockResolvedValue(CLIENT_USER);
+    createOrderWithItems.mockResolvedValue({ id: "order-2", status: "draft" });
+    sendOrder.mockRejectedValue(new Error("numar indisponibil"));
+
+    const state = await createClientAportAction(
+      initialClientOrderFormState,
+      formData({ item_id: "item-1", quantity: "1" }),
+    );
+
+    expect(state).toEqual({
+      error: "Comanda a fost salvată, dar nu a putut fi trimisă: numar indisponibil",
+      orderId: "order-2",
+    });
   });
 });
 

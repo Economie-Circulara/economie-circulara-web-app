@@ -107,6 +107,10 @@ După ce organizația planifică livrarea, apare și cardul **"Transport"**: dat
 programată, transportatorul, vehiculul (nr. de înmatriculare), șoferul, destinația,
 codul UIT de e-Transport (după declarare) și dacă recepția a fost confirmată.
 
+Cererile de **aport** (material pe care îl aduci tu către organizație, din
+**"Aport material"**) apar tot aici, direct ca **Trimise** - organizația le acceptă
+la recepția materialului sau le respinge.
+
 ### 3.3 Ștergerea unei ciorne
 
 Dacă ai o comandă rămasă în status **Ciornă** (nu a fost trimisă către

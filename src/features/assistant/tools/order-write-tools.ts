@@ -72,7 +72,7 @@ export const acceptaComanda: AssistantTool<OrderIdInput> = {
   description:
     "Propune ACCEPTAREA unei comenzi. `material`/`serviciu` (status Înaintată): scade stocul " +
     "FIFO pentru fiecare linie, atomic - la stoc insuficient nu se schimbă nimic. `aport` " +
-    "(status Ciornă): materialul adus de client intră în stoc ca loturi noi. " +
+    "(status Ciornă sau Trimisă): materialul adus de client intră în stoc ca loturi noi. " +
     "Acțiunea NU se execută până la confirmare.",
   parameters: orderIdParameters,
   roles: ["admin", "operator"],

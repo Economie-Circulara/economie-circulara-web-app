@@ -1,4 +1,4 @@
-import type { OrderStatus } from "./types";
+import type { OrderStatus, OrderType } from "./types";
 
 /**
  * Masina de stari a comenzii (AGENTS.md §4 + mockup): draft -> sent -> accepted ->
@@ -42,4 +42,28 @@ export function assertOrderTransition(from: OrderStatus, to: OrderStatus): void 
 /** Statusurile in care se poate afla o comanda anulabila (buton "Anulează"). */
 export function isCancellable(status: OrderStatus): boolean {
   return canTransitionOrder(status, "cancelled");
+}
+
+/**
+ * Tranzitiile GENERICE (butoanele din `OrderStatusActions`) permise pentru o comanda
+ * de un anumit tip. O comanda `aport` nu parcurge masina de stari de vanzare
+ * (migrarile 0031/0042): se accepta DOAR prin `accept_intake_order` (buton dedicat
+ * "Acceptă aport"), iar generic se poate doar anula cat timp nu a intrat in stoc
+ * (`draft`/`sent`). Anularea unui aport acceptat ar lasa loturile create in stoc -
+ * interzisa si in DB (garda AP005, 0042).
+ */
+export function canTransitionOrderOfType(
+  from: OrderStatus,
+  to: OrderStatus,
+  orderType: OrderType,
+): boolean {
+  if (orderType === "aport") {
+    return to === "cancelled" && (from === "draft" || from === "sent");
+  }
+  return canTransitionOrder(from, to);
+}
+
+/** Aportul se accepta (intra in stoc) din `draft` (creat de staff) sau `sent` (trimis din portal). */
+export function canAcceptIntake(status: OrderStatus): boolean {
+  return status === "draft" || status === "sent";
 }

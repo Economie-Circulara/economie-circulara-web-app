@@ -1063,4 +1063,56 @@ begin;
   from public.client_order_delivery('eeee0000-0000-0000-0000-00000000ee12');
 rollback;
 
+-- ===========================================================================
+-- B25: aport trimis din portal (0042) - clientul trimite (draft -> sent),
+--      staff-ul accepta din `sent` (loturi aport_client); un aport acceptat NU se
+--      mai poate anula (AP005); unul `sent` se poate anula (respingere).
+-- ===========================================================================
+begin;
+  set local role authenticated;
+  set local request.jwt.claims = '{"sub":"b0000000-0000-0000-0000-0000000000b3"}';
+
+  insert into public.orders (id, organization_id, client_id, order_type, status, created_by)
+  values
+    ('eeee0000-0000-0000-0000-00000000ee15', :org, :client_demo, 'aport', 'draft',
+     'b0000000-0000-0000-0000-0000000000b3'),
+    ('eeee0000-0000-0000-0000-00000000ee16', :org, :client_demo, 'aport', 'draft',
+     'b0000000-0000-0000-0000-0000000000b3');
+  insert into public.order_items (organization_id, order_id, item_id, quantity)
+  values
+    (:org, 'eeee0000-0000-0000-0000-00000000ee15', :item_moloz, 7),
+    (:org, 'eeee0000-0000-0000-0000-00000000ee16', :item_moloz, 3);
+  update public.orders set status = 'sent'
+  where id in ('eeee0000-0000-0000-0000-00000000ee15', 'eeee0000-0000-0000-0000-00000000ee16');
+  select pg_temp.assert_num('B25 clientul isi trimite aportul (sent)', count(*), 2)
+  from public.orders
+  where id in ('eeee0000-0000-0000-0000-00000000ee15', 'eeee0000-0000-0000-0000-00000000ee16')
+    and status = 'sent';
+
+  set local request.jwt.claims = '{"sub":"b0000000-0000-0000-0000-0000000000b1"}';
+  select public.accept_intake_order('eeee0000-0000-0000-0000-00000000ee15');
+  select pg_temp.assert_eq('B25 aport acceptat din sent', status::text, 'accepted')
+  from public.orders where id = 'eeee0000-0000-0000-0000-00000000ee15';
+  select pg_temp.assert_num('B25 lot aport_client creat cu cantitatea liniei',
+    sum(initial_qty), 7)
+  from public.lots
+  where item_id = :item_moloz and provenance = 'aport_client' and client_id = :client_demo
+    and created_at = now();
+
+  do $$
+  begin
+    begin
+      perform public.cancel_order('eeee0000-0000-0000-0000-00000000ee15'::uuid);
+      raise exception 'FAIL: B25 un aport acceptat nu trebuia anulat';
+    exception
+      when sqlstate 'AP005' then raise notice 'PASS: B25 anularea aportului acceptat respinsa (AP005)';
+    end;
+  end $$;
+
+  select public.cancel_order('eeee0000-0000-0000-0000-00000000ee16');
+  select pg_temp.assert_eq('B25 aportul trimis se poate respinge (anula)', status::text,
+    'cancelled')
+  from public.orders where id = 'eeee0000-0000-0000-0000-00000000ee16';
+rollback;
+
 select '*** TOATE TESTELE FUNCTIONALE DE BUSINESS AU TRECUT ***' as result;

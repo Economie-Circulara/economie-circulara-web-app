@@ -168,7 +168,7 @@ export async function cancelOrder(orderId: string): Promise<Order> {
 }
 
 /**
- * Accepta o comanda de tip `aport` aflata in `draft`: creeaza cate un lot
+ * Accepta o comanda de tip `aport` aflata in `draft` sau `sent` (0042): creeaza cate un lot
  * (provenance `aport_client`, `lots.client_id` = clientul comenzii) pentru fiecare
  * linie si trece comanda in `accepted` - atomic, prin RPC-ul Postgres
  * `accept_intake_order` (0031_aport_intake.sql). Simetricul lui
