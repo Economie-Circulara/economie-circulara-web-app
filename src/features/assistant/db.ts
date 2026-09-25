@@ -61,8 +61,13 @@ export interface AssistantUsageRow {
 
 export interface OrganizationAiRow {
   ai_enabled: boolean;
-  ai_monthly_message_limit: number;
-  ai_daily_user_message_limit: number;
+  ai_monthly_credit_limit: number;
+  ai_daily_user_credit_percent: number;
+}
+
+export interface AiPlatformSettingsRow {
+  credit_micros: number;
+  turn_credit_limit: number;
 }
 
 export type AssistantTable =
@@ -71,11 +76,15 @@ export type AssistantTable =
   | "assistant_tool_calls"
   | "assistant_usage"
   | "assistant_attachments"
+  | "ai_platform_settings"
   | "organizations";
 
 interface UntypedSupabase {
   from(table: AssistantTable): any;
-  rpc(fn: string, args: Record<string, string | number | null>): Promise<{ error: unknown }>;
+  rpc(
+    fn: string,
+    args: Record<string, string | number | null>,
+  ): Promise<{ data?: unknown; error: unknown }>;
 }
 
 /** Clientul sesiunii curente, pentru tabelele care inca nu sunt in tipurile generate. */

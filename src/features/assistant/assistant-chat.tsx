@@ -32,6 +32,8 @@ export interface Bubble {
   id: string;
   role: "user" | "assistant";
   content: string;
+  /** Creditele consumate de raspuns - primite de la server DOAR pentru admini. */
+  credits?: number;
 }
 
 /** Un fisier atasat la mesajul in curs de scriere. */
@@ -147,9 +149,9 @@ export function AssistantChat({
     return () => window.removeEventListener("resize", updateHeight);
   }, []);
 
-  function push(role: Bubble["role"], content: string) {
+  function push(role: Bubble["role"], content: string, credits?: number) {
     nextId.current += 1;
-    setBubbles((current) => [...current, { id: `b${nextId.current}`, role, content }]);
+    setBubbles((current) => [...current, { id: `b${nextId.current}`, role, content, credits }]);
   }
 
   function apply(turn: AssistantTurn) {
@@ -162,7 +164,7 @@ export function AssistantChat({
     }
     setQuota(turn.quota);
     setPending(turn.pendingAction);
-    push("assistant", turn.reply);
+    push("assistant", turn.reply, turn.turnCredits);
   }
 
   const readyAttachments = attachments.flatMap((attachment) =>
@@ -286,7 +288,17 @@ export function AssistantChat({
               )}
             >
               {bubble.role === "assistant" ? (
-                <MessageMarkdown content={bubble.content} />
+                <>
+                  <MessageMarkdown content={bubble.content} />
+                  {bubble.credits !== undefined ? (
+                    <p
+                      className="mt-2 text-right text-[11px] text-muted-foreground"
+                      title="Vizibil doar administratorilor"
+                    >
+                      {bubble.credits === 1 ? "1 credit AI" : `${bubble.credits} credite AI`}
+                    </p>
+                  ) : null}
+                </>
               ) : (
                 <UserBubbleContent content={bubble.content} />
               )}
@@ -375,7 +387,7 @@ export function AssistantChat({
             disabled={blocked || isPending}
             placeholder={
               blocked
-                ? "Ai atins limita de mesaje"
+                ? "Ai atins limita de credite AI"
                 : "Ex: adaugă clientul cu CUI 12345678 (Shift+Enter pentru rând nou)"
             }
             onChange={setDraft}

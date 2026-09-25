@@ -1,6 +1,6 @@
 # Asistent AI - consum real (tokeni + cost), nu doar numar de mesaje
 
-Status: **validat 2026-09-25** (deciziile - sectiunea 5). **Etapa 1 implementata** (sectiunea 6).
+Status: **validat 2026-09-25** (deciziile - sectiunea 5). **Etapele 1 si 2 implementate** (sectiunile 6-7).
 
 ## 1. Ce avem azi
 
@@ -178,6 +178,34 @@ mesaj mediu si putem alege corect valoarea creditului si bugetele.
 - `/platform/ai` (super-admin): totaluri, pe organizatii, pe modele, preturi + istoric,
   formular de pret nou, avertisment pentru modele fara pret propriu.
 - Quota ramane pe mesaje (neschimbata pentru utilizatori).
+
+## 7. Etapa 2 - credite AI (implementata)
+
+- Migrarea `0039_ai_credits.sql`:
+  - `ai_platform_settings` (un singur rand): `credit_micros` (valoarea unui credit, implicit
+    1000 = $0.001) si `turn_credit_limit` (plafon per tura, implicit 100 credite; 0 = fara
+    plafon). Citire: orice utilizator autentificat (quota se calculeaza pe sesiunea lui);
+    scriere: doar super-admin.
+  - `organizations.ai_monthly_credit_limit` (implicit 2000 ≈ $2) si
+    `ai_daily_user_credit_percent` (implicit 20%; 0 = fara plafon zilnic). Garda
+    `app.enforce_ai_limits` acopera si coloanele noi. Coloanele vechi de mesaje raman
+    (nefolosite de quota), mesajele se numara in continuare pentru statistici.
+- Quota (`quota.ts`): credite folosite = `ceil(sum(cost_micros) / credit_micros)` - lunar pe
+  organizatie, zilnic pe utilizator; limita zilnica = procent din bugetul lunar; avertizare
+  de la 80%; estimare „≈ N întrebări rămase” din costul mediu per mesaj al organizatiei
+  in luna curenta.
+- Limita moale: se verifica INAINTE de tura; tura in curs se termina.
+- Plafon per tura: `recordUsage` intoarce costul apelului (din RPC); bucla se opreste cand
+  tura depaseste `turn_credit_limit` si raspunde cu rezumatul „ce am aflat / ce lipseste”.
+- Cost per raspuns vizibil doar adminilor: `AssistantTurn.turnCredits` (doar pentru rolurile
+  admin / super-admin), afisat discret sub raspuns.
+- UI: cardul „Credite AI luna aceasta” cu explicatie (buton „i” cu panou: ce e un credit, de
+  ce consuma diferit, bugetul comun, plafonul zilnic, resetarea), bara, procent, estimarea
+  de intrebari ramase, consumul de azi.
+- Super-admin `/platform/ai`: valoarea creditului + plafonul per tura; limitele fiecarei
+  organizatii (credite/luna, procent zilnic, activ).
+- Amanate: email de avertizare la 80%, estimarea inainte de un import PDF mare, rapoartele
+  pentru adminul organizatiei (etapa 3).
 
 ## Impact asupra asistentului (regula 2.4)
 

@@ -185,6 +185,10 @@ tău (creare/trimitere de comenzi rămâne doar din ecranele obișnuite).
 
 ---
 
+
+Consumul asistentului se măsoară în **credite AI** (cardul de lângă chat): o întrebare
+simplă consumă puțin, una cu mai mulți pași mai mult. Bugetul se reînnoiește lunar; butonul
+„i” de lângă titlul cardului explică regulile.
 ## Rezumat rapid - ce poți și ce nu poți face
 
 | Poți | Nu poți |

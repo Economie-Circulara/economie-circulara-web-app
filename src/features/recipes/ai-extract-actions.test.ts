@@ -38,6 +38,10 @@ const QUOTA = {
   monthlyUsed: 1,
   dailyLimit: 20,
   dailyUsed: 1,
+  dailyPercent: 20,
+  messagesThisMonth: 3,
+  estimatedMessagesLeft: null,
+  warning: false,
   blockedReason: null,
 };
 

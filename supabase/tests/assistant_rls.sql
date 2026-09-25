@@ -278,4 +278,26 @@ begin;
   end $$;
 rollback;
 
+-- ===== TEST 12: creditele (0039) - doar super-adminul schimba limitele si valoarea creditului =====
+begin;
+  set local role authenticated;
+  set local request.jwt.claims = '{"sub":"a1111111-1111-1111-1111-111111111111"}';
+  select pg_temp.assert('T12 setarile de credit sunt citibile', count(*), 1)
+    from public.ai_platform_settings;
+  do $$
+  begin
+    begin
+      update public.organizations set ai_monthly_credit_limit = 1000000
+        where id = 'a0000000-0000-0000-0000-00000000000a';
+      raise exception 'FAIL: T12 adminul si-a ridicat singur bugetul de credite';
+    exception when insufficient_privilege then
+      raise notice 'PASS: T12 bugetul de credite nu poate fi ridicat de admin';
+    end;
+  end $$;
+  with changed as (
+    update public.ai_platform_settings set credit_micros = 1 returning id
+  )
+  select pg_temp.assert('T12 adminul nu poate schimba valoarea creditului', count(*), 0) from changed;
+rollback;
+
 select '*** TOATE TESTELE RLS DE ASISTENT AU TRECUT ***' as result;

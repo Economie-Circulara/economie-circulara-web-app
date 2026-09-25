@@ -11,8 +11,11 @@ import {
 } from "@/components/ui/table";
 import { requireRole } from "@/features/auth/session";
 import { currentPrices, DEFAULT_PRICE_MODEL, formatUsd } from "@/features/platform/ai-pricing";
+import { CreditSettingsForm, OrganizationAiLimitsForm } from "@/features/platform/ai-limits-forms";
 import {
+  getAiPlatformSettings,
   listModelPrices,
+  listOrganizationAiLimits,
   usageSummary,
   type UsageTotals,
 } from "@/features/platform/ai-usage-queries";
@@ -38,7 +41,12 @@ function formatDate(value: string): string {
  */
 export default async function PlatformAiPage() {
   await requireRole(["super_admin"]);
-  const [prices, usage] = await Promise.all([listModelPrices(), usageSummary(30)]);
+  const [prices, usage, settings, organizations] = await Promise.all([
+    listModelPrices(),
+    usageSummary(30),
+    getAiPlatformSettings(),
+    listOrganizationAiLimits(),
+  ]);
   const current = currentPrices(prices);
   const unpriced = usage.byModel.filter((row) => row.defaultPriceRequests > 0);
 
@@ -146,6 +154,33 @@ export default async function PlatformAiPage() {
           </TableBody>
         </Table>
       </section>
+
+      <Card>
+        <CardContent className="space-y-3 p-5">
+          <h2 className="text-sm font-semibold">Credite AI</h2>
+          <p className="text-xs text-muted-foreground">
+            Utilizatorii văd consumul în credite, calculate din costul real al fiecărui răspuns.
+            Valoarea curentă: 1 credit = {formatUsd(settings.creditMicros)}.
+          </p>
+          <CreditSettingsForm
+            creditMicros={settings.creditMicros}
+            turnCreditLimit={settings.turnCreditLimit}
+          />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent className="space-y-2 p-5">
+          <h2 className="text-sm font-semibold">Limite pe organizație</h2>
+          <p className="text-xs text-muted-foreground">
+            Bugetul lunar e comun pentru organizație (0 = nelimitat); „% pe zi” limitează cât poate
+            folosi un singur utilizator într-o zi din acest buget (0 = fără plafon zilnic).
+          </p>
+          {organizations.map((organization) => (
+            <OrganizationAiLimitsForm key={organization.id} organization={organization} />
+          ))}
+        </CardContent>
+      </Card>
 
       <section className="space-y-2">
         <h2 className="text-sm font-semibold">Prețuri (USD / 1M tokeni)</h2>

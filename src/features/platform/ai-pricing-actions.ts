@@ -3,8 +3,13 @@
 import { revalidatePath } from "next/cache";
 import { requireRole } from "@/features/auth/session";
 import { createClient } from "@/lib/supabase/server";
-import { parseDecimal, validatePriceInput } from "./ai-pricing";
-import type { ModelPriceFormState } from "./form-state";
+import {
+  parseDecimal,
+  validateCreditSettings,
+  validateOrgAiLimits,
+  validatePriceInput,
+} from "./ai-pricing";
+import type { AiLimitsFormState, ModelPriceFormState } from "./form-state";
 
 function clean(value: FormDataEntryValue | null): string | null {
   const text = String(value ?? "").trim();
@@ -50,4 +55,75 @@ export async function addModelPriceAction(
 
   revalidatePath("/platform/ai");
   return { error: null, message: `Prețul pentru „${input.model}” a fost salvat.` };
+}
+
+type Untyped = {
+  from(table: string): {
+    update(row: Record<string, unknown>): {
+      eq(column: string, value: unknown): Promise<{ error: unknown }>;
+    };
+  };
+};
+
+/**
+ * Valoarea unui credit AI + plafonul per mesaj (`ai_platform_settings`, 0039). Schimbarea
+ * valorii creditului schimba si creditele deja afisate (se recalculeaza din cost) - de
+ * aceea se face rar, dupa calibrare pe date reale.
+ */
+export async function updateCreditSettingsAction(
+  _prev: AiLimitsFormState,
+  formData: FormData,
+): Promise<AiLimitsFormState> {
+  const user = await requireRole(["super_admin"]);
+  const input = {
+    creditUsd: parseDecimal(formData.get("credit_usd")),
+    turnCreditLimit: parseDecimal(formData.get("turn_credit_limit")),
+  };
+  const error = validateCreditSettings(input);
+  if (error) return { error, message: null };
+
+  const supabase = (await createClient()) as unknown as Untyped;
+  const { error: updateError } = await supabase
+    .from("ai_platform_settings")
+    .update({
+      credit_micros: Math.round(input.creditUsd * 1_000_000),
+      turn_credit_limit: input.turnCreditLimit,
+      updated_at: new Date().toISOString(),
+      updated_by: user.id,
+    })
+    .eq("id", true);
+  if (updateError) return { error: "Nu am putut salva setările.", message: null };
+
+  revalidatePath("/platform/ai");
+  return { error: null, message: "Setările creditelor au fost salvate." };
+}
+
+/** Bugetul lunar (credite), procentul zilnic si comutatorul AI al unei organizatii. */
+export async function updateOrganizationAiLimitsAction(
+  _prev: AiLimitsFormState,
+  formData: FormData,
+): Promise<AiLimitsFormState> {
+  await requireRole(["super_admin"]);
+  const organizationId = clean(formData.get("organization_id"));
+  if (!organizationId) return { error: "Organizație invalidă.", message: null };
+  const input = {
+    monthlyCredits: parseDecimal(formData.get("monthly_credits")),
+    dailyPercent: parseDecimal(formData.get("daily_percent")),
+  };
+  const error = validateOrgAiLimits(input);
+  if (error) return { error, message: null };
+
+  const supabase = (await createClient()) as unknown as Untyped;
+  const { error: updateError } = await supabase
+    .from("organizations")
+    .update({
+      ai_enabled: formData.get("enabled") === "on",
+      ai_monthly_credit_limit: input.monthlyCredits,
+      ai_daily_user_credit_percent: input.dailyPercent,
+    })
+    .eq("id", organizationId);
+  if (updateError) return { error: "Nu am putut salva limitele.", message: null };
+
+  revalidatePath("/platform/ai");
+  return { error: null, message: "Salvat." };
 }

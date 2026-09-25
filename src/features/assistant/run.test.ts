@@ -9,7 +9,10 @@ vi.mock("@/features/auth/queries", () => ({
 vi.mock("./quota", () => ({
   getQuotaStatus: vi.fn(),
   quotaMessage: vi.fn().mockReturnValue(null),
-  recordUsage: vi.fn().mockResolvedValue(undefined),
+  recordUsage: vi.fn().mockResolvedValue(0),
+  getCreditSettings: vi.fn().mockResolvedValue({ creditMicros: 1000, turnCreditLimit: 0 }),
+  creditsFromMicros: (micros: number, credit: number) =>
+    micros > 0 ? Math.ceil(micros / credit) : 0,
 }));
 
 vi.mock("./service", () => ({
@@ -29,7 +32,7 @@ vi.mock("./tools/registry", () => ({
   toolDefinitions: vi.fn().mockReturnValue([]),
 }));
 
-const { getQuotaStatus, quotaMessage, recordUsage } = await import("./quota");
+const { getQuotaStatus, quotaMessage, recordUsage, getCreditSettings } = await import("./quota");
 const service = await import("./service");
 const { findTool } = await import("./tools/registry");
 const { confirmAction, rejectAction, runAssistantTurn, MAX_STEPS, looksLikeAnnouncedAction } =
@@ -49,6 +52,10 @@ const QUOTA = {
   monthlyUsed: 3,
   dailyLimit: 20,
   dailyUsed: 1,
+  dailyPercent: 20,
+  messagesThisMonth: 3,
+  estimatedMessagesLeft: null,
+  warning: false,
   blockedReason: null,
 };
 
@@ -128,6 +135,8 @@ beforeEach(() => {
   vi.mocked(service.saveProposal).mockResolvedValue("call-1");
   vi.mocked(service.listMessages).mockResolvedValue([]);
   vi.mocked(service.claimProposal).mockResolvedValue(true);
+  vi.mocked(recordUsage).mockResolvedValue(0);
+  vi.mocked(getCreditSettings).mockResolvedValue({ creditMicros: 1000, turnCreditLimit: 0 });
 });
 
 describe("runAssistantTurn", () => {
@@ -412,6 +421,52 @@ describe("runAssistantTurn - contorizarea consumului", () => {
         usage: { inputTokens: 1200, outputTokens: 80 },
       },
     ]);
+  });
+});
+
+describe("runAssistantTurn - credite AI (etapa 2)", () => {
+  it("plafonul turei: dupa ce costul trece de limita, nu mai citeste si raspunde cu rezumat", async () => {
+    const execute = vi.fn().mockResolvedValue({ ok: 1 });
+    vi.mocked(findTool).mockReturnValue(readTool(execute) as never);
+    vi.mocked(getCreditSettings).mockResolvedValue({ creditMicros: 1000, turnCreditLimit: 10 });
+    // Fiecare apel de model costa 6 credite -> dupa al doilea (12 > 10) se opreste.
+    vi.mocked(recordUsage).mockImplementation(async (input) => (input.model ? 6000 : 0));
+    const provider = new ScriptedProvider([
+      { toolCalls: [{ id: "t1", name: "cauta", arguments: "{}" }] },
+      { toolCalls: [{ id: "t2", name: "cauta", arguments: "{}" }] },
+      { content: "Am găsit clientul; pentru produse scrie-mi din nou." },
+    ]);
+
+    const turn = await runAssistantTurn({ conversationId: null, message: "x", ctx: CTX, provider });
+
+    expect(execute).toHaveBeenCalledTimes(1);
+    expect(provider.calls).toHaveLength(3);
+    expect(provider.calls[2].tools).toEqual([]);
+    const last = (provider.calls[2].messages as { content: string }[]).at(-1);
+    expect(last?.content).toMatch(/bugetul maxim pentru un singur mesaj/);
+    expect(turn.reply).toBe("Am găsit clientul; pentru produse scrie-mi din nou.");
+    // 3 apeluri x 6 credite; adminul vede costul turei
+    expect(turn.turnCredits).toBe(18);
+  });
+
+  it("creditele turei sunt trimise DOAR adminilor", async () => {
+    vi.mocked(recordUsage).mockImplementation(async (input) => (input.model ? 2500 : 0));
+
+    const admin = await runAssistantTurn({
+      conversationId: null,
+      message: "x",
+      ctx: CTX,
+      provider: new ScriptedProvider([{ content: "ok" }]),
+    });
+    const operator = await runAssistantTurn({
+      conversationId: null,
+      message: "x",
+      ctx: { ...CTX, role: "operator" },
+      provider: new ScriptedProvider([{ content: "ok" }]),
+    });
+
+    expect(admin.turnCredits).toBe(3);
+    expect(operator).not.toHaveProperty("turnCredits");
   });
 });
 
