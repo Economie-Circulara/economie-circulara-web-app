@@ -1017,4 +1017,211 @@ begin;
   end $$;
 rollback;
 
+-- ===========================================================================
+-- B24: client_order_delivery (0041) - clientul vede livrarea ACTIVA a comenzii
+--      PROPRII (subset de campuri), nu si pe a altui client, nici una anulata.
+-- ===========================================================================
+begin;
+  set local role authenticated;
+  set local request.jwt.claims = '{"sub":"b0000000-0000-0000-0000-0000000000b1"}';
+
+  insert into public.clients (id, organization_id, cui, name)
+  values ('cccc0000-0000-0000-0000-0000000000c9', :org, 'RO999', 'Alt client');
+  insert into public.orders (id, organization_id, client_id, order_type, status, created_by)
+  values
+    ('eeee0000-0000-0000-0000-00000000ee12', :org, :client_demo, 'material', 'accepted',
+     'b0000000-0000-0000-0000-0000000000b1'),
+    ('eeee0000-0000-0000-0000-00000000ee13', :org, 'cccc0000-0000-0000-0000-0000000000c9',
+     'material', 'accepted', 'b0000000-0000-0000-0000-0000000000b1'),
+    ('eeee0000-0000-0000-0000-00000000ee14', :org, :client_demo, 'material', 'accepted',
+     'b0000000-0000-0000-0000-0000000000b1');
+  insert into public.deliveries (id, organization_id, order_id, scheduled_date, carrier_name,
+    vehicle_plate, driver_name, route_origin, route_destination)
+  values
+    ('dddd0000-0000-0000-0000-00000000dd03', :org, 'eeee0000-0000-0000-0000-00000000ee12',
+     current_date, 'Fan Courier', 'B-33-GRD', 'Ionel', 'Depozit', 'Santier client'),
+    ('dddd0000-0000-0000-0000-00000000dd04', :org, 'eeee0000-0000-0000-0000-00000000ee13',
+     current_date, 'Alt transportator', 'B-44-XYZ', 'Vasile', 'Depozit', 'Alt santier'),
+    ('dddd0000-0000-0000-0000-00000000dd05', :org, 'eeee0000-0000-0000-0000-00000000ee14',
+     current_date, 'Anulat SRL', 'B-55-ANU', 'Gheorghe', 'Depozit', 'Santier');
+  select public.cancel_delivery('dddd0000-0000-0000-0000-00000000dd05', 'test');
+
+  set local request.jwt.claims = '{"sub":"b0000000-0000-0000-0000-0000000000b3"}';
+  select pg_temp.assert_num('B24 clientul nu citeste direct deliveries (RLS staff)', count(*), 0)
+  from public.deliveries;
+  select pg_temp.assert_eq('B24 clientul vede livrarea comenzii proprii', carrier_name,
+    'Fan Courier')
+  from public.client_order_delivery('eeee0000-0000-0000-0000-00000000ee12');
+  select pg_temp.assert_num('B24 livrarea comenzii altui client: 0 randuri', count(*), 0)
+  from public.client_order_delivery('eeee0000-0000-0000-0000-00000000ee13');
+  select pg_temp.assert_num('B24 livrarea anulata nu apare', count(*), 0)
+  from public.client_order_delivery('eeee0000-0000-0000-0000-00000000ee14');
+
+  -- staff-ul are ecranul /livrari; RPC-ul e doar pentru portalul clientului
+  set local request.jwt.claims = '{"sub":"b0000000-0000-0000-0000-0000000000b1"}';
+  select pg_temp.assert_num('B24 RPC-ul nu intoarce nimic pt. staff', count(*), 0)
+  from public.client_order_delivery('eeee0000-0000-0000-0000-00000000ee12');
+rollback;
+
+-- ===========================================================================
+-- B25: aport trimis din portal (0042) - clientul trimite (draft -> sent),
+--      staff-ul accepta din `sent` (loturi aport_client); un aport acceptat NU se
+--      mai poate anula (AP005); unul `sent` se poate anula (respingere).
+-- ===========================================================================
+begin;
+  set local role authenticated;
+  set local request.jwt.claims = '{"sub":"b0000000-0000-0000-0000-0000000000b3"}';
+
+  insert into public.orders (id, organization_id, client_id, order_type, status, created_by)
+  values
+    ('eeee0000-0000-0000-0000-00000000ee15', :org, :client_demo, 'aport', 'draft',
+     'b0000000-0000-0000-0000-0000000000b3'),
+    ('eeee0000-0000-0000-0000-00000000ee16', :org, :client_demo, 'aport', 'draft',
+     'b0000000-0000-0000-0000-0000000000b3');
+  insert into public.order_items (organization_id, order_id, item_id, quantity)
+  values
+    (:org, 'eeee0000-0000-0000-0000-00000000ee15', :item_moloz, 7),
+    (:org, 'eeee0000-0000-0000-0000-00000000ee16', :item_moloz, 3);
+  update public.orders set status = 'sent'
+  where id in ('eeee0000-0000-0000-0000-00000000ee15', 'eeee0000-0000-0000-0000-00000000ee16');
+  select pg_temp.assert_num('B25 clientul isi trimite aportul (sent)', count(*), 2)
+  from public.orders
+  where id in ('eeee0000-0000-0000-0000-00000000ee15', 'eeee0000-0000-0000-0000-00000000ee16')
+    and status = 'sent';
+
+  set local request.jwt.claims = '{"sub":"b0000000-0000-0000-0000-0000000000b1"}';
+  select public.accept_intake_order('eeee0000-0000-0000-0000-00000000ee15');
+  select pg_temp.assert_eq('B25 aport acceptat din sent', status::text, 'accepted')
+  from public.orders where id = 'eeee0000-0000-0000-0000-00000000ee15';
+  select pg_temp.assert_num('B25 lot aport_client creat cu cantitatea liniei',
+    sum(initial_qty), 7)
+  from public.lots
+  where item_id = :item_moloz and provenance = 'aport_client' and client_id = :client_demo
+    and created_at = now();
+
+  do $$
+  begin
+    begin
+      perform public.cancel_order('eeee0000-0000-0000-0000-00000000ee15'::uuid);
+      raise exception 'FAIL: B25 un aport acceptat nu trebuia anulat';
+    exception
+      when sqlstate 'AP005' then raise notice 'PASS: B25 anularea aportului acceptat respinsa (AP005)';
+    end;
+  end $$;
+
+  select public.cancel_order('eeee0000-0000-0000-0000-00000000ee16');
+  select pg_temp.assert_eq('B25 aportul trimis se poate respinge (anula)', status::text,
+    'cancelled')
+  from public.orders where id = 'eeee0000-0000-0000-0000-00000000ee16';
+rollback;
+
+-- ===========================================================================
+-- B26: aport cu item ARHIVAT (0043) - respins (AR001) pentru client, chiar daca
+--      itemul i-a fost livrat (exceptia de retur nu se aplica aportului), si pentru
+--      staff. Returul clientului pe acelasi item ramane permis (vezi B23).
+-- ===========================================================================
+begin;
+  set local role authenticated;
+  set local request.jwt.claims = '{"sub":"b0000000-0000-0000-0000-0000000000b1"}';
+  insert into public.orders (id, organization_id, client_id, order_type, status, created_by)
+  values
+    ('eeee0000-0000-0000-0000-00000000ee17', :org, :client_demo, 'material', 'delivered',
+     'b0000000-0000-0000-0000-0000000000b1'),
+    ('eeee0000-0000-0000-0000-00000000ee18', :org, :client_demo, 'aport', 'draft',
+     'b0000000-0000-0000-0000-0000000000b1');
+  insert into public.order_items (organization_id, order_id, item_id, quantity)
+  values (:org, 'eeee0000-0000-0000-0000-00000000ee17', :item_caramizi, 5);
+  update public.items set archived_at = now() where id = :item_caramizi;
+
+  do $$
+  declare v_item uuid;
+  begin
+    select id into v_item from public.items
+      where organization_id = 'a0000000-0000-0000-0000-0000000000a1' and title = 'Cărămizi eco';
+    begin
+      insert into public.order_items (organization_id, order_id, item_id, quantity)
+      values ('a0000000-0000-0000-0000-0000000000a1', 'eeee0000-0000-0000-0000-00000000ee18',
+              v_item, 1);
+      raise exception 'FAIL: B26 staff-ul a pus un item arhivat pe un aport';
+    exception
+      when sqlstate 'AR001' then raise notice 'PASS: B26 aport staff cu item arhivat respins (AR001)';
+    end;
+  end $$;
+
+  set local request.jwt.claims = '{"sub":"b0000000-0000-0000-0000-0000000000b3"}';
+  insert into public.orders (id, organization_id, client_id, order_type, status, created_by)
+  values ('eeee0000-0000-0000-0000-00000000ee19', :org, :client_demo, 'aport', 'draft',
+          'b0000000-0000-0000-0000-0000000000b3');
+  do $$
+  declare v_item uuid;
+  begin
+    select id into v_item from public.items
+      where organization_id = 'a0000000-0000-0000-0000-0000000000a1' and title = 'Cărămizi eco';
+    begin
+      insert into public.order_items (organization_id, order_id, item_id, quantity)
+      values ('a0000000-0000-0000-0000-0000000000a1', 'eeee0000-0000-0000-0000-00000000ee19',
+              v_item, 1);
+      raise exception 'FAIL: B26 clientul a pus un item arhivat (livrat) pe un aport';
+    exception
+      when sqlstate 'AR001' then raise notice 'PASS: B26 aport client cu item arhivat livrat respins (AR001)';
+    end;
+  end $$;
+rollback;
+
+-- ===========================================================================
+-- B27: retur cerut din portal (0044) - clientul trimite cererea (draft -> sent),
+--      staff-ul o accepta din `sent` (lot `return`); un retur acceptat NU se mai
+--      anuleaza (RT005); unul trimis se poate respinge (anula).
+-- ===========================================================================
+begin;
+  set local role authenticated;
+  set local request.jwt.claims = '{"sub":"b0000000-0000-0000-0000-0000000000b1"}';
+  insert into public.orders (id, organization_id, client_id, order_type, status, created_by)
+  values ('eeee0000-0000-0000-0000-00000000ee20', :org, :client_demo, 'material', 'delivered',
+          'b0000000-0000-0000-0000-0000000000b1');
+  insert into public.order_items (organization_id, order_id, item_id, quantity)
+  values (:org, 'eeee0000-0000-0000-0000-00000000ee20', :item_nisip, 5);
+
+  set local request.jwt.claims = '{"sub":"b0000000-0000-0000-0000-0000000000b3"}';
+  insert into public.orders (id, organization_id, client_id, order_type, status, created_by)
+  values
+    ('eeee0000-0000-0000-0000-00000000ee21', :org, :client_demo, 'material', 'draft',
+     'b0000000-0000-0000-0000-0000000000b3'),
+    ('eeee0000-0000-0000-0000-00000000ee22', :org, :client_demo, 'material', 'draft',
+     'b0000000-0000-0000-0000-0000000000b3');
+  insert into public.order_items (organization_id, order_id, item_id, quantity)
+  values
+    (:org, 'eeee0000-0000-0000-0000-00000000ee21', :item_nisip, 2),
+    (:org, 'eeee0000-0000-0000-0000-00000000ee22', :item_nisip, 1);
+  insert into public.order_links (organization_id, link_type, original_order_id, linked_order_id)
+  values
+    (:org, 'return', 'eeee0000-0000-0000-0000-00000000ee20', 'eeee0000-0000-0000-0000-00000000ee21'),
+    (:org, 'return', 'eeee0000-0000-0000-0000-00000000ee20', 'eeee0000-0000-0000-0000-00000000ee22');
+  update public.orders set status = 'sent'
+  where id in ('eeee0000-0000-0000-0000-00000000ee21', 'eeee0000-0000-0000-0000-00000000ee22');
+
+  set local request.jwt.claims = '{"sub":"b0000000-0000-0000-0000-0000000000b1"}';
+  select public.accept_return_order('eeee0000-0000-0000-0000-00000000ee21');
+  select pg_temp.assert_eq('B27 retur acceptat din sent', status::text, 'accepted')
+  from public.orders where id = 'eeee0000-0000-0000-0000-00000000ee21';
+  select pg_temp.assert_num('B27 lot de retur creat', sum(initial_qty), 2)
+  from public.lots
+  where item_id = :item_nisip and provenance = 'return' and created_at = now();
+
+  do $$
+  begin
+    begin
+      perform public.cancel_order('eeee0000-0000-0000-0000-00000000ee21'::uuid);
+      raise exception 'FAIL: B27 un retur acceptat nu trebuia anulat';
+    exception
+      when sqlstate 'RT005' then raise notice 'PASS: B27 anularea returului acceptat respinsa (RT005)';
+    end;
+  end $$;
+
+  select public.cancel_order('eeee0000-0000-0000-0000-00000000ee22');
+  select pg_temp.assert_eq('B27 returul trimis se poate respinge (anula)', status::text,
+    'cancelled')
+  from public.orders where id = 'eeee0000-0000-0000-0000-00000000ee22';
+rollback;
+
 select '*** TOATE TESTELE FUNCTIONALE DE BUSINESS AU TRECUT ***' as result;

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { acceptReturnAction } from "./actions";
 
 /**
- * Buton "Acceptă retur" - doar pt. comenzi-retur `draft` (vezi
+ * Buton "Acceptă retur" - doar pt. comenzi-retur `draft` sau `sent` (0044) (vezi
  * `(admin)/comenzi/[id]/page.tsx`, care randeaza acest buton in locul
  * `OrderStatusActions` generic cand comanda are o legatura return/warranty).
  * `acceptReturnAction` ia direct `returnOrderId` (nu FormData) - apelat din

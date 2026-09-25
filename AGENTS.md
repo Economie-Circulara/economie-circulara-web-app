@@ -206,6 +206,13 @@ Testele unitare sunt **colocate** langa cod (`*.test.ts` / `*.test.tsx`).
   poate edita itemii comenzilor acceptate direct prin Data API (hardening in
   migrarea `0003_rls_hardening.sql` - politici client constiente de status +
   trigger anti-escaladare pe `profiles`).
+- **Clientul vede livrarea comenzii proprii, dar NU randul `deliveries`** (decizie
+  2026-09-25, migrarea `0041`): tabelul ramane RLS doar-staff; portalul citeste prin
+  RPC-ul `client_order_delivery` (security definer, verifica explicit client activ +
+  comanda proprie + livrare neanulata) DOAR campurile utile clientului - data
+  programata, transportator, vehicul, sofer, destinatie, cod UIT, receptie. Erorile
+  e-Transport, ruta calculata, punctul de plecare si notele de receptie raman interne.
+  Orice camp nou expus clientului se adauga in RPC, nu printr-o politica de SELECT.
 - **O organizatie suspendata (`organizations.status = 'suspended'`) blocheaza
   accesul userilor ei** (admin/operator/client), pe DOUA linii: aplicatie
   (`middleware.ts` + `getCurrentUser`/`requireUser` din `session.ts` redirectioneaza
@@ -279,8 +286,24 @@ Testele unitare sunt **colocate** langa cod (`*.test.ts` / `*.test.tsx`).
     `aport_client`, `lots.client_id` completat (singura cale prin care un lot stie
     de la ce CLIENT provine) si `quality_status = 'unchecked'` - materialul unui
     tert nu e verificat in momentul receptiei, QC-ul se face dupa. Comanda-aport NU
-    intra in masina de stari de vanzare: `draft -> accepted` si se opreste acolo,
+    intra in masina de stari de vanzare: `draft|sent -> accepted` si se opreste acolo,
     exact ca o comanda-retur; `accept_order` (fluxul de vanzare) o refuza explicit.
+    **Aportul trimis de CLIENT din portal nu ramane ciorna** (decizie 2026-09-25,
+    migrarea `0042`): pentru client cererea e trimisa spre aprobare, deci portalul o
+    trece `draft -> sent` (cu numar), ca orice comanda de client; staff-ul o accepta
+    din `sent` sau o anuleaza (respinge). Aportul creat de staff se accepta direct din
+    `draft`. Un aport **acceptat nu se anuleaza** (garda DB `AP005`): `cancel_order`
+    reface doar consumul, iar aportul a CREAT loturi. Butoanele generice pe un aport
+    trec prin `canTransitionOrderInFlow` (`orders/state-machine.ts`, flux `intake`) -
+    doar "Anulează".
+  - **Acelasi tipar pentru retur/garantie cerute din portal** (decizie 2026-09-25,
+    migrarea `0044`): cererea clientului e trimisa (`sent`, cu numar; la garantie si
+    comanda de inlocuire), staff-ul o accepta din `sent` (`accept_return_order`) sau
+    o anuleaza; un retur acceptat nu se anuleaza (`RT005`). Aportul si returul sunt
+    fluxul `intake` (`orderFlowOf`): fara "Repetă comanda", fara livrare, traseu
+    `draft -> sent -> accepted`. Acceptarea lor trimite emailul catre client cu
+    formularea potrivita (`kind: "intake" | "return"` in `onOrderStatusChanged`) - nu
+    "în curs de pregătire pentru livrare".
 - **Eligibilitatea de retur/garantie depinde de tipul comenzii, nu doar de status**
   (decizie 2026-09, `ALLOWED_RETURN_FLOWS_BY_ORDER_TYPE` in
   `src/features/returns/types.ts`): retur PUR (`order_links.link_type = 'return'`,
@@ -339,6 +362,14 @@ Testele unitare sunt **colocate** langa cod (`*.test.ts` / `*.test.tsx`).
     pune un item arhivat pe o comanda doar daca i-a fost deja livrat (apare pe o
     comanda proprie `delivered`/`closed`) - criteriul folosit de trigger-ul
     `app.reject_archived_references` pentru cererile de retur/garantie din portal.
+  - **Liniile trimise din portal se valideaza pe server fata de lista CURENTA de
+    itemi permisi** (decizie 2026-09-25): catalogul vandabil pt. comenzi, materialele
+    de aport pt. aport - ambele fara arhivate (`unavailableLinesError` in
+    `client-portal/actions.ts`). Motiv: cosul (`localStorage`, "Repetă comanda") poate
+    contine itemi scosi intre timp din catalog, iar DB-ul lasa clientul sa foloseasca
+    un item arhivat DEJA LIVRAT lui (exceptia de retur de mai sus) si nu verifica
+    `sellable`. Pe o comanda de **aport** exceptia nu se aplica: item arhivat = AR001
+    pentru orice rol (migrarea `0043`).
   - Loturi: **"Anulează lotul" doar daca nimic nu s-a consumat** si lotul e o
     intrare manuala (nu output de proces / retur / aport). Nu sterge nimic: scrie un
     eveniment de corectie `adjustment` (`-initial_qty`) in `stock_events`,

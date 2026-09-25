@@ -7,11 +7,14 @@ import { PageHeader } from "@/components/page-header";
 import { StatusBadge } from "@/components/status-badge";
 import { requireRole } from "@/features/auth/session";
 import { deleteOwnDraftOrderAction } from "@/features/client-portal/actions";
+import { ClientDeliveryCard } from "@/features/client-portal/client-delivery-card";
+import { getClientOrderDelivery } from "@/features/client-portal/queries";
 import { RepeatOrderButton } from "@/features/client-portal/repeat-order-button";
 import { ORDER_STATUS_BADGE_STATUS, ORDER_STATUS_LABELS } from "@/features/orders/labels";
 import { getOrderDetail } from "@/features/orders/queries";
 import { ReturnActions } from "@/features/returns/return-actions";
-import { getReturnableItems } from "@/features/returns/queries";
+import { ORDER_LINK_TYPE_LABELS } from "@/features/returns/labels";
+import { getReturnLinkForOrder, getReturnableItems } from "@/features/returns/queries";
 import { ALLOWED_RETURN_FLOWS_BY_ORDER_TYPE } from "@/features/returns/types";
 
 export const metadata = { title: "Detalii comandă - Lot cu Lot" };
@@ -53,16 +56,24 @@ export default async function ClientOrderDetailPage({ params }: OrderDetailPageP
   if (!order) notFound();
 
   const isIntakeOrder = order.orderType === "aport";
+  // Cerere de retur/garantie (comanda derivata, `order_links`): produsele vin DE LA
+  // client - fara "Repetă comanda" (ar recomanda exact marfa returnata) si fara livrare.
+  const returnLink = await getReturnLinkForOrder(order.id);
+  const isReturnRequest = returnLink?.linkType === "return" || returnLink?.linkType === "warranty";
 
   // Retur/garantie: doar pe comenzile finalizate. `getReturnableItems` e RLS-scoped
   // (clientul vede doar comenzile proprii), deci nu e nevoie de autorizare aici.
   // ...si doar pe tipurile de comanda care permit fluxul cerut (migrarea 0030:
   // retur si garantie pe `material`/`serviciu`, nimic pe `aport`).
   const allowedReturnFlows = ALLOWED_RETURN_FLOWS_BY_ORDER_TYPE[order.orderType];
-  const returnableItems =
+  // Livrarea planificata de staff (0041): exista doar pe comenzi acceptate/livrate,
+  // niciodata pe un aport (materialul vine de la client, nu pleaca spre el).
+  const [returnableItems, delivery] = await Promise.all([
     isFinished(order.status) && allowedReturnFlows.length > 0
-      ? await getReturnableItems(order.id)
-      : [];
+      ? getReturnableItems(order.id)
+      : Promise.resolve([]),
+    isIntakeOrder || isReturnRequest ? Promise.resolve(null) : getClientOrderDelivery(order.id),
+  ]);
 
   return (
     <div className="space-y-8">
@@ -79,7 +90,7 @@ export default async function ClientOrderDetailPage({ params }: OrderDetailPageP
                 <Link href={`/comenzile-mele/${order.id}/certificat`}>Vezi certificat</Link>
               </Button>
             ) : null}
-            {isIntakeOrder ? null : <RepeatOrderButton items={order.items} />}
+            {isIntakeOrder || isReturnRequest ? null : <RepeatOrderButton items={order.items} />}
             {/* Doar ciornele proprii se pot sterge (migrarea 0035). */}
             {order.status === "draft" ? (
               <ConfirmActionButton
@@ -95,39 +106,54 @@ export default async function ClientOrderDetailPage({ params }: OrderDetailPageP
         }
       />
 
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         <StatusBadge group="order" status={ORDER_STATUS_BADGE_STATUS[order.status]} />
+        {returnLink ? (
+          <span className="text-sm text-muted-foreground">
+            {ORDER_LINK_TYPE_LABELS[returnLink.linkType]} pentru{" "}
+            <Link href={`/comenzile-mele/${returnLink.originalOrderId}`} className="underline">
+              comanda originală
+            </Link>
+          </span>
+        ) : null}
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">{isIntakeOrder ? "Aport" : "Livrare"}</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-1 text-sm">
-          <p>
-            <span className="text-muted-foreground">Adresă: </span>
-            {order.deliveryAddress
-              ? `${order.deliveryAddressLabel ? `${order.deliveryAddressLabel} - ` : ""}${order.deliveryAddress}`
-              : "Neprecizată"}
-          </p>
-          <p>
-            <span className="text-muted-foreground">
-              {isIntakeOrder ? "Data aportului: " : "Data livrare: "}
-            </span>
-            {formatDate(order.deliveryDate)}
-          </p>
-          {order.notes ? (
+      <div className={delivery ? "grid gap-4 lg:grid-cols-2" : undefined}>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">{isIntakeOrder ? "Aport" : "Livrare"}</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-1 text-sm">
             <p>
-              <span className="text-muted-foreground">Observații: </span>
-              {order.notes}
+              <span className="text-muted-foreground">Adresă: </span>
+              {order.deliveryAddress
+                ? `${order.deliveryAddressLabel ? `${order.deliveryAddressLabel} - ` : ""}${order.deliveryAddress}`
+                : "Neprecizată"}
             </p>
-          ) : null}
-        </CardContent>
-      </Card>
+            <p>
+              <span className="text-muted-foreground">
+                {isIntakeOrder ? "Data aportului: " : "Data livrare: "}
+              </span>
+              {formatDate(order.deliveryDate)}
+            </p>
+            {order.notes ? (
+              <p>
+                <span className="text-muted-foreground">Observații: </span>
+                {order.notes}
+              </p>
+            ) : null}
+          </CardContent>
+        </Card>
+        {delivery ? <ClientDeliveryCard delivery={delivery} /> : null}
+      </div>
 
       <section className="space-y-3">
         <h2 className="text-lg font-semibold">
-          {isIntakeOrder ? "Materiale aduse" : "Produse comandate"}
+          {isIntakeOrder
+            ? "Materiale aduse"
+            : isReturnRequest
+              ? "Produse returnate"
+              : "Produse comandate"}
         </h2>
         {order.items.length === 0 ? (
           <p className="text-sm text-muted-foreground">Comanda nu are linii.</p>

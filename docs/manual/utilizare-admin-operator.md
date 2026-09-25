@@ -372,8 +372,10 @@ implicită) - el dă sensul mișcării de stoc:
 **Aportul** acoperă cazul în care clientul aduce material către organizație (ex.
 moloz din demolări, pentru reciclare). La linii se pot alege **orice materiale**,
 inclusiv cei nevandabili (materiile prime nu apar în catalogul de vânzare). O
-comandă de aport nu se "trimite" și nu se "livrează": are o singură acțiune,
-**"Acceptă aport"** (vezi 7.4), după care rămâne **Acceptată**.
+comandă de aport nu se "livrează": are o singură acțiune, **"Acceptă aport"** (vezi
+7.4), după care rămâne **Acceptată**. Aportul creat de staff pornește ca Ciornă;
+cererea de aport trimisă de client din portal sosește direct ca **Trimisă** (cu număr
+de comandă), gata de acceptat sau de anulat (respins).
 
 ### 7.2 Mașina de stări a unei comenzi
 
@@ -427,11 +429,12 @@ Dacă o comandă a fost livrată/închisă, pot apărea butoanele **"Retur"** ș
 **"Garanție"** (secțiunea 8). Dacă certificatul există deja, apare butonul
 **"Vezi certificat"**.
 
-Pe o comandă de tip **Aport** aflată în Ciornă, în locul butoanelor de tranziție apare
-**"Acceptă aport"**: materialul adus de client intră în stoc ca lot nou, cu
+Pe o comandă de tip **Aport** aflată în Ciornă sau Trimisă, în locul butoanelor de
+tranziție apar **"Acceptă aport"** și **"Anulează"** (respingerea cererii): materialul adus de client intră în stoc ca lot nou, cu
 proveniența "Aport client", cu **clientul care l-a adus** păstrat pe lot
 (trasabilitate) și cu calitatea **"Neverificat"** - controlul de calitate se face
-ulterior, din ecranul de Stoc. Traseul afișat se oprește la "Acceptată".
+ulterior, din ecranul de Stoc. Traseul afișat se oprește la "Acceptată". Un aport
+acceptat **nu se mai poate anula** - materialul a intrat deja în stoc.
 
 ![ecranul de detaliu comandă, cu traseul de status](img/admin-order-detail.png)
 
@@ -474,8 +477,12 @@ materialul a venit de la client, nu către el.
   comandă de **înlocuire** (comandă de vânzare obișnuită, care parcurge fluxul
   normal Ciornă -> Trimisă -> Acceptată -> Livrată -> Închisă).
 
-Comanda-retur/garanție nou creată apare inițial ca **Ciornă**; pe ea, în loc de
-butoanele generice de tranziție, apare butonul dedicat **"Acceptă retur"** -
+Comanda-retur/garanție creată de staff apare inițial ca **Ciornă**; cea cerută de
+client din portal sosește direct ca **Trimisă** (împreună cu comanda de înlocuire,
+la garanție). Pe ea, în loc de butoanele generice de tranziție, apar **"Acceptă
+retur"** și **"Anulează"** (respingerea cererii). Un retur acceptat nu se mai poate
+anula. Clientul primește email la acceptare, cu formularea de retur/aport (nu de
+livrare). **"Acceptă retur"** -
 acceptarea unui retur **adaugă** materialul înapoi în stoc (după inspecție/
 acceptare manuală), spre deosebire de acceptarea unei comenzi de vânzare, care
 scade stocul.

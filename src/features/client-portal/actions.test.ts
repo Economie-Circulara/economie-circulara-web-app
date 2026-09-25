@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const { requireRole } = vi.hoisted(() => ({ requireRole: vi.fn() }));
 vi.mock("@/features/auth/session", () => ({ requireRole }));
@@ -13,6 +13,12 @@ vi.mock("@/features/orders/service", () => ({
   sendOrder,
   deleteDraftOrder,
 }));
+
+const { listCatalogItems } = vi.hoisted(() => ({ listCatalogItems: vi.fn() }));
+vi.mock("./queries", () => ({ listCatalogItems }));
+
+const { listIntakeItemOptions } = vi.hoisted(() => ({ listIntakeItemOptions: vi.fn() }));
+vi.mock("@/features/orders/queries", () => ({ listIntakeItemOptions }));
 
 const { revalidatePath } = vi.hoisted(() => ({ revalidatePath: vi.fn() }));
 vi.mock("next/cache", () => ({ revalidatePath }));
@@ -30,6 +36,13 @@ import {
   createClientOrderAction,
   deleteOwnDraftOrderAction,
 } from "./actions";
+
+beforeEach(() => {
+  // Itemii folositi in teste sunt, implicit, disponibili (necatalogati -> vezi testele dedicate).
+  const available = ["item-1", "item-2"].map((id) => ({ id }));
+  listCatalogItems.mockResolvedValue(available);
+  listIntakeItemOptions.mockResolvedValue(available);
+});
 
 afterEach(() => {
   vi.clearAllMocks();
@@ -156,6 +169,33 @@ describe("createClientOrderAction", () => {
   });
 });
 
+describe("linii indisponibile (item arhivat / scos din catalog)", () => {
+  it("comanda din catalog: respinge un item care nu mai e in catalog, fara sa creeze comanda", async () => {
+    requireRole.mockResolvedValue(CLIENT_USER);
+
+    const state = await createClientOrderAction(
+      initialClientOrderFormState,
+      formData({ item_id: ["item-1", "item-arhivat"], quantity: ["1", "2"] }),
+    );
+
+    expect(state.error).toMatch(/nu mai sunt disponibile/);
+    expect(createOrderWithItems).not.toHaveBeenCalled();
+  });
+
+  it("aport: respinge un material care nu mai e in lista de aport (ex. arhivat)", async () => {
+    requireRole.mockResolvedValue(CLIENT_USER);
+
+    const state = await createClientAportAction(
+      initialClientOrderFormState,
+      formData({ item_id: "item-arhivat", quantity: "5" }),
+    );
+
+    expect(state.error).toMatch(/nu mai sunt disponibile/);
+    expect(listIntakeItemOptions).toHaveBeenCalled();
+    expect(createOrderWithItems).not.toHaveBeenCalled();
+  });
+});
+
 describe("createClientAportAction", () => {
   it("respinge o cerere fara materiale fara sa atinga serviciul de comenzi", async () => {
     requireRole.mockResolvedValue(CLIENT_USER);
@@ -178,9 +218,10 @@ describe("createClientAportAction", () => {
     expect(createOrderWithItems).not.toHaveBeenCalled();
   });
 
-  it("creeaza comanda aport draft, created_by_admin=false, si NU o trimite", async () => {
+  it("creeaza comanda aport cu created_by_admin=false apoi o trimite (draft -> sent)", async () => {
     requireRole.mockResolvedValue(CLIENT_USER);
     createOrderWithItems.mockResolvedValue({ id: "order-2", status: "draft" });
+    sendOrder.mockResolvedValue({ id: "order-2", status: "sent" });
 
     const state = await createClientAportAction(
       initialClientOrderFormState,
@@ -203,9 +244,8 @@ describe("createClientAportAction", () => {
       notes: "Moloz de demolare",
       lines: [{ itemId: "item-1", quantity: 500 }],
     });
-    // Spre deosebire de createClientOrderAction, aportul ramane draft - nu se
-    // trimite (nu exista pas "sent" separat, staff-ul accepta direct din draft).
-    expect(sendOrder).not.toHaveBeenCalled();
+    // Pentru client cererea e trimisa spre aprobare, nu ciorna (migrarea 0042).
+    expect(sendOrder).toHaveBeenCalledWith("order-2", "org-1");
     expect(revalidatePath).toHaveBeenCalledWith("/comenzile-mele");
     expect(state).toEqual({ error: null, orderId: "order-2" });
   });
@@ -239,6 +279,23 @@ describe("createClientAportAction", () => {
     );
 
     expect(state).toEqual({ error: "Nu am putut crea comanda.", orderId: null });
+    expect(sendOrder).not.toHaveBeenCalled();
+  });
+
+  it("daca trimiterea esueaza, semnaleaza eroarea dar pastreaza orderId", async () => {
+    requireRole.mockResolvedValue(CLIENT_USER);
+    createOrderWithItems.mockResolvedValue({ id: "order-2", status: "draft" });
+    sendOrder.mockRejectedValueOnce(new Error("numar indisponibil"));
+
+    const state = await createClientAportAction(
+      initialClientOrderFormState,
+      formData({ item_id: "item-1", quantity: "1" }),
+    );
+
+    expect(state).toEqual({
+      error: "Comanda a fost salvată, dar nu a putut fi trimisă: numar indisponibil",
+      orderId: "order-2",
+    });
   });
 });
 

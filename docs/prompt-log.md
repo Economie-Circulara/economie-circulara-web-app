@@ -4,6 +4,45 @@ Jurnal al sarcinilor lucrate de agenti AI in acest repo. Conform regulii 1.2 din
 [`AGENTS.md`](../AGENTS.md), la **fiecare commit** se adauga o intrare aici.
 Cele mai noi intrari sus.
 
+## 2026-09-25 — Claude Opus 5.5 (Claude Code) — Retur/garantie din portal trimise + notificari aport/retur
+
+- **Cerut:** rezolvarea celor 3 inconsistente gasite: retur/garantie din portal raman
+  ciorna; "Repetă comanda" pe retur; fara email la acceptarea aportului.
+- **Facut:** portalul trimite cererile de retur/garantie (si inlocuirea); migrarea 0044 -
+  `accept_return_order` din `sent` + garda RT005; flux `intake` in state machine
+  (aport + retur: doar "Acceptă ..." + "Anulează", fara livrare/repetare); email la
+  acceptarea aportului/returului cu formulare proprie (`OrderEmailKind`); teste unitare +
+  B27 (suitele SQL rulate pe Postgres local: trec); plan
+  `docs/plans/retur-client-trimis-notificari.md`, manual, AGENTS.md.
+
+## 2026-09-25 — Claude Opus 5.5 (Claude Code) — Portal client: fara itemi arhivati pe comenzi/aport
+
+- **Cerut:** clientul putea face aport cu un material arhivat; alte inconsistente client/admin?
+- **Facut:** validare server-side a liniilor din portal fata de catalog / materialele de
+  aport (fara arhivate); `/catalog` nu mai trimite liniile indisponibile din cos (mesaj +
+  "Scoate din coș"); migrarea 0043 - item arhivat pe un aport = AR001 pt. orice rol;
+  teste unitare + B26 (suitele SQL rulate pe Postgres local: trec); plan
+  `docs/plans/portal-itemi-indisponibili.md`, AGENTS.md.
+
+## 2026-09-25 — Claude Opus 5.5 (Claude Code) — Aportul trimis din portal nu mai ramane ciorna
+
+- **Cerut:** aportul creat de client apare ca ciorna (si la admin); pentru client e trimis
+  spre aprobare.
+- **Facut:** portalul trimite aportul (`draft -> sent`); migrarea 0042 -
+  `accept_intake_order` accepta si din `sent` + garda AP005 (aport acceptat nu se
+  anuleaza); staff: pe aport doar "Acceptă aport" + "Anulează" (fara butoanele de
+  vanzare/livrare), traseu `APORT_JOURNEY`; teste unitare + B25 (suitele SQL rulate pe
+  Postgres local: trec); plan `docs/plans/aport-client-trimis.md`, manual, AGENTS.md.
+
+## 2026-09-25 — Claude Opus 5.5 (Claude Code) — Portal client: detaliile livrarii comenzii
+
+- **Cerut:** clientul, pe detaliul unei comenzi, nu vede livrarea planificata (adminul o vede).
+- **Facut:** cauza - `deliveries` e RLS doar-staff. Migrarea 0041: RPC
+  `client_order_delivery` (subset sigur de campuri, doar comanda proprie, livrare
+  activa); `getClientOrderDelivery` + cardul "Transport" in `/comenzile-mele/[id]`;
+  teste unitare + B24 in `business_flow.sql` (rulat pe Postgres local: trece); plan
+  `docs/plans/client-livrare-comanda.md`, manual, regula noua in AGENTS.md §4.
+
 ## 2026-09-25 — Claude Opus 5.5 (Claude Code) — Catalog client: imaginile produselor
 
 - **Cerut:** clientul nu vede in `/catalog` imaginile produselor/abonamentelor, desi exista.

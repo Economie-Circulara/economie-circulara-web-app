@@ -4,7 +4,10 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireRole } from "@/features/auth/session";
 import { createOrderWithItems, deleteDraftOrder, sendOrder } from "@/features/orders/service";
+import { listIntakeItemOptions } from "@/features/orders/queries";
 import type { OrderLineInput } from "@/features/orders/types";
+import { splitAvailableLines } from "./cart-logic";
+import { listCatalogItems } from "./queries";
 import type { ClientOrderFormState } from "./action-state";
 
 function clean(value: FormDataEntryValue | null): string | null {
@@ -38,6 +41,50 @@ function readLines(formData: FormData): OrderLineInput[] {
 }
 
 /**
+ * Garda server-side: liniile trimise din portal trebuie sa fie in lista CURENTA de
+ * itemi permisi clientului (catalogul vandabil, respectiv materialele de aport) -
+ * ambele liste exclud itemii arhivati (0035). Fara ea, un item arhivat ajuns in cos
+ * prin "Repetă comanda" sau dintr-un cos vechi ar trece: trigger-ul DB
+ * `reject_archived_references` lasa clientul sa foloseasca un item arhivat deja
+ * livrat lui (exceptia pentru retur/garantie), iar RLS nu verifica `sellable`.
+ */
+function unavailableLinesError(lines: OrderLineInput[], allowed: { id: string }[]): string | null {
+  const { unavailable } = splitAvailableLines(lines, new Set(allowed.map((i) => i.id)));
+  return unavailable.length > 0
+    ? "Unele produse nu mai sunt disponibile (au fost scoase din catalog). Elimină-le și încearcă din nou."
+    : null;
+}
+
+/**
+ * Pasul "trimite" comun comenzilor create din portal (catalog si aport): `draft` ->
+ * `sent` + numar de comanda. Din punctul de vedere al clientului comanda e trimisa
+ * spre aprobare in momentul in care apasa butonul - nu ramane ciorna.
+ */
+async function sendCreatedOrder(
+  orderId: string,
+  organizationId: string,
+): Promise<ClientOrderFormState> {
+  try {
+    await sendOrder(orderId, organizationId);
+  } catch (err) {
+    // Comanda a fost salvata ca draft, dar nu a putut fi trimisa (ex. generarea
+    // numarului a esuat) - semnalam eroarea, dar orderId ramane util (utilizatorul
+    // o vede in /comenzile-mele ca "Ciornă" si o poate sterge / reface).
+    revalidatePath("/comenzile-mele");
+    return {
+      error:
+        err instanceof Error
+          ? `Comanda a fost salvată, dar nu a putut fi trimisă: ${err.message}`
+          : "Comanda a fost salvată, dar nu a putut fi trimisă.",
+      orderId,
+    };
+  }
+
+  revalidatePath("/comenzile-mele");
+  return { error: null, orderId };
+}
+
+/**
  * Creeaza + trimite o comanda in numele clientului curent (`created_by_admin:
  * false`): un singur pas din UI (buton "Trimite comanda", ca in mockup), desi la
  * nivel de date trece prin doua stari (`draft` -> `sent`, RLS `orders_client_update`
@@ -58,6 +105,8 @@ export async function createClientOrderAction(
   if (lines.length === 0) {
     return { error: "Coșul este gol - adaugă cel puțin un produs.", orderId: null };
   }
+  const unavailableError = unavailableLinesError(lines, await listCatalogItems());
+  if (unavailableError) return { error: unavailableError, orderId: null };
 
   let orderId: string;
   try {
@@ -83,33 +132,16 @@ export async function createClientOrderAction(
     };
   }
 
-  try {
-    await sendOrder(orderId, user.organizationId);
-  } catch (err) {
-    // Comanda a fost salvata ca draft, dar nu a putut fi trimisa (ex. generarea
-    // numarului a esuat) - semnalam eroarea, dar orderId ramane util (utilizatorul
-    // poate incerca din nou din /comenzile-mele, comanda apare acolo ca "Ciornă").
-    revalidatePath("/comenzile-mele");
-    return {
-      error:
-        err instanceof Error
-          ? `Comanda a fost salvată, dar nu a putut fi trimisă: ${err.message}`
-          : "Comanda a fost salvată, dar nu a putut fi trimisă.",
-      orderId,
-    };
-  }
-
-  revalidatePath("/comenzile-mele");
-  return { error: null, orderId };
+  return sendCreatedOrder(orderId, user.organizationId);
 }
 
 /**
  * Creeaza o cerere de aport (client -> organizatie, materialul e adus DE CATRE
  * client, ex. moloz de demolare) in numele clientului curent: comanda de tip
- * `aport`, `created_by_admin: false`. Spre deosebire de `createClientOrderAction`
- * de mai sus, comanda RAMANE `draft` - nu se apeleaza `sendOrder` (aportul nu are
- * un pas "trimisa" separat, vezi comentariul din 0031_aport_intake.sql: staff-ul
- * accepta direct din draft, cu `AcceptIntakeButton`/`accept_intake_order`).
+ * `aport`, `created_by_admin: false`, apoi TRIMISA (`draft` -> `sent`), exact ca
+ * `createClientOrderAction`: pentru client cererea e trimisa spre aprobare, nu o
+ * ciorna (decizie 2026-09-25, migrarea 0042 - `accept_intake_order` accepta acum si
+ * din `sent`; staff-ul o accepta sau o anuleaza de acolo).
  * Acceptarea (care CRESTE stocul) ramane exclusiv la staff - portalul clientului
  * nu apeleaza niciodata `accept_intake_order`, doar creeaza cererea; RPC-ul are
  * oricum propria garda `app.is_staff_of` (AP004) daca ar fi apelat direct prin
@@ -131,7 +163,10 @@ export async function createClientAportAction(
       orderId: null,
     };
   }
+  const unavailableError = unavailableLinesError(lines, await listIntakeItemOptions());
+  if (unavailableError) return { error: unavailableError, orderId: null };
 
+  let orderId: string;
   try {
     const order = await createOrderWithItems({
       organizationId: user.organizationId,
@@ -143,14 +178,15 @@ export async function createClientAportAction(
       notes: clean(formData.get("notes")),
       lines,
     });
-    revalidatePath("/comenzile-mele");
-    return { error: null, orderId: order.id };
+    orderId = order.id;
   } catch (err) {
     return {
       error: err instanceof Error ? err.message : "Nu am putut trimite cererea de aport.",
       orderId: null,
     };
   }
+
+  return sendCreatedOrder(orderId, user.organizationId);
 }
 
 /** Rezultatul stergerii unei ciorne din portal (dialogul de confirmare). */

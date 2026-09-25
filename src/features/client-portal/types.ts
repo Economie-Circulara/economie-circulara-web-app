@@ -23,3 +23,18 @@ export interface CartLine {
   unit: UnitOfMeasure;
   quantity: number;
 }
+
+/**
+ * Livrarea (activa) a unei comenzi proprii, asa cum o vede clientul - subset sigur
+ * din `deliveries`, intors de RPC-ul `client_order_delivery` (migrarea 0041).
+ */
+export interface ClientOrderDelivery {
+  scheduledDate: string;
+  carrierName: string;
+  vehiclePlate: string;
+  driverName: string;
+  destination: string;
+  uitCode: string | null;
+  receivedAt: string | null;
+  receivedByName: string | null;
+}

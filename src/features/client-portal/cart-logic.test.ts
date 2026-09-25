@@ -4,6 +4,7 @@ import {
   linesFromOrder,
   removeLine,
   setQuantity,
+  splitAvailableLines,
   totalLines,
   totalQuantity,
 } from "./cart-logic";
@@ -100,5 +101,18 @@ describe("linesFromOrder (repeta comanda)", () => {
 
   it("intoarce cos gol pentru o comanda fara linii", () => {
     expect(linesFromOrder([])).toEqual([]);
+  });
+});
+
+describe("splitAvailableLines", () => {
+  it("separa itemii scosi din catalog (ex. arhivati) de cei disponibili", () => {
+    const lines = [line({ itemId: "a" }), line({ itemId: "arhivat" }), line({ itemId: "b" })];
+    const { available, unavailable } = splitAvailableLines(lines, new Set(["a", "b"]));
+    expect(available.map((l) => l.itemId)).toEqual(["a", "b"]);
+    expect(unavailable.map((l) => l.itemId)).toEqual(["arhivat"]);
+  });
+
+  it("cos gol -> nimic indisponibil", () => {
+    expect(splitAvailableLines([], new Set(["a"]))).toEqual({ available: [], unavailable: [] });
   });
 });

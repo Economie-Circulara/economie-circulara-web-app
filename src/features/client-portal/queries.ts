@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import type { CatalogItem, ItemKind } from "./types";
+import type { CatalogItem, ClientOrderDelivery, ItemKind } from "./types";
 
 function mapCatalogItem(row: {
   id: string;
@@ -53,4 +53,29 @@ export async function listCatalogItems(
   if (error) throw new Error("Nu am putut încărca catalogul.");
 
   return (data ?? []).map(mapCatalogItem);
+}
+
+/**
+ * Livrarea planificata a unei comenzi proprii (ecranul /comenzile-mele/[id]).
+ * `deliveries` e RLS doar-staff, deci trece prin RPC-ul `client_order_delivery`
+ * (0041), care verifica proprietatea comenzii si intoarce doar campurile sigure.
+ * `null` = comanda nu are (inca) o livrare activa.
+ */
+export async function getClientOrderDelivery(orderId: string): Promise<ClientOrderDelivery | null> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("client_order_delivery", { p_order_id: orderId });
+  if (error) throw new Error("Nu am putut încărca detaliile livrării.");
+
+  const row = data?.[0];
+  if (!row) return null;
+  return {
+    scheduledDate: row.scheduled_date,
+    carrierName: row.carrier_name,
+    vehiclePlate: row.vehicle_plate,
+    driverName: row.driver_name,
+    destination: row.route_destination,
+    uitCode: row.uit_code,
+    receivedAt: row.received_at,
+    receivedByName: row.received_by_name,
+  };
 }

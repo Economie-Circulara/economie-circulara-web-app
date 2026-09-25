@@ -2,7 +2,11 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import type { Database } from "@/lib/database.types";
 import type { OrderStatus } from "@/features/orders/types";
 import { getEmailProvider, type EmailProvider } from "./provider";
-import { notificationTypeForOrderStatus, renderOrderStatusEmail } from "./templates";
+import {
+  notificationTypeForOrderStatus,
+  renderOrderStatusEmail,
+  type OrderEmailKind,
+} from "./templates";
 import type { NotificationRecord, NotificationType } from "./types";
 
 type NotificationRow = Database["public"]["Tables"]["notifications"]["Row"];
@@ -18,6 +22,8 @@ export interface OrderStatusNotificationEvent {
   organizationId: string;
   clientId: string;
   toStatus: OrderStatus;
+  /** Formularea emailului (vezi `OrderEmailKind`) - implicit comanda de vanzare. */
+  kind?: OrderEmailKind;
 }
 
 export interface SendOrderStatusNotificationResult {
@@ -164,6 +170,7 @@ export async function sendOrderStatusNotification(
       orderNumber: context.orderNumber,
       clientName: context.clientName,
       organizationName: context.organizationName,
+      kind: event.kind,
     },
     event.toStatus,
   );

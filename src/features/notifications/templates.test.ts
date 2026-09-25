@@ -58,3 +58,31 @@ describe("renderOrderStatusEmail", () => {
     expect(() => renderOrderStatusEmail(DATA, "draft")).toThrow();
   });
 });
+
+describe("renderOrderStatusEmail - aport / retur (kind)", () => {
+  const base = { orderNumber: "CMD-2026-0007", clientName: "Firma X", organizationName: "Macon" };
+
+  it("aport acceptat: materialul a fost receptionat, nu 'pregatire pentru livrare'", () => {
+    const email = renderOrderStatusEmail({ ...base, kind: "intake" }, "accepted");
+    expect(email.subject).toBe("Cererea de aport CMD-2026-0007 a fost acceptată");
+    expect(email.text).toContain("materialul a fost recepționat de Macon");
+    expect(email.text).not.toContain("livrare");
+  });
+
+  it("retur acceptat: produsele au fost receptionate", () => {
+    const email = renderOrderStatusEmail({ ...base, kind: "return" }, "accepted");
+    expect(email.subject).toBe("Cererea de retur CMD-2026-0007 a fost acceptată");
+    expect(email.text).toContain("produsele au fost recepționate de Macon");
+  });
+
+  it("aport anulat: formularea de cerere", () => {
+    const email = renderOrderStatusEmail({ ...base, kind: "intake" }, "cancelled");
+    expect(email.subject).toBe("Cererea de aport CMD-2026-0007 a fost anulată");
+  });
+
+  it("fara kind: formularea de comanda neschimbata", () => {
+    const email = renderOrderStatusEmail(base, "accepted");
+    expect(email.subject).toBe("Comanda CMD-2026-0007 a fost acceptată");
+    expect(email.text).toContain("în curs de pregătire pentru livrare");
+  });
+});

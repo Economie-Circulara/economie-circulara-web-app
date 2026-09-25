@@ -1858,6 +1858,19 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      client_order_delivery: {
+        Args: { p_order_id: string }
+        Returns: {
+          carrier_name: string
+          driver_name: string
+          received_at: string | null
+          received_by_name: string | null
+          route_destination: string
+          scheduled_date: string
+          uit_code: string | null
+          vehicle_plate: string
+        }[]
+      }
       confirm_process: {
         Args: {
           p_inputs?: Json
