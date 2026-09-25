@@ -31,3 +31,11 @@ export interface ModelPriceFormState {
 }
 
 export const initialModelPriceFormState: ModelPriceFormState = { error: null, message: null };
+
+/** Formularele de credite AI (`/platform/ai`): setari globale si limitele unei organizatii. */
+export interface AiLimitsFormState {
+  error: string | null;
+  message: string | null;
+}
+
+export const initialAiLimitsFormState: AiLimitsFormState = { error: null, message: null };

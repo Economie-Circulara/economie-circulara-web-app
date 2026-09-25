@@ -594,6 +594,15 @@ acțiuni. Orice acțiune se arată întâi într-un **card de confirmare**, neex
 | Livrări | planificare, anulare înainte de plecare (cu motiv) |
 | Producție | proces cu **cantitate fixă de produs** (rețetă de compunere): cardul arată consumul calculat din rețetă și loturile alese FIFO. Descompunerea (reciclare) se face din ecranul Producție, pentru că cere cantitățile reale rezultate. |
 
+**Credite AI.** Cardul din dreapta arată câte **credite AI** a folosit organizația luna
+aceasta, din bugetul inclus în plan. Creditele măsoară cât a lucrat asistentul, nu câte
+mesaje ai trimis: o întrebare simplă consumă puțin, o cerere cu mai mulți pași sau citirea
+unui document lung consumă mai mult. Butonul „i” de lângă titlu explică pe scurt regulile.
+Bugetul e comun pentru toată organizația și se reînnoiește pe 1 ale lunii; fiecare persoană
+poate folosi pe zi cel mult un procent din el (implicit 20%), ca să ajungă pentru toată
+echipa. De la 80% cardul te avertizează. Administratorii văd, sub fiecare răspuns, câte
+credite a consumat.
+
 **Scrierea mesajelor și atașamente.** Enter trimite mesajul, **Shift+Enter** adaugă un
 rând nou. Cu butonul 📎 de lângă câmpul de mesaj poți atașa până la 3 fișiere: imagini
 (PNG, JPEG, WEBP, GIF, max. 2MB), PDF (max. 10MB) sau fișiere text - TXT, Markdown,

@@ -228,11 +228,17 @@ Testele unitare sunt **colocate** langa cod (`*.test.ts` / `*.test.tsx`).
   (system prompt). Productia din asistent e limitata la „cantitate fixa de produs”
   (reteta de `compunere`, consum FIFO calculat); descompunerea ramane in
   `/productie/nou`, pentru ca cere cantitatile reale rezultate.
-- **Quota de asistent e o limita comerciala, nu una tehnica**: se numara MESAJE
-  (lunar per organizatie + plafon zilnic per utilizator; `0` = nelimitat), iar
-  coloanele `organizations.ai_*` pot fi schimbate DOAR de super-admin - adminul
-  organizatiei nu isi poate ridica singur plafonul (trigger
-  `app.enforce_ai_limits`, altfel `organizations_update` din 0001 i-ar permite-o).
+- **Quota de asistent e o limita comerciala, nu una tehnica**, in **CREDITE AI** (decizie
+  2026-09-25, migrarea `0039`, inlocuieste numararea de MESAJE din 0020): creditele se
+  calculeaza din costul REAL al raspunsurilor (`ceil(cost / credit_micros)`, valoarea
+  creditului in `ai_platform_settings`); buget lunar per organizatie
+  (`ai_monthly_credit_limit`) + plafon zilnic per utilizator ca PROCENT din buget
+  (`ai_daily_user_credit_percent`); `0` = nelimitat. Limita e MOALE (tura inceputa se
+  termina), exista un plafon per tura (`turn_credit_limit`), iar costul per raspuns e
+  vizibil DOAR adminilor. Coloanele `organizations.ai_*` si setarile de credit pot fi
+  schimbate DOAR de super-admin (`/platform/ai`) - adminul organizatiei nu isi poate
+  ridica singur plafonul (trigger `app.enforce_ai_limits`, altfel `organizations_update`
+  din 0001 i-ar permite-o).
 
 - **Consumul AI se masoara per apel de model, cu costul calculat in DB** (decizie
   2026-09-25, migrarea `0037`, `docs/plans/asistent-consum-real.md`): tokenii se
@@ -241,8 +247,7 @@ Testele unitare sunt **colocate** langa cod (`*.test.ts` / `*.test.tsx`).
   `assistant_record_usage` cu pretul valabil in acel moment (`ai_model_prices`,
   versionat, append-only, gestionat de super-admin in `/platform/ai`) si se salveaza -
   istoricul nu se recalculeaza. **Orice apel AI nou trece prin `recordUsage`**
-  (`assistant/quota.ts`), niciodata printr-un RPC propriu. Urmeaza (etapa 2): quota in
-  credite AI calculate din cost, limita moale, cost per raspuns vizibil doar adminilor.
+  (`assistant/quota.ts`), niciodata printr-un RPC propriu.
 
 - **Planificarea rutelor (Task X7, `src/features/routing/`) foloseste Google Maps
   Platform, in spatele unui adapter (`RoutingProvider`, ca la e-Transport)** - implicit

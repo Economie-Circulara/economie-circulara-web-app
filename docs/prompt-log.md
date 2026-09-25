@@ -4,6 +4,16 @@ Jurnal al sarcinilor lucrate de agenti AI in acest repo. Conform regulii 1.2 din
 [`AGENTS.md`](../AGENTS.md), la **fiecare commit** se adauga o intrare aici.
 Cele mai noi intrari sus.
 
+## 2026-09-25 — Claude Opus 5.5 (Claude Code) — Asistent AI: quota in credite AI (etapa 2)
+
+- **Cerut:** in UI, „Mesaje incluse luna aceasta” -> o explicatie serioasa (tooltip) si un
+  alt mod de masurare (deciziile 1-4 aprobate anterior).
+- **Facut:** migrarea 0039 (`ai_platform_settings` - valoarea creditului + plafon per tura;
+  bugetul lunar in credite si procentul zilnic pe organizatie; garda extinsa); quota
+  calculata din costul real (`computeQuota`), avertizare de la 80%, estimare „întrebări
+  rămase”; plafon per tura in bucla; credite per raspuns doar pentru admini; cardul nou cu
+  `InfoTip`; setari + limite pe organizatie in `/platform/ai`; manuale si AGENTS.md.
+
 ## 2026-09-25 — Claude Opus 5.5 (Claude Code) — Asistent AI: atasamente text (TXT, MD, CSV, HTML, JSON, XML)
 
 - **Cerut:** upload in chat si pentru fisiere text / Markdown / HTML - formate intalnite

@@ -182,8 +182,21 @@ output) se gestionează tot aici:
 - „`*`” e prețul implicit, folosit pentru un model fără preț propriu. Dacă apare un astfel
   de model, pagina afișează un avertisment - adaugă-i prețul.
 
-Deocamdată limitele organizațiilor rămân pe **număr de mesaje**; trecerea la credite AI
-calculate din costul real e etapa următoare (vezi `docs/plans/asistent-consum-real.md`).
+**Credite AI și limite.** Utilizatorii văd consumul în **credite AI**, calculate din costul
+real al fiecărui răspuns (credite = cost / valoarea unui credit, rotunjit în sus). Tot pe
+această pagină:
+
+- **Valoarea unui credit** (implicit $0,001) și **plafonul per mesaj** (implicit 100
+  credite): peste plafon, asistentul se oprește și răspunde cu ce a aflat, ca o cerere
+  scăpată de sub control să nu consume bugetul. Schimbarea valorii creditului recalculează
+  și consumul deja afișat - se face rar, după calibrare pe date reale.
+- **Limitele fiecărei organizații**: asistent activ / dezactivat, **buget lunar** în
+  credite (implicit 2.000 ≈ $2; 0 = nelimitat) și **procentul zilnic** pe care îl poate
+  folosi un singur utilizator (implicit 20%; 0 = fără plafon zilnic).
+
+Limita e „moale”: dacă bugetul se termină în timpul unui răspuns, răspunsul se termină
+normal, iar următorul mesaj e blocat. Adminul organizației nu își poate ridica singur
+limitele.
 
 ## 4. Operare tehnică (echipa de dezvoltare/operare)
 

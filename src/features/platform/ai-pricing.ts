@@ -96,3 +96,42 @@ export function parseDecimal(value: FormDataEntryValue | null): number {
     .replace(",", ".");
   return text === "" ? Number.NaN : Number(text);
 }
+
+/** Valoarea creditului (USD) + plafonul per tura (credite). `null` = valid. */
+export function validateCreditSettings(input: {
+  creditUsd: number;
+  turnCreditLimit: number;
+}): string | null {
+  if (!Number.isFinite(input.creditUsd) || input.creditUsd <= 0 || input.creditUsd > 1) {
+    return "Valoarea unui credit trebuie să fie între 0 și 1 USD (ex. 0,001).";
+  }
+  if (Math.round(input.creditUsd * 1_000_000) < 1) {
+    return "Valoarea unui credit trebuie să fie de cel puțin 0,000001 USD.";
+  }
+  if (
+    !Number.isInteger(input.turnCreditLimit) ||
+    input.turnCreditLimit < 0 ||
+    input.turnCreditLimit > 100000
+  ) {
+    return "Plafonul per mesaj trebuie să fie un număr întreg de credite (0 = fără plafon).";
+  }
+  return null;
+}
+
+/** Limitele AI ale unei organizatii. `null` = valid. */
+export function validateOrgAiLimits(input: {
+  monthlyCredits: number;
+  dailyPercent: number;
+}): string | null {
+  if (
+    !Number.isInteger(input.monthlyCredits) ||
+    input.monthlyCredits < 0 ||
+    input.monthlyCredits > 100_000_000
+  ) {
+    return "Bugetul lunar trebuie să fie un număr întreg de credite (0 = nelimitat).";
+  }
+  if (!Number.isInteger(input.dailyPercent) || input.dailyPercent < 0 || input.dailyPercent > 100) {
+    return "Procentul zilnic trebuie să fie un număr întreg între 0 și 100 (0 = fără plafon zilnic).";
+  }
+  return null;
+}

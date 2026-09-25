@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
+  validateCreditSettings,
+  validateOrgAiLimits,
   costMicros,
   currentPrices,
   formatUsd,
@@ -79,5 +81,21 @@ describe("parseDecimal", () => {
   it("accepta virgula zecimala; gol = NaN", () => {
     expect(parseDecimal("0,66")).toBe(0.66);
     expect(Number.isNaN(parseDecimal(""))).toBe(true);
+  });
+});
+
+describe("validateCreditSettings / validateOrgAiLimits", () => {
+  it("valoarea creditului intre 0 si 1 USD; plafonul per mesaj intreg >= 0", () => {
+    expect(validateCreditSettings({ creditUsd: 0.001, turnCreditLimit: 100 })).toBeNull();
+    expect(validateCreditSettings({ creditUsd: 0.001, turnCreditLimit: 0 })).toBeNull();
+    expect(validateCreditSettings({ creditUsd: 0, turnCreditLimit: 100 })).toMatch(/între 0 și 1/);
+    expect(validateCreditSettings({ creditUsd: 0.001, turnCreditLimit: 1.5 })).toMatch(/întreg/);
+  });
+
+  it("bugetul lunar intreg >= 0; procentul zilnic 0-100", () => {
+    expect(validateOrgAiLimits({ monthlyCredits: 2000, dailyPercent: 20 })).toBeNull();
+    expect(validateOrgAiLimits({ monthlyCredits: 0, dailyPercent: 0 })).toBeNull();
+    expect(validateOrgAiLimits({ monthlyCredits: -1, dailyPercent: 20 })).toMatch(/Bugetul/);
+    expect(validateOrgAiLimits({ monthlyCredits: 2000, dailyPercent: 150 })).toMatch(/Procentul/);
   });
 });

@@ -9,7 +9,14 @@ import type { ModelPrice } from "./ai-pricing";
  */
 
 interface UntypedClient {
-  from(table: "ai_model_prices" | "ai_usage_events" | "assistant_usage" | "organizations"): any;
+  from(
+    table:
+      | "ai_model_prices"
+      | "ai_usage_events"
+      | "assistant_usage"
+      | "organizations"
+      | "ai_platform_settings",
+  ): any;
 }
 
 async function db(): Promise<UntypedClient> {
@@ -168,4 +175,54 @@ export async function usageSummary(days = 30, now = new Date()) {
     days,
     ...aggregateUsage((events.data ?? []) as UsageEventRow[], messagesByOrg, orgNames),
   };
+}
+
+export interface AiPlatformSettings {
+  creditMicros: number;
+  turnCreditLimit: number;
+}
+
+export async function getAiPlatformSettings(): Promise<AiPlatformSettings> {
+  const client = await db();
+  const { data } = await client
+    .from("ai_platform_settings")
+    .select("credit_micros, turn_credit_limit")
+    .maybeSingle();
+  return {
+    creditMicros: data?.credit_micros ?? 1000,
+    turnCreditLimit: data?.turn_credit_limit ?? 100,
+  };
+}
+
+export interface OrganizationAiLimits {
+  id: string;
+  name: string;
+  enabled: boolean;
+  monthlyCredits: number;
+  dailyPercent: number;
+}
+
+/** Limitele AI ale tuturor organizatiilor (super-admin, RLS `organizations_select`). */
+export async function listOrganizationAiLimits(): Promise<OrganizationAiLimits[]> {
+  const client = await db();
+  const { data, error } = await client
+    .from("organizations")
+    .select("id, name, ai_enabled, ai_monthly_credit_limit, ai_daily_user_credit_percent")
+    .order("name");
+  if (error) throw new Error("Nu am putut încărca limitele AI ale organizațiilor.");
+  return (
+    (data ?? []) as {
+      id: string;
+      name: string;
+      ai_enabled: boolean;
+      ai_monthly_credit_limit: number;
+      ai_daily_user_credit_percent: number;
+    }[]
+  ).map((row) => ({
+    id: row.id,
+    name: row.name,
+    enabled: row.ai_enabled,
+    monthlyCredits: row.ai_monthly_credit_limit,
+    dailyPercent: row.ai_daily_user_credit_percent,
+  }));
 }

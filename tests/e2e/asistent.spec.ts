@@ -24,7 +24,7 @@ test.describe("Asistent AI", () => {
     await page.goto("/asistent");
 
     await expect(page.getByRole("heading", { name: "Asistent AI" })).toBeVisible();
-    await expect(page.getByText("Mesaje incluse luna aceasta")).toBeVisible();
+    await expect(page.getByText("Credite AI luna aceasta")).toBeVisible();
 
     await page.getByLabel("Mesaj pentru asistent").fill("cum adaug un lot în stoc?");
     await page.getByRole("button", { name: "Trimite" }).click();

@@ -8,7 +8,14 @@ import {
   type ProviderToolCall,
 } from "./provider";
 import { systemPrompt } from "./prompt";
-import { getQuotaStatus, quotaMessage, recordUsage } from "./quota";
+import {
+  creditsFromMicros,
+  getCreditSettings,
+  getQuotaStatus,
+  quotaMessage,
+  recordUsage,
+  type CreditSettings,
+} from "./quota";
 import {
   appendMessage,
   claimProposal,
@@ -50,6 +57,12 @@ const OUT_OF_STEPS_PROMPT =
   "Ai atins numărul maxim de pași pentru această cerere. NU mai apela tool-uri. " +
   "Spune-i utilizatorului pe scurt ce ai aflat până acum (cu datele concrete găsite) " +
   "și ce îți mai lipsește ca să termini - o întrebare concretă, nu o scuză generică.";
+
+/** Varianta pentru plafonul de cost al turei (etapa 2). */
+const OUT_OF_BUDGET_PROMPT =
+  "Cererea a consumat deja bugetul maxim pentru un singur mesaj. NU mai apela tool-uri. " +
+  "Spune-i utilizatorului pe scurt ce ai aflat până acum (cu datele concrete găsite), ce " +
+  "a rămas de făcut și sugerează-i să continue cu un mesaj nou, pentru restul.";
 
 const OUT_OF_STEPS_FALLBACK =
   "Nu am reușit să duc cererea la capăt în pașii disponibili. Reformulează-o sau împarte-o în pași mai mici.";
@@ -126,7 +139,14 @@ export async function runAssistantTurn({
     ...historyToMessages(history),
   ];
 
-  const outcome = await converse({ id, ctx, provider, messages });
+  const settings = await getCreditSettings();
+  const outcome = await converse({
+    id,
+    ctx,
+    provider,
+    messages,
+    limitMicros: turnBudgetMicros(settings),
+  });
 
   await saveFacts(id, outcome.facts);
   await appendMessage({ conversationId: id, role: "assistant", content: outcome.reply });
@@ -136,6 +156,7 @@ export async function runAssistantTurn({
     reply: outcome.reply,
     pendingAction: outcome.pendingAction,
     quota: await getQuotaStatus(ctx),
+    ...turnCreditsFor(ctx, outcome.costMicros, settings),
   };
 }
 
@@ -146,6 +167,8 @@ interface ConverseOutcome {
   facts: ToolFact[];
   /** Furnizorul AI a raspuns cu eroare - `reply` e mesajul afisabil al erorii. */
   providerFailed?: boolean;
+  /** Costul turei (micro-USD), din `assistant_record_usage` - plafon + credite pt. admini. */
+  costMicros: number;
 }
 
 /**
@@ -181,10 +204,13 @@ async function converse(input: {
   ctx: ToolContext;
   provider: ChatProvider;
   messages: ChatMessage[];
+  /** Plafonul turei in micro-USD (0 = fara plafon) - vezi `turnBudgetMicros`. */
+  limitMicros?: number;
 }): Promise<ConverseOutcome> {
   const { id, ctx, provider } = input;
   const messages = [...input.messages];
   const facts: ToolFact[] = [];
+  let spent = 0;
   let nudged = false;
   /** Textul anuntului (daca a fost nevoie de impuls) - pastrat in raspunsul final. */
   let announced: string | null = null;
@@ -197,12 +223,18 @@ async function converse(input: {
       completion = await provider.complete({ messages, tools: toolDefinitions(ctx.role) });
     } catch (err) {
       if (err instanceof ChatProviderError) {
-        return { reply: err.message, pendingAction: null, facts, providerFailed: true };
+        return {
+          reply: err.message,
+          pendingAction: null,
+          facts,
+          providerFailed: true,
+          costMicros: spent,
+        };
       }
       throw err;
     }
 
-    await recordUsage({
+    spent += await recordUsage({
       feature: "assistant",
       conversationId: id,
       model: completion.model,
@@ -226,6 +258,7 @@ async function converse(input: {
         reply: withAnnouncement(completion.content.trim() || "Nu am un răspuns pentru asta."),
         pendingAction: null,
         facts,
+        costMicros: spent,
       };
     }
 
@@ -259,6 +292,20 @@ async function converse(input: {
         ),
         pendingAction: await pendingActionFrom(tool, parsed, toolCallId, ctx),
         facts,
+        costMicros: spent,
+      };
+    }
+
+    // Plafonul turei (etapa 2 din docs/plans/asistent-consum-real.md): o bucla scapata de
+    // sub control sau un document uriaș nu pot consuma tot bugetul intr-o singura cerere.
+    // Oprim INAINTE de citirile urmatoare si raspundem cu ce s-a aflat pana acum.
+    if (input.limitMicros && spent >= input.limitMicros) {
+      const summary = await summarizeOutOfSteps(id, provider, messages, OUT_OF_BUDGET_PROMPT);
+      return {
+        reply: summary.text,
+        pendingAction: null,
+        facts,
+        costMicros: spent + summary.costMicros,
       };
     }
 
@@ -273,7 +320,13 @@ async function converse(input: {
     }
   }
 
-  return { reply: await summarizeOutOfSteps(id, provider, messages), pendingAction: null, facts };
+  const summary = await summarizeOutOfSteps(id, provider, messages, OUT_OF_STEPS_PROMPT);
+  return {
+    reply: summary.text,
+    pendingAction: null,
+    facts,
+    costMicros: spent + summary.costMicros,
+  };
 }
 
 /** Executa un apel de CITIRE; erorile devin rezultat pentru model, nu exceptii. */
@@ -330,22 +383,39 @@ async function saveFacts(conversationId: string, facts: ToolFact[]) {
  * modelul), cerem un rezumat FARA tool-uri - utilizatorul vede ce s-a aflat si ce
  * lipseste. Daca si apelul asta esueaza, ramane mesajul generic.
  */
-async function summarizeOutOfSteps(id: string, provider: ChatProvider, messages: ChatMessage[]) {
+async function summarizeOutOfSteps(
+  id: string,
+  provider: ChatProvider,
+  messages: ChatMessage[],
+  prompt: string,
+): Promise<{ text: string; costMicros: number }> {
   try {
     const completion = await provider.complete({
-      messages: [...messages, { role: "user", content: OUT_OF_STEPS_PROMPT }],
+      messages: [...messages, { role: "user", content: prompt }],
       tools: [],
     });
-    await recordUsage({
+    const costMicros = await recordUsage({
       feature: "assistant",
       conversationId: id,
       model: completion.model,
       usage: completion.usage,
     });
-    return completion.content.trim() || OUT_OF_STEPS_FALLBACK;
+    return { text: completion.content.trim() || OUT_OF_STEPS_FALLBACK, costMicros };
   } catch {
-    return OUT_OF_STEPS_FALLBACK;
+    return { text: OUT_OF_STEPS_FALLBACK, costMicros: 0 };
   }
+}
+
+/** Plafonul unei ture, in micro-USD (0 = fara plafon). */
+function turnBudgetMicros(settings: CreditSettings): number {
+  return settings.turnCreditLimit > 0 ? settings.turnCreditLimit * settings.creditMicros : 0;
+}
+
+/** Creditele turei - DOAR pentru admini (decizia 3: costul per raspuns nu e aratat tuturor). */
+function turnCreditsFor(ctx: ToolContext, costMicros: number, settings: CreditSettings) {
+  return ctx.role === "admin" || ctx.role === "super_admin"
+    ? { turnCredits: creditsFromMicros(costMicros, settings.creditMicros) }
+    : {};
 }
 
 /**
@@ -477,6 +547,8 @@ export async function confirmAction(input: {
   let reply: string;
   let pendingAction: PendingAction | null = null;
   const facts: ToolFact[] = [];
+  let costMicros = 0;
+  const settings = await getCreditSettings();
   try {
     // GARDA 3 - executie efectiva.
     const result = await tool.execute(parsed, ctx);
@@ -512,7 +584,9 @@ export async function confirmAction(input: {
           ctx,
           provider,
           messages: continuationMessages,
+          limitMicros: turnBudgetMicros(settings),
         });
+        costMicros += continuation.costMicros;
         if (continuation.providerFailed) {
           // Actiunea S-A executat - nu amestecam eroarea furnizorului in confirmare.
           reply = `${reply}\n\nNu am putut continua automat cu pasul următor. Scrie-mi „continuă” și reiau de aici.`;
@@ -550,6 +624,7 @@ export async function confirmAction(input: {
     reply,
     pendingAction,
     quota: await getQuotaStatus(ctx),
+    ...turnCreditsFor(ctx, costMicros, settings),
   };
 }
 
