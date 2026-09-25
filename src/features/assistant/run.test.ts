@@ -32,7 +32,9 @@ vi.mock("./tools/registry", () => ({
 const { getQuotaStatus, quotaMessage, trackUsage } = await import("./quota");
 const service = await import("./service");
 const { findTool } = await import("./tools/registry");
-const { confirmAction, rejectAction, runAssistantTurn, MAX_STEPS } = await import("./run");
+const { confirmAction, rejectAction, runAssistantTurn, MAX_STEPS, looksLikeAnnouncedAction } =
+  await import("./run");
+const { ChatProviderError } = await import("./provider");
 const { InvalidToolArgumentsError } = await import("./tools/types");
 
 const CTX: ToolContext = {
@@ -55,7 +57,7 @@ class ScriptedProvider implements ChatProvider {
   readonly calls: { messages: unknown[]; tools: unknown[] }[] = [];
 
   constructor(
-    private readonly script: Partial<ChatCompletion>[],
+    private readonly script: (Partial<ChatCompletion> & { fail?: Error })[],
     readonly name: string = "scripted",
   ) {}
 
@@ -68,6 +70,7 @@ class ScriptedProvider implements ChatProvider {
   }): Promise<ChatCompletion> {
     this.calls.push({ messages: [...messages], tools });
     const next = this.script.shift() ?? { content: "gata" };
+    if (next.fail) throw next.fail;
     return {
       content: next.content ?? "",
       toolCalls: next.toolCalls ?? [],
@@ -379,6 +382,46 @@ describe("runAssistantTurn - citiri paralele si date de referinta", () => {
   });
 });
 
+describe("runAssistantTurn - actiune anuntata fara apel de tool", () => {
+  it("recunoaste anuntul, dar nu si intrebarile sau raspunsurile finale", () => {
+    expect(looksLikeAnnouncedAction("Propun mai întâi crearea clientului:")).toBe(true);
+    expect(looksLikeAnnouncedAction("Acum pregătesc comanda.")).toBe(true);
+    expect(looksLikeAnnouncedAction("Ce cantitate vrei? Propun 5 t.")).toBe(false);
+    expect(looksLikeAnnouncedAction("Comanda CMD-1 a fost creată.")).toBe(false);
+    expect(looksLikeAnnouncedAction("")).toBe(false);
+  });
+
+  it("cere o data apelul si propune cardul in ACEEASI tura, pastrand textul anuntului", async () => {
+    vi.mocked(findTool).mockReturnValue(writeTool() as never);
+    const provider = new ScriptedProvider([
+      { content: "Am găsit firma. Propun mai întâi crearea clientului:" },
+      { toolCalls: [{ id: "t1", name: "creeaza_client", arguments: '{"denumire":"ACME"}' }] },
+    ]);
+
+    const turn = await runAssistantTurn({ conversationId: null, message: "x", ctx: CTX, provider });
+
+    expect(provider.calls).toHaveLength(2);
+    const nudge = (provider.calls[1].messages as { role: string; content: string }[]).at(-1);
+    expect(nudge?.role).toBe("user");
+    expect(nudge?.content).toMatch(/nu ai apelat tool-ul/);
+    expect(turn.pendingAction?.tool).toBe("creeaza_client");
+    expect(turn.reply).toMatch(/^Am găsit firma\. Propun mai întâi crearea clientului:/);
+  });
+
+  it("impulsul se da o singura data pe tura", async () => {
+    const provider = new ScriptedProvider([
+      { content: "Propun crearea clientului:" },
+      { content: "Propun din nou:" },
+    ]);
+
+    const turn = await runAssistantTurn({ conversationId: null, message: "x", ctx: CTX, provider });
+
+    expect(provider.calls).toHaveLength(2);
+    expect(turn.pendingAction).toBeNull();
+    expect(turn.reply).toContain("Propun din nou:");
+  });
+});
+
 describe("runAssistantTurn - limita de pasi", () => {
   const loopingCalls = () =>
     Array.from({ length: MAX_STEPS }, (_, index) => ({
@@ -539,7 +582,7 @@ describe("confirmAction / rejectAction", () => {
     vi.mocked(service.getProposal).mockResolvedValue(proposal);
 
     const provider = new ScriptedProvider(
-      [{ content: "Acum pregătesc comanda pentru ACME." }],
+      [{ content: "Clientul ACME e gata de folosit în comenzi." }],
       "openai-compatible",
     );
 
@@ -547,7 +590,7 @@ describe("confirmAction / rejectAction", () => {
 
     expect(provider.calls).toHaveLength(1);
     expect(turn.reply).toContain("Gata");
-    expect(turn.reply).toContain("Acum pregătesc comanda pentru ACME.");
+    expect(turn.reply).toContain("Clientul ACME e gata de folosit în comenzi.");
   });
 
   it("continuarea retrimite reasoning_content-ul propunerii salvate (thinking mode DeepSeek)", async () => {
@@ -564,6 +607,52 @@ describe("confirmAction / rejectAction", () => {
     const sent = provider.calls[0].messages as { toolCalls?: unknown; reasoningContent?: string }[];
     const assistantCallMsg = sent.find((message) => message.toolCalls);
     expect(assistantCallMsg?.reasoningContent).toBe("utilizatorul vrea clientul ACME, CUI valid");
+  });
+
+  it("continuarea NU pune raspunsul-text al propunerii dupa ultimul mesaj user (400 DeepSeek)", async () => {
+    vi.mocked(findTool).mockReturnValue(writeTool() as never);
+    vi.mocked(service.getProposal).mockResolvedValue({ ...proposal, reasoningContent: "cot" });
+    vi.mocked(service.listMessages).mockResolvedValue([
+      { id: "1", role: "user", content: "adaugă clientul și o comandă", createdAt: "" },
+      { id: "2", role: "tool", content: "[Date] firma găsită", createdAt: "" },
+      { id: "3", role: "assistant", content: "Am pregătit acțiunea de mai jos.", createdAt: "" },
+    ]);
+    const provider = new ScriptedProvider([{ content: "ok" }], "openai-compatible");
+
+    await confirmAction({ toolCallId: "call-1", ctx: CTX, provider });
+
+    const sent = provider.calls[0].messages as {
+      role: string;
+      content: string;
+      toolCalls?: unknown[];
+      reasoningContent?: string;
+    }[];
+    // system, user, assistant(tool_calls + CoT + textul propunerii), tool
+    expect(sent.map((message) => message.role)).toEqual(["system", "user", "assistant", "tool"]);
+    expect(sent[2].toolCalls).toHaveLength(1);
+    expect(sent[2].reasoningContent).toBe("cot");
+    expect(sent[2].content).toContain("[Date] firma găsită");
+    expect(sent[2].content).toContain("Am pregătit acțiunea de mai jos.");
+  });
+
+  it("eroare de furnizor la continuare: confirmarea ramane, fara textul brut al erorii", async () => {
+    vi.mocked(findTool).mockReturnValue(writeTool() as never);
+    vi.mocked(service.getProposal).mockResolvedValue(proposal);
+    const provider = new ScriptedProvider(
+      [
+        {
+          fail: new ChatProviderError("Furnizorul AI a răspuns cu o eroare.", "reasoning_content"),
+        },
+      ],
+      "openai-compatible",
+    );
+
+    const turn = await confirmAction({ toolCallId: "call-1", ctx: CTX, provider });
+
+    expect(turn.reply).toMatch(/^Gata: Creează clientul ACME SRL\./);
+    expect(turn.reply).toContain("Nu am putut continua automat");
+    expect(turn.reply).not.toContain("reasoning_content");
+    expect(turn.reply).not.toContain("Furnizorul AI");
   });
 
   it("continuare DEZACTIVATA pe furnizorul mock - nu se mai apeleaza providerul", async () => {
