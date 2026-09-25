@@ -4,6 +4,15 @@ Jurnal al sarcinilor lucrate de agenti AI in acest repo. Conform regulii 1.2 din
 [`AGENTS.md`](../AGENTS.md), la **fiecare commit** se adauga o intrare aici.
 Cele mai noi intrari sus.
 
+## 2026-09-25 — Claude Opus 5.5 (Claude Code) — Asistent AI: rezumatul rezultatului unei actiuni
+
+- **Cerut:** dupa executie, un rezumat clar - „am adăugat clientul Y, click aici” sau
+  „nu s-a putut…, pentru că…, încearcă din nou”.
+- **Facut:** `resultSummary` pe fiecare tool de scriere (timpul trecut, date din
+  rezultat) + `result-summary.ts` (link „Vezi …” catre inregistrare; mesaj de esec cu
+  motiv si pasul urmator), folosite in `confirmAction`. Plan:
+  `docs/plans/asistent-rezumat-rezultat.md`.
+
 ## 2026-09-25 — Claude Opus 5.5 (Claude Code) — Asistent AI: fix continuare DeepSeek + actiuni anuntate
 
 - **Cerut:** doua probleme raportate: cardul aparea abia dupa un mesaj in plus („Propun

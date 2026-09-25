@@ -153,3 +153,20 @@ describe("anuleaza_livrare", () => {
     expect(cancelDelivery).not.toHaveBeenCalled();
   });
 });
+
+describe("mesajele de dupa executie", () => {
+  it("acceptare / anulare: numarul comenzii si efectul pe stoc", () => {
+    expect(acceptaComanda.resultSummary!({ order_id: "o1" }, { numar: "CMD-7" })).toBe(
+      "Am acceptat comanda **CMD-7**. Stocul a fost actualizat.",
+    );
+    expect(anuleazaComanda.resultSummary!({ order_id: "o1" }, { numar: null })).toBe(
+      "Am anulat comanda. Dacă fusese acceptată, stocul s-a refăcut.",
+    );
+  });
+
+  it("anularea livrarii intoarce link catre comanda", async () => {
+    vi.mocked(getDeliveryByOrderId).mockResolvedValue({ id: "d1" } as never);
+    const result = await anuleazaLivrare.execute({ order_id: "o1", motiv: "x" }, CTX);
+    expect(result).toMatchObject({ link: "/comenzi/o1" });
+  });
+});
