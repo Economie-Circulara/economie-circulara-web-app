@@ -4,6 +4,16 @@ Jurnal al sarcinilor lucrate de agenti AI in acest repo. Conform regulii 1.2 din
 [`AGENTS.md`](../AGENTS.md), la **fiecare commit** se adauga o intrare aici.
 Cele mai noi intrari sus.
 
+## 2026-09-25 — Claude Opus 5.5 (Claude Code) — Clienti: invitatie automata + "Retrimite invitația"
+
+- **Cerut:** la adaugarea unui client cu email, invitatia in portal sa se trimita automat;
+  din pagina clientului, buton de retrimitere a invitatiei.
+- **Facut:** `createClientAction` invita automat (admin + email; bifa eliminata);
+  `getClientPortalStatus` (none/pending/active din Supabase Auth) inlocuieste
+  `clientHasPortalAccess`; `resendClientInvite[Action]` (doar admin, doar cont neactivat);
+  `/clienti/[id]` arata "Invitație trimisă" + "Retrimite invitația"; teste, manual,
+  plan `docs/plans/invitatie-automata-client.md`.
+
 ## 2026-09-25 — Claude Opus 5.5 (Claude Code) — Asistent AI: vizualizare / descarcare atasamente
 
 - **Cerut:** in asistentul AI, atasamentele din chat sa poata fi vazute (sau macar descarcate).

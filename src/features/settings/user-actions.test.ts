@@ -18,7 +18,7 @@ vi.mock("@/features/auth/session", () => ({ getCurrentUser }));
 const { getClient } = vi.hoisted(() => ({ getClient: vi.fn() }));
 vi.mock("@/features/clients/queries", () => ({ getClient }));
 
-import { inviteClientAction, inviteStaffAction } from "./user-actions";
+import { inviteClientAction, inviteStaffAction, resendClientInviteAction } from "./user-actions";
 import { initialUserMgmtState } from "./action-state";
 
 function formData(fields: Record<string, string>): FormData {
@@ -251,5 +251,103 @@ describe("inviteClientAction - flux fericit", () => {
     );
 
     expect(state.error).toMatch(/profilul nu a putut fi salvat/i);
+  });
+});
+
+describe("resendClientInviteAction", () => {
+  function mockAdmin({
+    profile = { id: "user-1", email: "client@acme.ro" } as { id: string; email: string } | null,
+    authUser = { email_confirmed_at: null, last_sign_in_at: null } as Record<string, unknown>,
+    inviteError = null as { message: string } | null,
+  } = {}) {
+    const maybeSingle = vi.fn().mockResolvedValue({ data: profile, error: null });
+    const eq = vi.fn().mockReturnValue({ maybeSingle });
+    const select = vi.fn().mockReturnValue({ eq });
+    const getUserById = vi.fn().mockResolvedValue({ data: { user: authUser }, error: null });
+    const inviteUserByEmail = vi.fn().mockResolvedValue({ data: {}, error: inviteError });
+    createAdminClient.mockReturnValue({
+      from: vi.fn().mockReturnValue({ select }),
+      auth: { admin: { getUserById, inviteUserByEmail } },
+    });
+    return { eq, getUserById, inviteUserByEmail };
+  }
+
+  it("respinge daca userul curent nu e admin", async () => {
+    getCurrentUser.mockResolvedValue({ id: "u1", role: "operator", organizationId: "org-1" });
+    const state = await resendClientInviteAction(
+      initialUserMgmtState,
+      formData({ client_id: "client-1" }),
+    );
+    expect(state.error).toMatch(/permisiunea/i);
+    expect(createAdminClient).not.toHaveBeenCalled();
+  });
+
+  it("respinge o firma din alta organizatie", async () => {
+    getClient.mockResolvedValue(null);
+    const state = await resendClientInviteAction(
+      initialUserMgmtState,
+      formData({ client_id: "client-x" }),
+    );
+    expect(state.error).toMatch(/nu exista/i);
+    expect(createAdminClient).not.toHaveBeenCalled();
+  });
+
+  it("retrimite invitatia catre emailul contului neactivat", async () => {
+    getClient.mockResolvedValue(clientRow({ email: "alt@acme.ro" }));
+    const { eq, getUserById, inviteUserByEmail } = mockAdmin();
+
+    const state = await resendClientInviteAction(
+      initialUserMgmtState,
+      formData({ client_id: "client-1" }),
+    );
+
+    expect(eq).toHaveBeenCalledWith("client_id", "client-1");
+    expect(getUserById).toHaveBeenCalledWith("user-1");
+    expect(inviteUserByEmail).toHaveBeenCalledWith("client@acme.ro", {
+      redirectTo: "https://www.lotculot.eu/auth/callback?next=/set-password",
+    });
+    expect(revalidatePath).toHaveBeenCalledWith("/clienti/client-1");
+    expect(state.error).toBeNull();
+    expect(state.message).toMatch(/client@acme\.ro/);
+  });
+
+  it("refuza daca firma nu are inca un cont", async () => {
+    getClient.mockResolvedValue(clientRow());
+    const { inviteUserByEmail } = mockAdmin({ profile: null });
+
+    const state = await resendClientInviteAction(
+      initialUserMgmtState,
+      formData({ client_id: "client-1" }),
+    );
+
+    expect(state.error).toMatch(/nu are inca un cont/i);
+    expect(inviteUserByEmail).not.toHaveBeenCalled();
+  });
+
+  it("refuza daca clientul si-a activat deja contul", async () => {
+    getClient.mockResolvedValue(clientRow());
+    const { inviteUserByEmail } = mockAdmin({
+      authUser: { email_confirmed_at: "2026-09-20T10:00:00Z", last_sign_in_at: null },
+    });
+
+    const state = await resendClientInviteAction(
+      initialUserMgmtState,
+      formData({ client_id: "client-1" }),
+    );
+
+    expect(state.error).toMatch(/activat deja/i);
+    expect(inviteUserByEmail).not.toHaveBeenCalled();
+  });
+
+  it("raporteaza eroare cand Supabase refuza retrimiterea", async () => {
+    getClient.mockResolvedValue(clientRow());
+    mockAdmin({ inviteError: { message: "rate limit" } });
+
+    const state = await resendClientInviteAction(
+      initialUserMgmtState,
+      formData({ client_id: "client-1" }),
+    );
+
+    expect(state.error).toMatch(/nu am putut retrimite/i);
   });
 });

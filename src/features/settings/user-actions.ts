@@ -149,3 +149,70 @@ export async function inviteClientAction(
   const clientId = String(formData.get("client_id") ?? "").trim();
   return sendClientInvite(clientId, email);
 }
+
+/**
+ * Retrimite invitatia in portal pentru firma-client, catre emailul contului deja
+ * creat (`profiles.email`). Doar admin, doar cat timp utilizatorul NU si-a activat
+ * contul (linkul de invitatie Supabase expira; un cont activ foloseste "Ai uitat
+ * parola?"). Supabase retrimite invitatia unui utilizator neconfirmat si refuza unul
+ * confirmat - verificarea explicita de mai jos da un mesaj clar in UI.
+ */
+export async function resendClientInvite(clientId: string): Promise<UserMgmtState> {
+  const admin = await getCurrentUser();
+  if (!admin || admin.role !== "admin" || !admin.organizationId) {
+    return { error: "Nu ai permisiunea de a invita utilizatori.", message: null };
+  }
+
+  const trimmedClientId = clientId.trim();
+  if (!trimmedClientId) return { error: "Client invalid.", message: null };
+
+  // Firma trebuie sa apartina organizatiei adminului (RLS pe clientul de sesiune).
+  const client = await getClient(trimmedClientId);
+  if (!client) {
+    return { error: "Firma selectata nu exista in organizatia ta.", message: null };
+  }
+
+  const adminClient = createAdminClient();
+  const { data: profile, error: profileError } = await adminClient
+    .from("profiles")
+    .select("id, email")
+    .eq("client_id", trimmedClientId)
+    .maybeSingle();
+  if (profileError) {
+    return { error: "Nu am putut verifica firma selectata. Incearca din nou.", message: null };
+  }
+  if (!profile?.email) {
+    return { error: "Firma nu are inca un cont in portal - trimite o invitatie.", message: null };
+  }
+
+  const { data: authData, error: authError } = await adminClient.auth.admin.getUserById(profile.id);
+  if (authError || !authData?.user) {
+    return { error: "Nu am putut verifica contul clientului. Incearca din nou.", message: null };
+  }
+  if (authData.user.email_confirmed_at || authData.user.last_sign_in_at) {
+    return {
+      error:
+        'Clientul si-a activat deja contul. Pentru parola uitata foloseste "Ai uitat parola?".',
+      message: null,
+    };
+  }
+
+  const origin = await getSiteOrigin();
+  const { error } = await adminClient.auth.admin.inviteUserByEmail(profile.email, {
+    redirectTo: `${origin}/auth/callback?next=/set-password`,
+  });
+  if (error) {
+    return { error: "Nu am putut retrimite invitatia. Incearca din nou.", message: null };
+  }
+
+  revalidatePath(`/clienti/${trimmedClientId}`);
+  return { error: null, message: `Invitatie retrimisa catre ${profile.email}.` };
+}
+
+/** Butonul "Retrimite invitația" de pe `/clienti/[id]` - deleaga la `resendClientInvite`. */
+export async function resendClientInviteAction(
+  _prev: UserMgmtState,
+  formData: FormData,
+): Promise<UserMgmtState> {
+  return resendClientInvite(String(formData.get("client_id") ?? ""));
+}
