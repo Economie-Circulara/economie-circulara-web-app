@@ -5,6 +5,7 @@ import { requireRole } from "@/features/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import {
   parseDecimal,
+  validateCreditGrant,
   validateCreditSettings,
   validateOrgAiLimits,
   validatePriceInput,
@@ -126,4 +127,39 @@ export async function updateOrganizationAiLimitsAction(
 
   revalidatePath("/platform/ai");
   return { error: null, message: "Salvat." };
+}
+
+/**
+ * Top-up: credite EXTRA pentru o organizatie, valabile doar luna curenta (expira la
+ * sfarsitul ei). Append-only, cu motiv obligatoriu; jurnalizat automat de DB (0040).
+ */
+export async function grantCreditsAction(
+  _prev: AiLimitsFormState,
+  formData: FormData,
+): Promise<AiLimitsFormState> {
+  const user = await requireRole(["super_admin"]);
+  const organizationId = clean(formData.get("organization_id"));
+  if (!organizationId) return { error: "Organizație invalidă.", message: null };
+  const input = {
+    credits: parseDecimal(formData.get("credits")),
+    reason: clean(formData.get("reason")),
+  };
+  const error = validateCreditGrant(input);
+  if (error) return { error, message: null };
+
+  const supabase = (await createClient()) as unknown as {
+    from(table: "ai_credit_grants"): {
+      insert(row: Record<string, unknown>): Promise<{ error: unknown }>;
+    };
+  };
+  const { error: insertError } = await supabase.from("ai_credit_grants").insert({
+    organization_id: organizationId,
+    credits: input.credits,
+    reason: input.reason,
+    created_by: user.id,
+  });
+  if (insertError) return { error: "Nu am putut acorda creditele.", message: null };
+
+  revalidatePath("/platform/ai");
+  return { error: null, message: `Am adăugat ${input.credits} credite pentru luna aceasta.` };
 }

@@ -12,8 +12,12 @@ vi.mock("@/lib/supabase/server", () => ({
   createClient: vi.fn(async () => ({ from })),
 }));
 
-const { addModelPriceAction, updateCreditSettingsAction, updateOrganizationAiLimitsAction } =
-  await import("./ai-pricing-actions");
+const {
+  addModelPriceAction,
+  grantCreditsAction,
+  updateCreditSettingsAction,
+  updateOrganizationAiLimitsAction,
+} = await import("./ai-pricing-actions");
 const { initialModelPriceFormState, initialAiLimitsFormState } = await import("./form-state");
 
 function form(fields: Record<string, string>): FormData {
@@ -125,5 +129,37 @@ describe("updateOrganizationAiLimitsAction", () => {
       ai_daily_user_credit_percent: 25,
     });
     expect(eq).toHaveBeenCalledWith("id", "org-1");
+  });
+});
+
+describe("grantCreditsAction", () => {
+  it("doar super-adminul; salveaza creditele, motivul si autorul", async () => {
+    requireRole.mockResolvedValue({ id: "sa-1" });
+    insert.mockResolvedValue({ error: null });
+
+    const state = await grantCreditsAction(
+      initialAiLimitsFormState,
+      form({ organization_id: "org-1", credits: "500", reason: "cerere client, factura 12" }),
+    );
+
+    expect(requireRole).toHaveBeenCalledWith(["super_admin"]);
+    expect(from).toHaveBeenCalledWith("ai_credit_grants");
+    expect(insert).toHaveBeenCalledWith({
+      organization_id: "org-1",
+      credits: 500,
+      reason: "cerere client, factura 12",
+      created_by: "sa-1",
+    });
+    expect(state.message).toContain("500 credite");
+  });
+
+  it("fara motiv nu se acorda nimic", async () => {
+    requireRole.mockResolvedValue({ id: "sa-1" });
+    const state = await grantCreditsAction(
+      initialAiLimitsFormState,
+      form({ organization_id: "org-1", credits: "500", reason: "" }),
+    );
+    expect(state.error).toMatch(/obligatoriu/);
+    expect(insert).not.toHaveBeenCalled();
   });
 });

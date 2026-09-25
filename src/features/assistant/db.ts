@@ -77,6 +77,7 @@ export type AssistantTable =
   | "assistant_usage"
   | "assistant_attachments"
   | "ai_platform_settings"
+  | "ai_credit_grants"
   | "organizations";
 
 interface UntypedSupabase {

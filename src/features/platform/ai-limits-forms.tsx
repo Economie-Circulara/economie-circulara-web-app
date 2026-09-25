@@ -4,7 +4,11 @@ import { useActionState } from "react";
 import { FormField } from "@/components/form-field";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { updateCreditSettingsAction, updateOrganizationAiLimitsAction } from "./ai-pricing-actions";
+import {
+  grantCreditsAction,
+  updateCreditSettingsAction,
+  updateOrganizationAiLimitsAction,
+} from "./ai-pricing-actions";
 import type { OrganizationAiLimits } from "./ai-usage-queries";
 import { initialAiLimitsFormState } from "./form-state";
 
@@ -71,9 +75,8 @@ export function OrganizationAiLimitsForm({ organization }: { organization: Organ
   );
   const prefix = `org-${organization.id}`;
   return (
-    <form action={action} className="flex flex-wrap items-end gap-3 border-b py-3 last:border-b-0">
+    <form action={action} className="flex flex-wrap items-end gap-3">
       <input type="hidden" name="organization_id" value={organization.id} />
-      <p className="min-w-40 flex-1 text-sm font-medium">{organization.name}</p>
       <label className="flex items-center gap-2 text-sm" htmlFor={`${prefix}-enabled`}>
         <input
           id={`${prefix}-enabled`}
@@ -110,6 +113,46 @@ export function OrganizationAiLimitsForm({ organization }: { organization: Organ
       </div>
       <Button type="submit" size="sm" variant="outline" disabled={pending}>
         {pending ? "..." : "Salvează"}
+      </Button>
+      {state.error ? <p className="w-full text-xs text-destructive">{state.error}</p> : null}
+      {state.message ? <p className="w-full text-xs text-ok">{state.message}</p> : null}
+    </form>
+  );
+}
+
+/** Top-up: credite extra doar pentru luna curenta, cu motiv obligatoriu. */
+export function GrantCreditsForm({ organizationId }: { organizationId: string }) {
+  const [state, action, pending] = useActionState(grantCreditsAction, initialAiLimitsFormState);
+  const prefix = `grant-${organizationId}`;
+  return (
+    <form action={action} className="flex flex-wrap items-end gap-3">
+      <input type="hidden" name="organization_id" value={organizationId} />
+      <div className="space-y-1">
+        <label className="text-xs text-muted-foreground" htmlFor={`${prefix}-credits`}>
+          + credite luna aceasta
+        </label>
+        <Input
+          id={`${prefix}-credits`}
+          name="credits"
+          inputMode="numeric"
+          className="w-28"
+          required
+        />
+      </div>
+      <div className="min-w-48 flex-1 space-y-1">
+        <label className="text-xs text-muted-foreground" htmlFor={`${prefix}-reason`}>
+          Motiv (obligatoriu)
+        </label>
+        <Input
+          id={`${prefix}-reason`}
+          name="reason"
+          maxLength={500}
+          placeholder="ex. cerere client, factura 12"
+          required
+        />
+      </div>
+      <Button type="submit" size="sm" disabled={pending}>
+        {pending ? "..." : "Adaugă credite"}
       </Button>
       {state.error ? <p className="w-full text-xs text-destructive">{state.error}</p> : null}
       {state.message ? <p className="w-full text-xs text-ok">{state.message}</p> : null}
