@@ -11,6 +11,7 @@ import {
 } from "@/features/orders/service";
 import { assertOrderTransition } from "@/features/orders/state-machine";
 import type { OrderDetail } from "@/features/orders/types";
+import { resultField } from "../result-summary";
 import type { ToolContext } from "../types";
 import { infoField, textField } from "./fields";
 import type { CardPresentation } from "./presentation-types";
@@ -40,6 +41,12 @@ function orderLabel(order: OrderDetail | null): string {
   return order
     ? `${order.orderNumber ?? "Comandă fără număr"} · ${order.clientName}`
     : "Comandă indisponibilă";
+}
+
+/** „ **CMD-1**” din rezultat, sau nimic. */
+function numberOf(result: unknown): string {
+  const number = resultField(result, "numar");
+  return number ? ` **${number}**` : "";
 }
 
 function linesSummary(order: OrderDetail | null): string {
@@ -73,6 +80,8 @@ export const acceptaComanda: AssistantTool<OrderIdInput> = {
   kind: "write",
   parse: parseOrderId,
   summary: () => "Acceptă comanda",
+  resultSummary: (_input, result) =>
+    `Am acceptat comanda${numberOf(result)}. Stocul a fost actualizat.`,
   presentation: async (input): Promise<CardPresentation> => {
     const order = await getOrderDetail(input.order_id);
     const effect =
@@ -97,7 +106,12 @@ export const acceptaComanda: AssistantTool<OrderIdInput> = {
     // de livrare - identic cu `acceptIntakeAction` (AGENTS.md §4, migrarea 0031).
     if (order.orderType === "aport") {
       const accepted = await acceptIntakeOrder(order.id);
-      return { order_id: accepted.id, status: accepted.status, link: `/comenzi/${accepted.id}` };
+      return {
+        order_id: accepted.id,
+        numar: order.orderNumber,
+        status: accepted.status,
+        link: `/comenzi/${accepted.id}`,
+      };
     }
 
     const fromStatus = order.status;
@@ -110,7 +124,12 @@ export const acceptaComanda: AssistantTool<OrderIdInput> = {
       fromStatus,
       toStatus: "accepted",
     });
-    return { order_id: accepted.id, status: accepted.status, link: `/comenzi/${accepted.id}` };
+    return {
+      order_id: accepted.id,
+      numar: order.orderNumber,
+      status: accepted.status,
+      link: `/comenzi/${accepted.id}`,
+    };
   },
 };
 
@@ -126,6 +145,8 @@ export const anuleazaComanda: AssistantTool<OrderIdInput> = {
   kind: "write",
   parse: parseOrderId,
   summary: () => "Anulează comanda",
+  resultSummary: (_input, result) =>
+    `Am anulat comanda${numberOf(result)}. Dacă fusese acceptată, stocul s-a refăcut.`,
   presentation: async (input): Promise<CardPresentation> => {
     const order = await getOrderDetail(input.order_id);
     const effect =
@@ -156,7 +177,12 @@ export const anuleazaComanda: AssistantTool<OrderIdInput> = {
       fromStatus,
       toStatus: "cancelled",
     });
-    return { order_id: cancelled.id, status: cancelled.status, link: `/comenzi/${cancelled.id}` };
+    return {
+      order_id: cancelled.id,
+      numar: cancelled.orderNumber,
+      status: cancelled.status,
+      link: `/comenzi/${cancelled.id}`,
+    };
   },
 };
 
@@ -172,6 +198,7 @@ export const stergeCiorna: AssistantTool<OrderIdInput> = {
   kind: "write",
   parse: parseOrderId,
   summary: () => "Șterge ciorna",
+  resultSummary: () => "Am șters ciorna. Nu mai apare în lista de comenzi.",
   presentation: async (input): Promise<CardPresentation> => {
     const order = await getOrderDetail(input.order_id);
     return {
@@ -215,6 +242,7 @@ export const anuleazaLivrare: AssistantTool<CancelDeliveryInput> = {
     return { order_id: requiredString(raw, "order_id"), motiv: requiredString(raw, "motiv") };
   },
   summary: () => "Anulează livrarea",
+  resultSummary: () => "Am anulat livrarea. Comanda rămâne acceptată și poate fi replanificată.",
   presentation: async (input): Promise<CardPresentation> => {
     const [order, delivery] = await Promise.all([
       getOrderDetail(input.order_id),
@@ -241,7 +269,12 @@ export const anuleazaLivrare: AssistantTool<CancelDeliveryInput> = {
       throw new InvalidToolArgumentsError("Comanda nu are o livrare planificată.");
     }
     await cancelDelivery(delivery.id, input.motiv);
-    return { order_id: input.order_id, livrare_id: delivery.id, anulata: true };
+    return {
+      order_id: input.order_id,
+      livrare_id: delivery.id,
+      anulata: true,
+      link: `/comenzi/${input.order_id}`,
+    };
   },
 };
 

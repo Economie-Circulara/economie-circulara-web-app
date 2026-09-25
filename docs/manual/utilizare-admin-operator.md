@@ -594,6 +594,13 @@ acțiuni. Orice acțiune se arată întâi într-un **card de confirmare**, neex
 | Livrări | planificare, anulare înainte de plecare (cu motiv) |
 | Producție | proces cu **cantitate fixă de produs** (rețetă de compunere): cardul arată consumul calculat din rețetă și loturile alese FIFO. Descompunerea (reciclare) se face din ecranul Producție, pentru că cere cantitățile reale rezultate. |
 
+**Scrierea mesajelor și atașamente.** Enter trimite mesajul, **Shift+Enter** adaugă un
+rând nou. Cu butonul 📎 de lângă câmpul de mesaj poți atașa până la 3 fișiere: imagini
+(PNG, JPEG, WEBP, GIF, max. 2MB) sau PDF (max. 10MB). Fișierele sunt private - le vezi
+doar tu și asistentul. Exemplu: atașează o poză și scrie „pune poza asta pe produsul
+Nisip spălat” - asistentul îți arată produsul și poza într-un card de confirmare.
+Atenție: asistentul nu „vede” conținutul imaginilor, doar numele fișierului.
+
 Cum funcționează cardul:
 
 - Câmpurile se afișează cu **denumiri**, nu cu identificatori interni (ex. la
@@ -603,6 +610,9 @@ Cum funcționează cardul:
   înainte de a confirma.
 - Apasă **"Confirmă și execută"** ca acțiunea să se producă efectiv, sau
   **"Renunță"** ca să o anulezi fără niciun efect.
+- După execuție, asistentul spune ce s-a făcut (ex. „Am adăugat clientul X”) și pune un
+  link direct către înregistrare. Dacă acțiunea nu a reușit, explică motivul, confirmă că
+  nu s-a modificat nimic și îți propune să corectezi datele.
 - Dacă un câmp completat e invalid, asistentul explică ce trebuie corectat -
   cardul rămâne deschis, poți încerca din nou fără să reformulezi cererea.
 - După o confirmare reușită, asistentul poate continua singur spre pasul următor

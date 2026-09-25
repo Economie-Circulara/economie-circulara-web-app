@@ -21,6 +21,7 @@ import {
   saveProposal,
 } from "./service";
 import { compactFacts, formatFacts, historyToMessages, type ToolFact } from "./facts";
+import { failureMessage, successMessage } from "./result-summary";
 import { serializeToolResult } from "./tool-result";
 import { findTool, toolDefinitions } from "./tools/registry";
 import { InvalidToolArgumentsError, type AssistantTool } from "./tools/types";
@@ -482,7 +483,7 @@ export async function confirmAction(input: {
       arguments: args,
       result,
     });
-    reply = `Gata: ${tool.summary?.(parsed) ?? tool.name}.`;
+    reply = successMessage(tool, parsed, result);
     // Ex. `client_id`-ul clientului tocmai creat - refolosibil in turele urmatoare.
     facts.push({ tool: tool.name, records: compactFacts(result) });
 
@@ -530,7 +531,7 @@ export async function confirmAction(input: {
       arguments: args,
       error: reason,
     });
-    reply = `Acțiunea nu a putut fi executată: ${reason}`;
+    reply = failureMessage(tool, parsed, reason);
   }
 
   await saveFacts(proposal.conversationId, facts);

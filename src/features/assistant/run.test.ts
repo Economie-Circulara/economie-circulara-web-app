@@ -530,6 +530,28 @@ describe("confirmAction / rejectAction", () => {
       expect.objectContaining({ status: "failed", error: "Există deja un client cu CUI." }),
     );
     expect(turn.reply).toContain("Există deja un client cu CUI.");
+    expect(turn.reply).toContain("Nu am reușit: Creează clientul ACME SRL.");
+    expect(turn.reply).toContain("Nu s-a modificat nimic");
+  });
+
+  it("succes: mesajul tool-ului la timpul trecut + link catre inregistrarea creata", async () => {
+    const tool = {
+      ...writeTool(
+        vi.fn().mockResolvedValue({ client_id: "c1", denumire: "ACME SRL", link: "/clienti/c1" }),
+      ),
+      resultSummary: (_input: unknown, result: unknown) =>
+        `Am adăugat clientul **${(result as { denumire: string }).denumire}**.`,
+    };
+    vi.mocked(findTool).mockReturnValue(tool as never);
+    vi.mocked(service.getProposal).mockResolvedValue(proposal);
+
+    const turn = await confirmAction({
+      toolCallId: "call-1",
+      ctx: CTX,
+      provider: new ScriptedProvider([], "mock"),
+    });
+
+    expect(turn.reply).toBe("✅ Am adăugat clientul **ACME SRL**. [Vezi clientul](/clienti/c1)");
   });
 
   it("eroare de validare la confirmare: RECUPERABILA - propunerea nu se rezolva, executia nu porneste", async () => {
@@ -649,7 +671,7 @@ describe("confirmAction / rejectAction", () => {
 
     const turn = await confirmAction({ toolCallId: "call-1", ctx: CTX, provider });
 
-    expect(turn.reply).toMatch(/^Gata: Creează clientul ACME SRL\./);
+    expect(turn.reply).toMatch(/^✅ Gata: Creează clientul ACME SRL\./);
     expect(turn.reply).toContain("Nu am putut continua automat");
     expect(turn.reply).not.toContain("reasoning_content");
     expect(turn.reply).not.toContain("Furnizorul AI");

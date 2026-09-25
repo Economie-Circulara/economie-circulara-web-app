@@ -22,9 +22,12 @@ export interface PresentationField {
   displayValue: string;
   /** false = doar informativ (ex. un ID rezolvat la o eticheta) - nu devine input. */
   editable: boolean;
-  kind: "text" | "boolean";
+  /** `image` = doar afisare: previzualizarea unui atasament (`previewUrl`), niciodata editabil. */
+  kind: "text" | "boolean" | "image";
   /** Valoarea tipata curenta - `defaultValue`/`defaultChecked` al inputului editabil. */
   value?: string | boolean;
+  /** Doar pentru `kind: "image"` - URL semnat, temporar, al imaginii. */
+  previewUrl?: string;
 }
 
 export interface GenericPresentation {

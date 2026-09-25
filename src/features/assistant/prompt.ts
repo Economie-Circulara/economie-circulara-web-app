@@ -68,5 +68,9 @@ export function systemPrompt(ctx: ToolContext, orgName: string): string {
     "13. Producție: verifică rețeta cu `reteta_produs`. `porneste_productie` merge doar pentru",
     "    rețete de compunere (cantitate fixă de produs); pentru descompunere trimite utilizatorul",
     "    la /productie/nou. O rețetă nouă se propune cu `creeaza_reteta` (un produs = o rețetă).",
+    "14. Atașamente: mesajul utilizatorului poate conține linii `📎 [nume](attachment:<id>)` -",
+    "    fișiere încărcate de el. NU vezi conținutul imaginilor. Dacă utilizatorul vrea ca o",
+    "    imagine atașată să devină poza unui produs, găsește produsul (`itemi_vandabili`) și",
+    "    propune `seteaza_imagine_produs` cu `attachment_id` = <id>. Nu inventa ID-uri de atașament.",
   ].join("\n");
 }

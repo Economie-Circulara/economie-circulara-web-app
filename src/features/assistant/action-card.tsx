@@ -100,7 +100,22 @@ function GenericActionCard({
         {presentation.fields.length > 0 ? (
           <div className="grid gap-3 sm:grid-cols-2">
             {presentation.fields.map((field) =>
-              !field.editable ? (
+              field.kind === "image" ? (
+                <div key={field.name} className="space-y-1.5">
+                  <Label>{field.label}</Label>
+                  {field.previewUrl ? (
+                    // URL semnat, temporar, din Storage - `next/image` ar cere domeniul
+                    // configurat in next.config si nu aduce nimic pentru o previzualizare.
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={field.previewUrl}
+                      alt={field.displayValue}
+                      className="max-h-40 rounded-md border object-contain"
+                    />
+                  ) : null}
+                  <p className="text-xs text-muted-foreground">{field.displayValue}</p>
+                </div>
+              ) : !field.editable ? (
                 <div key={field.name} className="space-y-1.5">
                   <Label>{field.label}</Label>
                   <p className="text-sm text-muted-foreground">{field.displayValue}</p>

@@ -4,6 +4,26 @@ Jurnal al sarcinilor lucrate de agenti AI in acest repo. Conform regulii 1.2 din
 [`AGENTS.md`](../AGENTS.md), la **fiecare commit** se adauga o intrare aici.
 Cele mai noi intrari sus.
 
+## 2026-09-25 — Claude Opus 5.5 (Claude Code) — Asistent AI: atasamente in chat + imagine pe produs; textarea
+
+- **Cerut:** upload de imagini/PDF in chat (PR 1: imagine pe produs; PR 2: import din PDF)
+  + Shift+Enter = rand nou in campul de mesaj.
+- **Facut:** migrarea 0036 (bucket privat `assistant-attachments` + tabel
+  `assistant_attachments` cu RLS personal); upload direct din browser cu URL semnat;
+  referinte `📎 [nume](attachment:<id>)` in mesaj; tool `seteaza_imagine_produs` (card
+  generic cu previzualizare); helper-ul de poza de produs mutat in
+  `items/image-storage.ts`; campul de mesaj devine textarea (Enter trimite, Shift+Enter
+  rand nou). Plan: `docs/plans/asistent-atasamente.md`.
+
+## 2026-09-25 — Claude Opus 5.5 (Claude Code) — Asistent AI: rezumatul rezultatului unei actiuni
+
+- **Cerut:** dupa executie, un rezumat clar - „am adăugat clientul Y, click aici” sau
+  „nu s-a putut…, pentru că…, încearcă din nou”.
+- **Facut:** `resultSummary` pe fiecare tool de scriere (timpul trecut, date din
+  rezultat) + `result-summary.ts` (link „Vezi …” catre inregistrare; mesaj de esec cu
+  motiv si pasul urmator), folosite in `confirmAction`. Plan:
+  `docs/plans/asistent-rezumat-rezultat.md`.
+
 ## 2026-09-25 — Claude Opus 5.5 (Claude Code) — Asistent AI: fix continuare DeepSeek + actiuni anuntate
 
 - **Cerut:** doua probleme raportate: cardul aparea abia dupa un mesaj in plus („Propun
