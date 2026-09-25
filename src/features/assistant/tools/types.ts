@@ -48,6 +48,12 @@ export interface AssistantTool<TInput = Record<string, unknown>> {
    */
   presentation?(input: TInput, ctx: ToolContext): Promise<CardPresentation>;
   execute(input: TInput, ctx: ToolContext): Promise<unknown>;
+  /**
+   * Plafonul rezultatului trimis modelului (caractere). Implicit
+   * `TOOL_RESULT_MAX_CHARS` - mai mare doar pentru tool-uri care intorc text de citit
+   * (ex. `citeste_document`).
+   */
+  maxResultChars?: number;
 }
 
 /** Helper-e de validare - mici si explicite, ca sa nu adaugam o librarie de scheme. */

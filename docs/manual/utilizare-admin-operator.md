@@ -601,6 +601,15 @@ doar tu și asistentul. Exemplu: atașează o poză și scrie „pune poza asta 
 Nisip spălat” - asistentul îți arată produsul și poza într-un card de confirmare.
 Atenție: asistentul nu „vede” conținutul imaginilor, doar numele fișierului.
 
+**Import de rețete dintr-un PDF.** Atașează PDF-ul (ex. fișele tehnice ale produselor) și
+scrie „adaugă rețetele din documentul ăsta”. Asistentul citește textul și îți arată un
+singur card cu toate rețetele găsite: pentru fiecare, produsul și materiile prime potrivite
+cu materialele tale. Ce n-a putut potrivi e marcat („În document: «bitum» - alege-l din
+listă”), iar produsele care au deja o rețetă sunt debifate. Corectezi, debifezi ce nu vrei
+și confirmi o singură dată; la final vezi ce s-a creat și ce s-a sărit. Merg doar PDF-urile
+cu text (exportate din Word/Excel) - un PDF scanat sau o poză a unui tabel nu pot fi citite
+deocamdată.
+
 Cum funcționează cardul:
 
 - Câmpurile se afișează cu **denumiri**, nu cu identificatori interni (ex. la

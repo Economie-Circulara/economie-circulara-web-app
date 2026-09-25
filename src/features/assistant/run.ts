@@ -64,8 +64,8 @@ function toolArguments(call: ProviderToolCall): Record<string, unknown> {
 }
 
 /** Rezultatul unui tool, trimis inapoi modelului ca mesaj `tool`. */
-function toolResultMessage(toolCallId: string, payload: unknown): ChatMessage {
-  return { role: "tool", toolCallId, content: serializeToolResult(payload) };
+function toolResultMessage(toolCallId: string, payload: unknown, maxChars?: number): ChatMessage {
+  return { role: "tool", toolCallId, content: serializeToolResult(payload, maxChars) };
 }
 
 function assistantCallMessage(calls: ProviderToolCall[], reasoningContent?: string): ChatMessage {
@@ -265,7 +265,9 @@ async function converse(input: {
     const results = await Promise.all(calls.map((call) => executeReadCall(id, call, ctx)));
     for (const [index, call] of calls.entries()) {
       const result = results[index];
-      messages.push(toolResultMessage(call.id, result.payload));
+      messages.push(
+        toolResultMessage(call.id, result.payload, findTool(call.name, ctx.role)?.maxResultChars),
+      );
       if (result.ok) facts.push({ tool: call.name, records: compactFacts(result.payload) });
     }
   }
