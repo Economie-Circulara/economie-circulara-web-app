@@ -338,6 +338,15 @@ Testele unitare sunt **colocate** langa cod (`*.test.ts` / `*.test.tsx`).
     (`src/components/confirm-action-button.tsx`) - dialog de confirmare cu text
     romanesc simplu (ce se intampla si ce NU se pierde).
 
+- **Doi clienti pe aceeasi infrastructura, fiecare pe domeniul lui** (decizie
+  2026-09-25, plan `docs/plans/multi-domain-tenant-profiles.md`): acelasi proiect
+  Vercel + aceeasi baza Supabase e acceptat (finantare UE) DOAR cat timp datele raman
+  izolate (RLS), auditabile si **exportabile integral per organizatie**. Linkurile
+  generate pentru userii unui tenant (auth, invitatii) folosesc domeniul
+  ORGANIZATIEI (`organizations.custom_domain`), nu domeniul de pe care s-a facut
+  cererea; userul unui tenant e redirectionat pe domeniul lui, super-adminul e
+  exceptat. „Lot cu Lot” nu apare pe domeniile tenantilor.
+
 ### 4.1 Limitari cunoscute / trade-off-uri acceptate
 
 - **`stock_events` audit trail**: pentru acum, nicio reconciliere automata cu `lots.remaining_qty`;

@@ -4,6 +4,15 @@ Jurnal al sarcinilor lucrate de agenti AI in acest repo. Conform regulii 1.2 din
 [`AGENTS.md`](../AGENTS.md), la **fiecare commit** se adauga o intrare aici.
 Cele mai noi intrari sus.
 
+## 2026-09-25 — Claude Opus 5.5 (Claude Code) — Plan: domeniu propriu per tenant + diferentiere
+
+- **Cerut:** analiza + intrebari + plan pentru livrarea la doi clienti (fonduri UE) pe
+  aceeasi infrastructura, fiecare pe domeniul lui, cu aplicatii care arata diferit.
+- **Facut:** plan `docs/plans/multi-domain-tenant-profiles.md` (T1-T8: origine linkuri
+  per organizatie, garda de domeniu, profil de tenant, navigare/dashboard/vizual/PDF per
+  profil, setup domenii, export per organizatie); decizia de infrastructura partajata
+  notata in AGENTS.md §4.
+
 ## 2026-09-24 — Claude Opus 5.5 (Claude Code) — Asistent AI: actiuni noi cu card de confirmare
 
 - **Cerut:** carduri de actiune si pentru editare client, acceptare/anulare comenzi,
