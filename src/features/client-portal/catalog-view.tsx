@@ -13,6 +13,7 @@ import { KIND_LABELS } from "@/features/items/labels";
 import { initialClientOrderFormState } from "./action-state";
 import { createClientOrderAction } from "./actions";
 import { useCart } from "./cart-context";
+import { ProductImage } from "./product-image";
 import type { CatalogItem, ItemKind } from "./types";
 
 const selectClassName =
@@ -29,11 +30,7 @@ function ProductCard({ item }: { item: CatalogItem }) {
 
   return (
     <Card className="overflow-hidden p-0">
-      <div className="flex h-32 items-center justify-center border-b bg-muted/40">
-        <span className="rounded-md border bg-card px-2 py-1 font-mono text-[10px] text-muted-foreground">
-          foto produs
-        </span>
-      </div>
+      <ProductImage imageUrl={item.imageUrl} alt={item.title} />
       <CardContent className="space-y-3 p-3.5">
         <div>
           <p className="text-sm font-bold">{item.title}</p>
