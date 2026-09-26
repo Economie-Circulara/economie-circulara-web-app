@@ -57,17 +57,24 @@ Aceeasi codebase, acelasi proiect Vercel, aceeasi baza Supabase, dar:
 - Teste: functia pura + `middleware.test.ts` (A pe domeniul B, domeniu corect,
   super-admin, localhost).
 
-### T3 - Profil de tenant + nume de produs
+### T3 - Profil de tenant + nume de produs (implementat 2026-09-26)
 
-- `src/config/tenant-profiles.ts`: `TenantProfile` tipat, cheie pe `slug`, cu `default`
-  (= comportamentul actual). Hardcodat in cod, fara migrare/UI.
-- `getTenantProfile(slug)` + propagare catre client printr-un context (date simple,
-  fara functii - AGENTS.md §4.2).
-- `PLATFORM_NAME` inlocuit cu `productName` rezolvat (profil -> numele organizatiei ->
-  `PLATFORM_NAME` doar pe domeniul platformei) in: `metadata` (layout + pagini cu titlu
-  hardcodat, ex. dashboard), login, help, PDF-uri (certificat, aviz, rapoarte),
-  system prompt-ul asistentului.
-- Teste: rezolvarea profilului si a numelui.
+- `src/features/branding/tenant-profiles.ts`: `TenantProfile` (deocamdata doar
+  `productName`; T4 adauga meniu/dashboard), cheie pe `organizations.slug`, fara profil
+  -> `DEFAULT_PROFILE`. Hardcodat in cod, fara migrare/UI.
+- `productNameFor(org)`: `profile.productName` -> numele organizatiei DACA are
+  `custom_domain` -> altfel „Lot cu Lot” (organizatiile de pe domeniul platformei nu se
+  schimba). `issuerCreditFor(org)`: creditul „emis de X” din subsolul documentelor,
+  omis cand ar repeta numele organizatiei.
+- `src/features/branding/queries.ts#getHostProductName`: numele pe hostul cererii
+  (independent de sesiune) - `generateMetadata` in layout-ul radacina da template-ul
+  `%s - <productName>`; paginile isi dau doar partea specifica ("Comenzi").
+- Inlocuit „Lot cu Lot” in: titluri (toate paginile), subsol certificat (PDF + ecran),
+  aviz, raport PDF, numele expeditorului de notificari (cand org-ul n-are
+  `email_from_name`), system prompt-ul asistentului, manualul din `/ajutor`
+  (`brandManual`), logo-ul platformei din sidebar (ascuns pe domeniu propriu).
+- Ramane „Lot cu Lot” doar in zona super-admin (`/platform`, help super-admin) si pe
+  domeniul platformei. Adresa expeditorului de email ramane comuna (decizia 3).
 
 ### T4 - Navigare si dashboard per profil
 

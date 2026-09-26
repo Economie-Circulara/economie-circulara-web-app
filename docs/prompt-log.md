@@ -4,6 +4,16 @@ Jurnal al sarcinilor lucrate de agenti AI in acest repo. Conform regulii 1.2 din
 [`AGENTS.md`](../AGENTS.md), la **fiecare commit** se adauga o intrare aici.
 Cele mai noi intrari sus.
 
+## 2026-09-26 — Claude Opus 5.5 (Claude Code) — Profil de tenant + nume de produs (T3)
+
+- **Cerut:** continuarea planului multi-domain cu T3.
+- **Facut:** `src/features/branding/` (`tenant-profiles.ts`: `productNameFor`,
+  `issuerCreditFor`; `queries.ts`: `getHostProductName`). Titlurile paginilor folosesc
+  template-ul din layout-ul radacina (`%s - <produs>`); „Lot cu Lot” inlocuit pe
+  domeniile tenantilor in subsolul certificat/aviz/raport, expeditorul notificarilor,
+  asistent, manual si sidebar (logo platforma ascuns). Teste noi: profiluri, prompt,
+  `brandManual`, sidebar.
+
 ## 2026-09-25 — Claude Opus 5.5 (Claude Code) — Domeniu propriu per tenant: linkuri + garda (T1 + T2)
 
 - **Cerut:** teme selectabile (default + 3) in plan; implementare T1 + T2.

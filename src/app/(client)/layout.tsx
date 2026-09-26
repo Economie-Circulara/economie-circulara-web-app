@@ -4,6 +4,7 @@ import { AppShell } from "@/components/layout/app-shell";
 import { navForRole } from "@/components/layout/nav-config";
 import { Topbar } from "@/components/layout/topbar";
 import { getCurrentOrg } from "@/features/auth/queries";
+import { productNameFor } from "@/features/branding/tenant-profiles";
 import { ROLE_LABELS } from "@/features/auth/roles";
 import { requireRole } from "@/features/auth/session";
 import { CartProvider } from "@/features/client-portal/cart-context";
@@ -22,6 +23,7 @@ export default async function ClientLayout({ children }: { children: React.React
       logoUrl={logoUrl}
       theme={{ brand: org?.primaryColor ?? undefined, accent: org?.secondaryColor ?? undefined }}
       items={items}
+      showPlatformLogo={productNameFor(org) === PLATFORM_NAME}
     >
       <Topbar
         email={user.email}

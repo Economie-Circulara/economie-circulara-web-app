@@ -1,6 +1,7 @@
 import type * as React from "react";
 import { requireRole } from "@/features/auth/session";
 import { SignOutButton } from "@/features/auth/sign-out-button";
+import { PLATFORM_NAME } from "@/lib/brand";
 
 /**
  * Shell minim pentru super-admin - NU foloseste `AppShell` (sidebar-ul de business
@@ -16,7 +17,7 @@ export default async function PlatformLayout({ children }: { children: React.Rea
       <div className="mx-auto max-w-6xl space-y-6 p-4 sm:p-6">
         <header className="flex flex-col gap-3 border-b pb-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-sm font-semibold tracking-tight">Lot cu Lot - Platforma</p>
+            <p className="text-sm font-semibold tracking-tight">{PLATFORM_NAME} - Platforma</p>
             <p className="text-xs text-muted-foreground">Administrare organizatii (super-admin)</p>
           </div>
           <div className="flex min-w-0 items-center gap-3">

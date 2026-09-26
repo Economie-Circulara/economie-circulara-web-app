@@ -24,7 +24,7 @@ import {
 } from "@/features/reports/queries";
 import { ReportTable } from "@/features/reports/report-table";
 
-export const metadata = { title: "Rapoarte - Lot cu Lot" };
+export const metadata = { title: "Rapoarte" };
 
 interface RapoartePageProps {
   searchParams: Promise<{ from?: string; to?: string }>;

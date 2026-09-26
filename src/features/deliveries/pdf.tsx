@@ -1,3 +1,4 @@
+import { PLATFORM_NAME } from "@/lib/brand";
 import { Document, Page, StyleSheet, Text, View } from "@react-pdf/renderer";
 import { PDF_FONT_FAMILY, registerPdfFonts } from "@/lib/pdf/fonts";
 import type { DeliveryDetail } from "./types";
@@ -11,6 +12,11 @@ export interface AvizPdfProps {
   orgName: string;
   brandColor?: string;
   accentColor?: string;
+  /**
+   * Creditul din subsol („emis de <X>”), din `issuerCreditFor` (features/branding).
+   * `null` = fara credit (produsul poarta chiar numele organizatiei); lipsa = platforma.
+   */
+  issuerCredit?: string | null;
 }
 
 const dateFormatter = new Intl.DateTimeFormat("ro-RO", { dateStyle: "medium" });
@@ -122,6 +128,7 @@ export function AvizPdfDocument({
   orgName,
   brandColor = DEFAULT_BRAND_COLOR,
   accentColor = DEFAULT_ACCENT_COLOR,
+  issuerCredit = PLATFORM_NAME,
 }: AvizPdfProps) {
   return (
     <Document title={`Aviz ${delivery.orderNumber ?? delivery.id}`}>
@@ -207,7 +214,9 @@ export function AvizPdfDocument({
         </View>
 
         <View style={styles.pageFooter} fixed>
-          <Text>{orgName} · aviz emis de Lot cu Lot</Text>
+          <Text>
+            {issuerCredit ? `${orgName} · aviz emis de ${issuerCredit}` : `${orgName} · aviz`}
+          </Text>
           <Text render={({ pageNumber, totalPages }) => `pagina ${pageNumber}/${totalPages}`} />
         </View>
       </Page>

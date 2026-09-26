@@ -4,7 +4,7 @@ import { listRecipes } from "@/features/recipes/queries";
 import { listItemOptions } from "@/features/items/queries";
 import { ProcessWizard } from "@/features/production/process-wizard";
 
-export const metadata = { title: "Pornește proces - Lot cu Lot" };
+export const metadata = { title: "Pornește proces" };
 
 /**
  * Ecranul de pornire proces - doua sub-fluxuri (4a output fix / 4b output

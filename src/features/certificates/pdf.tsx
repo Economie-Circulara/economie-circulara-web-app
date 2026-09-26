@@ -1,3 +1,4 @@
+import { PLATFORM_NAME } from "@/lib/brand";
 import { Document, Page, Path, Rect, StyleSheet, Svg, Text, View } from "@react-pdf/renderer";
 import { layoutSankey } from "@/features/production/sankey-data";
 import { PDF_FONT_FAMILY, registerPdfFonts } from "@/lib/pdf/fonts";
@@ -36,6 +37,11 @@ export interface CertificatePdfProps {
   orgAddress?: string;
   brandColor?: string;
   accentColor?: string;
+  /**
+   * Creditul din subsol („emis de <X>”), din `issuerCreditFor` (features/branding).
+   * `null` = fara credit (produsul poarta chiar numele organizatiei); lipsa = platforma.
+   */
+  issuerCredit?: string | null;
 }
 
 const dateFormatter = new Intl.DateTimeFormat("ro-RO", { dateStyle: "medium" });
@@ -233,6 +239,7 @@ export function CertificatePdfDocument({
   orgAddress,
   brandColor = DEFAULT_BRAND_COLOR,
   accentColor = DEFAULT_ACCENT_COLOR,
+  issuerCredit = PLATFORM_NAME,
 }: CertificatePdfProps) {
   const issuerLine = formatIssuerLine(orgCui, orgRegCom, orgAddress);
   return (
@@ -331,7 +338,11 @@ export function CertificatePdfDocument({
         </View>
 
         <View style={styles.pageFooter} fixed>
-          <Text>{orgName} · trasabilitate emisă de Lot cu Lot</Text>
+          <Text>
+            {issuerCredit
+              ? `${orgName} · trasabilitate emisă de ${issuerCredit}`
+              : `${orgName} · certificat de trasabilitate`}
+          </Text>
           <Text render={({ pageNumber, totalPages }) => `pagina ${pageNumber}/${totalPages}`} />
         </View>
       </Page>

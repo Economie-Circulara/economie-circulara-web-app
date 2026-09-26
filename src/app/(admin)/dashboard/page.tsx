@@ -18,7 +18,7 @@ import { ORDER_STATUS_BADGE_STATUS } from "@/features/orders/labels";
 import { DashboardStockChart } from "@/features/reports/dashboard-stock-chart";
 import { getOperationalDashboard } from "@/features/reports/dashboard-queries";
 
-export const metadata = { title: "Panou de control - Lot cu Lot" };
+export const metadata = { title: "Panou de control" };
 
 const numberFormatter = new Intl.NumberFormat("ro-RO");
 

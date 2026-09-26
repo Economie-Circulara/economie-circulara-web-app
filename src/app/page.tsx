@@ -5,12 +5,13 @@ import { Button } from "@/components/ui/button";
 import { getOrgBranding } from "@/features/auth/queries";
 import { getCurrentUser, homePathForRole } from "@/features/auth/session";
 import { resolveTenant } from "@/features/auth/tenant";
+import type { Metadata } from "next";
+import { getHostProductName } from "@/features/branding/queries";
 import { PLATFORM_DESCRIPTION, PLATFORM_NAME } from "@/lib/brand";
 
-export const metadata = {
-  title: PLATFORM_NAME,
-  description: PLATFORM_DESCRIPTION,
-};
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: { absolute: await getHostProductName() }, description: PLATFORM_DESCRIPTION };
+}
 
 /**
  * Pagina publica de intrare.

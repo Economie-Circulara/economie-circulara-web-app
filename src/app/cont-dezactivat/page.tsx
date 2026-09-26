@@ -3,7 +3,7 @@ import { UserX } from "lucide-react";
 import { getCurrentUser, homePathForRole, isAccountDeactivated } from "@/features/auth/session";
 import { SignOutButton } from "@/features/auth/sign-out-button";
 
-export const metadata = { title: "Cont dezactivat - Lot cu Lot" };
+export const metadata = { title: "Cont dezactivat" };
 
 /**
  * Pagina dedicata unui CONT dezactivat (migrarea 0035): utilizator de staff

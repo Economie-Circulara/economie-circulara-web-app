@@ -23,7 +23,7 @@ import { getReturnableItems, getReturnLinkForOrder } from "@/features/returns/qu
 import { ReturnActions } from "@/features/returns/return-actions";
 import { ALLOWED_RETURN_FLOWS_BY_ORDER_TYPE } from "@/features/returns/types";
 
-export const metadata = { title: "Detalii comandă - Lot cu Lot" };
+export const metadata = { title: "Detalii comandă" };
 
 interface OrderDetailPageProps {
   params: Promise<{ id: string }>;

@@ -6,7 +6,7 @@ import { requireRole } from "@/features/auth/session";
 import { listItems } from "@/features/items/queries";
 import { ItemsTable } from "@/features/items/items-table";
 
-export const metadata = { title: "Abonamente - Lot cu Lot" };
+export const metadata = { title: "Abonamente" };
 
 const selectClassName =
   "flex h-9 w-full rounded-md border border-input bg-card px-3 py-1 text-sm shadow-xs outline-none sm:w-48";

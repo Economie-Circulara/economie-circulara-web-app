@@ -4,7 +4,7 @@ import { listClientAddresses } from "@/features/clients/queries";
 import { AportForm } from "@/features/client-portal/aport-form";
 import { listIntakeItemOptions } from "@/features/orders/queries";
 
-export const metadata = { title: "Aport material - Lot cu Lot" };
+export const metadata = { title: "Aport material" };
 
 /**
  * Ecranul "Aport material" (client self-service): cerere de aport - materialul

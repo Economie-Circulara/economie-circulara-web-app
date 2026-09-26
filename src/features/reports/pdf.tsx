@@ -1,3 +1,4 @@
+import { PLATFORM_NAME } from "@/lib/brand";
 import { createElement } from "react";
 import { Document, Page, StyleSheet, Text, View, renderToBuffer } from "@react-pdf/renderer";
 import { PDF_FONT_FAMILY, registerPdfFonts } from "@/lib/pdf/fonts";
@@ -30,6 +31,11 @@ export interface ReportPdfDocumentProps {
   reportDescription?: string;
   range: DateRange;
   orgName: string;
+  /**
+   * Creditul din subsol („emis de <X>”), din `issuerCreditFor` (features/branding).
+   * `null` = fara credit (produsul poarta chiar numele organizatiei); lipsa = platforma.
+   */
+  issuerCredit?: string | null;
   brandColor?: string | null;
   accentColor?: string | null;
   columns: ReportPdfColumn[];
@@ -104,6 +110,7 @@ export function ReportPdfDocument({
   reportDescription,
   range,
   orgName,
+  issuerCredit = PLATFORM_NAME,
   brandColor = DEFAULT_BRAND_COLOR,
   accentColor = DEFAULT_ACCENT_COLOR,
   columns,
@@ -176,7 +183,11 @@ export function ReportPdfDocument({
         </View>
 
         <View style={styles.pageFooter} fixed>
-          <Text>{orgName} · raport generat de Lot cu Lot</Text>
+          <Text>
+            {issuerCredit
+              ? `${orgName} · raport generat de ${issuerCredit}`
+              : `${orgName} · raport`}
+          </Text>
           <Text render={({ pageNumber, totalPages }) => `pagina ${pageNumber}/${totalPages}`} />
         </View>
       </Page>

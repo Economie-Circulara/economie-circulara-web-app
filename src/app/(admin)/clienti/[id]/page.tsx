@@ -21,7 +21,7 @@ import { DocumentList } from "@/features/documents/document-list";
 import { DocumentUpload } from "@/features/documents/document-upload";
 import { listDocuments } from "@/features/documents/service";
 
-export const metadata = { title: "Detalii client - Lot cu Lot" };
+export const metadata = { title: "Detalii client" };
 
 interface ClientDetailPageProps {
   params: Promise<{ id: string }>;

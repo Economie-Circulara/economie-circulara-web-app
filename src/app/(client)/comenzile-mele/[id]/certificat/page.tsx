@@ -1,4 +1,5 @@
 import { PLATFORM_NAME } from "@/lib/brand";
+import { issuerCreditFor } from "@/features/branding/tenant-profiles";
 import { notFound } from "next/navigation";
 import { PageHeader } from "@/components/page-header";
 import { getCurrentOrg } from "@/features/auth/queries";
@@ -8,7 +9,7 @@ import { getCertificateByOrderId } from "@/features/certificates/service";
 import { listDocuments } from "@/features/documents/service";
 import { getOrderDetail } from "@/features/orders/queries";
 
-export const metadata = { title: "Certificat de trasabilitate - Lot cu Lot" };
+export const metadata = { title: "Certificat de trasabilitate" };
 
 interface CertificatePageProps {
   params: Promise<{ id: string }>;
@@ -51,6 +52,7 @@ export default async function ClientCertificatePage({ params }: CertificatePageP
         number={certificate.number}
         issuedAt={certificate.issuedAt}
         orgName={org?.name ?? PLATFORM_NAME}
+        issuerCredit={issuerCreditFor(org)}
         orgCui={org?.cui}
         orgRegCom={org?.regCom}
         orgAddress={org?.address}

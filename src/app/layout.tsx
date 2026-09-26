@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Archivo, IBM_Plex_Mono, Spectral } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import { ImplicitSessionBridge } from "@/features/auth/implicit-session-bridge";
+import { getHostProductName } from "@/features/branding/queries";
 import "./globals.css";
 
 const archivo = Archivo({
@@ -24,10 +25,18 @@ const spectral = Spectral({
   display: "swap",
 });
 
-export const metadata: Metadata = {
-  title: "Lot cu Lot",
-  description: "Platforma de trasabilitate a materialelor in economia circulara",
-};
+/**
+ * Titlul tab-ului poarta numele aplicatiei de pe hostul curent: pe domeniul unui tenant
+ * numele lui (plan multi-domain-tenant-profiles, T3), pe domeniul platformei „Lot cu Lot”.
+ * Paginile isi dau doar partea specifica ("Comenzi"), sufixul vine din template.
+ */
+export async function generateMetadata(): Promise<Metadata> {
+  const productName = await getHostProductName();
+  return {
+    title: { default: productName, template: `%s - ${productName}` },
+    description: "Platforma de trasabilitate a materialelor in economia circulara",
+  };
+}
 
 export default function RootLayout({
   children,

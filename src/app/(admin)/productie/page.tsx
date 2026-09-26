@@ -5,7 +5,7 @@ import { requireRole } from "@/features/auth/session";
 import { listProcesses } from "@/features/production/queries";
 import { ProcessesTable } from "@/features/production/processes-table";
 
-export const metadata = { title: "Producție - Lot cu Lot" };
+export const metadata = { title: "Producție" };
 
 /** Ecranul Producție - istoricul proceselor de fabricație/reciclare/recondiționare. */
 export default async function ProductiePage() {

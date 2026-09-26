@@ -12,7 +12,7 @@ import { ReceiptForm } from "@/features/deliveries/receipt-form";
 import { RoutePanel } from "@/features/deliveries/route-panel";
 import { getCurrentOrg } from "@/features/auth/queries";
 
-export const metadata = { title: "Detalii livrare - Lot cu Lot" };
+export const metadata = { title: "Detalii livrare" };
 
 interface DeliveryDetailPageProps {
   params: Promise<{ id: string }>;

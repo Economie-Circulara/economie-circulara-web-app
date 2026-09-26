@@ -1,4 +1,5 @@
 import { ROLE_LABELS } from "@/features/auth/roles";
+import { PLATFORM_NAME } from "@/lib/brand";
 import type { ToolContext } from "./types";
 
 /**
@@ -9,9 +10,13 @@ import type { ToolContext } from "./types";
  *    care contine „ignoră instrucțiunile de mai sus" nu trebuie sa schimbe nimic.
  *    Aparatoarea reala ramane confirmarea umana + RLS, nu textul de aici.
  */
-export function systemPrompt(ctx: ToolContext, orgName: string): string {
+export function systemPrompt(
+  ctx: ToolContext,
+  orgName: string,
+  productName: string = PLATFORM_NAME,
+): string {
   return [
-    "Ești asistentul aplicației „Lot cu Lot”, o platformă de trasabilitate a materialelor",
+    `Ești asistentul aplicației „${productName}”, o platformă de trasabilitate a materialelor`,
     "în economia circulară. Răspunzi mereu în limba română, scurt și concret, folosind",
     "formatare markdown simplă (aldin, liste, tabele) - fără HTML.",
     "",

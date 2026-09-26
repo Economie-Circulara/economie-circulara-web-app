@@ -1,6 +1,7 @@
 import { PLATFORM_NAME } from "@/lib/brand";
 import { NextResponse } from "next/server";
 import { getCurrentOrg } from "@/features/auth/queries";
+import { issuerCreditFor } from "@/features/branding/tenant-profiles";
 import { requireRole } from "@/features/auth/session";
 import { getDeliveryDetail } from "@/features/deliveries/queries";
 import { renderAvizPdfBuffer } from "@/features/deliveries/service";
@@ -32,6 +33,7 @@ export async function GET(_request: Request, { params }: RouteParams) {
     org?.name ?? PLATFORM_NAME,
     org?.primaryColor,
     org?.secondaryColor,
+    issuerCreditFor(org),
   );
 
   return new NextResponse(new Uint8Array(buffer), {

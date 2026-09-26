@@ -1,4 +1,5 @@
 import { PLATFORM_NAME } from "@/lib/brand";
+import { issuerCreditFor } from "@/features/branding/tenant-profiles";
 import { createElement } from "react";
 import { renderToBuffer } from "@react-pdf/renderer";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -165,6 +166,8 @@ interface CertificateIssuer {
   address?: string | null;
   brandColor?: string | null;
   accentColor?: string | null;
+  /** Creditul din subsol - vezi `issuerCreditFor` (features/branding). */
+  issuerCredit?: string | null;
 }
 
 /** Randeaza PDF-ul certificatului (buffer) - vezi decizia S3/PDF in pdf.tsx. */
@@ -182,6 +185,7 @@ async function renderCertificatePdf(
     orgAddress: issuer.address ?? undefined,
     brandColor: issuer.brandColor ?? undefined,
     accentColor: issuer.accentColor ?? undefined,
+    issuerCredit: issuer.issuerCredit,
   });
   // `renderToBuffer` tipizeaza strict argumentul ca `ReactElement<DocumentProps>`
   // (props-urile <Document>-ului react-pdf), desi accepta la runtime orice element
@@ -229,7 +233,7 @@ export async function generateCertificateForOrder(
 
   const { data: org } = await supabase
     .from("organizations")
-    .select("name, cui, reg_com, address, primary_color, secondary_color")
+    .select("name, slug, custom_domain, cui, reg_com, address, primary_color, secondary_color")
     .eq("id", organizationId)
     .maybeSingle();
 
@@ -241,6 +245,9 @@ export async function generateCertificateForOrder(
     address: org?.address,
     brandColor: org?.primary_color,
     accentColor: org?.secondary_color,
+    issuerCredit: issuerCreditFor(
+      org ? { slug: org.slug, name: org.name, customDomain: org.custom_domain } : null,
+    ),
   });
 
   const admin = createAdminClient();

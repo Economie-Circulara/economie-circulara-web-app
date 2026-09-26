@@ -231,12 +231,14 @@ export async function renderAvizPdfBuffer(
   orgName: string,
   brandColor?: string | null,
   accentColor?: string | null,
+  issuerCredit?: string | null,
 ): Promise<Buffer> {
   const element = createElement(AvizPdfDocument, {
     delivery,
     orgName,
     brandColor: brandColor ?? undefined,
     accentColor: accentColor ?? undefined,
+    issuerCredit,
   });
   // Cast documentat, acelasi motiv ca `certificates/service.ts#renderCertificatePdf`.
   return renderToBuffer(element as unknown as Parameters<typeof renderToBuffer>[0]);

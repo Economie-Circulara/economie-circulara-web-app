@@ -1,4 +1,5 @@
 import { PLATFORM_NAME } from "@/lib/brand";
+import { issuerCreditFor } from "@/features/branding/tenant-profiles";
 import { NextResponse, type NextRequest } from "next/server";
 import { getCurrentOrg } from "@/features/auth/queries";
 import { requireRole } from "@/features/auth/session";
@@ -34,6 +35,7 @@ export async function GET(request: NextRequest) {
     orgName: org?.name ?? PLATFORM_NAME,
     brandColor: org?.primaryColor,
     accentColor: org?.secondaryColor,
+    issuerCredit: issuerCreditFor(org),
     columns: report.columns,
     rows: report.rows,
   });
