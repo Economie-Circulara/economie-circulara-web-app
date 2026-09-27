@@ -88,29 +88,17 @@ ei. **"Reactivează"** îi redă accesul, cu același rol.
 
 ![ecranul "Utilizatori" cu formularul de invitare](img/admin-users.png)
 
-### 2.2 Gap cunoscut: invitarea unui client {#gap-cunoscut-invitarea-unui-client}
+### 2.2 Invitarea unui client {#gap-cunoscut-invitarea-unui-client}
 
-**La data redactării acestui ghid, ecranul "Utilizatori" permite doar invitarea
-de Operatori și Administratori - nu există încă un formular dedicat pentru
-crearea contului de logare (rol `client`) al unei firme client**, deși structura
-de date (schema bazei de date) suportă rolul client, legat de o firmă din
-"Clienți". Fluxul de business intenționat (conform `docs/handoff.md`) este:
+Contul de logare al unei firme client (rol `client`, **un singur utilizator per
+firmă**) se creează prin invitație, trimisă de un administrator:
 
-- Adminul creează firma client în "Clienți" (secțiunea 3 din manualul
-  admin/operator).
-- Adminul invită contul de logare al persoanei de contact a firmei respective,
-  cu rol `client`, legat de acea firmă (`client_id`).
-- Clientul primește emailul de invitație și își setează parola, la fel ca un
-  operator.
+- **automat**, la adăugarea clientului în "Clienți", dacă are completat **Email**;
+- din pagina clientului - **"Invită în portal"**, sau **"Retrimite invitația"**
+  cât timp clientul nu și-a activat contul (de ex. linkul a expirat);
+- din "Utilizatori" - formularul de invitare a unui client.
 
-**Până când acest formular este livrat în interfață**, crearea unui cont de
-client se poate face doar tehnic, de către echipa de dezvoltare/operare, direct
-prin Supabase (invitație `auth.admin.inviteUserByEmail` + inserare manuală a
-rândului `profiles` cu `role='client'` și `client_id` = firma corespunzătoare din
-tabela `clients`). Contactează echipa tehnică pentru fiecare cont de client
-necesar, până la livrarea acestei funcționalități în UI.
-
----
+Clientul primește emailul de invitație și își setează parola, la fel ca un operator.
 
 ## 3. Super-admin - administrarea organizațiilor platformei
 
@@ -181,6 +169,56 @@ o organizație suspendată.
 ![lista de organizații cu butonul Suspendă/Reactivează](img/superadmin-orgs.png)
 
 ---
+
+### 3.4 Consumul AI și prețurile modelelor
+
+Din lista organizațiilor, butonul **„Consum AI”** (`/platform/ai`) arată costul real al
+asistentului AI în ultimele 30 de zile:
+
+- totaluri (cost, apeluri de model, cât din input a venit din cache, output);
+- **pe organizații**: mesaje, apeluri, cost și cost mediu pe mesaj;
+- **pe modele**: tokeni noi / din cache / output și cost pe apel.
+
+Costul fiecărui apel se calculează **în momentul apelului**, cu prețul valabil atunci, și
+se păstrează - dacă furnizorul își schimbă prețurile, istoricul nu se modifică.
+
+**Prețurile** (USD pe 1 milion de tokeni, separat pentru input din cache, input nou și
+output) se gestionează tot aici:
+
+- un preț nou **adaugă o versiune** (cu data de la care e valabil); versiunile vechi rămân
+  în istoric;
+- numele modelului trebuie să fie **exact cel din factura furnizorului** (ex.
+  `deepseek-v4-pro`) - e numele pe care furnizorul îl raportează la fiecare apel;
+- „`*`” e prețul implicit, folosit pentru un model fără preț propriu. Dacă apare un astfel
+  de model, pagina afișează un avertisment - adaugă-i prețul.
+
+**Credite AI și limite.** Utilizatorii văd consumul în **credite AI**, calculate din costul
+real al fiecărui răspuns (credite = cost / valoarea unui credit, rotunjit în sus). Tot pe
+această pagină:
+
+- **Valoarea unui credit** (implicit $0,001) și **plafonul per mesaj** (implicit 100
+  credite): peste plafon, asistentul se oprește și răspunde cu ce a aflat, ca o cerere
+  scăpată de sub control să nu consume bugetul. Schimbarea valorii creditului recalculează
+  și consumul deja afișat - se face rar, după calibrare pe date reale.
+- **Limitele fiecărei organizații**: asistent activ / dezactivat, **buget lunar** în
+  credite (implicit 2.000 ≈ $2; 0 = nelimitat) și **procentul zilnic** pe care îl poate
+  folosi un singur utilizator (implicit 20%; 0 = fără plafon zilnic).
+
+Limita e „moale”: dacă bugetul se termină în timpul unui răspuns, răspunsul se termină
+normal, iar următorul mesaj e blocat. Adminul organizației nu își poate ridica singur
+limitele.
+
+**Credite pe organizații - luna aceasta.** Pentru fiecare organizație vezi creditele
+folosite luna aceasta din bugetul efectiv, procentul și starea (**Buget epuizat**, **Peste
+80%**, **Oprit**, **OK**, **Nelimitat**); organizațiile cu probleme apar primele. Tot acolo:
+
+- **Oprire / pornire**: bifa „Activ” oprește imediat asistentul pentru toată organizația.
+- **Top-up**: „+ credite luna aceasta”, cu motiv obligatoriu (ex. „cerere client, factura
+  12”). Creditele extra se adaugă peste buget doar pentru luna curentă și expiră la
+  sfârșitul ei; administratorii organizației le văd pe cardul de consum („2.000 + 500
+  credite extra”). Un top-up nu se poate șterge - dacă a fost greșit, ajustează bugetul.
+- **Jurnal**: fiecare modificare de limite și fiecare top-up rămân înregistrate, cu data,
+  autorul și ce s-a schimbat.
 
 ## 4. Operare tehnică (echipa de dezvoltare/operare)
 

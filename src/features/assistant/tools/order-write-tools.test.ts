@@ -68,10 +68,11 @@ describe("accepta_comanda", () => {
     expect(result).toMatchObject({ status: "accepted", link: "/comenzi/o1" });
   });
 
-  it("aport: RPC-ul dedicat, fara masina de stari de vanzare si fara notificare", async () => {
-    vi.mocked(getOrderDetail).mockResolvedValue(order({ orderType: "aport", status: "draft" }));
+  it("aport: RPC-ul dedicat (fara masina de stari de vanzare), email cu formularea de aport", async () => {
+    vi.mocked(getOrderDetail).mockResolvedValue(order({ orderType: "aport", status: "sent" }));
     vi.mocked(orderService.acceptIntakeOrder).mockResolvedValue({
       id: "o1",
+      clientId: "c1",
       status: "accepted",
     } as never);
 
@@ -79,7 +80,9 @@ describe("accepta_comanda", () => {
 
     expect(orderService.acceptIntakeOrder).toHaveBeenCalledWith("o1");
     expect(orderService.acceptOrder).not.toHaveBeenCalled();
-    expect(onOrderStatusChanged).not.toHaveBeenCalled();
+    expect(onOrderStatusChanged).toHaveBeenCalledWith(
+      expect.objectContaining({ fromStatus: "sent", toStatus: "accepted", kind: "intake" }),
+    );
   });
 
   it("o ciorna de vanzare nu se poate accepta direct (trebuie trimisa intai)", async () => {
@@ -151,5 +154,22 @@ describe("anuleaza_livrare", () => {
       anuleazaLivrare.execute({ order_id: "o1", motiv: "x" }, CTX),
     ).rejects.toBeInstanceOf(InvalidToolArgumentsError);
     expect(cancelDelivery).not.toHaveBeenCalled();
+  });
+});
+
+describe("mesajele de dupa executie", () => {
+  it("acceptare / anulare: numarul comenzii si efectul pe stoc", () => {
+    expect(acceptaComanda.resultSummary!({ order_id: "o1" }, { numar: "CMD-7" })).toBe(
+      "Am acceptat comanda **CMD-7**. Stocul a fost actualizat.",
+    );
+    expect(anuleazaComanda.resultSummary!({ order_id: "o1" }, { numar: null })).toBe(
+      "Am anulat comanda. Dacă fusese acceptată, stocul s-a refăcut.",
+    );
+  });
+
+  it("anularea livrarii intoarce link catre comanda", async () => {
+    vi.mocked(getDeliveryByOrderId).mockResolvedValue({ id: "d1" } as never);
+    const result = await anuleazaLivrare.execute({ order_id: "o1", motiv: "x" }, CTX);
+    expect(result).toMatchObject({ link: "/comenzi/o1" });
   });
 });

@@ -21,6 +21,15 @@ vi.mock("./service", () => ({
   ReturnValidationError: class ReturnValidationError extends Error {},
 }));
 
+const { sendOrder } = vi.hoisted(() => ({ sendOrder: vi.fn() }));
+vi.mock("@/features/orders/service", () => ({ sendOrder }));
+
+const { getOrderStatus } = vi.hoisted(() => ({ getOrderStatus: vi.fn() }));
+vi.mock("@/features/orders/queries", () => ({ getOrderStatus }));
+
+const { onOrderStatusChanged } = vi.hoisted(() => ({ onOrderStatusChanged: vi.fn() }));
+vi.mock("@/features/orders/notifications", () => ({ onOrderStatusChanged }));
+
 const { revalidatePath } = vi.hoisted(() => ({ revalidatePath: vi.fn() }));
 vi.mock("next/cache", () => ({ revalidatePath }));
 
@@ -32,7 +41,7 @@ afterEach(() => {
 
 describe("createReturnAction", () => {
   it("permite rolul client sa creeze un retur (createdByAdmin=false)", async () => {
-    requireRole.mockResolvedValue({ id: "u1", role: "client" });
+    requireRole.mockResolvedValue({ id: "u1", role: "client", organizationId: "org-1" });
     createReturnOrder.mockResolvedValue({ returnOrderId: "return-1", replacementOrderId: null });
 
     const result = await createReturnAction({
@@ -46,6 +55,38 @@ describe("createReturnAction", () => {
       expect.objectContaining({ originalOrderId: "order-orig", createdByAdmin: false }),
     );
     expect(result).toEqual({ returnOrderId: "return-1", replacementOrderId: null });
+    // Cererea clientului e trimisa, nu ramane ciorna (0044).
+    expect(sendOrder).toHaveBeenCalledWith("return-1", "org-1");
+  });
+
+  it("garantie din portal: trimite si comanda-retur, si comanda de inlocuire", async () => {
+    requireRole.mockResolvedValue({ id: "u1", role: "client", organizationId: "org-1" });
+    createReturnOrder.mockResolvedValue({ returnOrderId: "ret-1", replacementOrderId: "repl-1" });
+
+    await createReturnAction({
+      originalOrderId: "order-orig",
+      type: "warranty",
+      items: [{ orderItemId: "oi-1", quantity: 1 }],
+    });
+
+    expect(sendOrder).toHaveBeenCalledWith("ret-1", "org-1");
+    expect(sendOrder).toHaveBeenCalledWith("repl-1", "org-1");
+  });
+
+  it("daca trimiterea esueaza, intoarce eroarea (cererea ramane salvata)", async () => {
+    requireRole.mockResolvedValue({ id: "u1", role: "client", organizationId: "org-1" });
+    createReturnOrder.mockResolvedValue({ returnOrderId: "ret-1", replacementOrderId: null });
+    sendOrder.mockRejectedValueOnce(new Error("numar indisponibil"));
+
+    const result = await createReturnAction({
+      originalOrderId: "order-orig",
+      type: "return",
+      items: [{ orderItemId: "oi-1", quantity: 1 }],
+    });
+
+    expect(result).toEqual({
+      error: "Cererea a fost salvată, dar nu a putut fi trimisă: numar indisponibil",
+    });
   });
 
   it("marcheaza createdByAdmin=true cand e creat de staff (admin/operator)", async () => {
@@ -61,6 +102,8 @@ describe("createReturnAction", () => {
     expect(createReturnOrder).toHaveBeenCalledWith(
       expect.objectContaining({ createdByAdmin: true }),
     );
+    // Returul creat de staff ramane draft - se accepta direct.
+    expect(sendOrder).not.toHaveBeenCalled();
   });
 
   it("garanție: propaga replacementOrderId din service", async () => {
@@ -105,13 +148,22 @@ describe("acceptReturnAction", () => {
     expect(requireRole).not.toHaveBeenCalledWith(expect.arrayContaining(["client"]));
   });
 
-  it("accepta o comanda-retur draft", async () => {
-    requireRole.mockResolvedValue({ id: "u1", role: "operator" });
-    acceptReturnOrder.mockResolvedValue({ id: "return-1", status: "accepted" });
+  it("accepta o comanda-retur si notifica clientul cu formularea de retur", async () => {
+    requireRole.mockResolvedValue({ id: "u1", role: "operator", organizationId: "org-1" });
+    getOrderStatus.mockResolvedValue("sent");
+    acceptReturnOrder.mockResolvedValue({ id: "return-1", clientId: "c1", status: "accepted" });
 
     const result = await acceptReturnAction("return-1");
 
     expect(acceptReturnOrder).toHaveBeenCalledWith("return-1");
+    expect(onOrderStatusChanged).toHaveBeenCalledWith({
+      orderId: "return-1",
+      organizationId: "org-1",
+      clientId: "c1",
+      fromStatus: "sent",
+      toStatus: "accepted",
+      kind: "return",
+    });
     expect(result.error).toBeNull();
     expect(revalidatePath).toHaveBeenCalledWith("/comenzi/return-1");
   });

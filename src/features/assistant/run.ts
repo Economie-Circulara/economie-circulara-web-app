@@ -9,7 +9,14 @@ import {
   type ProviderToolCall,
 } from "./provider";
 import { systemPrompt } from "./prompt";
-import { getQuotaStatus, quotaMessage, trackUsage } from "./quota";
+import {
+  creditsFromMicros,
+  getCreditSettings,
+  getQuotaStatus,
+  quotaMessage,
+  recordUsage,
+  type CreditSettings,
+} from "./quota";
 import {
   appendMessage,
   claimProposal,
@@ -22,6 +29,7 @@ import {
   saveProposal,
 } from "./service";
 import { compactFacts, formatFacts, historyToMessages, type ToolFact } from "./facts";
+import { failureMessage, successMessage } from "./result-summary";
 import { serializeToolResult } from "./tool-result";
 import { findTool, toolDefinitions } from "./tools/registry";
 import { InvalidToolArgumentsError, type AssistantTool } from "./tools/types";
@@ -51,6 +59,12 @@ const OUT_OF_STEPS_PROMPT =
   "Spune-i utilizatorului pe scurt ce ai aflat până acum (cu datele concrete găsite) " +
   "și ce îți mai lipsește ca să termini - o întrebare concretă, nu o scuză generică.";
 
+/** Varianta pentru plafonul de cost al turei (etapa 2). */
+const OUT_OF_BUDGET_PROMPT =
+  "Cererea a consumat deja bugetul maxim pentru un singur mesaj. NU mai apela tool-uri. " +
+  "Spune-i utilizatorului pe scurt ce ai aflat până acum (cu datele concrete găsite), ce " +
+  "a rămas de făcut și sugerează-i să continue cu un mesaj nou, pentru restul.";
+
 const OUT_OF_STEPS_FALLBACK =
   "Nu am reușit să duc cererea la capăt în pașii disponibili. Reformulează-o sau împarte-o în pași mai mici.";
 
@@ -64,8 +78,8 @@ function toolArguments(call: ProviderToolCall): Record<string, unknown> {
 }
 
 /** Rezultatul unui tool, trimis inapoi modelului ca mesaj `tool`. */
-function toolResultMessage(toolCallId: string, payload: unknown): ChatMessage {
-  return { role: "tool", toolCallId, content: serializeToolResult(payload) };
+function toolResultMessage(toolCallId: string, payload: unknown, maxChars?: number): ChatMessage {
+  return { role: "tool", toolCallId, content: serializeToolResult(payload, maxChars) };
 }
 
 function assistantCallMessage(calls: ProviderToolCall[], reasoningContent?: string): ChatMessage {
@@ -117,7 +131,7 @@ export async function runAssistantTurn({
     }));
 
   await appendMessage({ conversationId: id, role: "user", content: message });
-  await trackUsage({ messages: 1 });
+  await recordUsage({ feature: "assistant", messages: 1, conversationId: id });
 
   const org = await getCurrentOrg();
   const history = (await listMessages(id)).slice(-HISTORY_LIMIT);
@@ -126,7 +140,14 @@ export async function runAssistantTurn({
     ...historyToMessages(history),
   ];
 
-  const outcome = await converse({ id, ctx, provider, messages });
+  const settings = await getCreditSettings();
+  const outcome = await converse({
+    id,
+    ctx,
+    provider,
+    messages,
+    limitMicros: turnBudgetMicros(settings),
+  });
 
   await saveFacts(id, outcome.facts);
   await appendMessage({ conversationId: id, role: "assistant", content: outcome.reply });
@@ -136,6 +157,7 @@ export async function runAssistantTurn({
     reply: outcome.reply,
     pendingAction: outcome.pendingAction,
     quota: await getQuotaStatus(ctx),
+    ...turnCreditsFor(ctx, outcome.costMicros, settings),
   };
 }
 
@@ -144,7 +166,31 @@ interface ConverseOutcome {
   pendingAction: PendingAction | null;
   /** Ce s-a gasit prin tool-urile de citire - salvat intre ture (`facts.ts`). */
   facts: ToolFact[];
+  /** Furnizorul AI a raspuns cu eroare - `reply` e mesajul afisabil al erorii. */
+  providerFailed?: boolean;
+  /** Costul turei (micro-USD), din `assistant_record_usage` - plafon + credite pt. admini. */
+  costMicros: number;
 }
+
+/**
+ * Modelele (DeepSeek in special) incheie uneori runda ANUNTAND o actiune
+ * („Propun mai întâi crearea clientului:”) fara sa apeleze tool-ul - utilizatorul
+ * trebuia sa scrie inca un mesaj ca sa apara cardul. Recunoastem anuntul (text care
+ * se termina in „:” sau care spune ca propune/pregateste ceva, fara sa intrebe) si
+ * cerem o singura data, in aceeasi tura, apelul efectiv.
+ */
+export function looksLikeAnnouncedAction(text: string): boolean {
+  const trimmed = text.trim();
+  if (!trimmed || trimmed.includes("?")) return false;
+  if (trimmed.endsWith(":")) return true;
+  return /\b(propun|pregătesc|pregatesc|voi propune|voi crea|creez acum)\b/i.test(
+    trimmed.slice(-200),
+  );
+}
+
+const ANNOUNCED_ACTION_NUDGE =
+  "Ai anunțat o acțiune, dar nu ai apelat tool-ul. Apelează-l acum, în acest răspuns " +
+  "(utilizatorul o confirmă pe card). Dacă îți lipsește o informație, întreab-o direct.";
 
 /**
  * Bucla model <-> tool-uri, pana la un raspuns final sau la o propunere de scriere.
@@ -159,10 +205,18 @@ async function converse(input: {
   ctx: ToolContext;
   provider: ChatProvider;
   messages: ChatMessage[];
+  /** Plafonul turei in micro-USD (0 = fara plafon) - vezi `turnBudgetMicros`. */
+  limitMicros?: number;
 }): Promise<ConverseOutcome> {
   const { id, ctx, provider } = input;
   const messages = [...input.messages];
   const facts: ToolFact[] = [];
+  let spent = 0;
+  let nudged = false;
+  /** Textul anuntului (daca a fost nevoie de impuls) - pastrat in raspunsul final. */
+  let announced: string | null = null;
+  const withAnnouncement = (reply: string) =>
+    announced && !reply.includes(announced) ? `${announced}\n\n${reply}` : reply;
 
   for (let step = 0; step < MAX_STEPS; step++) {
     let completion;
@@ -170,23 +224,42 @@ async function converse(input: {
       completion = await provider.complete({ messages, tools: toolDefinitions(ctx.role) });
     } catch (err) {
       if (err instanceof ChatProviderError) {
-        return { reply: err.message, pendingAction: null, facts };
+        return {
+          reply: err.message,
+          pendingAction: null,
+          facts,
+          providerFailed: true,
+          costMicros: spent,
+        };
       }
       throw err;
     }
 
-    await trackUsage({
-      messages: 0,
-      inputTokens: completion.usage.inputTokens,
-      outputTokens: completion.usage.outputTokens,
+    spent += await recordUsage({
+      feature: "assistant",
+      conversationId: id,
+      model: completion.model,
+      usage: completion.usage,
     });
 
     const calls = completion.toolCalls;
     if (calls.length === 0) {
+      if (!nudged && looksLikeAnnouncedAction(completion.content)) {
+        nudged = true;
+        announced = completion.content.trim();
+        messages.push({
+          role: "assistant",
+          content: completion.content,
+          reasoningContent: completion.reasoningContent,
+        });
+        messages.push({ role: "user", content: ANNOUNCED_ACTION_NUDGE });
+        continue;
+      }
       return {
-        reply: completion.content.trim() || "Nu am un răspuns pentru asta.",
+        reply: withAnnouncement(completion.content.trim() || "Nu am un răspuns pentru asta."),
         pendingAction: null,
         facts,
+        costMicros: spent,
       };
     }
 
@@ -214,11 +287,26 @@ async function converse(input: {
         reasoningContent: completion.reasoningContent,
       });
       return {
-        reply:
+        reply: withAnnouncement(
           completion.content.trim() ||
-          "Am pregătit acțiunea de mai jos. Verific-o și confirm-o ca să o execut.",
+            "Am pregătit acțiunea de mai jos. Verific-o și confirm-o ca să o execut.",
+        ),
         pendingAction: await pendingActionFrom(tool, parsed, toolCallId, ctx),
         facts,
+        costMicros: spent,
+      };
+    }
+
+    // Plafonul turei (etapa 2 din docs/plans/asistent-consum-real.md): o bucla scapata de
+    // sub control sau un document uriaș nu pot consuma tot bugetul intr-o singura cerere.
+    // Oprim INAINTE de citirile urmatoare si raspundem cu ce s-a aflat pana acum.
+    if (input.limitMicros && spent >= input.limitMicros) {
+      const summary = await summarizeOutOfSteps(id, provider, messages, OUT_OF_BUDGET_PROMPT);
+      return {
+        reply: summary.text,
+        pendingAction: null,
+        facts,
+        costMicros: spent + summary.costMicros,
       };
     }
 
@@ -226,12 +314,20 @@ async function converse(input: {
     const results = await Promise.all(calls.map((call) => executeReadCall(id, call, ctx)));
     for (const [index, call] of calls.entries()) {
       const result = results[index];
-      messages.push(toolResultMessage(call.id, result.payload));
+      messages.push(
+        toolResultMessage(call.id, result.payload, findTool(call.name, ctx.role)?.maxResultChars),
+      );
       if (result.ok) facts.push({ tool: call.name, records: compactFacts(result.payload) });
     }
   }
 
-  return { reply: await summarizeOutOfSteps(provider, messages), pendingAction: null, facts };
+  const summary = await summarizeOutOfSteps(id, provider, messages, OUT_OF_STEPS_PROMPT);
+  return {
+    reply: summary.text,
+    pendingAction: null,
+    facts,
+    costMicros: spent + summary.costMicros,
+  };
 }
 
 /** Executa un apel de CITIRE; erorile devin rezultat pentru model, nu exceptii. */
@@ -288,21 +384,39 @@ async function saveFacts(conversationId: string, facts: ToolFact[]) {
  * modelul), cerem un rezumat FARA tool-uri - utilizatorul vede ce s-a aflat si ce
  * lipseste. Daca si apelul asta esueaza, ramane mesajul generic.
  */
-async function summarizeOutOfSteps(provider: ChatProvider, messages: ChatMessage[]) {
+async function summarizeOutOfSteps(
+  id: string,
+  provider: ChatProvider,
+  messages: ChatMessage[],
+  prompt: string,
+): Promise<{ text: string; costMicros: number }> {
   try {
     const completion = await provider.complete({
-      messages: [...messages, { role: "user", content: OUT_OF_STEPS_PROMPT }],
+      messages: [...messages, { role: "user", content: prompt }],
       tools: [],
     });
-    await trackUsage({
-      messages: 0,
-      inputTokens: completion.usage.inputTokens,
-      outputTokens: completion.usage.outputTokens,
+    const costMicros = await recordUsage({
+      feature: "assistant",
+      conversationId: id,
+      model: completion.model,
+      usage: completion.usage,
     });
-    return completion.content.trim() || OUT_OF_STEPS_FALLBACK;
+    return { text: completion.content.trim() || OUT_OF_STEPS_FALLBACK, costMicros };
   } catch {
-    return OUT_OF_STEPS_FALLBACK;
+    return { text: OUT_OF_STEPS_FALLBACK, costMicros: 0 };
   }
+}
+
+/** Plafonul unei ture, in micro-USD (0 = fara plafon). */
+function turnBudgetMicros(settings: CreditSettings): number {
+  return settings.turnCreditLimit > 0 ? settings.turnCreditLimit * settings.creditMicros : 0;
+}
+
+/** Creditele turei - DOAR pentru admini (decizia 3: costul per raspuns nu e aratat tuturor). */
+function turnCreditsFor(ctx: ToolContext, costMicros: number, settings: CreditSettings) {
+  return ctx.role === "admin" || ctx.role === "super_admin"
+    ? { turnCredits: creditsFromMicros(costMicros, settings.creditMicros) }
+    : {};
 }
 
 /**
@@ -330,13 +444,27 @@ async function messagesForContinuation(input: {
     arguments: JSON.stringify(input.args),
   };
 
+  // Istoricul persistat se termina cu raspunsul-text al propunerii („Am pregătit
+  // acțiunea...”), salvat DUPA ultimul mesaj al utilizatorului. Il scoatem si il
+  // punem ca text pe mesajul assistant(tool_calls): in thinking mode DeepSeek cere
+  // `reasoning_content` pe FIECARE mesaj assistant de dupa ultimul mesaj user, iar
+  // raspunsul-text nu il avea -> 400 „reasoning_content ... must be passed back”.
+  const previous = historyToMessages(history);
+  const trailing: string[] = [];
+  while (previous.length > 0 && previous[previous.length - 1].role === "assistant") {
+    trailing.unshift(previous.pop()!.content);
+  }
+
   return [
     {
       role: "system",
       content: systemPrompt(input.ctx, org?.name ?? PLATFORM_NAME, productNameFor(org)),
     },
-    ...historyToMessages(history),
-    assistantCallMessage([call], input.reasoningContent ?? undefined),
+    ...previous,
+    {
+      ...assistantCallMessage([call], input.reasoningContent ?? undefined),
+      content: trailing.join("\n\n"),
+    },
     toolResultMessage(input.toolCallId, input.result),
   ];
 }
@@ -423,6 +551,8 @@ export async function confirmAction(input: {
   let reply: string;
   let pendingAction: PendingAction | null = null;
   const facts: ToolFact[] = [];
+  let costMicros = 0;
+  const settings = await getCreditSettings();
   try {
     // GARDA 3 - executie efectiva.
     const result = await tool.execute(parsed, ctx);
@@ -433,7 +563,7 @@ export async function confirmAction(input: {
       arguments: args,
       result,
     });
-    reply = `Gata: ${tool.summary?.(parsed) ?? tool.name}.`;
+    reply = successMessage(tool, parsed, result);
     // Ex. `client_id`-ul clientului tocmai creat - refolosibil in turele urmatoare.
     facts.push({ tool: tool.name, records: compactFacts(result) });
 
@@ -458,8 +588,15 @@ export async function confirmAction(input: {
           ctx,
           provider,
           messages: continuationMessages,
+          limitMicros: turnBudgetMicros(settings),
         });
-        if (continuation.reply.trim()) reply = `${reply}\n\n${continuation.reply.trim()}`;
+        costMicros += continuation.costMicros;
+        if (continuation.providerFailed) {
+          // Actiunea S-A executat - nu amestecam eroarea furnizorului in confirmare.
+          reply = `${reply}\n\nNu am putut continua automat cu pasul următor. Scrie-mi „continuă” și reiau de aici.`;
+        } else if (continuation.reply.trim()) {
+          reply = `${reply}\n\n${continuation.reply.trim()}`;
+        }
         pendingAction = continuation.pendingAction;
         facts.push(...continuation.facts);
       } catch {
@@ -476,7 +613,7 @@ export async function confirmAction(input: {
       arguments: args,
       error: reason,
     });
-    reply = `Acțiunea nu a putut fi executată: ${reason}`;
+    reply = failureMessage(tool, parsed, reason);
   }
 
   await saveFacts(proposal.conversationId, facts);
@@ -491,6 +628,7 @@ export async function confirmAction(input: {
     reply,
     pendingAction,
     quota: await getQuotaStatus(ctx),
+    ...turnCreditsFor(ctx, costMicros, settings),
   };
 }
 

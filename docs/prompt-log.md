@@ -4,6 +4,15 @@ Jurnal al sarcinilor lucrate de agenti AI in acest repo. Conform regulii 1.2 din
 [`AGENTS.md`](../AGENTS.md), la **fiecare commit** se adauga o intrare aici.
 Cele mai noi intrari sus.
 
+## 2026-09-27 — Claude Opus 5.5 (Claude Code) — Merge main + renumerotare migrari
+
+- **Cerut:** deschiderea PR-ului pentru domeniile per tenant / teme / organizare.
+- **Facut:** `main` avea deja migrarile `0036`-`0044` -> migrarile acestui branch au
+  devenit `0045_org_theme.sql` si `0046_org_layout.sql` (referinte actualizate); merge
+  `main` in branch; testul de garda super-admin devine B28 in `business_flow.sql`;
+  in `assistant/run.ts` pastrate ambele schimbari (numele produsului + reconstruirea
+  mesajelor din main).
+
 ## 2026-09-27 — Claude Opus 5.5 (Claude Code) — Ultimele urme de platforma pe domeniile tenantilor
 
 - **Cerut:** exportul (T8) amanat; „mai e ceva de facut? daca da, fa-l”.
@@ -18,7 +27,7 @@ Cele mai noi intrari sus.
 
 - **Cerut:** T4 („diferit dar usable”), dupa T6.
 - **Facut:** migrarea `0046_org_layout.sql` (`organizations.layout` `standard`/`flux`,
-  garda super-admin extinsa, test B24). Meniul `flux` (`STAFF_NAV_FLUX`, aceleasi
+  garda super-admin extinsa, test B28). Meniul `flux` (`STAFF_NAV_FLUX`, aceleasi
   rute/roluri, grupat pe activitati; portal client cu „Comenzile mele” primul) si
   panoul `flux` („Acasă”: atentie + actiuni rapide, apoi comenzi + indicatori, grafic).
   Sectiunile panoului extrase in `dashboard-sections.tsx`. Selector „Organizare” in
@@ -39,7 +48,7 @@ Cele mai noi intrari sus.
   `app.etora.ro` / `app.maconxcx.ro`.
 - **Facut:** migrarea `0045_org_theme.sql` (`organizations.theme` + CHECK, trigger care
   permite doar super-adminului sa schimbe tema si `custom_domain`, `org_branding`
-  intoarce tema) + test B24 in `business_flow.sql`. Teme `default`/`teren`/
+  intoarce tema) + test B28 in `business_flow.sql`. Teme `default`/`teren`/
   `industrial`/`ciclu` (`src/features/branding/themes.ts`, `src/app/themes.css`):
   paleta light+dark, font, colturi, pattern, sidebar, login cu panou lateral. Ecran
   super-admin `/platform/[id]` (tema cu previzualizare + domeniu propriu validat);
@@ -76,6 +85,154 @@ Cele mai noi intrari sus.
   per organizatie, garda de domeniu, profil de tenant, navigare/dashboard/vizual/PDF per
   profil, setup domenii, export per organizatie); decizia de infrastructura partajata
   notata in AGENTS.md §4.
+## 2026-09-25 — Claude Opus 5.5 (Claude Code) — Retur/garantie din portal trimise + notificari aport/retur
+
+- **Cerut:** rezolvarea celor 3 inconsistente gasite: retur/garantie din portal raman
+  ciorna; "Repetă comanda" pe retur; fara email la acceptarea aportului.
+- **Facut:** portalul trimite cererile de retur/garantie (si inlocuirea); migrarea 0044 -
+  `accept_return_order` din `sent` + garda RT005; flux `intake` in state machine
+  (aport + retur: doar "Acceptă ..." + "Anulează", fara livrare/repetare); email la
+  acceptarea aportului/returului cu formulare proprie (`OrderEmailKind`); teste unitare +
+  B27 (suitele SQL rulate pe Postgres local: trec); plan
+  `docs/plans/retur-client-trimis-notificari.md`, manual, AGENTS.md.
+
+## 2026-09-25 — Claude Opus 5.5 (Claude Code) — Portal client: fara itemi arhivati pe comenzi/aport
+
+- **Cerut:** clientul putea face aport cu un material arhivat; alte inconsistente client/admin?
+- **Facut:** validare server-side a liniilor din portal fata de catalog / materialele de
+  aport (fara arhivate); `/catalog` nu mai trimite liniile indisponibile din cos (mesaj +
+  "Scoate din coș"); migrarea 0043 - item arhivat pe un aport = AR001 pt. orice rol;
+  teste unitare + B26 (suitele SQL rulate pe Postgres local: trec); plan
+  `docs/plans/portal-itemi-indisponibili.md`, AGENTS.md.
+
+## 2026-09-25 — Claude Opus 5.5 (Claude Code) — Aportul trimis din portal nu mai ramane ciorna
+
+- **Cerut:** aportul creat de client apare ca ciorna (si la admin); pentru client e trimis
+  spre aprobare.
+- **Facut:** portalul trimite aportul (`draft -> sent`); migrarea 0042 -
+  `accept_intake_order` accepta si din `sent` + garda AP005 (aport acceptat nu se
+  anuleaza); staff: pe aport doar "Acceptă aport" + "Anulează" (fara butoanele de
+  vanzare/livrare), traseu `APORT_JOURNEY`; teste unitare + B25 (suitele SQL rulate pe
+  Postgres local: trec); plan `docs/plans/aport-client-trimis.md`, manual, AGENTS.md.
+
+## 2026-09-25 — Claude Opus 5.5 (Claude Code) — Portal client: detaliile livrarii comenzii
+
+- **Cerut:** clientul, pe detaliul unei comenzi, nu vede livrarea planificata (adminul o vede).
+- **Facut:** cauza - `deliveries` e RLS doar-staff. Migrarea 0041: RPC
+  `client_order_delivery` (subset sigur de campuri, doar comanda proprie, livrare
+  activa); `getClientOrderDelivery` + cardul "Transport" in `/comenzile-mele/[id]`;
+  teste unitare + B28 in `business_flow.sql` (rulat pe Postgres local: trece); plan
+  `docs/plans/client-livrare-comanda.md`, manual, regula noua in AGENTS.md §4.
+
+## 2026-09-25 — Claude Opus 5.5 (Claude Code) — Catalog client: imaginile produselor
+
+- **Cerut:** clientul nu vede in `/catalog` imaginile produselor/abonamentelor, desi exista.
+- **Facut:** cardul din catalog afisa mereu placeholder-ul "foto produs" (ignora
+  `imageUrl`, deja citit din DB); componenta noua `ProductImage` (poza reala, fallback
+  la placeholder fara poza / la eroare de incarcare) + teste, plan
+  `docs/plans/catalog-imagini-produse.md`.
+
+## 2026-09-25 — Claude Opus 5.5 (Claude Code) — Clienti: invitatie automata + "Retrimite invitația"
+
+- **Cerut:** la adaugarea unui client cu email, invitatia in portal sa se trimita automat;
+  din pagina clientului, buton de retrimitere a invitatiei.
+- **Facut:** `createClientAction` invita automat (admin + email; bifa eliminata);
+  `getClientPortalStatus` (none/pending/active din Supabase Auth) inlocuieste
+  `clientHasPortalAccess`; `resendClientInvite[Action]` (doar admin, doar cont neactivat);
+  `/clienti/[id]` arata "Invitație trimisă" + "Retrimite invitația"; teste, manual,
+  plan `docs/plans/invitatie-automata-client.md`.
+
+## 2026-09-25 — Claude Opus 5.5 (Claude Code) — Asistent AI: vizualizare / descarcare atasamente
+
+- **Cerut:** in asistentul AI, atasamentele din chat sa poata fi vazute (sau macar descarcate).
+- **Facut:** ruta `/asistent/atasamente/[id]` (RLS prin `getAttachment`, redirect catre URL
+  semnat de 60s; `?descarca=1` descarca pe numele original); in bula de mesaj numele
+  fisierului deschide fisierul, iconita il descarca (`user-bubble-content.tsx`); teste,
+  plan `docs/plans/asistent-atasamente-vizualizare.md`, manual.
+
+## 2026-09-25 — Claude Opus 5.5 (Claude Code) — Asistent AI: control super-admin pe creditele organizatiilor
+
+- **Cerut:** vizibilitate si control super-admin pe creditele fiecarei organizatii (stop,
+  top-up), cu varianta recomandata (creditele extra expira la sfarsitul lunii).
+- **Facut:** migrarea 0040 (`ai_credit_grants` append-only + jurnal `ai_limit_changes`
+  scris de trigger-e); quota cu bugetul efectiv (buget + top-up); cardul arata creditele
+  extra; `/platform/ai` - situatia pe luna curenta per organizatie (stare, procent,
+  problemele primele), top-up cu motiv, jurnal. Plan:
+  `docs/plans/asistent-credite-control-super-admin.md`.
+
+## 2026-09-25 — Claude Opus 5.5 (Claude Code) — Asistent AI: quota in credite AI (etapa 2)
+
+- **Cerut:** in UI, „Mesaje incluse luna aceasta” -> o explicatie serioasa (tooltip) si un
+  alt mod de masurare (deciziile 1-4 aprobate anterior).
+- **Facut:** migrarea 0039 (`ai_platform_settings` - valoarea creditului + plafon per tura;
+  bugetul lunar in credite si procentul zilnic pe organizatie; garda extinsa); quota
+  calculata din costul real (`computeQuota`), avertizare de la 80%, estimare „întrebări
+  rămase”; plafon per tura in bucla; credite per raspuns doar pentru admini; cardul nou cu
+  `InfoTip`; setari + limite pe organizatie in `/platform/ai`; manuale si AGENTS.md.
+
+## 2026-09-25 — Claude Opus 5.5 (Claude Code) — Asistent AI: atasamente text (TXT, MD, CSV, HTML, JSON, XML)
+
+- **Cerut:** upload in chat si pentru fisiere text / Markdown / HTML - formate intalnite
+  in cazuri reale.
+- **Facut:** tipuri text acceptate (tip canonic dedus din extensie), migrarea 0038
+  (bucket + constrangere), `document-text.ts` (HTML -> text, BOM eliminat),
+  `citeste_document` citeste toate formatele; manual + system prompt actualizate.
+
+## 2026-09-25 — Claude Opus 5.5 (Claude Code) — Asistent AI: import de retete dintr-un PDF atasat
+
+- **Cerut:** PDF atasat in chat cu o lista de retete -> AI-ul extrage si adauga in sistem.
+- **Facut:** `pdf-text.ts` (unpdf, detectie PDF scanat); tool `citeste_document` (text pe
+  bucati, plafon de rezultat propriu); tool `importa_retete` cu card dedicat
+  `recipe_import` (potrivire automata nume -> materiale, corectabila, o singura
+  confirmare, raport creat/sarit); editorul de materii prime extras si partajat. Plan:
+  `docs/plans/asistent-import-pdf.md`.
+## 2026-09-25 — Claude Opus 5.5 (Claude Code) — Asistent AI: masurarea consumului real (etapa 1)
+
+- **Cerut:** plan aprobat (credite AI, ~$2/org/luna, cost vizibil doar adminilor, limita
+  moale; preturile gestionate de super-admin) + PR.
+- **Facut:** migrarea 0037 (preturi versionate, registru per apel, RPC cu cost calculat
+  in DB); parsarea usage-ului complet (cache hit/miss, rationament, model din raspuns);
+  `recordUsage` unic in locul `trackUsage`; ecranul `/platform/ai` (consum pe organizatii
+  si modele, preturi + istoric, pret nou). Quota ramane pe mesaje (etapa 2). Plan:
+  `docs/plans/asistent-consum-real.md`.
+
+## 2026-09-25 — Claude Opus 5.5 (Claude Code) — Asistent AI: plan pentru consum real (tokeni + cost)
+
+- **Cerut:** un plan pentru o contorizare mai realista a consumului AI (nu doar numar de
+  mesaje), pe baza datelor de usage/cost exportate din DeepSeek.
+- **Facut:** analiza datelor (cost per request, cache hit, impartirea costului) si planul
+  `docs/plans/asistent-consum-real.md` (masurare exacta, credite AI, limite, rapoarte,
+  etape, decizii de luat). Doar plan - fara cod.
+
+## 2026-09-25 — Claude Opus 5.5 (Claude Code) — Asistent AI: atasamente in chat + imagine pe produs; textarea
+
+- **Cerut:** upload de imagini/PDF in chat (PR 1: imagine pe produs; PR 2: import din PDF)
+  + Shift+Enter = rand nou in campul de mesaj.
+- **Facut:** migrarea 0036 (bucket privat `assistant-attachments` + tabel
+  `assistant_attachments` cu RLS personal); upload direct din browser cu URL semnat;
+  referinte `📎 [nume](attachment:<id>)` in mesaj; tool `seteaza_imagine_produs` (card
+  generic cu previzualizare); helper-ul de poza de produs mutat in
+  `items/image-storage.ts`; campul de mesaj devine textarea (Enter trimite, Shift+Enter
+  rand nou). Plan: `docs/plans/asistent-atasamente.md`.
+
+## 2026-09-25 — Claude Opus 5.5 (Claude Code) — Asistent AI: rezumatul rezultatului unei actiuni
+
+- **Cerut:** dupa executie, un rezumat clar - „am adăugat clientul Y, click aici” sau
+  „nu s-a putut…, pentru că…, încearcă din nou”.
+- **Facut:** `resultSummary` pe fiecare tool de scriere (timpul trecut, date din
+  rezultat) + `result-summary.ts` (link „Vezi …” catre inregistrare; mesaj de esec cu
+  motiv si pasul urmator), folosite in `confirmAction`. Plan:
+  `docs/plans/asistent-rezumat-rezultat.md`.
+
+## 2026-09-25 — Claude Opus 5.5 (Claude Code) — Asistent AI: fix continuare DeepSeek + actiuni anuntate
+
+- **Cerut:** doua probleme raportate: cardul aparea abia dupa un mesaj in plus („Propun
+  crearea clientului:” fara apel), iar dupa confirmare apărea eroarea bruta DeepSeek
+  despre `reasoning_content`.
+- **Facut:** continuarea trimite un singur mesaj assistant (cu CoT) dupa ultimul user;
+  `reasoning_content` gol ca plasa de siguranta; erorile furnizorului au mesaj in romana
+  (brutul doar in log); impuls unic cand modelul anunta o actiune fara apel. Plan:
+  `docs/plans/asistent-fix-continuare-deepseek.md`.
 
 ## 2026-09-24 — Claude Opus 5.5 (Claude Code) — Asistent AI: actiuni noi cu card de confirmare
 

@@ -75,7 +75,10 @@ Ecranul **"Clienți"** listează firmele existente, cu o casetă **"Căutare"**
 3. Completează, opțional, secțiunea **"Contact"**: Email, Telefon, Persoană de
    contact, Note, și bifa **"Este și furnizor (materiale/deșeuri)"** dacă firma
    aduce și materiale la reciclare.
-4. Apasă **"Creează clientul"**.
+4. Apasă **"Creează clientul"**. Dacă ești administrator și ai completat
+   **Email**, clientul primește **automat** un email de invitație în portal
+   (își setează parola și se poate loga). Un client adăugat de un operator se
+   invită de un administrator, din pagina clientului.
 
 ![formularul "Adaugă client" cu butonul "Caută" lângă CUI](img/admin-client-new.png)
 
@@ -84,7 +87,10 @@ Ecranul **"Clienți"** listează firmele existente, cu o casetă **"Căutare"**
 Din listă, click pe o firmă deschide ecranul de detaliu, cu secțiunile:
 
 - **"Date firmă"** - același formular ca la creare, editabil (buton
-  **"Salvează modificările"**).
+  **"Salvează modificările"**). Lângă titlu apare starea contului din portal:
+  **"Are cont în portal"**, **"Invitație trimisă"** (clientul nu și-a activat
+  încă contul - administratorul poate apăsa **"Retrimite invitația"**, de ex.
+  dacă linkul a expirat) sau, pentru administrator, **"Invită în portal"**.
 - **"Adrese de livrare"** - poate avea mai multe adrese; una poate fi marcată
   implicită.
 - **"Documente"** - încărcare de fișiere atașate clientului (contracte semnate,
@@ -366,8 +372,10 @@ implicită) - el dă sensul mișcării de stoc:
 **Aportul** acoperă cazul în care clientul aduce material către organizație (ex.
 moloz din demolări, pentru reciclare). La linii se pot alege **orice materiale**,
 inclusiv cei nevandabili (materiile prime nu apar în catalogul de vânzare). O
-comandă de aport nu se "trimite" și nu se "livrează": are o singură acțiune,
-**"Acceptă aport"** (vezi 7.4), după care rămâne **Acceptată**.
+comandă de aport nu se "livrează": are o singură acțiune, **"Acceptă aport"** (vezi
+7.4), după care rămâne **Acceptată**. Aportul creat de staff pornește ca Ciornă;
+cererea de aport trimisă de client din portal sosește direct ca **Trimisă** (cu număr
+de comandă), gata de acceptat sau de anulat (respins).
 
 ### 7.2 Mașina de stări a unei comenzi
 
@@ -421,11 +429,12 @@ Dacă o comandă a fost livrată/închisă, pot apărea butoanele **"Retur"** ș
 **"Garanție"** (secțiunea 8). Dacă certificatul există deja, apare butonul
 **"Vezi certificat"**.
 
-Pe o comandă de tip **Aport** aflată în Ciornă, în locul butoanelor de tranziție apare
-**"Acceptă aport"**: materialul adus de client intră în stoc ca lot nou, cu
+Pe o comandă de tip **Aport** aflată în Ciornă sau Trimisă, în locul butoanelor de
+tranziție apar **"Acceptă aport"** și **"Anulează"** (respingerea cererii): materialul adus de client intră în stoc ca lot nou, cu
 proveniența "Aport client", cu **clientul care l-a adus** păstrat pe lot
 (trasabilitate) și cu calitatea **"Neverificat"** - controlul de calitate se face
-ulterior, din ecranul de Stoc. Traseul afișat se oprește la "Acceptată".
+ulterior, din ecranul de Stoc. Traseul afișat se oprește la "Acceptată". Un aport
+acceptat **nu se mai poate anula** - materialul a intrat deja în stoc.
 
 ![ecranul de detaliu comandă, cu traseul de status](img/admin-order-detail.png)
 
@@ -468,8 +477,12 @@ materialul a venit de la client, nu către el.
   comandă de **înlocuire** (comandă de vânzare obișnuită, care parcurge fluxul
   normal Ciornă -> Trimisă -> Acceptată -> Livrată -> Închisă).
 
-Comanda-retur/garanție nou creată apare inițial ca **Ciornă**; pe ea, în loc de
-butoanele generice de tranziție, apare butonul dedicat **"Acceptă retur"** -
+Comanda-retur/garanție creată de staff apare inițial ca **Ciornă**; cea cerută de
+client din portal sosește direct ca **Trimisă** (împreună cu comanda de înlocuire,
+la garanție). Pe ea, în loc de butoanele generice de tranziție, apar **"Acceptă
+retur"** și **"Anulează"** (respingerea cererii). Un retur acceptat nu se mai poate
+anula. Clientul primește email la acceptare, cu formularea de retur/aport (nu de
+livrare). **"Acceptă retur"** -
 acceptarea unui retur **adaugă** materialul înapoi în stoc (după inspecție/
 acceptare manuală), spre deosebire de acceptarea unei comenzi de vânzare, care
 scade stocul.
@@ -594,6 +607,33 @@ acțiuni. Orice acțiune se arată întâi într-un **card de confirmare**, neex
 | Livrări | planificare, anulare înainte de plecare (cu motiv) |
 | Producție | proces cu **cantitate fixă de produs** (rețetă de compunere): cardul arată consumul calculat din rețetă și loturile alese FIFO. Descompunerea (reciclare) se face din ecranul Producție, pentru că cere cantitățile reale rezultate. |
 
+**Credite AI.** Cardul din dreapta arată câte **credite AI** a folosit organizația luna
+aceasta, din bugetul inclus în plan. Creditele măsoară cât a lucrat asistentul, nu câte
+mesaje ai trimis: o întrebare simplă consumă puțin, o cerere cu mai mulți pași sau citirea
+unui document lung consumă mai mult. Butonul „i” de lângă titlu explică pe scurt regulile.
+Bugetul e comun pentru toată organizația și se reînnoiește pe 1 ale lunii; fiecare persoană
+poate folosi pe zi cel mult un procent din el (implicit 20%), ca să ajungă pentru toată
+echipa. De la 80% cardul te avertizează. Administratorii văd, sub fiecare răspuns, câte
+credite a consumat.
+
+**Scrierea mesajelor și atașamente.** Enter trimite mesajul, **Shift+Enter** adaugă un
+rând nou. Cu butonul 📎 de lângă câmpul de mesaj poți atașa până la 3 fișiere: imagini
+(PNG, JPEG, WEBP, GIF, max. 2MB), PDF (max. 10MB) sau fișiere text - TXT, Markdown,
+CSV/TSV (ex. un export din Excel), HTML, JSON, XML (max. 2MB). Fișierele sunt private - le vezi
+doar tu și asistentul. Fișierele trimise apar în mesaj: click pe nume îl deschide
+într-un tab nou (imaginile și PDF-urile se văd direct în browser), iar iconița de lângă îl
+descarcă. Exemplu: atașează o poză și scrie „pune poza asta pe produsul
+Nisip spălat” - asistentul îți arată produsul și poza într-un card de confirmare.
+Atenție: asistentul nu „vede” conținutul imaginilor, doar numele fișierului.
+
+**Import de rețete dintr-un PDF.** Atașează PDF-ul (ex. fișele tehnice ale produselor) și
+scrie „adaugă rețetele din documentul ăsta”. Asistentul citește textul și îți arată un
+singur card cu toate rețetele găsite: pentru fiecare, produsul și materiile prime potrivite
+cu materialele tale. Ce n-a putut potrivi e marcat („În document: «bitum» - alege-l din
+listă”), iar produsele care au deja o rețetă sunt debifate. Corectezi, debifezi ce nu vrei
+și confirmi o singură dată; la final vezi ce s-a creat și ce s-a sărit. Merg PDF-urile cu text (exportate din Word/Excel) și fișierele text (ex. un CSV exportat din Excel sau un tabel Markdown) - un PDF scanat sau o poză a unui tabel nu pot fi citite
+deocamdată.
+
 Cum funcționează cardul:
 
 - Câmpurile se afișează cu **denumiri**, nu cu identificatori interni (ex. la
@@ -603,6 +643,9 @@ Cum funcționează cardul:
   înainte de a confirma.
 - Apasă **"Confirmă și execută"** ca acțiunea să se producă efectiv, sau
   **"Renunță"** ca să o anulezi fără niciun efect.
+- După execuție, asistentul spune ce s-a făcut (ex. „Am adăugat clientul X”) și pune un
+  link direct către înregistrare. Dacă acțiunea nu a reușit, explică motivul, confirmă că
+  nu s-a modificat nimic și îți propune să corectezi datele.
 - Dacă un câmp completat e invalid, asistentul explică ce trebuie corectat -
   cardul rămâne deschis, poți încerca din nou fără să reformulezi cererea.
 - După o confirmare reușită, asistentul poate continua singur spre pasul următor

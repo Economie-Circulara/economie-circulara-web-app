@@ -48,7 +48,7 @@ const STAFF_EXTRA_ROUTES = [
 ];
 const CLIENT_EXTRA_ROUTES = ["/portal", "/cauta?q=beton"];
 const ADMIN_ONLY_ROUTES = ["/setari/utilizatori"];
-const SUPER_ADMIN_ROUTES = ["/platform", "/platform/nou"];
+const SUPER_ADMIN_ROUTES = ["/platform", "/platform/nou", "/platform/ai"];
 const PUBLIC_ROUTES = ["/login", "/forgot-password"];
 
 /** Text afisat de error boundary-ul Next cand randarea eseuaza. */

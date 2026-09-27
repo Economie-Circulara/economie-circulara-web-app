@@ -71,11 +71,9 @@ Cateva note de onestitate, ca sa nu existe asteptari gresite:
   aplicație. Secțiunea corespunzătoare din manualul admin/operator descrie
   fluxul *planificat* (conform planului de implementare) și va fi actualizată
   cu pașii exacți din interfață când task-ul e livrat.
-- **Invitarea unui utilizator cu rol `client`** (creare cont de logare pentru
-  portalul clientului) nu are încă un formular dedicat în `/setari/utilizatori`
-  - ecranul acela permite azi doar invitarea de operatori/administratori. Vezi
-  nota din [`ghid-administrare.md`](ghid-administrare.md#gap-cunoscut-invitarea-unui-client)
-  pentru detalii și soluția temporară.
+- **Invitarea unui utilizator cu rol `client`** se face din pagina clientului
+  (**"Invită în portal"** / **"Retrimite invitația"**), din `/setari/utilizatori`,
+  sau automat la adăugarea unui client cu email (de către un administrator).
 - Secțiunea "CO₂ economisit" din pagina Rapoarte este marcată explicit în
   aplicație ca fiind în pregătire (v2) - nu e un raport funcțional încă.
 

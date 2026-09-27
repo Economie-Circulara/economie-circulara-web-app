@@ -13,7 +13,9 @@ import { KIND_LABELS } from "@/features/items/labels";
 import { initialClientOrderFormState } from "./action-state";
 import { createClientOrderAction } from "./actions";
 import { useCart } from "./cart-context";
-import type { CatalogItem, ItemKind } from "./types";
+import { splitAvailableLines } from "./cart-logic";
+import { ProductImage } from "./product-image";
+import type { CartLine, CatalogItem, ItemKind } from "./types";
 
 const selectClassName =
   "flex h-9 w-full rounded-md border border-input bg-card px-3 py-1 text-sm shadow-xs outline-none " +
@@ -29,11 +31,7 @@ function ProductCard({ item }: { item: CatalogItem }) {
 
   return (
     <Card className="overflow-hidden p-0">
-      <div className="flex h-32 items-center justify-center border-b bg-muted/40">
-        <span className="rounded-md border bg-card px-2 py-1 font-mono text-[10px] text-muted-foreground">
-          foto produs
-        </span>
-      </div>
+      <ProductImage imageUrl={item.imageUrl} alt={item.title} />
       <CardContent className="space-y-3 p-3.5">
         <div>
           <p className="text-sm font-bold">{item.title}</p>
@@ -57,8 +55,8 @@ function ProductCard({ item }: { item: CatalogItem }) {
   );
 }
 
-function CartPanel({ addresses }: { addresses: ClientAddress[] }) {
-  const { lines, removeItem, setQuantity, replaceCart } = useCart();
+function CartPanel({ addresses, lines }: { addresses: ClientAddress[]; lines: CartLine[] }) {
+  const { removeItem, setQuantity, replaceCart } = useCart();
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [state, formAction, actionPending] = useActionState(
@@ -192,6 +190,16 @@ const KIND_FILTER_OPTIONS: ItemKind[] = ["physical", "service"];
 export function CatalogView({ items, addresses }: CatalogViewProps) {
   const [search, setSearch] = useState("");
   const [kind, setKind] = useState<ItemKind | "">("");
+  const { lines, replaceCart } = useCart();
+
+  // Cosul poate contine itemi care intre timp au iesit din catalog (arhivati /
+  // nevandabili) - veniti din "Repetă comanda" sau din `localStorage`. Nu se trimit
+  // (panoul primeste doar liniile disponibile, iar serverul ii respinge oricum -
+  // `createClientOrderAction`); clientul vede ce nu mai e disponibil si ii scoate.
+  const { available, unavailable } = useMemo(
+    () => splitAvailableLines(lines, new Set(items.map((item) => item.id))),
+    [lines, items],
+  );
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -205,6 +213,25 @@ export function CatalogView({ items, addresses }: CatalogViewProps) {
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_330px]">
       <div>
+        {unavailable.length > 0 ? (
+          <div
+            role="status"
+            className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-md border bg-muted/40 px-3 py-2 text-sm"
+          >
+            <span>
+              Nu mai sunt disponibile în catalog și nu vor fi comandate:{" "}
+              <strong>{unavailable.map((line) => line.itemTitle).join(", ")}</strong>.
+            </span>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => replaceCart(available)}
+            >
+              Scoate din coș
+            </Button>
+          </div>
+        ) : null}
         <div className="mb-5 flex flex-col gap-2.5 sm:flex-row">
           <div className="flex flex-1 items-center gap-2 rounded-md border bg-card px-3 py-2">
             <Search className="size-4 text-muted-foreground" />
@@ -244,7 +271,7 @@ export function CatalogView({ items, addresses }: CatalogViewProps) {
         )}
       </div>
 
-      <CartPanel addresses={addresses} />
+      <CartPanel addresses={addresses} lines={available} />
     </div>
   );
 }

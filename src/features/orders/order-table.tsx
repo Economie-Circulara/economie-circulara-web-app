@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { ORDER_STATUS_BADGE_STATUS } from "./labels";
 import { OrderStatusActions } from "./order-status-actions";
+import { orderFlowOf } from "./state-machine";
 import type { OrderListRow } from "./types";
 
 const dateFormatter = new Intl.DateTimeFormat("ro-RO");
@@ -105,7 +106,10 @@ const columns: ColumnDef<OrderListRow>[] = [
     header: "Acțiuni",
     cell: ({ row }) => (
       <div className="flex flex-wrap items-start justify-end gap-2">
-        {row.original.status === "accepted" && !row.original.delivery ? (
+        {/* Aportul / returul nu se livreaza (marfa vine de la client). */}
+        {row.original.status === "accepted" &&
+        !row.original.delivery &&
+        orderFlowOf(row.original.orderType, row.original.linkType) === "sale" ? (
           <Button asChild size="sm" variant="outline">
             <Link href={`/livrari/nou?orderId=${row.original.id}`}>Planifică livrare</Link>
           </Button>
@@ -114,6 +118,7 @@ const columns: ColumnDef<OrderListRow>[] = [
           orderId={row.original.id}
           status={row.original.status}
           delivery={row.original.delivery}
+          flow={orderFlowOf(row.original.orderType, row.original.linkType)}
         />
       </div>
     ),

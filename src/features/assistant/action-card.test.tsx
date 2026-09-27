@@ -71,6 +71,39 @@ describe("ActionCard - randerul generic", () => {
   });
 });
 
+describe("ActionCard - camp imagine", () => {
+  it("arata previzualizarea si NU trimite imaginea ca override editabil", () => {
+    const onConfirm = vi.fn();
+    const action: PendingAction = {
+      toolCallId: "call-1",
+      tool: "seteaza_imagine_produs",
+      toolVersion: 1,
+      summary: "Setează imaginea produsului",
+      presentation: {
+        renderer: "generic",
+        fields: [
+          {
+            name: "attachment_id",
+            label: "Imagine nouă",
+            displayValue: "nisip.png",
+            editable: false,
+            kind: "image",
+            previewUrl: "https://signed/preview",
+          },
+        ],
+      },
+    };
+
+    render(<ActionCard action={action} busy={false} onConfirm={onConfirm} onReject={vi.fn()} />);
+
+    const image = screen.getByRole("img", { name: "nisip.png" }) as HTMLImageElement;
+    expect(image.src).toBe("https://signed/preview");
+    expect(screen.queryByRole("textbox")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Confirmă și execută" }));
+    expect(onConfirm).toHaveBeenCalledWith({});
+  });
+});
+
 describe("ActionCard - randerul order_draft", () => {
   const CLIENTS: Client[] = [
     {

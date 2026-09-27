@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { OrderDraftCard } from "./order-draft-card";
 import { RecipeDraftCard } from "./recipe-draft-card";
+import { RecipeImportCard } from "./recipe-import-card";
 import type { PendingAction } from "./types";
 
 export interface ActionCardProps {
@@ -22,12 +23,25 @@ export interface ActionCardProps {
  * asistent-contract-capabilitati.md): `"order_draft"` are nevoie STRUCTURAL de un
  * editor cu linii + selectii cascadate (`OrderDraftCard`, reutilizeaza `OrderEditor`);
  * `"recipe_draft"` - lista de materii prime cu procente (`RecipeDraftCard`);
+ * `"recipe_import"` - mai multe retete dintr-un document (`RecipeImportCard`);
  * orice alt tool de scriere foloseste randerul generic de mai jos.
  */
 export function ActionCard({ action, busy, onConfirm, onReject }: ActionCardProps) {
   if (action.presentation.renderer === "order_draft") {
     return (
       <OrderDraftCard
+        action={action}
+        presentation={action.presentation}
+        busy={busy}
+        onConfirm={onConfirm}
+        onReject={onReject}
+      />
+    );
+  }
+
+  if (action.presentation.renderer === "recipe_import") {
+    return (
+      <RecipeImportCard
         action={action}
         presentation={action.presentation}
         busy={busy}
@@ -100,7 +114,22 @@ function GenericActionCard({
         {presentation.fields.length > 0 ? (
           <div className="grid gap-3 sm:grid-cols-2">
             {presentation.fields.map((field) =>
-              !field.editable ? (
+              field.kind === "image" ? (
+                <div key={field.name} className="space-y-1.5">
+                  <Label>{field.label}</Label>
+                  {field.previewUrl ? (
+                    // URL semnat, temporar, din Storage - `next/image` ar cere domeniul
+                    // configurat in next.config si nu aduce nimic pentru o previzualizare.
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={field.previewUrl}
+                      alt={field.displayValue}
+                      className="max-h-40 rounded-md border object-contain"
+                    />
+                  ) : null}
+                  <p className="text-xs text-muted-foreground">{field.displayValue}</p>
+                </div>
+              ) : !field.editable ? (
                 <div key={field.name} className="space-y-1.5">
                   <Label>{field.label}</Label>
                   <p className="text-sm text-muted-foreground">{field.displayValue}</p>

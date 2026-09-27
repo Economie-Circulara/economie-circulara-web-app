@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 const { createClient } = vi.hoisted(() => ({ createClient: vi.fn() }));
 vi.mock("@/lib/supabase/server", () => ({ createClient }));
 
-import { listCatalogItems } from "./queries";
+import { getClientOrderDelivery, listCatalogItems } from "./queries";
 
 /**
  * Query builder Supabase fals: chainable ("thenable"), acelasi stil ca
@@ -95,5 +95,57 @@ describe("listCatalogItems - itemi arhivati (migrarea 0035)", () => {
     await listCatalogItems();
 
     expect(builder.is).toHaveBeenCalledWith("archived_at", null);
+  });
+});
+
+describe("getClientOrderDelivery", () => {
+  function mockRpc(result: { data: unknown; error: unknown }) {
+    const rpc = vi.fn(() => Promise.resolve(result));
+    createClient.mockResolvedValue({ rpc });
+    return rpc;
+  }
+
+  it("apeleaza RPC-ul client_order_delivery si mapeaza randul", async () => {
+    const rpc = mockRpc({
+      data: [
+        {
+          scheduled_date: "2026-10-04",
+          carrier_name: "Fan Courier",
+          vehicle_plate: "B33GRD",
+          driver_name: "Ionel Mihai",
+          route_destination: "Iași, Strada Otilia Cazimir 1",
+          uit_code: null,
+          received_at: null,
+          received_by_name: null,
+        },
+      ],
+      error: null,
+    });
+
+    const delivery = await getClientOrderDelivery("order-1");
+
+    expect(rpc).toHaveBeenCalledWith("client_order_delivery", { p_order_id: "order-1" });
+    expect(delivery).toEqual({
+      scheduledDate: "2026-10-04",
+      carrierName: "Fan Courier",
+      vehiclePlate: "B33GRD",
+      driverName: "Ionel Mihai",
+      destination: "Iași, Strada Otilia Cazimir 1",
+      uitCode: null,
+      receivedAt: null,
+      receivedByName: null,
+    });
+  });
+
+  it("intoarce null cand comanda nu are livrare activa", async () => {
+    mockRpc({ data: [], error: null });
+    await expect(getClientOrderDelivery("order-1")).resolves.toBeNull();
+  });
+
+  it("arunca o eroare RO cand RPC-ul esueaza", async () => {
+    mockRpc({ data: null, error: { message: "boom" } });
+    await expect(getClientOrderDelivery("order-1")).rejects.toThrow(
+      "Nu am putut încărca detaliile livrării.",
+    );
   });
 });

@@ -36,6 +36,9 @@ describe("registry de tool-uri", () => {
       "arhiveaza",
       "creeaza_reteta",
       "porneste_productie",
+      "seteaza_imagine_produs",
+      "citeste_document",
+      "importa_retete",
     ]) {
       expect(names, name).toContain(name);
     }
@@ -76,6 +79,8 @@ describe("registry de tool-uri", () => {
       if (tool.kind === "write") {
         expect(typeof tool.summary, tool.name).toBe("function");
         expect(typeof tool.presentation, tool.name).toBe("function");
+        // Mesajul de dupa executie, la timpul trecut („Am adăugat...”) - nu „Gata: Creează...”.
+        expect(typeof tool.resultSummary, tool.name).toBe("function");
       }
     }
   });

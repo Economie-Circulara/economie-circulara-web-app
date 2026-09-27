@@ -1,11 +1,20 @@
 import type { OrderStatus } from "@/features/orders/types";
 import type { NotificationType } from "./types";
 
+/**
+ * Ce fel de comanda e, din punctul de vedere al clientului: o comanda de vanzare
+ * (implicit), o cerere de aport (materialul vine DE LA client) sau o cerere de
+ * retur/garantie. Schimba formularea emailului - "acceptată" la un aport nu
+ * inseamna "în curs de pregătire pentru livrare".
+ */
+export type OrderEmailKind = "order" | "intake" | "return";
+
 /** Datele minime necesare randarii unui email de status comanda (RO). */
 export interface OrderEmailData {
   orderNumber: string | null;
   clientName: string;
   organizationName: string;
+  kind?: OrderEmailKind;
 }
 
 export interface RenderedEmail {
@@ -47,19 +56,37 @@ interface TemplateContent {
   intro: string;
 }
 
+/** Substantivul (subiect / cu posesiv) pentru fiecare fel de comanda - toate feminine. */
+const KIND_NOUNS: Record<OrderEmailKind, { subject: string; yours: string }> = {
+  order: { subject: "Comanda", yours: "Comanda dumneavoastră" },
+  intake: { subject: "Cererea de aport", yours: "Cererea dumneavoastră de aport" },
+  return: { subject: "Cererea de retur", yours: "Cererea dumneavoastră de retur" },
+};
+
+const ACCEPTED_DETAIL: Record<OrderEmailKind, (orgName: string) => string> = {
+  order: () => "a fost acceptată și este în curs de pregătire pentru livrare.",
+  intake: (orgName) => `a fost acceptată: materialul a fost recepționat de ${orgName}.`,
+  return: (orgName) => `a fost acceptată: produsele au fost recepționate de ${orgName}.`,
+};
+
 const TEMPLATES: Record<NotifiableOrderStatus, (data: OrderEmailData) => TemplateContent> = {
-  sent: (data) => ({
-    subject: `Comanda ${orderLabel(data.orderNumber)} a fost trimisă`,
-    intro:
-      `Comanda dumneavoastră ${orderLabel(data.orderNumber)} a fost trimisă și așteaptă ` +
-      `confirmarea ${data.organizationName}.`,
-  }),
-  accepted: (data) => ({
-    subject: `Comanda ${orderLabel(data.orderNumber)} a fost acceptată`,
-    intro:
-      `Comanda dumneavoastră ${orderLabel(data.orderNumber)} a fost acceptată și este în curs ` +
-      `de pregătire pentru livrare.`,
-  }),
+  sent: (data) => {
+    const noun = KIND_NOUNS[data.kind ?? "order"];
+    return {
+      subject: `${noun.subject} ${orderLabel(data.orderNumber)} a fost trimisă`,
+      intro:
+        `${noun.yours} ${orderLabel(data.orderNumber)} a fost trimisă și așteaptă ` +
+        `confirmarea ${data.organizationName}.`,
+    };
+  },
+  accepted: (data) => {
+    const kind = data.kind ?? "order";
+    const noun = KIND_NOUNS[kind];
+    return {
+      subject: `${noun.subject} ${orderLabel(data.orderNumber)} a fost acceptată`,
+      intro: `${noun.yours} ${orderLabel(data.orderNumber)} ${ACCEPTED_DETAIL[kind](data.organizationName)}`,
+    };
+  },
   delivered: (data) => ({
     subject: `Comanda ${orderLabel(data.orderNumber)} a fost livrată`,
     intro: `Comanda dumneavoastră ${orderLabel(data.orderNumber)} a fost livrată.`,
@@ -70,10 +97,13 @@ const TEMPLATES: Record<NotifiableOrderStatus, (data: OrderEmailData) => Templat
       `Comanda dumneavoastră ${orderLabel(data.orderNumber)} a fost închisă. Certificatul de ` +
       `trasabilitate a fost generat și este disponibil în portalul clienților.`,
   }),
-  cancelled: (data) => ({
-    subject: `Comanda ${orderLabel(data.orderNumber)} a fost anulată`,
-    intro: `Comanda dumneavoastră ${orderLabel(data.orderNumber)} a fost anulată.`,
-  }),
+  cancelled: (data) => {
+    const noun = KIND_NOUNS[data.kind ?? "order"];
+    return {
+      subject: `${noun.subject} ${orderLabel(data.orderNumber)} a fost anulată`,
+      intro: `${noun.yours} ${orderLabel(data.orderNumber)} a fost anulată.`,
+    };
+  },
 };
 
 function escapeHtml(value: string): string {

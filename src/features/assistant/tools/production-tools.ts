@@ -4,7 +4,7 @@ import { computeRequiredConsumption, type DistributedLine } from "@/features/pro
 import { PRODUCTION_KIND_LABELS } from "@/features/production/labels";
 import { confirmProcess } from "@/features/production/service";
 import { PRODUCTION_KIND_TO_PROVENANCE, type ProductionKind } from "@/features/production/types";
-import { DIRECTION_LABELS } from "@/features/recipes/labels";
+import { DIRECTION_LABELS, DIRECTION_SHORT_LABELS } from "@/features/recipes/labels";
 import { getRecipeByItemId } from "@/features/recipes/queries";
 import { addOrUpdateComponents, createRecipe } from "@/features/recipes/service";
 import type { RecipeDetail, RecipeDirection } from "@/features/recipes/types";
@@ -19,6 +19,7 @@ import {
   planFifoConsumption,
   type FifoAllocation,
 } from "@/features/stock/service";
+import { resultField } from "../result-summary";
 import { infoField, textField } from "./fields";
 import type { CardPresentation } from "./presentation-types";
 import {
@@ -154,6 +155,8 @@ export const creeazaReteta: AssistantTool<CreateRecipeInput> = {
     return { item_id: itemId, directie, componente };
   },
   summary: () => "Creează rețeta",
+  resultSummary: (input, result) =>
+    `Am creat rețeta (${DIRECTION_SHORT_LABELS[input.directie].toLowerCase()}, ${input.componente.length} ${input.componente.length === 1 ? "materie primă" : "materii prime"}, total ${resultField(result, "suma_procente") ?? "?"}%).`,
   presentation: async (input): Promise<CardPresentation> => {
     const [item, options] = await Promise.all([
       getItemById(input.item_id),
@@ -303,6 +306,8 @@ export const pornesteProductie: AssistantTool<StartProductionInput> = {
     };
   },
   summary: (input) => `Pornește ${PRODUCTION_KIND_LABELS[input.tip].toLowerCase()}`,
+  resultSummary: (input, result) =>
+    `Am înregistrat procesul: ${input.cantitate} din **${resultField(result, "denumire") ?? "produs"}** (${PRODUCTION_KIND_LABELS[input.tip].toLowerCase()}). Materiile prime s-au scăzut din stoc, iar produsul a intrat ca lot nou.`,
   presentation: async (input): Promise<CardPresentation> => {
     let product = "Produs indisponibil";
     let consumption: string;

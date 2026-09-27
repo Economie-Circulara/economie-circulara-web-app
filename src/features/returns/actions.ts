@@ -2,6 +2,9 @@
 
 import { revalidatePath } from "next/cache";
 import { requireRole } from "@/features/auth/session";
+import { onOrderStatusChanged } from "@/features/orders/notifications";
+import { getOrderStatus } from "@/features/orders/queries";
+import { sendOrder } from "@/features/orders/service";
 import { getReturnableItems as queryReturnableItems } from "./queries";
 import {
   ReturnNotFoundError,
@@ -42,6 +45,11 @@ function errorMessage(err: unknown, fallback: string): string {
  * daca RLS nu gaseste comanda). Staff-ul (admin/operator) poate crea pt. orice
  * client din organizatia proprie, la fel ca la crearea unei comenzi normale
  * (`createOrderAction`, Task E) - cu `created_by_admin=true`.
+ *
+ * Cererea CLIENTULUI e trimisa imediat (`draft -> sent`, cu numar - migrarea 0044):
+ * pentru el e o cerere trimisa spre aprobare, nu o ciorna (acelasi tipar ca aportul,
+ * 0042). La garantie se trimite si comanda de inlocuire. Cererea staff-ului ramane
+ * `draft` si se accepta direct.
  */
 export async function createReturnAction(input: CreateReturnInput): Promise<CreateReturnResult> {
   const user = await requireRole(["admin", "operator", "client"]);
@@ -55,6 +63,21 @@ export async function createReturnAction(input: CreateReturnInput): Promise<Crea
       createdByAdmin: user.role !== "client",
     });
 
+    if (user.role === "client") {
+      const organizationId = user.organizationId ?? "";
+      try {
+        await sendOrder(result.returnOrderId, organizationId);
+        if (result.replacementOrderId) await sendOrder(result.replacementOrderId, organizationId);
+      } catch (err) {
+        // Cererea exista (ramane "Ciornă" in /comenzile-mele) - semnalam doar trimiterea.
+        revalidatePath("/comenzile-mele");
+        return {
+          error: `Cererea a fost salvată, dar nu a putut fi trimisă: ${errorMessage(err, "eroare necunoscută")}`,
+        };
+      }
+      revalidatePath("/comenzile-mele");
+    }
+
     revalidatePath("/comenzi");
     revalidatePath(`/comenzi/${input.originalOrderId}`);
     revalidatePath(`/comenzi/${result.returnOrderId}`);
@@ -66,16 +89,26 @@ export async function createReturnAction(input: CreateReturnInput): Promise<Crea
 }
 
 /**
- * Accepta o comanda-retur `draft`: creeaza loturile de stoc (proveniență
+ * Accepta o comanda-retur `draft` sau `sent` (0044): creeaza loturile de stoc (proveniență
  * `return`) si inchide comanda-retur - DOAR staff (RPC `accept_return_order`,
  * 0010_returns.sql, respinge oricum apelul unui client cu RT004, dar verificarea
  * de rol aici da un mesaj clar si evita round-trip-ul spre DB pt. cazul comun).
  */
 export async function acceptReturnAction(returnOrderId: string): Promise<AcceptReturnResult> {
-  await requireRole(["admin", "operator"]);
+  const user = await requireRole(["admin", "operator"]);
 
   try {
-    await acceptReturnOrder(returnOrderId);
+    const fromStatus = await getOrderStatus(returnOrderId);
+    const order = await acceptReturnOrder(returnOrderId);
+    // Emailul de acceptare, cu formularea de retur ("produsele au fost recepționate").
+    await onOrderStatusChanged({
+      orderId: order.id,
+      organizationId: user.organizationId ?? "",
+      clientId: order.clientId,
+      fromStatus: fromStatus ?? "draft",
+      toStatus: "accepted",
+      kind: "return",
+    });
   } catch (err) {
     return { error: errorMessage(err, "Nu am putut accepta comanda de retur.") };
   }

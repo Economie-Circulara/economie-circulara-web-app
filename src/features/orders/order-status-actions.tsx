@@ -12,7 +12,7 @@ import {
   deliverOrderAction,
   sendOrderAction,
 } from "./actions";
-import { canTransitionOrder } from "./state-machine";
+import { canTransitionOrderInFlow, type OrderFlow } from "./state-machine";
 import type { OrderDeliveryGuard, OrderStatus } from "./types";
 
 type TransitionAction = (
@@ -94,16 +94,23 @@ export function OrderStatusActions({
   orderId,
   status,
   delivery = null,
+  flow = "sale",
 }: {
   orderId: string;
   status: OrderStatus;
   delivery?: OrderDeliveryGuard | null;
+  /**
+   * `intake` (aport / retur / garantie): doar "Anulează" (draft/sent) - acceptarea
+   * are buton dedicat (`AcceptIntakeButton` / `AcceptReturnButton`).
+   */
+  flow?: OrderFlow;
 }) {
-  const canSend = canTransitionOrder(status, "sent");
-  const canAccept = canTransitionOrder(status, "accepted");
-  const canDeliverTransition = canTransitionOrder(status, "delivered");
-  const canClose = canTransitionOrder(status, "closed");
-  const canCancel = canTransitionOrder(status, "cancelled");
+  const can = (to: OrderStatus) => canTransitionOrderInFlow(status, to, flow);
+  const canSend = can("sent");
+  const canAccept = can("accepted");
+  const canDeliverTransition = can("delivered");
+  const canClose = can("closed");
+  const canCancel = can("cancelled");
 
   const hasPendingDelivery = delivery != null && delivery.receivedAt == null;
   const showDeliverButton = canDeliverTransition && !hasPendingDelivery;

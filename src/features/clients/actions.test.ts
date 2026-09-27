@@ -40,6 +40,9 @@ vi.mock("next/navigation", () => ({ redirect }));
 const { revalidatePath } = vi.hoisted(() => ({ revalidatePath: vi.fn() }));
 vi.mock("next/cache", () => ({ revalidatePath }));
 
+const { sendClientInvite } = vi.hoisted(() => ({ sendClientInvite: vi.fn() }));
+vi.mock("@/features/settings/user-actions", () => ({ sendClientInvite }));
+
 import {
   createClientAction,
   deleteAddressAction,
@@ -142,6 +145,64 @@ describe("createClientAction", () => {
 
     expect(state.error).toMatch(/există deja un client/i);
     expect(redirect).not.toHaveBeenCalled();
+  });
+});
+
+describe("createClientAction - invitatie automata in portal", () => {
+  const ADMIN = { id: "u1", role: "admin", organizationId: "org-1" };
+  const OPERATOR = { id: "u2", role: "operator", organizationId: "org-1" };
+
+  it("admin + email: trimite automat invitatia, fara bifa", async () => {
+    requireRole.mockResolvedValue(ADMIN);
+    createClientRecord.mockResolvedValue({ id: "client-1" });
+    sendClientInvite.mockResolvedValue({ error: null, message: "ok" });
+
+    await expect(
+      createClientAction(
+        { error: null },
+        formData({ cui: "4183300", name: "SC Exemplu SRL", email: "client@acme.ro" }),
+      ),
+    ).rejects.toThrow("REDIRECT:/clienti/client-1");
+
+    expect(sendClientInvite).toHaveBeenCalledWith("client-1", "client@acme.ro");
+  });
+
+  it("fara email: nu trimite invitatie", async () => {
+    requireRole.mockResolvedValue(ADMIN);
+    createClientRecord.mockResolvedValue({ id: "client-1" });
+
+    await expect(
+      createClientAction({ error: null }, formData({ cui: "4183300", name: "SC Exemplu SRL" })),
+    ).rejects.toThrow("REDIRECT:/clienti/client-1");
+
+    expect(sendClientInvite).not.toHaveBeenCalled();
+  });
+
+  it("operator: nu trimite invitatie (invitarea e doar a adminului)", async () => {
+    requireRole.mockResolvedValue(OPERATOR);
+    createClientRecord.mockResolvedValue({ id: "client-1" });
+
+    await expect(
+      createClientAction(
+        { error: null },
+        formData({ cui: "4183300", name: "SC Exemplu SRL", email: "client@acme.ro" }),
+      ),
+    ).rejects.toThrow("REDIRECT:/clienti/client-1");
+
+    expect(sendClientInvite).not.toHaveBeenCalled();
+  });
+
+  it("esecul invitatiei nu anuleaza crearea - avertisment pe pagina de detaliu", async () => {
+    requireRole.mockResolvedValue(ADMIN);
+    createClientRecord.mockResolvedValue({ id: "client-1" });
+    sendClientInvite.mockResolvedValue({ error: "cont existent", message: null });
+
+    await expect(
+      createClientAction(
+        { error: null },
+        formData({ cui: "4183300", name: "SC Exemplu SRL", email: "client@acme.ro" }),
+      ),
+    ).rejects.toThrow(/REDIRECT:\/clienti\/client-1\?inviteWarning=.*cont%20existent/);
   });
 });
 

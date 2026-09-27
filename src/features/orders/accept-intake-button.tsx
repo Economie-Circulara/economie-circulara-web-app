@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { acceptIntakeAction } from "./actions";
 
 /**
- * Buton "Acceptă aport" - doar pt. comenzile de tip `aport` aflate in `draft`
+ * Buton "Acceptă aport" - doar pt. comenzile de tip `aport` aflate in `draft` sau `sent`
  * (vezi `(admin)/comenzi/[id]/page.tsx`, care il randeaza in locul
  * `OrderStatusActions` generic: "Acceptă" acolo CONSUMA stoc, exact invers fata
  * de un aport). Acelasi tipar ca `features/returns/accept-return-button.tsx` -

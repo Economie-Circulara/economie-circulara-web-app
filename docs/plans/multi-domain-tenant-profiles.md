@@ -92,7 +92,7 @@ fara deploy). Tema si organizarea sunt independente.
 - Sectiunile panoului sunt extrase in `src/features/reports/dashboard-sections.tsx`;
   pagina doar le aranjeaza.
 - Teste: `nav-config.test.ts` (aceleasi rute/roluri in ambele organizari),
-  `dashboard-sections.test.tsx`, `layouts.test.ts` (CHECK-ul din migrare), B24 extins.
+  `dashboard-sections.test.tsx`, `layouts.test.ts` (CHECK-ul din migrare), B28 extins.
 
 ### T5 - Sistem de teme (decizie 2026-09-25, implementat 2026-09-27)
 

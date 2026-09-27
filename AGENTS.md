@@ -206,6 +206,13 @@ Testele unitare sunt **colocate** langa cod (`*.test.ts` / `*.test.tsx`).
   poate edita itemii comenzilor acceptate direct prin Data API (hardening in
   migrarea `0003_rls_hardening.sql` - politici client constiente de status +
   trigger anti-escaladare pe `profiles`).
+- **Clientul vede livrarea comenzii proprii, dar NU randul `deliveries`** (decizie
+  2026-09-25, migrarea `0041`): tabelul ramane RLS doar-staff; portalul citeste prin
+  RPC-ul `client_order_delivery` (security definer, verifica explicit client activ +
+  comanda proprie + livrare neanulata) DOAR campurile utile clientului - data
+  programata, transportator, vehicul, sofer, destinatie, cod UIT, receptie. Erorile
+  e-Transport, ruta calculata, punctul de plecare si notele de receptie raman interne.
+  Orice camp nou expus clientului se adauga in RPC, nu printr-o politica de SELECT.
 - **O organizatie suspendata (`organizations.status = 'suspended'`) blocheaza
   accesul userilor ei** (admin/operator/client), pe DOUA linii: aplicatie
   (`middleware.ts` + `getCurrentUser`/`requireUser` din `session.ts` redirectioneaza
@@ -228,11 +235,32 @@ Testele unitare sunt **colocate** langa cod (`*.test.ts` / `*.test.tsx`).
   (system prompt). Productia din asistent e limitata la „cantitate fixa de produs”
   (reteta de `compunere`, consum FIFO calculat); descompunerea ramane in
   `/productie/nou`, pentru ca cere cantitatile reale rezultate.
-- **Quota de asistent e o limita comerciala, nu una tehnica**: se numara MESAJE
-  (lunar per organizatie + plafon zilnic per utilizator; `0` = nelimitat), iar
-  coloanele `organizations.ai_*` pot fi schimbate DOAR de super-admin - adminul
-  organizatiei nu isi poate ridica singur plafonul (trigger
-  `app.enforce_ai_limits`, altfel `organizations_update` din 0001 i-ar permite-o).
+- **Quota de asistent e o limita comerciala, nu una tehnica**, in **CREDITE AI** (decizie
+  2026-09-25, migrarea `0039`, inlocuieste numararea de MESAJE din 0020): creditele se
+  calculeaza din costul REAL al raspunsurilor (`ceil(cost / credit_micros)`, valoarea
+  creditului in `ai_platform_settings`); buget lunar per organizatie
+  (`ai_monthly_credit_limit`) + plafon zilnic per utilizator ca PROCENT din buget
+  (`ai_daily_user_credit_percent`); `0` = nelimitat. Limita e MOALE (tura inceputa se
+  termina), exista un plafon per tura (`turn_credit_limit`), iar costul per raspuns e
+  vizibil DOAR adminilor. Coloanele `organizations.ai_*` si setarile de credit pot fi
+  schimbate DOAR de super-admin (`/platform/ai`) - adminul organizatiei nu isi poate
+  ridica singur plafonul (trigger `app.enforce_ai_limits`, altfel `organizations_update`
+  din 0001 i-ar permite-o).
+  - **Top-up = credite EXTRA doar pentru luna curenta** (decizie 2026-09-25, migrarea
+    `0040`, `ai_credit_grants`): se adauga peste bugetul lunar si EXPIRA la sfarsitul
+    lunii (nu se reporteaza); append-only, cu motiv obligatoriu, doar super-admin; o
+    organizatie cu buget 0 (nelimitat) nu primeste top-up. Orice schimbare de limite AI
+    si orice top-up se jurnalizeaza AUTOMAT in DB (`ai_limit_changes`, trigger-e), cu
+    autorul si valorile inainte/dupa - jurnalul nu se scrie din aplicatie.
+
+- **Consumul AI se masoara per apel de model, cu costul calculat in DB** (decizie
+  2026-09-25, migrarea `0037`, `docs/plans/asistent-consum-real.md`): tokenii se
+  raporteaza separat (input din cache / input nou / output), modelul e cel din
+  RASPUNSUL furnizorului (numele din factura), iar costul se calculeaza de RPC-ul
+  `assistant_record_usage` cu pretul valabil in acel moment (`ai_model_prices`,
+  versionat, append-only, gestionat de super-admin in `/platform/ai`) si se salveaza -
+  istoricul nu se recalculeaza. **Orice apel AI nou trece prin `recordUsage`**
+  (`assistant/quota.ts`), niciodata printr-un RPC propriu.
 
 - **Planificarea rutelor (Task X7, `src/features/routing/`) foloseste Google Maps
   Platform, in spatele unui adapter (`RoutingProvider`, ca la e-Transport)** - implicit
@@ -258,8 +286,24 @@ Testele unitare sunt **colocate** langa cod (`*.test.ts` / `*.test.tsx`).
     `aport_client`, `lots.client_id` completat (singura cale prin care un lot stie
     de la ce CLIENT provine) si `quality_status = 'unchecked'` - materialul unui
     tert nu e verificat in momentul receptiei, QC-ul se face dupa. Comanda-aport NU
-    intra in masina de stari de vanzare: `draft -> accepted` si se opreste acolo,
+    intra in masina de stari de vanzare: `draft|sent -> accepted` si se opreste acolo,
     exact ca o comanda-retur; `accept_order` (fluxul de vanzare) o refuza explicit.
+    **Aportul trimis de CLIENT din portal nu ramane ciorna** (decizie 2026-09-25,
+    migrarea `0042`): pentru client cererea e trimisa spre aprobare, deci portalul o
+    trece `draft -> sent` (cu numar), ca orice comanda de client; staff-ul o accepta
+    din `sent` sau o anuleaza (respinge). Aportul creat de staff se accepta direct din
+    `draft`. Un aport **acceptat nu se anuleaza** (garda DB `AP005`): `cancel_order`
+    reface doar consumul, iar aportul a CREAT loturi. Butoanele generice pe un aport
+    trec prin `canTransitionOrderInFlow` (`orders/state-machine.ts`, flux `intake`) -
+    doar "Anulează".
+  - **Acelasi tipar pentru retur/garantie cerute din portal** (decizie 2026-09-25,
+    migrarea `0044`): cererea clientului e trimisa (`sent`, cu numar; la garantie si
+    comanda de inlocuire), staff-ul o accepta din `sent` (`accept_return_order`) sau
+    o anuleaza; un retur acceptat nu se anuleaza (`RT005`). Aportul si returul sunt
+    fluxul `intake` (`orderFlowOf`): fara "Repetă comanda", fara livrare, traseu
+    `draft -> sent -> accepted`. Acceptarea lor trimite emailul catre client cu
+    formularea potrivita (`kind: "intake" | "return"` in `onOrderStatusChanged`) - nu
+    "în curs de pregătire pentru livrare".
 - **Eligibilitatea de retur/garantie depinde de tipul comenzii, nu doar de status**
   (decizie 2026-09, `ALLOWED_RETURN_FLOWS_BY_ORDER_TYPE` in
   `src/features/returns/types.ts`): retur PUR (`order_links.link_type = 'return'`,
@@ -318,6 +362,14 @@ Testele unitare sunt **colocate** langa cod (`*.test.ts` / `*.test.tsx`).
     pune un item arhivat pe o comanda doar daca i-a fost deja livrat (apare pe o
     comanda proprie `delivered`/`closed`) - criteriul folosit de trigger-ul
     `app.reject_archived_references` pentru cererile de retur/garantie din portal.
+  - **Liniile trimise din portal se valideaza pe server fata de lista CURENTA de
+    itemi permisi** (decizie 2026-09-25): catalogul vandabil pt. comenzi, materialele
+    de aport pt. aport - ambele fara arhivate (`unavailableLinesError` in
+    `client-portal/actions.ts`). Motiv: cosul (`localStorage`, "Repetă comanda") poate
+    contine itemi scosi intre timp din catalog, iar DB-ul lasa clientul sa foloseasca
+    un item arhivat DEJA LIVRAT lui (exceptia de retur de mai sus) si nu verifica
+    `sellable`. Pe o comanda de **aport** exceptia nu se aplica: item arhivat = AR001
+    pentru orice rol (migrarea `0043`).
   - Loturi: **"Anulează lotul" doar daca nimic nu s-a consumat** si lotul e o
     intrare manuala (nu output de proces / retur / aport). Nu sterge nimic: scrie un
     eveniment de corectie `adjustment` (`-initial_qty`) in `stock_events`,

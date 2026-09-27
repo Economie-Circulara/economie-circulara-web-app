@@ -18,9 +18,14 @@ export default async function PlatformPage() {
         title="Organizatii"
         description="Toate organizatiile platformei - nume, slug, domeniu custom, status si numarul de utilizatori."
         actions={
-          <Button asChild>
-            <Link href="/platform/nou">+ Organizatie noua</Link>
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button asChild variant="outline">
+              <Link href="/platform/ai">Consum AI</Link>
+            </Button>
+            <Button asChild>
+              <Link href="/platform/nou">+ Organizatie noua</Link>
+            </Button>
+          </div>
         }
       />
       <p className="rounded-md border border-dashed bg-card/50 px-3 py-2 text-xs text-muted-foreground">

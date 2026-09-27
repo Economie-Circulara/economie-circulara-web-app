@@ -66,6 +66,7 @@ export async function AssistantPageContent({ conversationId }: { conversationId?
           initialQuota={quota}
           suggestions={SUGGESTIONS[user.role === "client" ? "client" : "staff"]}
           providerConfigured={isChatProviderConfigured()}
+          canAttach={user.role === "admin" || user.role === "operator"}
         />
       </div>
     </div>

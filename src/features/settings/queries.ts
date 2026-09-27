@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import type { Database } from "@/lib/database.types";
 import { listClients } from "@/features/clients/queries";
 
@@ -57,17 +58,36 @@ export async function listAvailableClientsForInvite(): Promise<AvailableClient[]
 }
 
 /**
- * Adevarat daca firma-client are deja un utilizator `client` legat
- * (`profiles.client_id`) - folosit pe `/clienti/[id]` ca sa nu ofere invitare
- * repetata (vezi si `listAvailableClientsForInvite`, aceeasi regula la nivel de
- * lista). Foloseste clientul de sesiune (RLS), doar citire.
+ * Starea accesului in portal al unei firme-client:
+ * - `none` - niciun utilizator `client` legat (se poate invita);
+ * - `pending` - invitatie trimisa, contul nu a fost inca activat (se poate retrimite);
+ * - `active` - utilizatorul si-a setat parola / s-a logat.
  */
-export async function clientHasPortalAccess(clientId: string): Promise<boolean> {
+export type ClientPortalStatus =
+  | { status: "none" }
+  | { status: "pending" | "active"; email: string | null };
+
+/**
+ * Profilul se citeste cu clientul de sesiune (RLS, un client = un singur user, deci cel mult un rand);
+ * activarea contului traieste doar in Supabase Auth, deci se citeste cu clientul
+ * administrativ. Daca verificarea in Auth esueaza, raportam `active` - varianta
+ * conservatoare (nu oferim retrimiterea unei invitatii pe care Auth ar refuza-o).
+ */
+export async function getClientPortalStatus(clientId: string): Promise<ClientPortalStatus> {
   const supabase = await createClient();
-  const { data } = await supabase
+  const { data: profile } = await supabase
     .from("profiles")
-    .select("id")
+    .select("id, email")
     .eq("client_id", clientId)
     .maybeSingle();
-  return data !== null;
+  if (!profile) return { status: "none" };
+
+  try {
+    const { data, error } = await createAdminClient().auth.admin.getUserById(profile.id);
+    if (error || !data?.user) return { status: "active", email: profile.email };
+    const activated = Boolean(data.user.email_confirmed_at || data.user.last_sign_in_at);
+    return { status: activated ? "active" : "pending", email: profile.email };
+  } catch {
+    return { status: "active", email: profile.email };
+  }
 }

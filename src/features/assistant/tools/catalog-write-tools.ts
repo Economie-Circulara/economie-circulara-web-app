@@ -8,6 +8,7 @@ import { createItem, setItemArchived, updateItem } from "@/features/items/servic
 import type { ItemKind, UnitOfMeasure } from "@/features/items/types";
 import { getRecipeByItemId } from "@/features/recipes/queries";
 import { setRecipeArchived } from "@/features/recipes/service";
+import { resultField } from "../result-summary";
 import type { ToolContext } from "../types";
 import { booleanField, infoField, textField } from "./fields";
 import type { CardPresentation } from "./presentation-types";
@@ -126,6 +127,8 @@ export const editeazaClient: AssistantTool<EditClientInput> = {
     };
   },
   summary: (input) => `Modifică clientul${input.denumire ? ` „${input.denumire}"` : ""}`,
+  resultSummary: (_input, result) =>
+    `Am actualizat datele clientului **${resultField(result, "denumire") ?? ""}**.`,
   presentation: async (input): Promise<CardPresentation> => {
     const client = await getClient(input.client_id);
     if (!client) {
@@ -228,6 +231,8 @@ export const creeazaItem: AssistantTool<CreateItemToolInput> = {
   },
   summary: (input) =>
     `Adaugă ${input.tip === "abonament" ? "abonamentul" : "materialul"} „${input.denumire}"`,
+  resultSummary: (input) =>
+    `Am adăugat ${input.tip === "abonament" ? "abonamentul" : "materialul"} **${input.denumire}** (${input.um}${input.vandabil ? ", vandabil" : ""}).`,
   presentation: async (input): Promise<CardPresentation> => ({
     renderer: "generic",
     fields: [
@@ -315,6 +320,7 @@ export const editeazaItem: AssistantTool<EditItemToolInput> = {
     };
   },
   summary: () => "Modifică materialul/abonamentul",
+  resultSummary: (_input, result) => `Am actualizat **${resultField(result, "denumire") ?? ""}**.`,
   presentation: async (input): Promise<CardPresentation> => {
     const item = await getItemById(input.item_id);
     if (!item) {
@@ -419,6 +425,8 @@ export const arhiveaza: AssistantTool<ArchiveInput> = {
       : input.tip === "item"
         ? "Arhivează produsul"
         : "Arhivează rețeta",
+  resultSummary: (input) =>
+    `Am arhivat ${input.tip === "client" ? "clientul" : input.tip === "item" ? "produsul" : "rețeta"}. Nu s-a pierdut nimic din istoric; se poate restaura din aplicație.`,
   presentation: async (input): Promise<CardPresentation> => ({
     renderer: "generic",
     fields: [

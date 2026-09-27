@@ -187,4 +187,154 @@ begin;
     from public.assistant_tool_calls where id = 'a8888888-8888-8888-8888-888888888888';
 rollback;
 
+-- ===== TEST 10: atasamentele (0036) sunt personale si legate de organizatie =====
+insert into public.assistant_attachments (id, organization_id, user_id, storage_path, file_name, mime_type, size_bytes) values
+  ('a7777777-7777-7777-7777-777777777777','a0000000-0000-0000-0000-00000000000a','a2222222-2222-2222-2222-222222222222',
+   'a0000000-0000-0000-0000-00000000000a/a2222222-2222-2222-2222-222222222222/a7777777-7777-7777-7777-777777777777',
+   'retete.pdf','application/pdf',1024);
+
+begin;
+  set local role authenticated;
+  set local request.jwt.claims = '{"sub":"a2222222-2222-2222-2222-222222222222"}';
+  select pg_temp.assert('T10 operatorul isi vede atasamentul', count(*), 1)
+    from public.assistant_attachments;
+rollback;
+
+begin;
+  set local role authenticated;
+  set local request.jwt.claims = '{"sub":"a1111111-1111-1111-1111-111111111111"}';
+  select pg_temp.assert('T10 adminul NU vede atasamentul operatorului', count(*), 0)
+    from public.assistant_attachments;
+
+  -- Nu poate inregistra un atasament in numele altui utilizator / in alta organizatie.
+  do $$
+  begin
+    begin
+      insert into public.assistant_attachments (organization_id, user_id, storage_path, file_name, mime_type, size_bytes)
+        values ('a0000000-0000-0000-0000-00000000000b','a1111111-1111-1111-1111-111111111111','x/y/z','a.pdf','application/pdf',10);
+      raise exception 'FAIL: T10 a permis un atasament in alta organizatie';
+    exception when insufficient_privilege then
+      raise notice 'PASS: T10 atasamentul in alta organizatie e respins';
+    end;
+  end $$;
+rollback;
+
+begin;
+  set local role authenticated;
+  set local request.jwt.claims = '{"sub":"a3333333-3333-3333-3333-333333333333"}';
+  select pg_temp.assert('T10 alt tenant nu vede atasamentul', count(*), 0)
+    from public.assistant_attachments;
+rollback;
+
+-- ===== TEST 11: contorizarea consumului (0037) - costul se calculeaza in DB =====
+begin;
+  set local role authenticated;
+  set local request.jwt.claims = '{"sub":"a2222222-2222-2222-2222-222222222222"}';
+
+  -- Aceeasi zi ca exportul DeepSeek din 25.09 (v4-pro): $0.0806652880 -> 80666 micro-USD.
+  select pg_temp.assert('T11 costul apelului, cu pretul v4-pro',
+    public.assistant_record_usage('assistant', 'deepseek-v4-pro', null, 0, 244864, 63751, 16769, 0), 80666);
+rollback;
+
+begin;
+  set local role authenticated;
+  set local request.jwt.claims = '{"sub":"a2222222-2222-2222-2222-222222222222"}';
+  select public.assistant_record_usage('assistant', 'model-necunoscut', null, 0, 0, 1000000, 0, 0);
+  select pg_temp.assert('T11 model necunoscut -> pret implicit',
+    count(*), 1) from public.ai_usage_events where model = 'model-necunoscut' and default_price_used and cost_micros = 660000;
+  -- Mesajul utilizatorului (fara model) creste doar contorul de mesaje, fara eveniment.
+  select public.assistant_record_usage('assistant', null, null, 1);
+  select pg_temp.assert('T11 mesajul fara model nu creeaza eveniment',
+    count(*), 1) from public.ai_usage_events;
+  select pg_temp.assert('T11 agregatul zilnic are request-ul si costul',
+    (select requests::bigint from public.assistant_usage where user_id = 'a2222222-2222-2222-2222-222222222222' and day = current_date), 1);
+rollback;
+
+-- Preturile nu sunt vizibile tenantilor si nu pot fi scrise de ei.
+begin;
+  set local role authenticated;
+  set local request.jwt.claims = '{"sub":"a1111111-1111-1111-1111-111111111111"}';
+  select pg_temp.assert('T11 adminul organizatiei nu vede preturile', count(*), 0)
+    from public.ai_model_prices;
+  do $$
+  begin
+    begin
+      insert into public.ai_model_prices (model, input_cache_hit_per_m, input_cache_miss_per_m, output_per_m)
+        values ('deepseek-v4-pro', 0, 0, 0);
+      raise exception 'FAIL: T11 adminul a putut modifica preturile';
+    exception when insufficient_privilege then
+      raise notice 'PASS: T11 adminul nu poate scrie preturi';
+    end;
+  end $$;
+  -- Nici evenimente de consum direct (doar prin RPC).
+  do $$
+  begin
+    begin
+      insert into public.ai_usage_events (user_id, feature, model) values (auth.uid(), 'assistant', 'x');
+      raise exception 'FAIL: T11 s-a putut scrie direct un eveniment de consum';
+    exception when insufficient_privilege then
+      raise notice 'PASS: T11 evenimentele se scriu doar prin RPC';
+    end;
+  end $$;
+rollback;
+
+-- ===== TEST 12: creditele (0039) - doar super-adminul schimba limitele si valoarea creditului =====
+begin;
+  set local role authenticated;
+  set local request.jwt.claims = '{"sub":"a1111111-1111-1111-1111-111111111111"}';
+  select pg_temp.assert('T12 setarile de credit sunt citibile', count(*), 1)
+    from public.ai_platform_settings;
+  do $$
+  begin
+    begin
+      update public.organizations set ai_monthly_credit_limit = 1000000
+        where id = 'a0000000-0000-0000-0000-00000000000a';
+      raise exception 'FAIL: T12 adminul si-a ridicat singur bugetul de credite';
+    exception when insufficient_privilege then
+      raise notice 'PASS: T12 bugetul de credite nu poate fi ridicat de admin';
+    end;
+  end $$;
+  with changed as (
+    update public.ai_platform_settings set credit_micros = 1 returning id
+  )
+  select pg_temp.assert('T12 adminul nu poate schimba valoarea creditului', count(*), 0) from changed;
+rollback;
+
+-- ===== TEST 13: top-up de credite (0040) - doar super-admin; jurnal automat =====
+begin;
+  set local role authenticated;
+  set local request.jwt.claims = '{"sub":"a1111111-1111-1111-1111-111111111111"}';
+  do $$
+  begin
+    begin
+      insert into public.ai_credit_grants (organization_id, credits, reason)
+        values ('a0000000-0000-0000-0000-00000000000a', 500, 'mi-am dat singur');
+      raise exception 'FAIL: T13 adminul si-a dat singur credite';
+    exception when insufficient_privilege then
+      raise notice 'PASS: T13 adminul nu isi poate da credite';
+    end;
+  end $$;
+rollback;
+
+-- Ca postgres (context de serviciu): top-up + schimbare de limite -> doua intrari in jurnal.
+begin;
+  insert into public.ai_credit_grants (organization_id, credits, reason)
+    values ('a0000000-0000-0000-0000-00000000000a', 500, 'cerere client, factura 12');
+  update public.organizations set ai_monthly_credit_limit = 3000
+    where id = 'a0000000-0000-0000-0000-00000000000a';
+  select pg_temp.assert('T13 jurnalul are top-up-ul si schimbarea de limite', count(*), 2)
+    from public.ai_limit_changes where organization_id = 'a0000000-0000-0000-0000-00000000000a';
+
+  -- Staff-ul organizatiei vede top-up-ul (bugetul efectiv), dar nu si jurnalul.
+  set local role authenticated;
+  set local request.jwt.claims = '{"sub":"a2222222-2222-2222-2222-222222222222"}';
+  select pg_temp.assert('T13 operatorul vede top-up-ul organizatiei', count(*), 1)
+    from public.ai_credit_grants;
+  select pg_temp.assert('T13 operatorul nu vede jurnalul', count(*), 0)
+    from public.ai_limit_changes;
+  set local request.jwt.claims = '{"sub":"a3333333-3333-3333-3333-333333333333"}';
+  select pg_temp.assert('T13 alt tenant nu vede top-up-ul', count(*), 0)
+    from public.ai_credit_grants;
+rollback;
+
 select '*** TOATE TESTELE RLS DE ASISTENT AU TRECUT ***' as result;

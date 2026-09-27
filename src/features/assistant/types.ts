@@ -46,6 +46,8 @@ export interface AssistantTurn {
   /** Propunere de scriere care asteapta confirmarea utilizatorului. */
   pendingAction: PendingAction | null;
   quota: QuotaStatus;
+  /** Creditele consumate de aceasta tura - DOAR pentru admini (decizia 3 din plan). */
+  turnCredits?: number;
 }
 
 export interface PendingAction {
@@ -59,12 +61,29 @@ export interface PendingAction {
   presentation: CardPresentation;
 }
 
+/**
+ * Consumul asistentului, in CREDITE AI (docs/plans/asistent-consum-real.md, etapa 2):
+ * un credit = un cost fix intern; fiecare raspuns consuma dupa costul lui real.
+ */
 export interface QuotaStatus {
-  /** 0 = nelimitat. */
+  /** Bugetul EFECTIV al lunii (buget + credite extra), in credite. 0 = nelimitat. */
   monthlyLimit: number;
+  /** Bugetul lunar obisnuit al organizatiei (fara top-up). */
+  monthlyBase: number;
+  /** Credite extra acordate de super-admin doar pentru luna curenta (top-up). */
+  monthlyBonus: number;
   monthlyUsed: number;
+  /** Plafonul zilnic al utilizatorului, in credite (procent din bugetul lunar). 0 = fara plafon. */
   dailyLimit: number;
   dailyUsed: number;
+  /** Procentul din bugetul lunar pe care il poate folosi un utilizator pe zi (0 = fara plafon). */
+  dailyPercent: number;
+  /** Mesajele organizatiei luna aceasta (informativ). */
+  messagesThisMonth: number;
+  /** Cate intrebari mai incap, la costul mediu al organizatiei; `null` = inca nu stim. */
+  estimatedMessagesLeft: number | null;
+  /** Peste 80% din bugetul lunar. */
+  warning: boolean;
   /** Motivul pentru care e blocat, daca e blocat. */
   blockedReason: "monthly" | "daily" | "disabled" | null;
 }

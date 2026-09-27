@@ -3,48 +3,17 @@
 import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { createAdminClient } from "@/lib/supabase/admin";
 import { requireRole } from "@/features/auth/session";
-import { validateItemImageFile } from "./image-validation";
+import { uploadItemImage } from "./image-storage";
 import { itemListHref } from "./item-links";
 import { KIND_OPTIONS, UNIT_OPTIONS } from "./labels";
 import { createItem, setItemArchived, updateItem } from "./service";
 import type { ItemKind, UnitOfMeasure } from "./types";
 import type { ItemFormState } from "./action-state";
 
-/** Bucket-ul public creat in migrarea 0021_item_images_storage.sql. */
-const ITEM_IMAGE_BUCKET = "item-images";
-
 function clean(value: FormDataEntryValue | null): string | null {
   const s = String(value ?? "").trim();
   return s.length ? s : null;
-}
-
-/**
- * Incarca poza unui item la path-ul fix `${itemId}/image` (upsert - un singur
- * obiect per item, fara fisiere orfane la inlocuire) si intoarce URL-ul public,
- * cu parametru de cache-busting (altfel browserul ar continua sa arate poza
- * veche de la acelasi URL). Foloseste clientul admin - bucketul nu are politici
- * pe `storage.objects`, autorizarea e facuta de apelant (`requireRole`).
- * Arunca `Error` cu mesaj RO gata de afisat daca fisierul e invalid sau
- * upload-ul esueaza.
- */
-async function uploadItemImage(itemId: string, file: File): Promise<string> {
-  const validationError = validateItemImageFile({ size: file.size, type: file.type });
-  if (validationError) throw new Error(validationError);
-
-  const admin = createAdminClient();
-  const path = `${itemId}/image`;
-  const { error: uploadError } = await admin.storage.from(ITEM_IMAGE_BUCKET).upload(path, file, {
-    contentType: file.type,
-    upsert: true,
-  });
-  if (uploadError) throw new Error("Nu am putut încărca imaginea.");
-
-  const {
-    data: { publicUrl },
-  } = admin.storage.from(ITEM_IMAGE_BUCKET).getPublicUrl(path);
-  return `${publicUrl}?v=${Date.now()}`;
 }
 
 function parseUnit(value: FormDataEntryValue | null): UnitOfMeasure | null {

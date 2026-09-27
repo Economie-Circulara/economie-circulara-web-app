@@ -269,6 +269,7 @@ export async function cancelOrderAction(
       clientId: order.clientId,
       fromStatus: currentStatus,
       toStatus: "cancelled",
+      kind: order.orderType === "aport" ? "intake" : "order",
     });
   } catch (err) {
     return { error: err instanceof Error ? err.message : "Nu am putut anula comanda." };
@@ -319,18 +320,26 @@ export async function closeOrderAction(
  * Primeste direct `orderId` (nu `FormData`), ca `acceptReturnAction` - e apelata
  * din `onClick`, nu dintr-un submit de formular.
  *
- * NU trece prin `assertOrderTransition`/`onOrderStatusChanged`, exact ca acceptarea
- * unui retur (vezi features/returns/actions.ts): comanda-aport nu parcurge masina
- * de stari de vanzare (draft -> sent -> ... -> closed), iar notificarile existente
- * ("Comanda ta a fost acceptată/livrată") descriu o livrare catre client, ceea ce
- * nu se intampla aici. Validarea completa (tip, status, rol) e in RPC.
+ * NU trece prin `assertOrderTransition`: comanda-aport nu parcurge masina de stari
+ * de vanzare (validarea completa - tip, status draft/sent, rol - e in RPC). Clientul
+ * primeste totusi emailul de acceptare, cu formularea de aport (`kind: "intake"`:
+ * "materialul a fost recepționat", nu "în curs de pregătire pentru livrare").
  */
 export async function acceptIntakeAction(orderId: string): Promise<OrderTransitionState> {
-  await requireRole(["admin", "operator"]);
+  const user = await requireRole(["admin", "operator"]);
   if (!orderId) return { error: "Comandă invalidă." };
 
   try {
-    await acceptIntakeOrder(orderId);
+    const fromStatus = await getOrderStatus(orderId);
+    const order = await acceptIntakeOrder(orderId);
+    await onOrderStatusChanged({
+      orderId: order.id,
+      organizationId: user.organizationId ?? "",
+      clientId: order.clientId,
+      fromStatus: fromStatus ?? "draft",
+      toStatus: "accepted",
+      kind: "intake",
+    });
   } catch (err) {
     return { error: err instanceof Error ? err.message : "Nu am putut accepta aportul." };
   }
