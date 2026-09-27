@@ -7,6 +7,8 @@ export interface AppShellProps {
   orgName: string;
   logoUrl?: string;
   theme?: BrandTheme;
+  /** Cheia temei vizuale a organizatiei (`organizations.theme`). */
+  themeKey?: string;
   items: NavEntry[];
   /** Vezi `SidebarProps.showPlatformLogo`. */
   showPlatformLogo?: boolean;
@@ -21,13 +23,14 @@ export function AppShell({
   orgName,
   logoUrl,
   theme,
+  themeKey,
   items,
   showPlatformLogo,
   children,
 }: AppShellProps) {
   return (
-    <BrandProvider theme={theme}>
-      <div className="flex min-h-svh">
+    <BrandProvider theme={theme} themeKey={themeKey}>
+      <div className="flex min-h-svh bg-background text-foreground">
         <Sidebar
           orgName={orgName}
           logoUrl={logoUrl}

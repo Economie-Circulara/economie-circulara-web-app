@@ -3,6 +3,7 @@
 import { type ColumnDef } from "@tanstack/react-table";
 import { Boxes, Plus } from "lucide-react";
 import { notFound } from "next/navigation";
+import { use } from "react";
 import { AppShell } from "@/components/layout/app-shell";
 import { navForRole } from "@/components/layout/nav-config";
 import { PageHeader } from "@/components/page-header";
@@ -14,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { THEMES, THEME_KEYS, resolveThemeKey } from "@/features/branding/themes";
 
 type OrderRow = {
   id: string;
@@ -74,12 +76,29 @@ const columns: ColumnDef<OrderRow>[] = [
   },
 ];
 
-export default function ShowcasePage() {
+export default function ShowcasePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ theme?: string }>;
+}) {
+  const themeKey = resolveThemeKey(use(searchParams).theme);
   // Showcase-ul e doar pentru dezvoltare (design system); nu trebuie sa fie public in productie.
   if (process.env.NODE_ENV === "production") notFound();
 
   return (
-    <AppShell orgName="Lateris Demo" items={navForRole("admin")}>
+    <AppShell orgName="Lateris Demo" items={navForRole("admin")} themeKey={themeKey}>
+      {/* Previzualizare teme (T5): /showcase?theme=<cheie> */}
+      <nav className="flex flex-wrap gap-2 text-sm">
+        {THEME_KEYS.map((key) => (
+          <a
+            key={key}
+            href={`/showcase?theme=${key}`}
+            className={key === themeKey ? "font-semibold underline" : "text-muted-foreground"}
+          >
+            {THEMES[key].label}
+          </a>
+        ))}
+      </nav>
       <PageHeader
         title="Design system"
         breadcrumbs={[{ label: "Lot cu Lot" }, { label: "Showcase" }]}

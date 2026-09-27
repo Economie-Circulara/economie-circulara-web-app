@@ -9,6 +9,8 @@ export interface OrgBranding {
   logoUrl: string | null;
   primaryColor: string | null;
   secondaryColor: string | null;
+  /** Cheia temei vizuale (`organizations.theme`, 0036). */
+  theme: string;
 }
 
 export interface CurrentOrg extends OrgBranding {
@@ -42,7 +44,7 @@ export async function getCurrentOrg(): Promise<CurrentOrg | null> {
   const { data: org } = await supabase
     .from("organizations")
     .select(
-      "id, name, slug, custom_domain, logo_url, primary_color, secondary_color, email_from_name, email_from_address, cui, reg_com, address",
+      "id, name, slug, custom_domain, logo_url, primary_color, secondary_color, theme, email_from_name, email_from_address, cui, reg_com, address",
     )
     .eq("id", profile.organization_id)
     .single();
@@ -56,6 +58,7 @@ export async function getCurrentOrg(): Promise<CurrentOrg | null> {
     logoUrl: org.logo_url,
     primaryColor: org.primary_color,
     secondaryColor: org.secondary_color,
+    theme: org.theme,
     emailFromName: org.email_from_name,
     emailFromAddress: org.email_from_address,
     cui: org.cui,
@@ -90,5 +93,6 @@ export async function getOrgBranding(hint: TenantHint): Promise<OrgBranding | nu
     logoUrl: data.logo_url,
     primaryColor: data.primary_color,
     secondaryColor: data.secondary_color,
+    theme: data.theme,
   };
 }

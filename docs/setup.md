@@ -149,8 +149,12 @@ Pasi, per organizatie:
 3. **Supabase:** Authentication -> URL Configuration -> Redirect URLs -> adauga
    `https://trasabilitate.firma-a.ro/auth/callback`. Fara pas, Supabase respinge
    `redirectTo` si trimite userul pe Site URL.
-4. **Aplicatie:** seteaza `organizations.custom_domain = 'trasabilitate.firma-a.ro'`
-   (doar host, lowercase, fara `https://` si fara cale).
+4. **Aplicatie (ULTIMUL pas):** super-admin -> `/platform` -> organizatia -> "Domeniu
+   propriu" = `trasabilitate.firma-a.ro` (doar hostul; tot acolo se alege tema).
+   Doar super-adminul il poate schimba (migrarea `0036`).
+
+Domeniile planificate (2026-09): `app.etora.ro` si `app.maconxcx.ro`, fiecare pentru
+organizatia clientului respectiv.
 
 Efecte:
 

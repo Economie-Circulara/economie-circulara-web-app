@@ -39,7 +39,6 @@ export async function updateOrganizationAction(
       name,
       primary_color: clean(formData.get("primary_color")),
       secondary_color: clean(formData.get("secondary_color")),
-      custom_domain: clean(formData.get("custom_domain")),
       email_from_name: clean(formData.get("email_from_name")),
       email_from_address: clean(formData.get("email_from_address")),
       cui: clean(formData.get("cui")),
@@ -49,11 +48,7 @@ export async function updateOrganizationAction(
     .eq("id", user.organizationId);
 
   if (error) {
-    // Cel mai probabil: custom_domain deja folosit de alta organizatie (unique).
-    return {
-      error: "Nu am putut salva setarile. Verifica daca domeniul nu e deja folosit.",
-      message: null,
-    };
+    return { error: "Nu am putut salva setarile. Incearca din nou.", message: null };
   }
 
   // Tema/numele se reflecta in shell (sidebar) imediat.

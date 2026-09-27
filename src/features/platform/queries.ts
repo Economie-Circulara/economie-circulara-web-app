@@ -40,9 +40,16 @@ export async function listOrganizations(): Promise<OrganizationSummary[]> {
     name: org.name,
     slug: org.slug,
     customDomain: org.custom_domain,
+    theme: org.theme,
     status: org.status,
     createdAt: org.created_at,
     userCount: userCounts.get(org.id) ?? 0,
     accessUrl: buildAccessUrl(org.slug, org.custom_domain),
   }));
+}
+
+/** O singura organizatie, pentru ecranul de editare din /platform (doar super-admin). */
+export async function getOrganizationSummary(id: string): Promise<OrganizationSummary | null> {
+  const organizations = await listOrganizations();
+  return organizations.find((org) => org.id === id) ?? null;
 }

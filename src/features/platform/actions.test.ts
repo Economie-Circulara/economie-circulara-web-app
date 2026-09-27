@@ -3,13 +3,17 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 const { requireRole } = vi.hoisted(() => ({ requireRole: vi.fn() }));
 vi.mock("@/features/auth/session", () => ({ requireRole }));
 
-const { createOrganizationRow, inviteOrganizationAdmin, setOrganizationStatus } = vi.hoisted(
-  () => ({
-    createOrganizationRow: vi.fn(),
-    inviteOrganizationAdmin: vi.fn(),
-    setOrganizationStatus: vi.fn(),
-  }),
-);
+const {
+  createOrganizationRow,
+  inviteOrganizationAdmin,
+  setOrganizationStatus,
+  updateOrganizationAppearance,
+} = vi.hoisted(() => ({
+  createOrganizationRow: vi.fn(),
+  inviteOrganizationAdmin: vi.fn(),
+  setOrganizationStatus: vi.fn(),
+  updateOrganizationAppearance: vi.fn(),
+}));
 vi.mock("./service", async () => {
   const actual = await vi.importActual<typeof import("./service")>("./service");
   return {
@@ -17,6 +21,7 @@ vi.mock("./service", async () => {
     createOrganizationRow,
     inviteOrganizationAdmin,
     setOrganizationStatus,
+    updateOrganizationAppearance,
   };
 });
 
@@ -39,9 +44,19 @@ import {
   createOrganizationAction,
   reactivateOrganizationAction,
   suspendOrganizationAction,
+  updateOrganizationAppearanceAction,
 } from "./actions";
-import { initialCreateOrganizationState, initialOrgStatusState } from "./form-state";
-import { InviteFailedError, ProfileCreateFailedError, SlugTakenError } from "./service";
+import {
+  initialCreateOrganizationState,
+  initialOrgAppearanceState,
+  initialOrgStatusState,
+} from "./form-state";
+import {
+  DomainTakenError,
+  InviteFailedError,
+  ProfileCreateFailedError,
+  SlugTakenError,
+} from "./service";
 
 function formData(fields: Record<string, string>): FormData {
   const fd = new FormData();
@@ -221,5 +236,54 @@ describe("suspendOrganizationAction / reactivateOrganizationAction", () => {
     const state = await suspendOrganizationAction(initialOrgStatusState, formData({}));
     expect(state.error).toMatch(/invalida/i);
     expect(setOrganizationStatus).not.toHaveBeenCalled();
+  });
+});
+
+describe("updateOrganizationAppearanceAction", () => {
+  it("salveaza tema si domeniul normalizat", async () => {
+    updateOrganizationAppearance.mockResolvedValue(undefined);
+
+    const state = await updateOrganizationAppearanceAction(
+      initialOrgAppearanceState,
+      formData({
+        organization_id: "org-1",
+        theme: "industrial",
+        custom_domain: "https://App.Etora.ro/",
+      }),
+    );
+
+    expect(requireRole).toHaveBeenCalledWith(["super_admin"]);
+    expect(updateOrganizationAppearance).toHaveBeenCalledWith("org-1", {
+      theme: "industrial",
+      customDomain: "app.etora.ro",
+    });
+    expect(state.error).toBeNull();
+    expect(revalidatePath).toHaveBeenCalledWith("/platform");
+  });
+
+  it("respinge o tema necunoscuta si un domeniu invalid fara sa scrie", async () => {
+    const badTheme = await updateOrganizationAppearanceAction(
+      initialOrgAppearanceState,
+      formData({ organization_id: "org-1", theme: "neon", custom_domain: "" }),
+    );
+    const badDomain = await updateOrganizationAppearanceAction(
+      initialOrgAppearanceState,
+      formData({ organization_id: "org-1", theme: "teren", custom_domain: "app.etora.ro/x" }),
+    );
+
+    expect(badTheme.error).toMatch(/tema/i);
+    expect(badDomain.error).toMatch(/domeniu invalid/i);
+    expect(updateOrganizationAppearance).not.toHaveBeenCalled();
+  });
+
+  it("explica un domeniu deja folosit de alta organizatie", async () => {
+    updateOrganizationAppearance.mockRejectedValue(new DomainTakenError("app.etora.ro"));
+
+    const state = await updateOrganizationAppearanceAction(
+      initialOrgAppearanceState,
+      formData({ organization_id: "org-2", theme: "default", custom_domain: "app.etora.ro" }),
+    );
+
+    expect(state.error).toMatch(/deja folosit/);
   });
 });

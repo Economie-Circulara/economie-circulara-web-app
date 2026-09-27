@@ -7,6 +7,8 @@ export interface OrganizationSummary {
   name: string;
   slug: string;
   customDomain: string | null;
+  /** Cheia temei vizuale (`organizations.theme`). */
+  theme: string;
   status: OrgStatus;
   createdAt: string;
   /** Numar de profile (useri) legate de organizatie, indiferent de rol. */

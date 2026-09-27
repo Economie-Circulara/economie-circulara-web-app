@@ -86,7 +86,7 @@ Aceeasi codebase, acelasi proiect Vercel, aceeasi baza Supabase, dar:
 - Profil B propus (de validat vizual): meniu plat, „Producție” + „Rapoarte” sus, grup
   „Vânzări” (Comenzi, Livrări, Clienți); dashboard orientat pe reciclare/productie.
 
-### T5 - Sistem de teme (decizie 2026-09-25)
+### T5 - Sistem de teme (decizie 2026-09-25, implementat 2026-09-27)
 
 Tot ce tine de ASPECT e grupat in **teme cu nume**, alese per organizatie; ce tine de
 ORGANIZARE (meniu, dashboard, nume produs, text footer PDF) ramane in profil (T3/T4).
@@ -110,6 +110,12 @@ ORGANIZARE (meniu, dashboard, nume produs, text footer PDF) ramane in profil (T3
   `/platform`. `primary_color`/`secondary_color` raman override optional peste tema.
 - `/showcase?theme=<key>` pentru previzualizare; test: fiecare tema defineste toate
   variabilele cerute.
+- Implementare: metadate in `src/features/branding/themes.ts` (nu `src/config/`), CSS in
+  `src/app/themes.css`; fonturi Nunito Sans (teren), Barlow (industrial), Manrope
+  (ciclu); tema pe `<html>` = tema organizatiei de pe host, altfel a userului logat;
+  sidebar prin clasa `app-sidebar` + tokenii `--sidebar-*`; login „split” prin
+  `--login-panel-display`. Garda super-admin acopera si `custom_domain`, care a iesit
+  din setarile adminului organizatiei (devine read-only) si a intrat in `/platform/<id>`.
 
 ### T6 - Header/footer PDF per profil
 

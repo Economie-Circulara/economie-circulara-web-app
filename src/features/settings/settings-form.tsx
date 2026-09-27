@@ -169,16 +169,9 @@ export function SettingsForm({ org }: { org: CurrentOrg }) {
           <CardContent className="space-y-4">
             <FormField
               label="Domeniu personalizat"
-              hint="Ex. trace.firma.ro (configurat separat in DNS/Vercel)."
+              hint="Se configureaza de echipa platformei (DNS, Vercel, autentificare) - cere-l la suport."
             >
-              {(id) => (
-                <Input
-                  id={id}
-                  name="custom_domain"
-                  defaultValue={org.customDomain ?? ""}
-                  placeholder="trace.firma.ro"
-                />
-              )}
+              {(id) => <Input id={id} value={org.customDomain ?? "-"} readOnly disabled />}
             </FormField>
             <div className="grid gap-4 sm:grid-cols-2">
               <FormField label="Nume expeditor email">

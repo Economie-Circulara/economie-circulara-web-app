@@ -247,7 +247,7 @@ function PlatformLogoLink() {
 
 export function Sidebar({ orgName, logoUrl, items, showPlatformLogo = true }: SidebarProps) {
   return (
-    <aside className="sticky top-0 hidden h-svh w-60 shrink-0 flex-col border-r bg-card lg:flex">
+    <aside className="app-sidebar sticky top-0 hidden h-svh w-60 shrink-0 flex-col border-r bg-card lg:flex">
       <SidebarBrand orgName={orgName} logoUrl={logoUrl} />
       <SidebarNav items={items} />
       {showPlatformLogo ? <PlatformLogoLink /> : null}
@@ -266,7 +266,7 @@ export function MobileSidebar({ orgName, logoUrl, items }: SidebarProps) {
           <span className="sr-only">Deschide meniul</span>
         </Button>
       </SheetTrigger>
-      <SheetContent aria-describedby="mobile-sidebar-description">
+      <SheetContent aria-describedby="mobile-sidebar-description" className="app-sidebar">
         <SheetTitle className="sr-only">Navigație</SheetTitle>
         <SheetDescription id="mobile-sidebar-description" className="sr-only">
           Meniu principal pentru navigarea în aplicație.

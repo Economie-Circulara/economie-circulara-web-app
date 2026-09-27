@@ -7,9 +7,16 @@
  *
  * White labeling: o organizatie poate suprascrie --brand si --accent in runtime
  * (vezi src/components/brand-provider.tsx). Toti tokenii semantici deriva din acestia.
+ *
+ * Teme (plan multi-domain-tenant-profiles, T5): tema implicita e definita mai jos pe
+ * `:root` + `[data-theme="default"]`; celelalte in `themes.css`. Tokenii DERIVATI
+ * (--background, --primary, sidebar, pattern, ...) sunt redeclarati pe ORICE element
+ * `[data-theme]`, ca sa fie recalculati din primitivele temei acelui element (o
+ * proprietate custom cu var() se rezolva pe elementul unde e declarata).
  */
 
-:root {
+:root,
+[data-theme="default"] {
   /* --- Paleta de baza (din mockup) --- */
   --brand: oklch(0.32 0.04 158); /* verde inchis - identitate */
   --accent: oklch(0.74 0.13 66); /* ocru - accent viu */
@@ -35,26 +42,7 @@
   --info: oklch(0.52 0.07 230);
   --info-bg: oklch(0.94 0.035 230);
 
-  /* --- Mapare catre tokenii semantici shadcn/ui --- */
-  --background: var(--paper);
-  --foreground: var(--ink);
-  --card: var(--surface);
-  --card-foreground: var(--ink);
-  --popover: var(--surface);
-  --popover-foreground: var(--ink);
-  --primary: var(--brand);
-  --primary-foreground: var(--surface);
-  --secondary: var(--surface-2);
-  --secondary-foreground: var(--ink);
-  --muted: var(--surface-2);
-  --muted-foreground: var(--muted-ink);
-  --accent-foreground: var(--on-accent);
-  --destructive: var(--danger);
-  --destructive-foreground: var(--surface);
-  --border: var(--line);
-  --input: var(--line);
-  --ring: var(--brand);
-
+  --app-font-sans: var(--font-archivo), system-ui, sans-serif;
   --radius: 0.5rem;
 }
 
@@ -71,7 +59,8 @@
  * contrast --primary-foreground/--destructive-foreground, care NU mai pot ramane
  * legate de --surface caci acesta devine intunecat in tema dark).
  */
-.dark {
+.dark,
+.dark [data-theme="default"] {
   --brand: oklch(0.64 0.1 155);
   --accent: oklch(0.78 0.12 66);
   --accent-soft: oklch(0.3 0.045 75);
@@ -94,13 +83,59 @@
   --danger-bg: oklch(0.3 0.07 25);
   --info: oklch(0.64 0.08 230);
   --info-bg: oklch(0.28 0.05 230);
+}
 
-  /* --primary-foreground/--destructive-foreground sunt aliasate la --surface in
-     :root (deschisa acolo) - in dark, --surface devine intunecata, deci textul de
-     pe butoane primary/destructive ar deveni ilizibil daca ramanea legat de ea. */
+/* --- Tokeni derivati: recalculati pe fiecare element cu tema (vezi antetul) --- */
+:root,
+[data-theme] {
+  /* --- Mapare catre tokenii semantici shadcn/ui --- */
+  --background: var(--paper);
+  --foreground: var(--ink);
+  --card: var(--surface);
+  --card-foreground: var(--ink);
+  --popover: var(--surface);
+  --popover-foreground: var(--ink);
+  --primary: var(--brand);
+  --primary-foreground: var(--surface);
+  --secondary: var(--surface-2);
+  --secondary-foreground: var(--ink);
+  --muted: var(--surface-2);
+  --muted-foreground: var(--muted-ink);
+  --accent-foreground: var(--on-accent);
+  --destructive: var(--danger);
+  --destructive-foreground: var(--surface);
+  --border: var(--line);
+  --input: var(--line);
+  --ring: var(--brand);
+
+  /* Sidebar - implicit ca un card; temele cu sidebar inchis/colorat suprascriu. */
+  --sidebar-bg: var(--surface);
+  --sidebar-fg: var(--ink);
+  --sidebar-muted: var(--muted-ink);
+  --sidebar-hover: var(--surface-2);
+  --sidebar-active-bg: var(--brand);
+  --sidebar-active-fg: var(--primary-foreground);
+  --sidebar-border: var(--line);
+
+  /* Pattern de fundal (.bg-pattern) si panoul lateral de pe login (implicit ascuns). */
+  --pattern-image: radial-gradient(var(--grid-dot) 1px, transparent 1px);
+  --pattern-size: 26px 26px;
+  --login-panel-display: none;
+
+  font-family: var(--app-font-sans);
+}
+
+/* --primary-foreground/--destructive-foreground sunt aliasate la --surface (deschisa
+   in light) - in dark, --surface devine intunecata, deci textul de pe butoanele
+   primary/destructive ar deveni ilizibil daca ramanea legat de ea. */
+.dark,
+.dark [data-theme] {
   --primary-foreground: oklch(0.98 0.004 95);
   --destructive-foreground: oklch(0.98 0.004 95);
 }
+
+/* Temele (data-theme) sunt in themes.css, importat DUPA acest fisier in layout.tsx -
+   ordinea conteaza: blocurile temelor trebuie sa suprascrie tokenii derivati de mai sus. */
 
 @theme inline {
   --color-background: var(--background);
@@ -134,7 +169,7 @@
   --color-info-bg: var(--info-bg);
   --color-surface-2: var(--surface-2);
 
-  --font-sans: var(--font-archivo), system-ui, sans-serif;
+  --font-sans: var(--app-font-sans);
   --font-mono: var(--font-ibm-plex-mono), monospace;
   --font-serif: var(--font-spectral), serif;
 
@@ -150,12 +185,37 @@
   body {
     background-color: var(--background);
     color: var(--foreground);
-    font-family: var(--font-sans);
+    font-family: var(--app-font-sans);
   }
 }
 
-/* Pattern subtil de fundal - grid de puncte (din mockup). */
+/* Pattern subtil de fundal - implicit grid de puncte (din mockup); temele il schimba. */
 .bg-pattern {
-  background-image: radial-gradient(var(--grid-dot) 1px, transparent 1px);
-  background-size: 26px 26px;
+  background-image: var(--pattern-image);
+  background-size: var(--pattern-size);
+}
+
+/* Sidebar-ul (desktop + mobil) isi remapeaza tokenii semantici pe cei de sidebar ai
+   temei - componentele din interior folosesc aceleasi clase (bg-card, text-muted-...). */
+.app-sidebar {
+  --card: var(--sidebar-bg);
+  --foreground: var(--sidebar-fg);
+  --muted-foreground: var(--sidebar-muted);
+  --secondary: var(--sidebar-hover);
+  --primary: var(--sidebar-active-bg);
+  --primary-foreground: var(--sidebar-active-fg);
+  --border: var(--sidebar-border);
+  background-color: var(--card);
+  color: var(--foreground);
+}
+
+/* Panoul decorativ de pe ecranele de autentificare - afisat doar de temele cu login
+   „split” si doar pe ecrane late. */
+.auth-panel {
+  display: none;
+}
+@media (min-width: 1024px) {
+  .auth-panel {
+    display: var(--login-panel-display);
+  }
 }

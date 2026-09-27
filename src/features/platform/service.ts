@@ -37,6 +37,37 @@ export class ProfileCreateFailedError extends Error {
   }
 }
 
+/** Domeniul propriu e deja folosit de alta organizatie (`organizations.custom_domain` unic). */
+export class DomainTakenError extends Error {
+  constructor(public readonly domain: string) {
+    super(`Domeniul "${domain}" este deja folosit.`);
+    this.name = "DomainTakenError";
+  }
+}
+
+/**
+ * Seteaza tema vizuala si domeniul propriu ale unei organizatii (super-admin). Ruleaza
+ * pe sesiunea super-adminului: trigger-ul din 0036 respinge aceleasi campuri pentru
+ * oricine altcineva, deci nu e nevoie de clientul service-role.
+ */
+export async function updateOrganizationAppearance(
+  organizationId: string,
+  settings: { theme: string; customDomain: string | null },
+): Promise<void> {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("organizations")
+    .update({ theme: settings.theme, custom_domain: settings.customDomain })
+    .eq("id", organizationId);
+
+  if (error) {
+    if (error.code === ERR_UNIQUE_VIOLATION && settings.customDomain) {
+      throw new DomainTakenError(settings.customDomain);
+    }
+    throw new Error("Nu am putut salva setarile organizatiei.");
+  }
+}
+
 /**
  * Creeaza randul organizatiei (clientul admin service-role, cerut de Task I: operatie
  * de administrare a platformei, nu tine de sesiunea/RLS-ul unui tenant). Nu invita

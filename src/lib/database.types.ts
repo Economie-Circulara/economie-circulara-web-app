@@ -1186,6 +1186,7 @@ export type Database = {
           secondary_color: string | null
           slug: string
           status: Database["public"]["Enums"]["org_status"]
+          theme: string
           updated_at: string
         }
         Insert: {
@@ -1206,6 +1207,7 @@ export type Database = {
           secondary_color?: string | null
           slug: string
           status?: Database["public"]["Enums"]["org_status"]
+          theme?: string
           updated_at?: string
         }
         Update: {
@@ -1226,6 +1228,7 @@ export type Database = {
           secondary_color?: string | null
           slug?: string
           status?: Database["public"]["Enums"]["org_status"]
+          theme?: string
           updated_at?: string
         }
         Relationships: []
@@ -1957,6 +1960,7 @@ export type Database = {
           primary_color: string
           secondary_color: string
           slug: string
+          theme: string
         }[]
       }
       set_lot_block: {

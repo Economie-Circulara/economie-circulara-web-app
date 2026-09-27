@@ -4,6 +4,7 @@ import { navForRole } from "@/components/layout/nav-config";
 import { Topbar } from "@/components/layout/topbar";
 import { getCurrentOrg } from "@/features/auth/queries";
 import { productNameFor } from "@/features/branding/tenant-profiles";
+import { resolveThemeKey } from "@/features/branding/themes";
 import { ROLE_LABELS } from "@/features/auth/roles";
 import { requireUser } from "@/features/auth/session";
 import { SignOutButton } from "@/features/auth/sign-out-button";
@@ -53,6 +54,7 @@ export default async function HelpLayout({ children }: { children: React.ReactNo
       theme={{ brand: org?.primaryColor ?? undefined, accent: org?.secondaryColor ?? undefined }}
       items={items}
       showPlatformLogo={productNameFor(org) === PLATFORM_NAME}
+      themeKey={resolveThemeKey(org?.theme)}
     >
       <Topbar
         email={user.email}

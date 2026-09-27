@@ -346,6 +346,14 @@ Testele unitare sunt **colocate** langa cod (`*.test.ts` / `*.test.tsx`).
   ORGANIZATIEI (`organizations.custom_domain`), nu domeniul de pe care s-a facut
   cererea; userul unui tenant e redirectionat pe domeniul lui, super-adminul e
   exceptat. „Lot cu Lot” nu apare pe domeniile tenantilor.
+  - **Tema vizuala (`organizations.theme`) si domeniul propriu (`custom_domain`) le
+    schimba DOAR super-adminul** (`/platform/<id>`, trigger in `0036_org_theme.sql`):
+    un domeniu gresit setat de adminul organizatiei ar redirectiona toti userii ei pe
+    o adresa neconfigurata. Adminul organizatiei pastreaza doar culorile.
+  - O tema noua = cheie in `src/features/branding/themes.ts` + bloc light/dark in
+    `src/app/themes.css` + valoare in CHECK-ul din migrare (`themes.test.ts` verifica
+    toate trei). Temele se aplica prin `data-theme` pe `<html>` (dialogurile sunt in
+    portal) si pe `AppShell`; tokenii derivati se redeclara pe orice `[data-theme]`.
 
 ### 4.1 Limitari cunoscute / trade-off-uri acceptate
 
