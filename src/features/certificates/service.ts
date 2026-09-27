@@ -1,5 +1,5 @@
 import { PLATFORM_NAME } from "@/lib/brand";
-import { issuerCreditFor } from "@/features/branding/tenant-profiles";
+import { pdfBrandFor, pdfBrandProps, type PdfBrand } from "@/features/branding/pdf-brand";
 import { createElement } from "react";
 import { renderToBuffer } from "@react-pdf/renderer";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -164,10 +164,8 @@ interface CertificateIssuer {
   cui?: string | null;
   regCom?: string | null;
   address?: string | null;
-  brandColor?: string | null;
-  accentColor?: string | null;
-  /** Creditul din subsol - vezi `issuerCreditFor` (features/branding). */
-  issuerCredit?: string | null;
+  /** Identitatea documentului (antet, subtitlu, subsol) - vezi `pdfBrandFor`. */
+  brand: PdfBrand;
 }
 
 /** Randeaza PDF-ul certificatului (buffer) - vezi decizia S3/PDF in pdf.tsx. */
@@ -183,9 +181,7 @@ async function renderCertificatePdf(
     orgCui: issuer.cui ?? undefined,
     orgRegCom: issuer.regCom ?? undefined,
     orgAddress: issuer.address ?? undefined,
-    brandColor: issuer.brandColor ?? undefined,
-    accentColor: issuer.accentColor ?? undefined,
-    issuerCredit: issuer.issuerCredit,
+    ...pdfBrandProps(issuer.brand),
   });
   // `renderToBuffer` tipizeaza strict argumentul ca `ReactElement<DocumentProps>`
   // (props-urile <Document>-ului react-pdf), desi accepta la runtime orice element
@@ -233,7 +229,9 @@ export async function generateCertificateForOrder(
 
   const { data: org } = await supabase
     .from("organizations")
-    .select("name, slug, custom_domain, cui, reg_com, address, primary_color, secondary_color")
+    .select(
+      "name, slug, custom_domain, theme, cui, reg_com, address, primary_color, secondary_color",
+    )
     .eq("id", organizationId)
     .maybeSingle();
 
@@ -243,10 +241,17 @@ export async function generateCertificateForOrder(
     cui: org?.cui,
     regCom: org?.reg_com,
     address: org?.address,
-    brandColor: org?.primary_color,
-    accentColor: org?.secondary_color,
-    issuerCredit: issuerCreditFor(
-      org ? { slug: org.slug, name: org.name, customDomain: org.custom_domain } : null,
+    brand: pdfBrandFor(
+      org
+        ? {
+            slug: org.slug,
+            name: org.name,
+            customDomain: org.custom_domain,
+            theme: org.theme,
+            primaryColor: org.primary_color,
+            secondaryColor: org.secondary_color,
+          }
+        : null,
     ),
   });
 

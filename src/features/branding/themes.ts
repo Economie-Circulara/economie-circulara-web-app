@@ -17,12 +17,22 @@ export type ThemeKey = (typeof THEME_KEYS)[number];
 
 export const DEFAULT_THEME: ThemeKey = "default";
 
+/**
+ * Stilul header-ului din PDF-uri (certificat, aviz, rapoarte) - vezi
+ * `src/lib/pdf/document-header.tsx`:
+ *  - `bar`  - banda subtire de accent sus + linie sub antet (stilul initial);
+ *  - `band` - antet pe fundal plin in culoarea brandului, text alb;
+ *  - `rule` - bara verticala de accent langa numele organizatiei, fara banda sus.
+ */
+export type PdfHeaderVariant = "bar" | "band" | "rule";
+
 export interface ThemeDefinition {
   key: ThemeKey;
   label: string;
   description: string;
-  /** Mostre (hex) pentru selectorul din /platform si pentru PDF-uri (T6). */
+  /** Mostre (hex) pentru selectorul din /platform si culorile implicite din PDF-uri. */
   swatches: { brand: string; accent: string; paper: string; sidebar: string };
+  pdfHeader: PdfHeaderVariant;
 }
 
 export const THEMES: Record<ThemeKey, ThemeDefinition> = {
@@ -31,6 +41,7 @@ export const THEMES: Record<ThemeKey, ThemeDefinition> = {
     label: "Clasic",
     description: "Verde închis și ocru, font Archivo, colțuri medii, fundal cu puncte.",
     swatches: { brand: "#1f4a37", accent: "#d69a3a", paper: "#f7f5ef", sidebar: "#fdfcf9" },
+    pdfHeader: "bar",
   },
   teren: {
     key: "teren",
@@ -38,6 +49,7 @@ export const THEMES: Record<ThemeKey, ThemeDefinition> = {
     description:
       "Tonuri calde de pământ (teracotă și nisip), font rotunjit, colțuri mari, login cu panou lateral.",
     swatches: { brand: "#9a4a2c", accent: "#d4a94a", paper: "#faf5ee", sidebar: "#fffcf8" },
+    pdfHeader: "band",
   },
   industrial: {
     key: "industrial",
@@ -45,6 +57,7 @@ export const THEMES: Record<ThemeKey, ThemeDefinition> = {
     description:
       "Antracit cu accent portocaliu, font tehnic, colțuri drepte, grilă fină, meniu lateral închis.",
     swatches: { brand: "#2e3440", accent: "#e8742a", paper: "#f3f4f6", sidebar: "#23272f" },
+    pdfHeader: "rule",
   },
   ciclu: {
     key: "ciclu",
@@ -52,6 +65,7 @@ export const THEMES: Record<ThemeKey, ThemeDefinition> = {
     description:
       "Verde-teal cu accent lime, font geometric, fundal cu linii diagonale, meniu lateral colorat.",
     swatches: { brand: "#11706c", accent: "#9ccc3c", paper: "#f2f8f7", sidebar: "#0f5f5c" },
+    pdfHeader: "band",
   },
 };
 

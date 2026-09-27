@@ -117,11 +117,21 @@ ORGANIZARE (meniu, dashboard, nume produs, text footer PDF) ramane in profil (T3
   `--login-panel-display`. Garda super-admin acopera si `custom_domain`, care a iesit
   din setarile adminului organizatiei (devine read-only) si a intrat in `/platform/<id>`.
 
-### T6 - Header/footer PDF per profil
+### T6 - Header/footer PDF per tema + profil (implementat 2026-09-27)
 
-- Certificat, aviz, raport PDF: stilul header-ului (layout + culori) din TEMA, textul
-  din footer (ex. date firma / „Document generat de <productName>”) din PROFIL.
-- Test: randarea foloseste valorile din profil (fara snapshot binar).
+- `src/lib/pdf/document-chrome.tsx`: `PdfDocumentHeader` + `PdfDocumentFooter`, comune
+  certificatului, avizului si rapoartelor (inainte: 3 copii ale aceluiasi antet).
+  Trei variante de antet, alese de tema (`ThemeDefinition.pdfHeader`): `bar` (initial -
+  Clasic), `band` (fundal plin in culoarea brandului - Teren, Ciclu), `rule` (bara
+  verticala de accent, titlu cu majuscule - Industrial). Subsolul ia culoarea brandului
+  in varianta `band`.
+- `src/features/branding/pdf-brand.ts#pdfBrandFor(org)`: culorile = cele hex ale
+  organizatiei, altfel mostrele temei (valorile ne-hex, ex. `oklch()`, sunt ignorate -
+  @react-pdf nu le suporta); subtitlul (`documentTagline`, implicit „Materiale de
+  construcții circulare”) si nota din subsol (`documentFooterNote`) din profil;
+  creditul „emis de” ca in T3.
+- Teste: `pdf-brand.test.ts` + randare REALA (fara mock) pentru fiecare varianta de
+  antet in `src/lib/pdf/render.test.tsx`.
 
 ### T7 - Configurare si documentatie
 

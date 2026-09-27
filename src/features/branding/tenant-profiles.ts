@@ -16,7 +16,14 @@ export interface TenantProfile {
    * platformei.
    */
   productName?: string;
+  /** Subtitlul de sub numele organizatiei in antetul PDF-urilor. */
+  documentTagline?: string;
+  /** Nota din subsolul PDF-urilor (ex. date de contact); lipsa = fara nota. */
+  documentFooterNote?: string;
 }
+
+/** Subtitlul implicit din antetul PDF-urilor (textul folosit pana acum). */
+export const DEFAULT_DOCUMENT_TAGLINE = "Materiale de construcții circulare";
 
 export const DEFAULT_PROFILE: TenantProfile = {};
 

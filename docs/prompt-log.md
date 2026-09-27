@@ -4,6 +4,15 @@ Jurnal al sarcinilor lucrate de agenti AI in acest repo. Conform regulii 1.2 din
 [`AGENTS.md`](../AGENTS.md), la **fiecare commit** se adauga o intrare aici.
 Cele mai noi intrari sus.
 
+## 2026-09-27 — Claude Opus 5.5 (Claude Code) — Antet/subsol PDF dupa tema si profil (T6)
+
+- **Cerut:** T6 si T4 („amandoua”); aici T6.
+- **Facut:** antet + subsol comune pentru certificat/aviz/rapoarte
+  (`src/lib/pdf/document-chrome.tsx`), trei variante de antet alese de tema
+  (`bar`/`band`/`rule`); `pdfBrandFor` (culori org -> tema, subtitlu + nota de subsol
+  din profil, credit). Subtitlul hardcodat „Materiale de construcții circulare” a
+  devenit `documentTagline` in profil. Teste de randare reala pe fiecare varianta.
+
 ## 2026-09-27 — Claude Opus 5.5 (Claude Code) — Sistem de teme (T5)
 
 - **Cerut:** T5 - teme selectabile per organizatie (default + 3); domeniile planificate

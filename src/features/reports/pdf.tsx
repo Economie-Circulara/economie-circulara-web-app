@@ -3,6 +3,9 @@ import { createElement } from "react";
 import { Document, Page, StyleSheet, Text, View, renderToBuffer } from "@react-pdf/renderer";
 import { PDF_FONT_FAMILY, registerPdfFonts } from "@/lib/pdf/fonts";
 import { formatRangeLabel, type DateRange } from "./period";
+import type { PdfHeaderVariant } from "@/features/branding/themes";
+import { DEFAULT_DOCUMENT_TAGLINE } from "@/features/branding/tenant-profiles";
+import { PdfDocumentFooter, PdfDocumentHeader } from "@/lib/pdf/document-chrome";
 
 /**
  * PDF generic de raport (Task X3) - acelasi motor ca certificatele
@@ -36,6 +39,12 @@ export interface ReportPdfDocumentProps {
    * `null` = fara credit (produsul poarta chiar numele organizatiei); lipsa = platforma.
    */
   issuerCredit?: string | null;
+  /** Stilul antetului, din tema organizatiei (`pdfBrandFor`). */
+  headerVariant?: PdfHeaderVariant;
+  /** Subtitlul de sub numele organizatiei, din profilul tenantului. */
+  tagline?: string;
+  /** Nota din subsol, din profilul tenantului. */
+  footerNote?: string | null;
   brandColor?: string | null;
   accentColor?: string | null;
   columns: ReportPdfColumn[];
@@ -47,20 +56,7 @@ export interface ReportPdfDocumentProps {
 
 const styles = StyleSheet.create({
   page: { paddingBottom: 40, fontSize: 9.5, fontFamily: PDF_FONT_FAMILY, color: "#1c2b20" },
-  topBar: { height: 6, backgroundColor: "#4d6b53" },
-  body: { paddingHorizontal: 36, paddingTop: 26 },
-  headerRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    borderBottomWidth: 2,
-    borderBottomColor: "#1c2b20",
-    paddingBottom: 14,
-    marginBottom: 16,
-  },
-  orgName: { fontSize: 15, fontWeight: 700 },
-  orgSub: { fontSize: 8.5, color: "#6b7a70", marginTop: 2 },
-  reportTitle: { fontSize: 12.5, fontWeight: 700, textAlign: "right" },
-  reportMeta: { fontSize: 8.5, color: "#6b7a70", textAlign: "right", marginTop: 3 },
+  body: { paddingHorizontal: 36 },
   description: { fontSize: 9, color: "#5c6b60", marginBottom: 14 },
   table: { marginBottom: 16 },
   tableHeaderRow: {
@@ -111,6 +107,9 @@ export function ReportPdfDocument({
   range,
   orgName,
   issuerCredit = PLATFORM_NAME,
+  headerVariant = "bar",
+  tagline = DEFAULT_DOCUMENT_TAGLINE,
+  footerNote = null,
   brandColor = DEFAULT_BRAND_COLOR,
   accentColor = DEFAULT_ACCENT_COLOR,
   columns,
@@ -121,25 +120,20 @@ export function ReportPdfDocument({
   return (
     <Document title={reportTitle}>
       <Page size="A4" style={styles.page}>
-        <View
-          style={[styles.topBar, { backgroundColor: accentColor ?? DEFAULT_ACCENT_COLOR }]}
-          fixed
+        <PdfDocumentHeader
+          variant={headerVariant}
+          brandColor={brandColor ?? DEFAULT_BRAND_COLOR}
+          accentColor={accentColor ?? DEFAULT_ACCENT_COLOR}
+          paddingX={36}
+          orgName={orgName}
+          orgLines={[tagline]}
+          title={reportTitle}
+          meta={[
+            `Perioadă: ${formatRangeLabel(range)}`,
+            `Generat: ${dateFormatter.format(new Date())}`,
+          ]}
         />
         <View style={styles.body}>
-          <View style={styles.headerRow}>
-            <View>
-              <Text style={[styles.orgName, { color: brandColor ?? DEFAULT_BRAND_COLOR }]}>
-                {orgName}
-              </Text>
-              <Text style={styles.orgSub}>Materiale de construcții circulare</Text>
-            </View>
-            <View>
-              <Text style={styles.reportTitle}>{reportTitle}</Text>
-              <Text style={styles.reportMeta}>Perioadă: {formatRangeLabel(range)}</Text>
-              <Text style={styles.reportMeta}>Generat: {dateFormatter.format(new Date())}</Text>
-            </View>
-          </View>
-
           {reportDescription ? <Text style={styles.description}>{reportDescription}</Text> : null}
 
           <View style={styles.table}>
@@ -182,14 +176,15 @@ export function ReportPdfDocument({
           ) : null}
         </View>
 
-        <View style={styles.pageFooter} fixed>
-          <Text>
-            {issuerCredit
-              ? `${orgName} · raport generat de ${issuerCredit}`
-              : `${orgName} · raport`}
-          </Text>
-          <Text render={({ pageNumber, totalPages }) => `pagina ${pageNumber}/${totalPages}`} />
-        </View>
+        <PdfDocumentFooter
+          variant={headerVariant}
+          brandColor={brandColor ?? DEFAULT_BRAND_COLOR}
+          paddingX={36}
+          label={
+            issuerCredit ? `${orgName} · raport generat de ${issuerCredit}` : `${orgName} · raport`
+          }
+          note={footerNote}
+        />
       </Page>
     </Document>
   );
