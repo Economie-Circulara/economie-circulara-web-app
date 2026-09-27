@@ -4,7 +4,7 @@ import type { NavLayoutKey } from "@/components/layout/nav-config";
  * Organizarea aplicatiei per organizatie (plan multi-domain-tenant-profiles, T4):
  * gruparea meniului + aranjamentul panoului de control. Se alege in /platform
  * (`organizations.layout`, doar super-admin), la fel ca tema - independent de ea.
- * O cheie noua cere: definitie aici + CHECK-ul din migrarea 0037 + `navForRole` +
+ * O cheie noua cere: definitie aici + CHECK-ul din migrarea 0046 + `navForRole` +
  * aranjamentul din `src/app/(admin)/dashboard/page.tsx` (`layouts.test.ts` verifica
  * CHECK-ul).
  */

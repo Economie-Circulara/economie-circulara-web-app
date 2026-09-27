@@ -1,5 +1,5 @@
 -- =============================================================================
--- 0036 - Tema vizuala per organizatie + domeniul propriu doar de super-admin
+-- 0045 - Tema vizuala per organizatie + domeniul propriu doar de super-admin
 -- (plan: docs/plans/multi-domain-tenant-profiles.md, T5).
 --
 -- 1. `organizations.theme`: cheia temei vizuale (paleta, font, colturi, pattern,

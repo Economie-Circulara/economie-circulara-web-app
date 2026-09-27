@@ -348,7 +348,7 @@ Testele unitare sunt **colocate** langa cod (`*.test.ts` / `*.test.tsx`).
   exceptat. „Lot cu Lot” nu apare pe domeniile tenantilor.
   - **Tema vizuala (`organizations.theme`), organizarea (`layout`, meniu + panou) si
     domeniul propriu (`custom_domain`) le schimba DOAR super-adminul** (`/platform/<id>`,
-    trigger din `0036_org_theme.sql`, extins in `0037_org_layout.sql`):
+    trigger din `0045_org_theme.sql`, extins in `0046_org_layout.sql`):
     un domeniu gresit setat de adminul organizatiei ar redirectiona toti userii ei pe
     o adresa neconfigurata. Adminul organizatiei pastreaza doar culorile.
   - O tema noua = cheie in `src/features/branding/themes.ts` + bloc light/dark in

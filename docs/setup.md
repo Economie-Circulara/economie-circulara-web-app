@@ -151,7 +151,7 @@ Pasi, per organizatie:
    `redirectTo` si trimite userul pe Site URL.
 4. **Aplicatie (ULTIMUL pas):** super-admin -> `/platform` -> organizatia -> "Domeniu
    propriu" = `trasabilitate.firma-a.ro` (doar hostul; tot acolo se alege tema).
-   Doar super-adminul il poate schimba (migrarea `0036`).
+   Doar super-adminul il poate schimba (migrarea `0045`).
 
 Domeniile planificate (2026-09): `app.etora.ro` si `app.maconxcx.ro`, fiecare pentru
 organizatia clientului respectiv.

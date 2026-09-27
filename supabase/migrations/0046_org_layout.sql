@@ -1,11 +1,11 @@
 -- =============================================================================
--- 0037 - Organizarea aplicatiei per organizatie (meniu + panou de control)
+-- 0046 - Organizarea aplicatiei per organizatie (meniu + panou de control)
 -- (plan: docs/plans/multi-domain-tenant-profiles.md, T4).
 --
 -- `organizations.layout`: `standard` (meniul/panoul initiale) sau `flux` (acelasi set
 -- de pagini, grupat pe activitati + panou orientat pe actiuni). Definitiile sunt in
 -- cod (src/features/branding/layouts.ts); aici doar cheia, validata de CHECK.
--- Ca tema si domeniul (0036), o schimba DOAR super-adminul - garda din 0036 e
+-- Ca tema si domeniul (0045), o schimba DOAR super-adminul - garda din 0045 e
 -- extinsa cu noua coloana.
 -- =============================================================================
 

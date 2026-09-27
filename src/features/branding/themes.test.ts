@@ -7,7 +7,7 @@ const APP_DIR = path.join(process.cwd(), "src", "app");
 const themesCss = readFileSync(path.join(APP_DIR, "themes.css"), "utf8");
 const globalsCss = readFileSync(path.join(APP_DIR, "globals.css"), "utf8");
 const migration = readFileSync(
-  path.join(process.cwd(), "supabase", "migrations", "0036_org_theme.sql"),
+  path.join(process.cwd(), "supabase", "migrations", "0045_org_theme.sql"),
   "utf8",
 );
 

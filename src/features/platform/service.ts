@@ -47,7 +47,7 @@ export class DomainTakenError extends Error {
 
 /**
  * Seteaza tema vizuala, organizarea (meniu + panou) si domeniul propriu ale unei organizatii (super-admin). Ruleaza
- * pe sesiunea super-adminului: trigger-ul din 0036 respinge aceleasi campuri pentru
+ * pe sesiunea super-adminului: trigger-ul din 0045 respinge aceleasi campuri pentru
  * oricine altcineva, deci nu e nevoie de clientul service-role.
  */
 export async function updateOrganizationAppearance(

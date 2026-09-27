@@ -79,7 +79,7 @@ Aceeasi codebase, acelasi proiect Vercel, aceeasi baza Supabase, dar:
 ### T4 - Organizare: meniu + panou de control (implementat 2026-09-27)
 
 Decizie (2026-09-27): organizarea se ALEGE in `/platform` (`organizations.layout`,
-migrarea `0037`, doar super-admin), la fel ca tema - nu se leaga in cod de slug-ul
+migrarea `0046`, doar super-admin), la fel ca tema - nu se leaga in cod de slug-ul
 organizatiei (slug-urile clientilor nu erau inca stiute, iar asa se poate schimba
 fara deploy). Tema si organizarea sunt independente.
 

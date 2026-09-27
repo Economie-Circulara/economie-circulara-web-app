@@ -1018,7 +1018,7 @@ begin;
 rollback;
 
 -- ===========================================================================
--- B24: tema, organizarea (0036/0037) si domeniul propriu - adminul organizatiei NU
+-- B24: tema, organizarea (0045/0046) si domeniul propriu - adminul organizatiei NU
 --      le poate schimba (insufficient_privilege); restul setarilor raman editabile.
 -- ===========================================================================
 begin;

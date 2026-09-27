@@ -9,12 +9,12 @@ export interface OrgBranding {
   logoUrl: string | null;
   primaryColor: string | null;
   secondaryColor: string | null;
-  /** Cheia temei vizuale (`organizations.theme`, 0036). */
+  /** Cheia temei vizuale (`organizations.theme`, 0045). */
   theme: string;
 }
 
 export interface CurrentOrg extends OrgBranding {
-  /** Organizarea meniului + panoului (`organizations.layout`, 0037). */
+  /** Organizarea meniului + panoului (`organizations.layout`, 0046). */
   layout: string;
   emailFromName: string | null;
   emailFromAddress: string | null;

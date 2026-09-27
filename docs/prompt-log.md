@@ -17,7 +17,7 @@ Cele mai noi intrari sus.
 ## 2026-09-27 — Claude Opus 5.5 (Claude Code) — Organizare meniu + panou per organizatie (T4)
 
 - **Cerut:** T4 („diferit dar usable”), dupa T6.
-- **Facut:** migrarea `0037_org_layout.sql` (`organizations.layout` `standard`/`flux`,
+- **Facut:** migrarea `0046_org_layout.sql` (`organizations.layout` `standard`/`flux`,
   garda super-admin extinsa, test B24). Meniul `flux` (`STAFF_NAV_FLUX`, aceleasi
   rute/roluri, grupat pe activitati; portal client cu „Comenzile mele” primul) si
   panoul `flux` („Acasă”: atentie + actiuni rapide, apoi comenzi + indicatori, grafic).
@@ -37,7 +37,7 @@ Cele mai noi intrari sus.
 
 - **Cerut:** T5 - teme selectabile per organizatie (default + 3); domeniile planificate
   `app.etora.ro` / `app.maconxcx.ro`.
-- **Facut:** migrarea `0036_org_theme.sql` (`organizations.theme` + CHECK, trigger care
+- **Facut:** migrarea `0045_org_theme.sql` (`organizations.theme` + CHECK, trigger care
   permite doar super-adminului sa schimbe tema si `custom_domain`, `org_branding`
   intoarce tema) + test B24 in `business_flow.sql`. Teme `default`/`teren`/
   `industrial`/`ciclu` (`src/features/branding/themes.ts`, `src/app/themes.css`):

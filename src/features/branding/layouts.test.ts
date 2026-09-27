@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 import { DEFAULT_LAYOUT, LAYOUTS, LAYOUT_KEYS, resolveLayoutKey } from "./layouts";
 
 const migration = readFileSync(
-  path.join(process.cwd(), "supabase", "migrations", "0037_org_layout.sql"),
+  path.join(process.cwd(), "supabase", "migrations", "0046_org_layout.sql"),
   "utf8",
 );
 
