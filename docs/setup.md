@@ -156,6 +156,12 @@ Pasi, per organizatie:
 Domeniile planificate (2026-09): `app.etora.ro` si `app.maconxcx.ro`, fiecare pentru
 organizatia clientului respectiv.
 
+**Emailurile Auth sunt comune tuturor organizatiilor** (un singur set de template-uri si
+un singur expeditor per proiect Supabase - decizie 2026-09-25). Linkurile duc corect pe
+domeniul organizatiei (`{{ .RedirectTo }}`), dar textul e acelasi pentru toti: scrie
+template-urile (Magic Link, Invite, Reset Password) si numele expeditorului SMTP
+NEUTRU, fara „Lot cu Lot” (ex. „Autentificare în aplicația de trasabilitate”).
+
 Efecte:
 
 - invitatiile (admin, staff, client), magic link-ul, resetarea parolei si login-ul

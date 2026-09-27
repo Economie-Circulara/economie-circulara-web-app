@@ -116,6 +116,10 @@
   --sidebar-active-bg: var(--brand);
   --sidebar-active-fg: var(--primary-foreground);
   --sidebar-border: var(--line);
+  /* Logo-ul platformei din subsolul sidebar-ului - temele cu sidebar inchis il albesc. */
+  --sidebar-logo-filter: none;
+  /* Text pe fundal `accent-soft` (badge-uri) - in dark, accentul insusi, altfel ilizibil. */
+  --on-accent-soft: var(--on-accent);
 
   /* Pattern de fundal (.bg-pattern) si panoul lateral de pe login (implicit ascuns). */
   --pattern-image: radial-gradient(var(--grid-dot) 1px, transparent 1px);
@@ -132,6 +136,7 @@
 .dark [data-theme] {
   --primary-foreground: oklch(0.98 0.004 95);
   --destructive-foreground: oklch(0.98 0.004 95);
+  --on-accent-soft: var(--accent);
 }
 
 /* Temele (data-theme) sunt in themes.css, importat DUPA acest fisier in layout.tsx -
@@ -153,6 +158,7 @@
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent-soft: var(--accent-soft);
+  --color-on-accent-soft: var(--on-accent-soft);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
   --color-border: var(--border);

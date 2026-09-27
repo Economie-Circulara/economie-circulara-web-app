@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import { PLATFORM_NAME } from "@/lib/brand";
 import {
   DEFAULT_PROFILE,
+  PLATFORM_ICON_PATH,
+  faviconFor,
   getTenantProfile,
   issuerCreditFor,
   productNameFor,
@@ -46,5 +48,22 @@ describe("issuerCreditFor", () => {
     expect(issuerCreditFor(orgA, PROFILES)).toBe("Trasabil A");
     expect(issuerCreditFor(hosted, PROFILES)).toBe(PLATFORM_NAME);
     expect(issuerCreditFor(null, PROFILES)).toBe(PLATFORM_NAME);
+  });
+});
+
+describe("faviconFor", () => {
+  it("platforma -> iconita platformei; tenant cu logo -> logo-ul", () => {
+    expect(faviconFor(null, "#000")).toBe(PLATFORM_ICON_PATH);
+    expect(faviconFor({ name: "Etora SRL", logoUrl: "https://x/logo.png" }, "#000")).toBe(
+      "https://x/logo.png",
+    );
+  });
+
+  it("tenant fara logo -> initialele pe culoarea brandului, fara marca platformei", () => {
+    const icon = decodeURIComponent(faviconFor({ name: "Etora SRL" }, "#9a4a2c"));
+    expect(icon).toMatch(/^data:image\/svg\+xml,/);
+    expect(icon).toContain('fill="#9a4a2c"');
+    expect(icon).toContain(">ES<");
+    expect(icon).not.toContain("Lot cu Lot");
   });
 });

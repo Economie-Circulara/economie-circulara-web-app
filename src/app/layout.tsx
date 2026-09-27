@@ -3,7 +3,8 @@ import { Archivo, Barlow, IBM_Plex_Mono, Manrope, Nunito_Sans, Spectral } from "
 import { ThemeProvider } from "next-themes";
 import { ImplicitSessionBridge } from "@/features/auth/implicit-session-bridge";
 import { getHostProductName, getHostTenantBranding } from "@/features/branding/queries";
-import { resolveThemeKey } from "@/features/branding/themes";
+import { faviconFor } from "@/features/branding/tenant-profiles";
+import { THEMES, resolveThemeKey } from "@/features/branding/themes";
 import { getCurrentOrg } from "@/features/auth/queries";
 import "./globals.css";
 // DUPA globals.css: blocurile temelor suprascriu tokenii impliciti.
@@ -56,9 +57,15 @@ const spectral = Spectral({
  * Paginile isi dau doar partea specifica ("Comenzi"), sufixul vine din template.
  */
 export async function generateMetadata(): Promise<Metadata> {
-  const productName = await getHostProductName();
+  const [productName, hostBranding] = await Promise.all([
+    getHostProductName(),
+    getHostTenantBranding(),
+  ]);
+  const brandColor = THEMES[resolveThemeKey(hostBranding?.theme)].swatches.brand;
   return {
     title: { default: productName, template: `%s - ${productName}` },
+    // Pe domeniul unui tenant, favicon-ul lui (logo / initiale) - nu marca platformei.
+    icons: { icon: faviconFor(hostBranding, brandColor) },
     description: "Platforma de trasabilitate a materialelor in economia circulara",
   };
 }

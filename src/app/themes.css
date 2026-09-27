@@ -86,6 +86,7 @@
   --sidebar-active-bg: var(--accent);
   --sidebar-active-fg: oklch(0.99 0 0);
   --sidebar-border: oklch(0.33 0.014 255);
+  --sidebar-logo-filter: brightness(0) invert(1);
 
   --pattern-image:
     linear-gradient(var(--grid-dot) 1px, transparent 1px),
@@ -144,6 +145,7 @@
   --sidebar-active-bg: oklch(0.97 0.02 180);
   --sidebar-active-fg: oklch(0.33 0.07 190);
   --sidebar-border: oklch(0.5 0.07 190);
+  --sidebar-logo-filter: brightness(0) invert(1);
 
   --pattern-image: repeating-linear-gradient(135deg, var(--grid-dot) 0 1px, transparent 1px 16px);
   --pattern-size: auto;

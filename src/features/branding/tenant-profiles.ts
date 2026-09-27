@@ -63,6 +63,35 @@ export function productNameFor(
 }
 
 /**
+ * Favicon-ul pe hostul unui tenant: logo-ul organizatiei, altfel un patrat cu
+ * initialele, in culoarea brandului temei (fara marca „Lot cu Lot”). Pe domeniul
+ * platformei - iconita platformei. Intoarce un URL (fisier sau data-URI SVG).
+ */
+export function faviconFor(
+  org: { name: string; logoUrl?: string | null } | null | undefined,
+  brandColor: string,
+): string {
+  if (!org) return PLATFORM_ICON_PATH;
+  if (org.logoUrl) return org.logoUrl;
+  const initials =
+    org.name
+      .split(/\s+/)
+      .filter((word) => /^[\p{L}\p{N}]/u.test(word))
+      .slice(0, 2)
+      .map((word) => word[0]!.toUpperCase())
+      .join("") || "?";
+  const svg =
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">` +
+    `<rect width="64" height="64" rx="14" fill="${brandColor}"/>` +
+    `<text x="32" y="42" text-anchor="middle" font-family="system-ui,sans-serif" ` +
+    `font-size="28" font-weight="700" fill="#ffffff">${initials}</text></svg>`;
+  return `data:image/svg+xml,${encodeURIComponent(svg)}`;
+}
+
+/** Iconita platformei (fostul `src/app/icon.svg`), servita din `public/`. */
+export const PLATFORM_ICON_PATH = "/lot-cu-lot-icon.svg";
+
+/**
  * Creditul „emis de <X>” din subsolul documentelor: numele produsului, dar DOAR daca
  * difera de numele organizatiei (altfel ar suna „Firma A · emis de Firma A”).
  */

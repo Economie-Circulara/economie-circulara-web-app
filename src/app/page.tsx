@@ -108,7 +108,7 @@ export default async function Home({ searchParams }: HomeProps = {}) {
             // proiect - <img> simplu, fara next/image (fara allowlist de domenii).
             // eslint-disable-next-line @next/next/no-img-element
             <img src={branding.logoUrl} alt="" className="h-8 w-auto shrink-0" />
-          ) : (
+          ) : branding ? null : (
             // SVG-ul include wordmark-ul complet; il folosim doar pe domeniul platformei,
             // fara sa concuram cu identitatea vizuala a unui tenant.
             // eslint-disable-next-line @next/next/no-img-element

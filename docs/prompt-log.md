@@ -4,6 +4,16 @@ Jurnal al sarcinilor lucrate de agenti AI in acest repo. Conform regulii 1.2 din
 [`AGENTS.md`](../AGENTS.md), la **fiecare commit** se adauga o intrare aici.
 Cele mai noi intrari sus.
 
+## 2026-09-27 — Claude Opus 5.5 (Claude Code) — Ultimele urme de platforma pe domeniile tenantilor
+
+- **Cerut:** exportul (T8) amanat; „mai e ceva de facut? daca da, fa-l”.
+- **Facut:** favicon per tenant (logo sau initiale in culoarea temei, `faviconFor`;
+  `src/app/icon.svg` mutat in `public/lot-cu-lot-icon.svg`, folosit doar pe domeniul
+  platformei); pagina de intrare a unui tenant fara logo nu mai afiseaza logo-ul
+  platformei; badge-urile `accent` (ex. „Producție”) lizibile in dark (token nou
+  `--on-accent-soft`); logo-ul platformei albit pe sidebar-urile inchise (Industrial,
+  Ciclu). Nota in setup: template-urile de email Auth trebuie scrise neutru.
+
 ## 2026-09-27 — Claude Opus 5.5 (Claude Code) — Organizare meniu + panou per organizatie (T4)
 
 - **Cerut:** T4 („diferit dar usable”), dupa T6.

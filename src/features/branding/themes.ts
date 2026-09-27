@@ -19,7 +19,7 @@ export const DEFAULT_THEME: ThemeKey = "default";
 
 /**
  * Stilul header-ului din PDF-uri (certificat, aviz, rapoarte) - vezi
- * `src/lib/pdf/document-header.tsx`:
+ * `src/lib/pdf/document-chrome.tsx`:
  *  - `bar`  - banda subtire de accent sus + linie sub antet (stilul initial);
  *  - `band` - antet pe fundal plin in culoarea brandului, text alb;
  *  - `rule` - bara verticala de accent langa numele organizatiei, fara banda sus.

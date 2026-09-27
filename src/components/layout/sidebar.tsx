@@ -239,7 +239,11 @@ function PlatformLogoLink() {
         className="rounded-md opacity-80 transition-opacity hover:opacity-100 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/lot-cu-lot-logo.svg" alt="Lot cu Lot" className="h-12 w-auto max-w-full" />
+        <img
+          src="/lot-cu-lot-logo.svg"
+          alt="Lot cu Lot"
+          className="h-12 w-auto max-w-full [filter:var(--sidebar-logo-filter)]"
+        />
       </Link>
     </div>
   );
