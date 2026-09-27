@@ -12,7 +12,7 @@ interface PageProps {
   params: Promise<{ id: string }>;
 }
 
-/** Tema vizuala + domeniul propriu ale unei organizatii (super-admin). */
+/** Tema vizuala, organizarea si domeniul propriu ale unei organizatii (super-admin). */
 export default async function OrganizationPage({ params }: PageProps) {
   await requireRole(["super_admin"]);
   const { id } = await params;
@@ -34,6 +34,7 @@ export default async function OrganizationPage({ params }: PageProps) {
       <OrgAppearanceForm
         organizationId={org.id}
         theme={org.theme}
+        layout={org.layout}
         customDomain={org.customDomain}
       />
     </div>

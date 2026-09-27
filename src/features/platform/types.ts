@@ -9,6 +9,8 @@ export interface OrganizationSummary {
   customDomain: string | null;
   /** Cheia temei vizuale (`organizations.theme`). */
   theme: string;
+  /** Organizarea meniului + panoului (`organizations.layout`). */
+  layout: string;
   status: OrgStatus;
   createdAt: string;
   /** Numar de profile (useri) legate de organizatie, indiferent de rol. */

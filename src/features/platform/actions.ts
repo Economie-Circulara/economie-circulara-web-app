@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireRole } from "@/features/auth/session";
 import { getOrganizationOrigin } from "@/features/auth/origin";
+import { isLayoutKey } from "@/features/branding/layouts";
 import { isThemeKey } from "@/features/branding/themes";
 import { normalizeCustomDomain } from "./domain";
 import { isValidSlug } from "./slug";
@@ -160,8 +161,8 @@ export async function reactivateOrganizationAction(
 }
 
 /**
- * Tema vizuala + domeniul propriu ale unei organizatii (super-admin; plan
- * multi-domain-tenant-profiles, T5). Domeniul trebuie configurat si in Vercel +
+ * Tema vizuala, organizarea (meniu + panou) si domeniul propriu ale unei organizatii
+ * (super-admin; plan multi-domain-tenant-profiles, T4/T5). Domeniul trebuie configurat si in Vercel +
  * Supabase Auth (docs/setup.md 3.1) - altfel userii organizatiei sunt redirectionati
  * pe un domeniu care nu raspunde.
  */
@@ -176,11 +177,18 @@ export async function updateOrganizationAppearanceAction(
   const theme = clean(formData.get("theme"));
   if (!isThemeKey(theme)) return { error: "Tema necunoscuta.", message: null };
 
+  const layout = clean(formData.get("layout"));
+  if (!isLayoutKey(layout)) return { error: "Organizare necunoscuta.", message: null };
+
   const domain = normalizeCustomDomain(clean(formData.get("custom_domain")));
   if (!domain.ok) return { error: domain.error, message: null };
 
   try {
-    await updateOrganizationAppearance(organizationId, { theme, customDomain: domain.value });
+    await updateOrganizationAppearance(organizationId, {
+      theme,
+      layout,
+      customDomain: domain.value,
+    });
   } catch (err) {
     const error =
       err instanceof DomainTakenError

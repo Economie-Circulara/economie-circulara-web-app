@@ -6,6 +6,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { DataTable } from "@/components/data-table";
 import { EmptyState } from "@/components/empty-state";
 import { Badge } from "@/components/ui/badge";
+import { LAYOUTS, resolveLayoutKey } from "@/features/branding/layouts";
 import { THEMES, resolveThemeKey } from "@/features/branding/themes";
 import { OrgStatusControls } from "./org-status-controls";
 import type { OrganizationSummary } from "./types";
@@ -45,6 +46,11 @@ const columns: ColumnDef<OrganizationSummary>[] = [
     accessorKey: "theme",
     header: "Tema",
     cell: ({ row }) => THEMES[resolveThemeKey(row.original.theme)].label,
+  },
+  {
+    accessorKey: "layout",
+    header: "Organizare",
+    cell: ({ row }) => LAYOUTS[resolveLayoutKey(row.original.layout)].label,
   },
   {
     accessorKey: "status",

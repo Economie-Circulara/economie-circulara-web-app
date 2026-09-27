@@ -4,6 +4,16 @@ Jurnal al sarcinilor lucrate de agenti AI in acest repo. Conform regulii 1.2 din
 [`AGENTS.md`](../AGENTS.md), la **fiecare commit** se adauga o intrare aici.
 Cele mai noi intrari sus.
 
+## 2026-09-27 — Claude Opus 5.5 (Claude Code) — Organizare meniu + panou per organizatie (T4)
+
+- **Cerut:** T4 („diferit dar usable”), dupa T6.
+- **Facut:** migrarea `0037_org_layout.sql` (`organizations.layout` `standard`/`flux`,
+  garda super-admin extinsa, test B24). Meniul `flux` (`STAFF_NAV_FLUX`, aceleasi
+  rute/roluri, grupat pe activitati; portal client cu „Comenzile mele” primul) si
+  panoul `flux` („Acasă”: atentie + actiuni rapide, apoi comenzi + indicatori, grafic).
+  Sectiunile panoului extrase in `dashboard-sections.tsx`. Selector „Organizare” in
+  `/platform/[id]`, coloana in lista, showcase `?layout=`. Manual, plan, AGENTS.md.
+
 ## 2026-09-27 — Claude Opus 5.5 (Claude Code) — Antet/subsol PDF dupa tema si profil (T6)
 
 - **Cerut:** T6 si T4 („amandoua”); aici T6.

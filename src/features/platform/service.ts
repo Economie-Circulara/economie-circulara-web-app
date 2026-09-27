@@ -46,18 +46,22 @@ export class DomainTakenError extends Error {
 }
 
 /**
- * Seteaza tema vizuala si domeniul propriu ale unei organizatii (super-admin). Ruleaza
+ * Seteaza tema vizuala, organizarea (meniu + panou) si domeniul propriu ale unei organizatii (super-admin). Ruleaza
  * pe sesiunea super-adminului: trigger-ul din 0036 respinge aceleasi campuri pentru
  * oricine altcineva, deci nu e nevoie de clientul service-role.
  */
 export async function updateOrganizationAppearance(
   organizationId: string,
-  settings: { theme: string; customDomain: string | null },
+  settings: { theme: string; layout: string; customDomain: string | null },
 ): Promise<void> {
   const supabase = await createClient();
   const { error } = await supabase
     .from("organizations")
-    .update({ theme: settings.theme, custom_domain: settings.customDomain })
+    .update({
+      theme: settings.theme,
+      layout: settings.layout,
+      custom_domain: settings.customDomain,
+    })
     .eq("id", organizationId);
 
   if (error) {

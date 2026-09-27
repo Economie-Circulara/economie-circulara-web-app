@@ -41,6 +41,7 @@ export async function listOrganizations(): Promise<OrganizationSummary[]> {
     slug: org.slug,
     customDomain: org.custom_domain,
     theme: org.theme,
+    layout: org.layout,
     status: org.status,
     createdAt: org.created_at,
     userCount: userCounts.get(org.id) ?? 0,

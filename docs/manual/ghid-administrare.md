@@ -121,7 +121,7 @@ operează platforma Lot cu Lot pentru toți clienții ei (organizațiile). Ecran
 ### 3.1 Lista organizațiilor
 
 Coloane: Nume (link către ecranul organizației), Slug/acces (subdomeniul sau
-calea de acces + link-ul complet), Domeniu custom, Temă, Status
+calea de acces + link-ul complet), Domeniu custom, Temă, Organizare, Status
 (Activ/Suspendat), Data creării, Număr de utilizatori.
 
 ### 3.2 Crearea unei organizații noi
@@ -143,7 +143,7 @@ comută automat în mod "re-încercare": numele și slug-ul devin needitabile
 ![ecranul "Organizație nouă"](img/superadmin-org-new.png)
 
 
-### 3.3 Tema vizuală și domeniul propriu
+### 3.3 Tema vizuală, organizarea și domeniul propriu
 
 Click pe numele organizației în listă -> ecranul organizației (`/platform/<id>`):
 
@@ -152,10 +152,15 @@ Click pe numele organizației în listă -> ecranul organizației (`/platform/<i
   4 teme: **Clasic** (implicită), **Teren**, **Industrial**, **Ciclu** - fiecare
   cu o previzualizare. Culorile completate de adminul organizației în "Setări"
   rămân peste temă.
+- **"Organizare"** - gruparea meniului și aranjamentul panoului de control:
+  **Standard** (meniu pe Comenzi / Stoc / Setări, panou cu indicatorii sus) sau
+  **Flux** (meniu pe activități: Producție -> Vânzări -> Inventar -> Administrare;
+  panoul "Acasă" începe cu ce e de făcut și cu acțiuni rapide). Paginile și
+  drepturile rămân aceleași.
 - **"Domeniu propriu"** - doar hostul (ex. `app.firma.ro`); gol = domeniul
   platformei. Vezi secțiunea 4.3 înainte de salvare.
 
-Tema și domeniul pot fi schimbate **doar de super-admin** (impus și în baza de
+Tema, organizarea și domeniul pot fi schimbate **doar de super-admin** (impus și în baza de
 date) - adminul organizației le vede, dar nu le poate modifica.
 ### 3.4 Suspendarea și reactivarea unei organizații
 

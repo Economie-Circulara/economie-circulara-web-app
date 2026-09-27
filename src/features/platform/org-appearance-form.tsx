@@ -4,6 +4,7 @@ import { useActionState, useState } from "react";
 import { FormField } from "@/components/form-field";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { LAYOUTS, LAYOUT_KEYS, resolveLayoutKey } from "@/features/branding/layouts";
 import { THEMES, THEME_KEYS, resolveThemeKey, type ThemeKey } from "@/features/branding/themes";
 import { cn } from "@/lib/utils";
 import { updateOrganizationAppearanceAction } from "./actions";
@@ -44,11 +45,17 @@ function ThemePreview({ themeKey }: { themeKey: ThemeKey }) {
 export interface OrgAppearanceFormProps {
   organizationId: string;
   theme: string;
+  layout: string;
   customDomain: string | null;
 }
 
 /** Tema vizuala + domeniul propriu ale unei organizatii (doar super-admin). */
-export function OrgAppearanceForm({ organizationId, theme, customDomain }: OrgAppearanceFormProps) {
+export function OrgAppearanceForm({
+  organizationId,
+  theme,
+  layout,
+  customDomain,
+}: OrgAppearanceFormProps) {
   const [state, action, pending] = useActionState(
     updateOrganizationAppearanceAction,
     initialOrgAppearanceState,
@@ -92,6 +99,36 @@ export function OrgAppearanceForm({ organizationId, theme, customDomain }: OrgAp
               </label>
             );
           })}
+        </div>
+      </fieldset>
+
+      <fieldset className="space-y-3">
+        <legend className="text-sm font-medium">Organizare</legend>
+        <p className="text-sm text-muted-foreground">
+          Gruparea meniului si aranjamentul panoului de control. Paginile si drepturile raman
+          aceleasi - se schimba doar prezentarea.
+        </p>
+        <div className="grid gap-3 sm:grid-cols-2">
+          {LAYOUT_KEYS.map((key) => (
+            <label
+              key={key}
+              className="flex cursor-pointer gap-3 rounded-lg border bg-card p-3 has-[:checked]:border-primary has-[:checked]:ring-2 has-[:checked]:ring-ring"
+            >
+              <input
+                type="radio"
+                name="layout"
+                value={key}
+                defaultChecked={resolveLayoutKey(layout) === key}
+                className="mt-1"
+              />
+              <span className="space-y-1">
+                <span className="block text-sm font-semibold">{LAYOUTS[key].label}</span>
+                <span className="block text-xs text-muted-foreground">
+                  {LAYOUTS[key].description}
+                </span>
+              </span>
+            </label>
+          ))}
         </div>
       </fieldset>
 

@@ -1179,6 +1179,7 @@ export type Database = {
           email_from_address: string | null
           email_from_name: string | null
           id: string
+          layout: string
           logo_url: string | null
           name: string
           primary_color: string | null
@@ -1200,6 +1201,7 @@ export type Database = {
           email_from_address?: string | null
           email_from_name?: string | null
           id?: string
+          layout?: string
           logo_url?: string | null
           name: string
           primary_color?: string | null
@@ -1221,6 +1223,7 @@ export type Database = {
           email_from_address?: string | null
           email_from_name?: string | null
           id?: string
+          layout?: string
           logo_url?: string | null
           name?: string
           primary_color?: string | null

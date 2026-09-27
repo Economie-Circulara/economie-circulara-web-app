@@ -1018,8 +1018,8 @@ begin;
 rollback;
 
 -- ===========================================================================
--- B24: tema si domeniul propriu (0036) - adminul organizatiei NU le poate
---      schimba (insufficient_privilege); restul setarilor raman editabile.
+-- B24: tema, organizarea (0036/0037) si domeniul propriu - adminul organizatiei NU
+--      le poate schimba (insufficient_privilege); restul setarilor raman editabile.
 -- ===========================================================================
 begin;
   set local role authenticated;
@@ -1044,6 +1044,13 @@ begin;
       raise exception 'FAIL: B24 adminul a schimbat domeniul propriu';
     exception
       when insufficient_privilege then raise notice 'PASS: B24 domeniul doar de super-admin';
+    end;
+    begin
+      update public.organizations set layout = 'flux'
+        where id = 'a0000000-0000-0000-0000-0000000000a1';
+      raise exception 'FAIL: B24 adminul a schimbat organizarea';
+    exception
+      when insufficient_privilege then raise notice 'PASS: B24 organizarea doar de super-admin';
     end;
   end $$;
 rollback;

@@ -76,15 +76,23 @@ Aceeasi codebase, acelasi proiect Vercel, aceeasi baza Supabase, dar:
 - Ramane „Lot cu Lot” doar in zona super-admin (`/platform`, help super-admin) si pe
   domeniul platformei. Adresa expeditorului de email ramane comuna (decizia 3).
 
-### T4 - Navigare si dashboard per profil
+### T4 - Organizare: meniu + panou de control (implementat 2026-09-27)
 
-- `navForRole(role, profile)`: profilul poate da `navLayout` (ordine + grupare +
-  etichete) peste acelasi set de `NavItem` (rute si roluri neschimbate -> `routes-smoke`
-  ramane valid). Test: fiecare layout contine exact aceleasi href-uri ca `STAFF_NAV`.
-- Dashboard: sectiunile existente extrase in componente (`KpiRow`, `StockChart`,
-  `RecentOrders`, ...), profilul da `dashboardSections` (ordine/selectie).
-- Profil B propus (de validat vizual): meniu plat, „Producție” + „Rapoarte” sus, grup
-  „Vânzări” (Comenzi, Livrări, Clienți); dashboard orientat pe reciclare/productie.
+Decizie (2026-09-27): organizarea se ALEGE in `/platform` (`organizations.layout`,
+migrarea `0037`, doar super-admin), la fel ca tema - nu se leaga in cod de slug-ul
+organizatiei (slug-urile clientilor nu erau inca stiute, iar asa se poate schimba
+fara deploy). Tema si organizarea sunt independente.
+
+- `standard` - meniul si panoul initiale.
+- `flux` - `STAFF_NAV_FLUX` (`nav-config.ts`): aceleasi pagini, grupate Producție ->
+  Vânzări -> Inventar -> Rapoarte -> Administrare, cu alte etichete („Acasă”,
+  „Procese”, „Loturi în stoc”, „Organizație”); portalul client incepe cu „Comenzile
+  mele”. Panoul (`/dashboard`, titlu „Acasă”) incepe cu „Necesită atenție” + „Acțiuni
+  rapide”, apoi ultimele comenzi + indicatorii 2x2, graficul de stoc la final.
+- Sectiunile panoului sunt extrase in `src/features/reports/dashboard-sections.tsx`;
+  pagina doar le aranjeaza.
+- Teste: `nav-config.test.ts` (aceleasi rute/roluri in ambele organizari),
+  `dashboard-sections.test.tsx`, `layouts.test.ts` (CHECK-ul din migrare), B24 extins.
 
 ### T5 - Sistem de teme (decizie 2026-09-25, implementat 2026-09-27)
 

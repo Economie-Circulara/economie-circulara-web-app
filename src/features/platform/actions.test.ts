@@ -248,6 +248,7 @@ describe("updateOrganizationAppearanceAction", () => {
       formData({
         organization_id: "org-1",
         theme: "industrial",
+        layout: "flux",
         custom_domain: "https://App.Etora.ro/",
       }),
     );
@@ -255,6 +256,7 @@ describe("updateOrganizationAppearanceAction", () => {
     expect(requireRole).toHaveBeenCalledWith(["super_admin"]);
     expect(updateOrganizationAppearance).toHaveBeenCalledWith("org-1", {
       theme: "industrial",
+      layout: "flux",
       customDomain: "app.etora.ro",
     });
     expect(state.error).toBeNull();
@@ -264,14 +266,25 @@ describe("updateOrganizationAppearanceAction", () => {
   it("respinge o tema necunoscuta si un domeniu invalid fara sa scrie", async () => {
     const badTheme = await updateOrganizationAppearanceAction(
       initialOrgAppearanceState,
-      formData({ organization_id: "org-1", theme: "neon", custom_domain: "" }),
+      formData({ organization_id: "org-1", theme: "neon", layout: "standard", custom_domain: "" }),
     );
     const badDomain = await updateOrganizationAppearanceAction(
       initialOrgAppearanceState,
-      formData({ organization_id: "org-1", theme: "teren", custom_domain: "app.etora.ro/x" }),
+      formData({
+        organization_id: "org-1",
+        theme: "teren",
+        layout: "standard",
+        custom_domain: "app.etora.ro/x",
+      }),
+    );
+
+    const badLayout = await updateOrganizationAppearanceAction(
+      initialOrgAppearanceState,
+      formData({ organization_id: "org-1", theme: "teren", layout: "haos", custom_domain: "" }),
     );
 
     expect(badTheme.error).toMatch(/tema/i);
+    expect(badLayout.error).toMatch(/organizare/i);
     expect(badDomain.error).toMatch(/domeniu invalid/i);
     expect(updateOrganizationAppearance).not.toHaveBeenCalled();
   });
@@ -281,7 +294,12 @@ describe("updateOrganizationAppearanceAction", () => {
 
     const state = await updateOrganizationAppearanceAction(
       initialOrgAppearanceState,
-      formData({ organization_id: "org-2", theme: "default", custom_domain: "app.etora.ro" }),
+      formData({
+        organization_id: "org-2",
+        theme: "default",
+        layout: "standard",
+        custom_domain: "app.etora.ro",
+      }),
     );
 
     expect(state.error).toMatch(/deja folosit/);
