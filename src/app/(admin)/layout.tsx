@@ -6,6 +6,7 @@ import { Topbar } from "@/components/layout/topbar";
 import { getCurrentOrg } from "@/features/auth/queries";
 import { productNameFor } from "@/features/branding/tenant-profiles";
 import { resolveThemeKey } from "@/features/branding/themes";
+import { orgBrandColors } from "@/features/branding/brand-colors";
 import { resolveLayoutKey } from "@/features/branding/layouts";
 import { ROLE_LABELS } from "@/features/auth/roles";
 import { requireRole } from "@/features/auth/session";
@@ -25,7 +26,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     <AppShell
       orgName={orgName}
       logoUrl={logoUrl}
-      theme={{ brand: org?.primaryColor ?? undefined, accent: org?.secondaryColor ?? undefined }}
+      theme={orgBrandColors(org)}
       items={items}
       showPlatformLogo={productNameFor(org) === PLATFORM_NAME}
       themeKey={resolveThemeKey(org?.theme)}

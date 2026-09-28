@@ -6,13 +6,15 @@ import {
   type ProductNameOrg,
   type TenantProfile,
 } from "./tenant-profiles";
+import { orgBrandColors } from "./brand-colors";
 import { THEMES, resolveThemeKey, type PdfHeaderVariant } from "./themes";
 
 /**
  * Identitatea vizuala a documentelor PDF (certificat, aviz, rapoarte) pentru o
  * organizatie (plan multi-domain-tenant-profiles, T6): ASPECTUL vine din tema (stilul
  * antetului + culorile implicite), TEXTELE din profil (subtitlu, nota din subsol,
- * creditul „emis de”). Culorile setate de adminul organizatiei au prioritate.
+ * creditul „emis de”). Culorile setate de adminul organizatiei se aplica doar pe tema
+ * implicita (`orgBrandColors`).
  */
 export interface PdfBrand {
   brandColor: string;
@@ -41,9 +43,11 @@ export function pdfBrandFor(
 ): PdfBrand {
   const theme = THEMES[resolveThemeKey(org?.theme)];
   const profile = getTenantProfile(org?.slug, profiles);
+  // Culorile din Setari doar pe tema implicita - altfel tema aleasa de platforma.
+  const orgColors = orgBrandColors(org);
   return {
-    brandColor: hexOr(org?.primaryColor, theme.swatches.brand),
-    accentColor: hexOr(org?.secondaryColor, theme.swatches.accent),
+    brandColor: hexOr(orgColors.brand, theme.swatches.brand),
+    accentColor: hexOr(orgColors.accent, theme.swatches.accent),
     headerVariant: theme.pdfHeader,
     tagline: profile.documentTagline ?? DEFAULT_DOCUMENT_TAGLINE,
     footerNote: profile.documentFooterNote ?? null,

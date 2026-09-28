@@ -402,7 +402,11 @@ Testele unitare sunt **colocate** langa cod (`*.test.ts` / `*.test.tsx`).
     domeniul propriu (`custom_domain`) le schimba DOAR super-adminul** (`/platform/<id>`,
     trigger din `0045_org_theme.sql`, extins in `0046_org_layout.sql`):
     un domeniu gresit setat de adminul organizatiei ar redirectiona toti userii ei pe
-    o adresa neconfigurata. Adminul organizatiei pastreaza doar culorile.
+    o adresa neconfigurata. Adminul organizatiei pastreaza doar culorile - si acelea
+    se aplica DOAR pe tema implicita („Clasic”): **tema aleasa de platforma are
+    prioritate** (decizie 2026-09-28, `orgBrandColors` in
+    `src/features/branding/brand-colors.ts`, folosit de shell, PDF-uri si harta de
+    rute). Orice loc nou care coloreaza ceva dupa organizatie trece prin el.
   - O tema noua = cheie in `src/features/branding/themes.ts` + bloc light/dark in
     `src/app/themes.css` + valoare in CHECK-ul din migrare (`themes.test.ts` verifica
     toate trei). Temele se aplica prin `data-theme` pe `<html>` (dialogurile sunt in

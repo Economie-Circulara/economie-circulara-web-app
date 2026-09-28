@@ -30,12 +30,21 @@ describe("pdfBrandFor", () => {
     expect(brand.issuerCredit).toBeNull();
   });
 
-  it("culorile hex ale organizatiei au prioritate; valorile ne-hex sunt ignorate", () => {
+  it("pe tema implicita culorile hex ale organizatiei au prioritate; ne-hex ignorate", () => {
     const brand = pdfBrandFor(
-      { ...base, theme: "teren", primaryColor: "#123456", secondaryColor: "oklch(0.7 0.1 60)" },
+      { ...base, theme: "default", primaryColor: "#123456", secondaryColor: "oklch(0.7 0.1 60)" },
       PROFILES,
     );
     expect(brand.brandColor).toBe("#123456");
+    expect(brand.accentColor).toBe(THEMES.default.swatches.accent);
+  });
+
+  it("pe o tema aleasa de platforma culorile organizatiei nu suprascriu tema", () => {
+    const brand = pdfBrandFor(
+      { ...base, theme: "teren", primaryColor: "#123456", secondaryColor: "#654321" },
+      PROFILES,
+    );
+    expect(brand.brandColor).toBe(THEMES.teren.swatches.brand);
     expect(brand.accentColor).toBe(THEMES.teren.swatches.accent);
   });
 });

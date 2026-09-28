@@ -70,8 +70,9 @@ export function OrgAppearanceForm({
         <legend className="text-sm font-medium">Tema vizuala</legend>
         <p className="text-sm text-muted-foreground">
           Aspectul aplicatiei pentru toti userii organizatiei: culori, font, colturi, fundal, meniu
-          lateral si ecranul de autentificare. Culorile din setarile organizatiei (daca sunt
-          completate) raman peste tema.
+          lateral si ecranul de autentificare. Tema are prioritate: culorile din setarile
+          organizatiei se aplica doar pe tema Clasic (pe celelalte, adminul organizatiei nu le mai
+          poate schimba).
         </p>
         <div className="grid gap-3 sm:grid-cols-2">
           {THEME_KEYS.map((key) => {

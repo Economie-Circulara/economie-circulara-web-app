@@ -94,4 +94,33 @@ describe("updateOrganizationAction", () => {
       expect.objectContaining({ cui: null, reg_com: null, address: null }),
     );
   });
+
+  it("nu sterge culorile cand lipsesc din formular (tema aleasa de platforma)", async () => {
+    getCurrentUser.mockResolvedValue({ id: "u1", role: "admin", organizationId: "org-1" });
+    const eq = vi.fn().mockResolvedValue({ error: null });
+    const update = vi.fn().mockReturnValue({ eq });
+    createClient.mockResolvedValue({ from: vi.fn().mockReturnValue({ update }) });
+
+    await updateOrganizationAction(initialSettingsState, formData({ name: "Firma SRL" }));
+
+    const payload = update.mock.calls[0]![0] as Record<string, unknown>;
+    expect(payload).not.toHaveProperty("primary_color");
+    expect(payload).not.toHaveProperty("secondary_color");
+  });
+
+  it("salveaza culorile cand vin din formular (tema implicita)", async () => {
+    getCurrentUser.mockResolvedValue({ id: "u1", role: "admin", organizationId: "org-1" });
+    const eq = vi.fn().mockResolvedValue({ error: null });
+    const update = vi.fn().mockReturnValue({ eq });
+    createClient.mockResolvedValue({ from: vi.fn().mockReturnValue({ update }) });
+
+    await updateOrganizationAction(
+      initialSettingsState,
+      formData({ name: "Firma SRL", primary_color: "#123456", secondary_color: "" }),
+    );
+
+    expect(update).toHaveBeenCalledWith(
+      expect.objectContaining({ primary_color: "#123456", secondary_color: null }),
+    );
+  });
 });

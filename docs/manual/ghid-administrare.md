@@ -27,6 +27,11 @@ deschide ecranul **"Setări organizație"**, cu formularul de configurare:
 
 ### 1.2 Culori (white-label)
 
+Cardul "Culori" apare doar dacă organizația folosește tema **Clasic**. Dacă echipa
+platformei a ales altă temă (secțiunea 3.3), culorile vin din temă, iar în "Setări"
+apare doar numele temei - culorile salvate anterior nu se pierd și revin dacă
+organizația trece înapoi pe Clasic.
+
 - **"Culoare principală (brand)"** - valoare CSS validă (ex. `#1f5e3a` sau
   `oklch(...)`), aplicată în sidebar și pe butoanele principale.
 - **"Culoare accent"** - a doua culoare, folosită pe elemente secundare (ex.
@@ -138,8 +143,8 @@ Click pe numele organizației în listă -> ecranul organizației (`/platform/<i
 - **"Temă vizuală"** - aspectul aplicației pentru toți utilizatorii organizației:
   culori, font, colțuri, fundal, meniu lateral și ecranul de autentificare. Sunt
   4 teme: **Clasic** (implicită), **Teren**, **Industrial**, **Ciclu** - fiecare
-  cu o previzualizare. Culorile completate de adminul organizației în "Setări"
-  rămân peste temă.
+  cu o previzualizare. **Tema are prioritate**: culorile completate de adminul
+  organizației în "Setări" se aplică doar pe tema Clasic.
 - **"Organizare"** - gruparea meniului și aranjamentul panoului de control:
   **Standard** (meniu pe Comenzi / Stoc / Setări, panou cu indicatorii sus) sau
   **Flux** (meniu pe activități: Producție -> Vânzări -> Inventar -> Administrare;

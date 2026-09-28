@@ -139,22 +139,59 @@ confirmare explicita sau OTP numeric.
 
 ### 3.1 Domeniu propriu pentru o organizatie (tenant)
 
-Fiecare organizatie poate lucra pe domeniul ei (ex. `trasabilitate.firma-a.ro`), pe
-acelasi deploy si aceeasi baza (plan: `docs/plans/multi-domain-tenant-profiles.md`).
-Pasi, per organizatie:
+Fiecare organizatie poate lucra pe domeniul ei (un subdomeniu al domeniului clientului),
+pe acelasi deploy si aceeasi baza (plan: `docs/plans/multi-domain-tenant-profiles.md`).
 
-1. **DNS (la client):** `CNAME trasabilitate.firma-a.ro -> cname.vercel-dns.com`.
-2. **Vercel:** Project -> Settings -> Domains -> adauga domeniul (certificatul HTTPS se
-   emite automat dupa propagarea DNS).
-3. **Supabase:** Authentication -> URL Configuration -> Redirect URLs -> adauga
-   `https://trasabilitate.firma-a.ro/auth/callback`. Fara pas, Supabase respinge
-   `redirectTo` si trimite userul pe Site URL.
-4. **Aplicatie (ULTIMUL pas):** super-admin -> `/platform` -> organizatia -> "Domeniu
-   propriu" = `trasabilitate.firma-a.ro` (doar hostul; tot acolo se alege tema).
-   Doar super-adminul il poate schimba (migrarea `0045`).
+**Domeniile clientilor (decizie 2026-09-28):**
 
-Domeniile planificate (2026-09): `app.etora.ro` si `app.maconxcx.ro`, fiecare pentru
-organizatia clientului respectiv.
+| Organizatie | Domeniu aplicatie        | Apex (site de prezentare, alt cont Vercel) |
+| ----------- | ------------------------ | ------------------------------------------ |
+| Etora       | `circular.etora.ro`      | `etora.ro` / `www.etora.ro`                |
+| Maconxcx    | `abonamente.maconxcx.ro` | `maconxcx.ro` / `www.maconxcx.ro`          |
+
+**DNS-ul e in Cloudflare.** Domeniile sunt inregistrate la chroot.ro
+(`portal.chroot.ro`), care permite doar schimbarea nameserverelor, nu si inregistrari
+DNS - deci zona DNS a fiecarui domeniu e gestionata in Cloudflare (plan Free).
+
+#### 3.1.1 Mutarea DNS-ului in Cloudflare (o singura data per domeniu)
+
+1. Cloudflare -> Add a domain -> `etora.ro` (plan Free). De preferat in contul
+   proprietarului domeniului, cu echipa noastra invitata ca membru.
+2. Verifica inregistrarile importate automat de Cloudflare (MX / email existent etc.) -
+   tot ce trebuie sa functioneze in continuare trebuie sa fie in lista INAINTE de pasul 4.
+3. `portal.chroot.ro`: daca DNSSEC e activ, dezactiveaza-l (altfel domeniul nu se mai
+   rezolva dupa schimbarea nameserverelor). Se poate reactiva ulterior din Cloudflare.
+4. `portal.chroot.ro`: inlocuieste nameserverele cu cele doua afisate de Cloudflare.
+   Propagarea la `.ro` dureaza de obicei cateva ore (pana la ~24h); Cloudflare trimite
+   email cand zona devine activa.
+
+#### 3.1.2 Legarea subdomeniului de aplicatie (per organizatie)
+
+1. **Vercel** (proiectul aplicatiei): Project -> Settings -> Domains -> adauga
+   `circular.etora.ro`. Vercel afiseaza inregistrarile necesare - copiaza-le exact:
+   - `CNAME circular -> <valoarea din Vercel>` (ex. `cname.vercel-dns.com` sau o valoare
+     specifica proiectului, `…vercel-dns-0xx.com`);
+   - eventual `TXT _vercel -> <valoarea din Vercel>` - apare cand domeniul-parinte e
+     folosit si in ALT cont Vercel (site-ul de prezentare de pe apex).
+2. **Cloudflare** -> DNS -> Records: adauga inregistrarile de mai sus cu **Proxy status =
+   DNS only** (norisor gri). Cu proxy-ul Cloudflare activ, Vercel nu poate emite/reinnoi
+   certificatul si apar redirecturi in bucla. Daca zona are inregistrari **CAA**, trebuie
+   sa permita `letsencrypt.org`.
+3. Asteapta in Vercel „Valid Configuration” (certificatul HTTPS se emite automat).
+4. **Supabase:** Authentication -> URL Configuration -> Redirect URLs -> adauga
+   `https://circular.etora.ro/**`. Fara pas, Supabase respinge `redirectTo` si trimite
+   userul pe Site URL.
+5. **Aplicatie (ULTIMUL pas):** super-admin -> `/platform` -> organizatia -> "Domeniu
+   propriu" = `circular.etora.ro` (doar hostul; tot acolo se aleg tema si organizarea).
+   Doar super-adminul il poate schimba (migrarea `0045`). Setat inainte de pasul 3,
+   userii organizatiei ar fi redirectionati pe un domeniu care inca nu raspunde.
+
+Identic pentru `abonamente.maconxcx.ro` (CNAME `abonamente` in zona `maconxcx.ro`).
+
+**Site-ul de prezentare de pe apex** (alt cont Vercel) nu intra in conflict: proprietarul
+adauga `etora.ro` + `www.etora.ro` in proiectul lui, iar in Cloudflare se pun
+inregistrarile cerute de Vercel-ul lui (de regula `A @ -> 76.76.21.21` si
+`CNAME www -> …`), tot **DNS only**.
 
 **Emailurile Auth sunt comune tuturor organizatiilor** (un singur set de template-uri si
 un singur expeditor per proiect Supabase - decizie 2026-09-25). Linkurile duc corect pe
