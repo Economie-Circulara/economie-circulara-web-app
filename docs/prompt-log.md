@@ -4,6 +4,16 @@ Jurnal al sarcinilor lucrate de agenti AI in acest repo. Conform regulii 1.2 din
 [`AGENTS.md`](../AGENTS.md), la **fiecare commit** se adauga o intrare aici.
 Cele mai noi intrari sus.
 
+## 2026-09-28 — Claude Opus 5.5 (Claude Code) — Setup domenii: Cloudflare + subdomenii finale
+
+- **Cerut:** documentarea domeniilor finale (`circular.etora.ro`,
+  `abonamente.maconxcx.ro`) si a mutarii DNS-ului in Cloudflare (registrarul chroot.ro
+  permite doar schimbarea nameserverelor).
+- **Facut:** `docs/setup.md` 3.1 rescris: tabel cu domeniile, mutarea zonei in Cloudflare
+  (DNSSEC, nameservere), legarea subdomeniului (Vercel -> CNAME/TXT in Cloudflare cu
+  „DNS only” -> Supabase Redirect URLs -> `/platform`), coexistenta cu site-ul de
+  prezentare de pe apex din alt cont Vercel.
+
 ## 2026-09-27 — Claude Opus 5.5 (Claude Code) — Merge main + renumerotare migrari
 
 - **Cerut:** deschiderea PR-ului pentru domeniile per tenant / teme / organizare.
