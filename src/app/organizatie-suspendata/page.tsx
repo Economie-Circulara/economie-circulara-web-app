@@ -4,7 +4,7 @@ import { getCurrentOrg } from "@/features/auth/queries";
 import { getCurrentUser, homePathForRole, isOrgSuspended } from "@/features/auth/session";
 import { SignOutButton } from "@/features/auth/sign-out-button";
 
-export const metadata = { title: "Organizatie suspendata - Lot cu Lot" };
+export const metadata = { title: "Organizatie suspendata" };
 
 /**
  * Pagina dedicata (guard T2.1): singura ruta de business la care mai ajunge un

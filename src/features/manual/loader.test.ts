@@ -1,7 +1,7 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { MANUAL_DIR, readManualFile } from "./loader";
+import { MANUAL_DIR, brandManual, readManualFile } from "./loader";
 
 vi.mock("node:fs/promises", () => {
   const readFile = vi.fn();
@@ -27,5 +27,18 @@ describe("readManualFile", () => {
     expect(String(calledWith).endsWith(path.join("docs", "manual", "ghid-administrare.md"))).toBe(
       true,
     );
+  });
+});
+
+describe("brandManual", () => {
+  it("inlocuieste numele platformei cu numele aplicatiei tenantului", () => {
+    expect(brandManual("# Manual Lot cu Lot\nplatforma Lot cu Lot", "Trasabil A")).toBe(
+      "# Manual Trasabil A\nplatforma Trasabil A",
+    );
+  });
+
+  it("lasa manualul neschimbat pe domeniul platformei", () => {
+    const md = "# Manual Lot cu Lot";
+    expect(brandManual(md, "Lot cu Lot")).toBe(md);
   });
 });

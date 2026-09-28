@@ -13,13 +13,15 @@ import {
 import { initialAuthState } from "./form-state";
 
 /** Coduri de eroare primite prin `?error=` (redirect din middleware / callback / actions). */
-export type LoginErrorCode = "auth" | "oauth" | "unprovisioned";
+export type LoginErrorCode = "auth" | "oauth" | "unprovisioned" | "wrong_domain";
 
 const LOGIN_ERROR_MESSAGES: Record<LoginErrorCode, string> = {
   auth: "Link expirat sau invalid. Incearca sa te autentifici din nou.",
   oauth: "Nu am putut porni autentificarea cu Google. Incearca din nou.",
   unprovisioned:
     "Contul tau nu este inca provizionat. Cere o invitatie administratorului organizatiei tale.",
+  wrong_domain:
+    "Contul tău aparține acestei adrese. Te-am redirecționat aici - autentifică-te din nou.",
 };
 
 function loginErrorMessage(code: string | null | undefined): string | null {

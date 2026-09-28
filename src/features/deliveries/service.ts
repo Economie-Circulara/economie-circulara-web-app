@@ -21,6 +21,7 @@ import {
 } from "./queries";
 import { AvizPdfDocument } from "./pdf";
 import type { DeliveryDetail, DeliveryRecord, PlanDeliveryInput } from "./types";
+import { pdfBrandProps, type PdfBrand } from "@/features/branding/pdf-brand";
 
 type OrderStatus = Database["public"]["Enums"]["order_status"];
 
@@ -229,14 +230,12 @@ export async function declareETransport(deliveryId: string): Promise<DeliveryRec
 export async function renderAvizPdfBuffer(
   delivery: DeliveryDetail,
   orgName: string,
-  brandColor?: string | null,
-  accentColor?: string | null,
+  brand: PdfBrand,
 ): Promise<Buffer> {
   const element = createElement(AvizPdfDocument, {
     delivery,
     orgName,
-    brandColor: brandColor ?? undefined,
-    accentColor: accentColor ?? undefined,
+    ...pdfBrandProps(brand),
   });
   // Cast documentat, acelasi motiv ca `certificates/service.ts#renderCertificatePdf`.
   return renderToBuffer(element as unknown as Parameters<typeof renderToBuffer>[0]);

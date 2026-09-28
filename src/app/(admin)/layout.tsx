@@ -4,6 +4,9 @@ import { AppShell } from "@/components/layout/app-shell";
 import { navForRole } from "@/components/layout/nav-config";
 import { Topbar } from "@/components/layout/topbar";
 import { getCurrentOrg } from "@/features/auth/queries";
+import { productNameFor } from "@/features/branding/tenant-profiles";
+import { resolveThemeKey } from "@/features/branding/themes";
+import { resolveLayoutKey } from "@/features/branding/layouts";
 import { ROLE_LABELS } from "@/features/auth/roles";
 import { requireRole } from "@/features/auth/session";
 
@@ -16,7 +19,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const org = await getCurrentOrg();
   const orgName = org?.name ?? PLATFORM_NAME;
   const logoUrl = org?.logoUrl ?? undefined;
-  const items = navForRole(user.role);
+  const items = navForRole(user.role, resolveLayoutKey(org?.layout));
 
   return (
     <AppShell
@@ -24,6 +27,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       logoUrl={logoUrl}
       theme={{ brand: org?.primaryColor ?? undefined, accent: org?.secondaryColor ?? undefined }}
       items={items}
+      showPlatformLogo={productNameFor(org) === PLATFORM_NAME}
+      themeKey={resolveThemeKey(org?.theme)}
     >
       <Topbar
         email={user.email}

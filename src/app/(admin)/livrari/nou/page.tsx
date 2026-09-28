@@ -8,7 +8,7 @@ import { getDeliveryByOrderId } from "@/features/deliveries/queries";
 import { getOrderDetail } from "@/features/orders/queries";
 import { listSites } from "@/features/routing/site-queries";
 
-export const metadata = { title: "Planifică livrare - Lot cu Lot" };
+export const metadata = { title: "Planifică livrare" };
 
 interface LivrareNouaPageProps {
   searchParams: Promise<{ orderId?: string }>;

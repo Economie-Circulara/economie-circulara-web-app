@@ -2,7 +2,10 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { PageHeader } from "@/components/page-header";
 import { requireUser } from "@/features/auth/session";
-import { readManualFile } from "@/features/manual/loader";
+import { getCurrentOrg } from "@/features/auth/queries";
+import { productNameFor } from "@/features/branding/tenant-profiles";
+import { brandManual, readManualFile } from "@/features/manual/loader";
+import { PLATFORM_NAME } from "@/lib/brand";
 import { ManualContent } from "@/features/manual/manual-content";
 import { ManualToc } from "@/features/manual/manual-toc";
 import { findManualDoc } from "@/features/manual/registry";
@@ -30,7 +33,11 @@ export default async function HelpDocPage({ params }: PageProps) {
   const doc = findManualDoc(slug, user.role);
   if (!doc) notFound();
 
-  const markdown = await readManualFile(doc.file);
+  // Manualul e scris pentru platforma; pe domeniul unui tenant poarta numele aplicatiei
+  // lui (plan multi-domain-tenant-profiles, T3).
+  const productName =
+    user.role === "super_admin" ? PLATFORM_NAME : productNameFor(await getCurrentOrg());
+  const markdown = brandManual(await readManualFile(doc.file), productName);
   const toc = extractToc(markdown);
 
   return (

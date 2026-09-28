@@ -39,3 +39,14 @@ export async function getSiteOrigin(): Promise<string> {
     host: h.get("x-forwarded-host") ?? h.get("host"),
   });
 }
+
+/**
+ * Originea pe care ajung linkurile trimise userilor unei organizatii: domeniul propriu
+ * al organizatiei (`organizations.custom_domain`, mereu https), altfel originea
+ * canonica a platformei. Pur - lookup-ul organizatiei se face in `features/auth/origin.ts`.
+ */
+export function orgOrigin(customDomain: string | null | undefined, fallbackOrigin: string): string {
+  const domain = customDomain?.trim().toLowerCase();
+  if (!domain) return fallbackOrigin;
+  return new URL(`https://${domain}`).origin;
+}

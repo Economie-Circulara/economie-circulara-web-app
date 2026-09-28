@@ -34,6 +34,12 @@ describe("Sidebar", () => {
     expect(screen.getByRole("link", { name: "Lot cu Lot" })).toHaveAttribute("href", "/");
   });
 
+  it("ascunde logo-ul platformei pe domeniul propriu al unui tenant", () => {
+    render(<Sidebar orgName="Beton Circular" items={items} showPlatformLogo={false} />);
+
+    expect(screen.queryByRole("img", { name: "Lot cu Lot" })).not.toBeInTheDocument();
+  });
+
   describe("grupuri de navigatie", () => {
     const groupedItems: NavEntry[] = [
       { label: "Panou de control", href: "/dashboard", icon: "dashboard", roles: ["admin"] },

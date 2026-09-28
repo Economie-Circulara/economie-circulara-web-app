@@ -3,6 +3,9 @@ import { AppShell } from "@/components/layout/app-shell";
 import { navForRole } from "@/components/layout/nav-config";
 import { Topbar } from "@/components/layout/topbar";
 import { getCurrentOrg } from "@/features/auth/queries";
+import { productNameFor } from "@/features/branding/tenant-profiles";
+import { resolveThemeKey } from "@/features/branding/themes";
+import { resolveLayoutKey } from "@/features/branding/layouts";
 import { ROLE_LABELS } from "@/features/auth/roles";
 import { requireUser } from "@/features/auth/session";
 import { SignOutButton } from "@/features/auth/sign-out-button";
@@ -17,7 +20,6 @@ import { PLATFORM_NAME } from "@/lib/brand";
  */
 export default async function HelpLayout({ children }: { children: React.ReactNode }) {
   const user = await requireUser();
-  const items = navForRole(user.role);
 
   // Super-adminul nu are organizatie si nici navigatie de business - primeste
   // shell-ul minimal, ca in `src/app/platform/layout.tsx`.
@@ -42,6 +44,7 @@ export default async function HelpLayout({ children }: { children: React.ReactNo
   }
 
   const org = await getCurrentOrg();
+  const items = navForRole(user.role, resolveLayoutKey(org?.layout));
   const orgName = org?.name ?? PLATFORM_NAME;
   const logoUrl = org?.logoUrl ?? undefined;
 
@@ -51,6 +54,8 @@ export default async function HelpLayout({ children }: { children: React.ReactNo
       logoUrl={logoUrl}
       theme={{ brand: org?.primaryColor ?? undefined, accent: org?.secondaryColor ?? undefined }}
       items={items}
+      showPlatformLogo={productNameFor(org) === PLATFORM_NAME}
+      themeKey={resolveThemeKey(org?.theme)}
     >
       <Topbar
         email={user.email}

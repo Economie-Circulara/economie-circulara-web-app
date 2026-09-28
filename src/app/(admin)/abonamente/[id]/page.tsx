@@ -7,7 +7,7 @@ import { archiveItemAction, restoreItemAction } from "@/features/items/actions";
 import { getItemById } from "@/features/items/queries";
 import { ItemForm } from "@/features/items/item-form";
 
-export const metadata = { title: "Editează abonament - Lot cu Lot" };
+export const metadata = { title: "Editează abonament" };
 
 interface AbonamentDetailPageProps {
   params: Promise<{ id: string }>;

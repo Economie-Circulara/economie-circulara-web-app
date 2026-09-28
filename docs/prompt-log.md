@@ -4,6 +4,87 @@ Jurnal al sarcinilor lucrate de agenti AI in acest repo. Conform regulii 1.2 din
 [`AGENTS.md`](../AGENTS.md), la **fiecare commit** se adauga o intrare aici.
 Cele mai noi intrari sus.
 
+## 2026-09-27 — Claude Opus 5.5 (Claude Code) — Merge main + renumerotare migrari
+
+- **Cerut:** deschiderea PR-ului pentru domeniile per tenant / teme / organizare.
+- **Facut:** `main` avea deja migrarile `0036`-`0044` -> migrarile acestui branch au
+  devenit `0045_org_theme.sql` si `0046_org_layout.sql` (referinte actualizate); merge
+  `main` in branch; testul de garda super-admin devine B28 in `business_flow.sql`;
+  in `assistant/run.ts` pastrate ambele schimbari (numele produsului + reconstruirea
+  mesajelor din main).
+
+## 2026-09-27 — Claude Opus 5.5 (Claude Code) — Ultimele urme de platforma pe domeniile tenantilor
+
+- **Cerut:** exportul (T8) amanat; „mai e ceva de facut? daca da, fa-l”.
+- **Facut:** favicon per tenant (logo sau initiale in culoarea temei, `faviconFor`;
+  `src/app/icon.svg` mutat in `public/lot-cu-lot-icon.svg`, folosit doar pe domeniul
+  platformei); pagina de intrare a unui tenant fara logo nu mai afiseaza logo-ul
+  platformei; badge-urile `accent` (ex. „Producție”) lizibile in dark (token nou
+  `--on-accent-soft`); logo-ul platformei albit pe sidebar-urile inchise (Industrial,
+  Ciclu). Nota in setup: template-urile de email Auth trebuie scrise neutru.
+
+## 2026-09-27 — Claude Opus 5.5 (Claude Code) — Organizare meniu + panou per organizatie (T4)
+
+- **Cerut:** T4 („diferit dar usable”), dupa T6.
+- **Facut:** migrarea `0046_org_layout.sql` (`organizations.layout` `standard`/`flux`,
+  garda super-admin extinsa, test B28). Meniul `flux` (`STAFF_NAV_FLUX`, aceleasi
+  rute/roluri, grupat pe activitati; portal client cu „Comenzile mele” primul) si
+  panoul `flux` („Acasă”: atentie + actiuni rapide, apoi comenzi + indicatori, grafic).
+  Sectiunile panoului extrase in `dashboard-sections.tsx`. Selector „Organizare” in
+  `/platform/[id]`, coloana in lista, showcase `?layout=`. Manual, plan, AGENTS.md.
+
+## 2026-09-27 — Claude Opus 5.5 (Claude Code) — Antet/subsol PDF dupa tema si profil (T6)
+
+- **Cerut:** T6 si T4 („amandoua”); aici T6.
+- **Facut:** antet + subsol comune pentru certificat/aviz/rapoarte
+  (`src/lib/pdf/document-chrome.tsx`), trei variante de antet alese de tema
+  (`bar`/`band`/`rule`); `pdfBrandFor` (culori org -> tema, subtitlu + nota de subsol
+  din profil, credit). Subtitlul hardcodat „Materiale de construcții circulare” a
+  devenit `documentTagline` in profil. Teste de randare reala pe fiecare varianta.
+
+## 2026-09-27 — Claude Opus 5.5 (Claude Code) — Sistem de teme (T5)
+
+- **Cerut:** T5 - teme selectabile per organizatie (default + 3); domeniile planificate
+  `app.etora.ro` / `app.maconxcx.ro`.
+- **Facut:** migrarea `0045_org_theme.sql` (`organizations.theme` + CHECK, trigger care
+  permite doar super-adminului sa schimbe tema si `custom_domain`, `org_branding`
+  intoarce tema) + test B28 in `business_flow.sql`. Teme `default`/`teren`/
+  `industrial`/`ciclu` (`src/features/branding/themes.ts`, `src/app/themes.css`):
+  paleta light+dark, font, colturi, pattern, sidebar, login cu panou lateral. Ecran
+  super-admin `/platform/[id]` (tema cu previzualizare + domeniu propriu validat);
+  domeniul devine read-only in setarile organizatiei. Showcase `?theme=`. Manual +
+  setup + AGENTS.md actualizate.
+
+## 2026-09-26 — Claude Opus 5.5 (Claude Code) — Profil de tenant + nume de produs (T3)
+
+- **Cerut:** continuarea planului multi-domain cu T3.
+- **Facut:** `src/features/branding/` (`tenant-profiles.ts`: `productNameFor`,
+  `issuerCreditFor`; `queries.ts`: `getHostProductName`). Titlurile paginilor folosesc
+  template-ul din layout-ul radacina (`%s - <produs>`); „Lot cu Lot” inlocuit pe
+  domeniile tenantilor in subsolul certificat/aviz/raport, expeditorul notificarilor,
+  asistent, manual si sidebar (logo platforma ascuns). Teste noi: profiluri, prompt,
+  `brandManual`, sidebar.
+
+## 2026-09-25 — Claude Opus 5.5 (Claude Code) — Domeniu propriu per tenant: linkuri + garda (T1 + T2)
+
+- **Cerut:** teme selectabile (default + 3) in plan; implementare T1 + T2.
+- **Facut:** plan actualizat (T5 = sistem de teme cu 4 teme, coloana
+  `organizations.theme` setata de super-admin). T1: `src/features/auth/origin.ts`
+  (`getOrganizationOrigin` pt. invitatii, `getOriginForEmail` pt. magic link,
+  `getRequestTenantOrigin` pt. OAuth/resetare - PKCE ramane pe hostul cererii, validat
+  contra `custom_domain`), `orgOrigin()` in `site-url.ts`. T2: `tenantDomainRedirect()`
+  in `tenant.ts` + garda in middleware (signOut local + redirect la login pe domeniul
+  organizatiei, `error=wrong_domain`; exceptati super-admin, localhost, `*.vercel.app`).
+  Setup: `docs/setup.md` 3.1. Teste noi/actualizate pe toate cele de mai sus.
+
+## 2026-09-25 — Claude Opus 5.5 (Claude Code) — Plan: domeniu propriu per tenant + diferentiere
+
+- **Cerut:** analiza + intrebari + plan pentru livrarea la doi clienti (fonduri UE) pe
+  aceeasi infrastructura, fiecare pe domeniul lui, cu aplicatii care arata diferit.
+- **Facut:** plan `docs/plans/multi-domain-tenant-profiles.md` (T1-T8: origine linkuri
+  per organizatie, garda de domeniu, profil de tenant, navigare/dashboard/vizual/PDF per
+  profil, setup domenii, export per organizatie); decizia de infrastructura partajata
+  notata in AGENTS.md §4.
 ## 2026-09-25 — Claude Opus 5.5 (Claude Code) — Retur/garantie din portal trimise + notificari aport/retur
 
 - **Cerut:** rezolvarea celor 3 inconsistente gasite: retur/garantie din portal raman
@@ -40,7 +121,7 @@ Cele mai noi intrari sus.
 - **Facut:** cauza - `deliveries` e RLS doar-staff. Migrarea 0041: RPC
   `client_order_delivery` (subset sigur de campuri, doar comanda proprie, livrare
   activa); `getClientOrderDelivery` + cardul "Transport" in `/comenzile-mele/[id]`;
-  teste unitare + B24 in `business_flow.sql` (rulat pe Postgres local: trece); plan
+  teste unitare + B28 in `business_flow.sql` (rulat pe Postgres local: trece); plan
   `docs/plans/client-livrare-comanda.md`, manual, regula noua in AGENTS.md §4.
 
 ## 2026-09-25 — Claude Opus 5.5 (Claude Code) — Catalog client: imaginile produselor

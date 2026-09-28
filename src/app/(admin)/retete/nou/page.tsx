@@ -4,7 +4,7 @@ import { requireRole } from "@/features/auth/session";
 import { listPhysicalItemsWithoutRecipe } from "@/features/recipes/queries";
 import { RecipeNewForm } from "@/features/recipes/recipe-new-form";
 
-export const metadata = { title: "Rețetă nouă - Lot cu Lot" };
+export const metadata = { title: "Rețetă nouă" };
 
 /** Pornire rețetă noua: alege materialul fizic (fara rețetă inca). */
 export default async function RetetaNouaPage() {

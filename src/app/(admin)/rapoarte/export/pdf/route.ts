@@ -1,4 +1,5 @@
 import { PLATFORM_NAME } from "@/lib/brand";
+import { pdfBrandFor, pdfBrandProps } from "@/features/branding/pdf-brand";
 import { NextResponse, type NextRequest } from "next/server";
 import { getCurrentOrg } from "@/features/auth/queries";
 import { requireRole } from "@/features/auth/session";
@@ -32,8 +33,7 @@ export async function GET(request: NextRequest) {
     reportDescription: report.description,
     range,
     orgName: org?.name ?? PLATFORM_NAME,
-    brandColor: org?.primaryColor,
-    accentColor: org?.secondaryColor,
+    ...pdfBrandProps(pdfBrandFor(org)),
     columns: report.columns,
     rows: report.rows,
   });

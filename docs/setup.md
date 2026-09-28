@@ -92,7 +92,9 @@ Fluxul hosted trebuie sa trimita tokenul magic direct la callback-ul aplicatiei.
 **Authentication -> URL Configuration** seteaza:
 
 - **Site URL:** `https://www.lotculot.eu`
-- **Redirect URLs:** `https://www.lotculot.eu/auth/callback`
+- **Redirect URLs:** `https://www.lotculot.eu/auth/callback` + cate o intrare
+  `https://<domeniu-tenant>/auth/callback` pentru fiecare organizatie cu domeniu propriu
+  (vezi 3.1).
 
 In **Authentication -> Email Templates -> Magic Link**, linkul butonului trebuie sa fie:
 
@@ -134,6 +136,42 @@ confirmare explicita sau OTP numeric.
 > `docs/handoff.md` si T1.3 din plan.
 
 ---
+
+### 3.1 Domeniu propriu pentru o organizatie (tenant)
+
+Fiecare organizatie poate lucra pe domeniul ei (ex. `trasabilitate.firma-a.ro`), pe
+acelasi deploy si aceeasi baza (plan: `docs/plans/multi-domain-tenant-profiles.md`).
+Pasi, per organizatie:
+
+1. **DNS (la client):** `CNAME trasabilitate.firma-a.ro -> cname.vercel-dns.com`.
+2. **Vercel:** Project -> Settings -> Domains -> adauga domeniul (certificatul HTTPS se
+   emite automat dupa propagarea DNS).
+3. **Supabase:** Authentication -> URL Configuration -> Redirect URLs -> adauga
+   `https://trasabilitate.firma-a.ro/auth/callback`. Fara pas, Supabase respinge
+   `redirectTo` si trimite userul pe Site URL.
+4. **Aplicatie (ULTIMUL pas):** super-admin -> `/platform` -> organizatia -> "Domeniu
+   propriu" = `trasabilitate.firma-a.ro` (doar hostul; tot acolo se alege tema).
+   Doar super-adminul il poate schimba (migrarea `0045`).
+
+Domeniile planificate (2026-09): `app.etora.ro` si `app.maconxcx.ro`, fiecare pentru
+organizatia clientului respectiv.
+
+**Emailurile Auth sunt comune tuturor organizatiilor** (un singur set de template-uri si
+un singur expeditor per proiect Supabase - decizie 2026-09-25). Linkurile duc corect pe
+domeniul organizatiei (`{{ .RedirectTo }}`), dar textul e acelasi pentru toti: scrie
+template-urile (Magic Link, Invite, Reset Password) si numele expeditorului SMTP
+NEUTRU, fara „Lot cu Lot” (ex. „Autentificare în aplicația de trasabilitate”).
+
+Efecte:
+
+- invitatiile (admin, staff, client), magic link-ul, resetarea parolei si login-ul
+  Google ajung pe domeniul organizatiei;
+- un user al organizatiei intrat pe alt domeniu e delogat acolo si trimis la login pe
+  domeniul lui (`?error=wrong_domain`); super-adminul lucreaza pe orice domeniu;
+- garda nu se aplica pe `localhost` si pe preview-urile `*.vercel.app`.
+
+Verificare: invita un user de test -> linkul din email e pe domeniul organizatiei;
+logheaza-te cu el pe `www.lotculot.eu` -> ajungi pe login-ul domeniului organizatiei.
 
 ## 4. Environment Claude Code on the web (ca agentul sa ruleze tot de-aici)
 

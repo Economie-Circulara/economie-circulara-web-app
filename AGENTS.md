@@ -390,6 +390,27 @@ Testele unitare sunt **colocate** langa cod (`*.test.ts` / `*.test.tsx`).
     (`src/components/confirm-action-button.tsx`) - dialog de confirmare cu text
     romanesc simplu (ce se intampla si ce NU se pierde).
 
+- **Doi clienti pe aceeasi infrastructura, fiecare pe domeniul lui** (decizie
+  2026-09-25, plan `docs/plans/multi-domain-tenant-profiles.md`): acelasi proiect
+  Vercel + aceeasi baza Supabase e acceptat (finantare UE) DOAR cat timp datele raman
+  izolate (RLS), auditabile si **exportabile integral per organizatie**. Linkurile
+  generate pentru userii unui tenant (auth, invitatii) folosesc domeniul
+  ORGANIZATIEI (`organizations.custom_domain`), nu domeniul de pe care s-a facut
+  cererea; userul unui tenant e redirectionat pe domeniul lui, super-adminul e
+  exceptat. „Lot cu Lot” nu apare pe domeniile tenantilor.
+  - **Tema vizuala (`organizations.theme`), organizarea (`layout`, meniu + panou) si
+    domeniul propriu (`custom_domain`) le schimba DOAR super-adminul** (`/platform/<id>`,
+    trigger din `0045_org_theme.sql`, extins in `0046_org_layout.sql`):
+    un domeniu gresit setat de adminul organizatiei ar redirectiona toti userii ei pe
+    o adresa neconfigurata. Adminul organizatiei pastreaza doar culorile.
+  - O tema noua = cheie in `src/features/branding/themes.ts` + bloc light/dark in
+    `src/app/themes.css` + valoare in CHECK-ul din migrare (`themes.test.ts` verifica
+    toate trei). Temele se aplica prin `data-theme` pe `<html>` (dialogurile sunt in
+    portal) si pe `AppShell`; tokenii derivati se redeclara pe orice `[data-theme]`.
+  - Organizarile (`standard`/`flux`) schimba DOAR prezentarea: orice varianta de meniu
+    contine exact rutele si rolurile din `STAFF_NAV` (verificat de `nav-config.test.ts`).
+    O pagina noua in meniu se adauga in `STAFF_NAV` SI in `STAFF_NAV_FLUX`.
+
 ### 4.1 Limitari cunoscute / trade-off-uri acceptate
 
 - **`stock_events` audit trail**: pentru acum, nicio reconciliere automata cu `lots.remaining_qty`;

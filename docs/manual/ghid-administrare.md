@@ -34,11 +34,12 @@ deschide ecranul **"Setări organizație"**, cu formularul de configurare:
 
 ### 1.3 Domeniu & email
 
-- **"Domeniu personalizat"** - ex. `trace.firma.ro`; domeniul propriu al
-  organizației, folosit ca **punct de intrare** dedicat (login + tot restul
-  aplicației). Configurarea DNS/Vercel a domeniului se face **separat**, de
-  echipa tehnică (vezi secțiunea 4.3) - acest câmp doar înregistrează domeniul
-  în platformă, pentru identificarea organizației la accesarea lui.
+- **"Domeniu personalizat"** - afișat doar pentru informare (ex. `app.firma.ro`).
+  Domeniul propriu al organizației îl setează **echipa platformei** (super-admin,
+  secțiunea 3.3), împreună cu configurarea DNS/Vercel/autentificare - cere-l la
+  suport. Când organizația are domeniu propriu, toate linkurile din emailuri
+  (invitații, autentificare) duc pe el, iar utilizatorii organizației care intră
+  pe altă adresă sunt trimiși automat la autentificare pe domeniul lor.
 - **"Nume expeditor email"** și **"Adresă expeditor email"** - identitatea cu
   care organizația trimite notificările automate (confirmare comandă, schimbări
   de status etc.) către clienții ei.
@@ -107,8 +108,9 @@ operează platforma Lot cu Lot pentru toți clienții ei (organizațiile). Ecran
 
 ### 3.1 Lista organizațiilor
 
-Coloane: Nume, Slug/acces (subdomeniul sau calea de acces + link-ul complet),
-Domeniu custom, Status (Activ/Suspendat), Data creării, Număr de utilizatori.
+Coloane: Nume (link către ecranul organizației), Slug/acces (subdomeniul sau
+calea de acces + link-ul complet), Domeniu custom, Temă, Organizare, Status
+(Activ/Suspendat), Data creării, Număr de utilizatori.
 
 ### 3.2 Crearea unei organizații noi
 
@@ -128,7 +130,27 @@ comută automat în mod "re-încercare": numele și slug-ul devin needitabile
 
 ![ecranul "Organizație nouă"](img/superadmin-org-new.png)
 
-### 3.3 Suspendarea și reactivarea unei organizații
+
+### 3.3 Tema vizuală, organizarea și domeniul propriu
+
+Click pe numele organizației în listă -> ecranul organizației (`/platform/<id>`):
+
+- **"Temă vizuală"** - aspectul aplicației pentru toți utilizatorii organizației:
+  culori, font, colțuri, fundal, meniu lateral și ecranul de autentificare. Sunt
+  4 teme: **Clasic** (implicită), **Teren**, **Industrial**, **Ciclu** - fiecare
+  cu o previzualizare. Culorile completate de adminul organizației în "Setări"
+  rămân peste temă.
+- **"Organizare"** - gruparea meniului și aranjamentul panoului de control:
+  **Standard** (meniu pe Comenzi / Stoc / Setări, panou cu indicatorii sus) sau
+  **Flux** (meniu pe activități: Producție -> Vânzări -> Inventar -> Administrare;
+  panoul "Acasă" începe cu ce e de făcut și cu acțiuni rapide). Paginile și
+  drepturile rămân aceleași.
+- **"Domeniu propriu"** - doar hostul (ex. `app.firma.ro`); gol = domeniul
+  platformei. Vezi secțiunea 4.3 înainte de salvare.
+
+Tema, organizarea și domeniul pot fi schimbate **doar de super-admin** (impus și în baza de
+date) - adminul organizației le vede, dar nu le poate modifica.
+### 3.4 Suspendarea și reactivarea unei organizații
 
 Din lista de organizații, coloana "Acțiuni":
 
@@ -239,11 +261,13 @@ pnpm db:test       # ruleaza testele de izolare RLS (supabase/tests/rls_isolatio
 
 ### 4.3 Domeniu custom pe Vercel
 
-Câmpul "Domeniu personalizat" din "Setări organizație" (secțiunea 1.3) doar
-înregistrează domeniul în baza de date, pentru ca aplicația să identifice
-organizația la accesarea acelui domeniu. **Configurarea propriu-zisă a
-domeniului** (DNS + adăugarea lui în proiectul Vercel) se face separat, de
-echipa tehnică, din Vercel -> Project Settings -> Domains.
+Câmpul "Domeniu propriu" din ecranul organizației (`/platform/<id>`, secțiunea
+3.3) înregistrează domeniul în baza de date. **Înainte** de a-l salva, echipa
+tehnică face configurarea propriu-zisă - pașii completi sunt în
+`docs/setup.md`, secțiunea 3.1: CNAME către Vercel, domeniul adăugat în Vercel
+-> Project Settings -> Domains și în Supabase -> Authentication -> URL
+Configuration -> Redirect URLs. Altfel utilizatorii organizației sunt trimiși pe
+un domeniu care nu răspunde.
 
 ### 4.4 Backup și recuperare
 
@@ -274,7 +298,7 @@ tabel nou trebuie să respecte aceleași politici de izolare (vezi
 
 O organizație suspendată (`organizations.status = 'suspended'`) blochează
 accesul tuturor userilor ei, impus atât în aplicație cât și în baza de date
-(vezi secțiunea 3.3).
+(vezi secțiunea 3.4).
 
 ### 4.6 CI/CD
 

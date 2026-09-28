@@ -126,6 +126,55 @@ export const STAFF_NAV: NavEntry[] = [
   },
 ];
 
+/**
+ * Organizarea aplicatiei aleasa per organizatie (`organizations.layout`, doar
+ * super-admin - plan multi-domain-tenant-profiles, T4): `standard` = meniul de mai sus;
+ * `flux` = acelasi set de pagini, grupat pe activitati (productie -> vanzari ->
+ * inventar), cu alte etichete de grup. Rutele si rolurile NU difera - doar prezentarea.
+ */
+export type NavLayoutKey = "standard" | "flux";
+
+/** O pagina din `STAFF_NAV`, eventual cu alta eticheta (rol + href raman cele canonice). */
+function staffItem(href: string, label?: string): NavItem {
+  const item = flattenNavEntries(STAFF_NAV).find((entry) => entry.href === href);
+  if (!item) throw new Error(`Ruta ${href} lipseste din STAFF_NAV`);
+  return label ? { ...item, label } : item;
+}
+
+export const STAFF_NAV_FLUX: NavEntry[] = [
+  staffItem("/dashboard", "Acasă"),
+  {
+    key: "flux-productie",
+    label: "Producție",
+    items: [staffItem("/productie", "Procese"), staffItem("/retete")],
+  },
+  {
+    key: "flux-vanzari",
+    label: "Vânzări",
+    items: [staffItem("/comenzi"), staffItem("/livrari"), staffItem("/clienti")],
+  },
+  {
+    key: "flux-inventar",
+    label: "Inventar",
+    items: [
+      staffItem("/stoc", "Loturi în stoc"),
+      staffItem("/itemi"),
+      staffItem("/abonamente"),
+      staffItem("/stoc/audit"),
+    ],
+  },
+  staffItem("/rapoarte"),
+  {
+    key: "flux-administrare",
+    label: "Administrare",
+    items: [
+      staffItem("/setari", "Organizație"),
+      staffItem("/setari/utilizatori"),
+      staffItem("/setari/statii"),
+    ],
+  },
+];
+
 /** Navigatie portal client. */
 export const CLIENT_NAV: NavItem[] = [
   { label: "Catalog", href: "/catalog", icon: "catalog", roles: ["client"] },
@@ -160,9 +209,9 @@ export const ASSISTANT_NAV_ITEM: NavItem = {
   roles: ["super_admin", "admin", "operator", "client"],
 };
 
-/** Filtreaza `STAFF_NAV` pe rol - pastreaza grupurile, dar le elimina daca raman fara copii. */
-function filterStaffNavForRole(role: AppRole): NavEntry[] {
-  return STAFF_NAV.flatMap((entry): NavEntry[] => {
+/** Filtreaza navigatia staff pe rol - pastreaza grupurile, dar le elimina daca raman fara copii. */
+function filterStaffNavForRole(nav: NavEntry[], role: AppRole): NavEntry[] {
+  return nav.flatMap((entry): NavEntry[] => {
     if (isNavGroup(entry)) {
       const items = entry.items.filter((item) => item.roles.includes(role));
       return items.length > 0 ? [{ ...entry, items }] : [];
@@ -171,8 +220,14 @@ function filterStaffNavForRole(role: AppRole): NavEntry[] {
   });
 }
 
-export function navForRole(role: AppRole): NavEntry[] {
+/** Portalul client in organizarea `flux`: comenzile proprii primele, apoi catalogul. */
+const CLIENT_NAV_FLUX: NavItem[] = ["/comenzile-mele", "/catalog", "/aport-nou", "/documente"].map(
+  (href) => CLIENT_NAV.find((item) => item.href === href)!,
+);
+
+export function navForRole(role: AppRole, layout: NavLayoutKey = "standard"): NavEntry[] {
   const shared = [ASSISTANT_NAV_ITEM, HELP_NAV_ITEM];
-  if (role === "client") return [...CLIENT_NAV, ...shared];
-  return [...filterStaffNavForRole(role), ...shared];
+  if (role === "client") return [...(layout === "flux" ? CLIENT_NAV_FLUX : CLIENT_NAV), ...shared];
+  const staffNav = layout === "flux" ? STAFF_NAV_FLUX : STAFF_NAV;
+  return [...filterStaffNavForRole(staffNav, role), ...shared];
 }

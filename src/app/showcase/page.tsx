@@ -3,6 +3,7 @@
 import { type ColumnDef } from "@tanstack/react-table";
 import { Boxes, Plus } from "lucide-react";
 import { notFound } from "next/navigation";
+import { use } from "react";
 import { AppShell } from "@/components/layout/app-shell";
 import { navForRole } from "@/components/layout/nav-config";
 import { PageHeader } from "@/components/page-header";
@@ -14,6 +15,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { LAYOUTS, LAYOUT_KEYS, resolveLayoutKey } from "@/features/branding/layouts";
+import { THEMES, THEME_KEYS, resolveThemeKey } from "@/features/branding/themes";
 
 type OrderRow = {
   id: string;
@@ -74,12 +77,41 @@ const columns: ColumnDef<OrderRow>[] = [
   },
 ];
 
-export default function ShowcasePage() {
+export default function ShowcasePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ theme?: string; layout?: string }>;
+}) {
+  const params = use(searchParams);
+  const themeKey = resolveThemeKey(params.theme);
+  const layoutKey = resolveLayoutKey(params.layout);
   // Showcase-ul e doar pentru dezvoltare (design system); nu trebuie sa fie public in productie.
   if (process.env.NODE_ENV === "production") notFound();
 
   return (
-    <AppShell orgName="Lateris Demo" items={navForRole("admin")}>
+    <AppShell orgName="Lateris Demo" items={navForRole("admin", layoutKey)} themeKey={themeKey}>
+      {/* Previzualizare teme (T5): /showcase?theme=<cheie> */}
+      <nav className="flex flex-wrap gap-2 text-sm">
+        {THEME_KEYS.map((key) => (
+          <a
+            key={key}
+            href={`/showcase?theme=${key}&layout=${layoutKey}`}
+            className={key === themeKey ? "font-semibold underline" : "text-muted-foreground"}
+          >
+            {THEMES[key].label}
+          </a>
+        ))}
+        <span className="text-muted-foreground">·</span>
+        {LAYOUT_KEYS.map((key) => (
+          <a
+            key={key}
+            href={`/showcase?theme=${themeKey}&layout=${key}`}
+            className={key === layoutKey ? "font-semibold underline" : "text-muted-foreground"}
+          >
+            {LAYOUTS[key].label}
+          </a>
+        ))}
+      </nav>
       <PageHeader
         title="Design system"
         breadcrumbs={[{ label: "Lot cu Lot" }, { label: "Showcase" }]}

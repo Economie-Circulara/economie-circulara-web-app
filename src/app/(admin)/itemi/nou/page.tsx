@@ -2,7 +2,7 @@ import { PageHeader } from "@/components/page-header";
 import { requireRole } from "@/features/auth/session";
 import { ItemForm } from "@/features/items/item-form";
 
-export const metadata = { title: "Adaugă material - Lot cu Lot" };
+export const metadata = { title: "Adaugă material" };
 
 /** Formular creare material nou (item fizic) - doar staff. Tipul e fixat de ecran. */
 export default async function ItemiNouPage() {

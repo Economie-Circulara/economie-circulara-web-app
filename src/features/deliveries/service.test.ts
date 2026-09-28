@@ -68,6 +68,7 @@ import {
   renderAvizPdfBuffer,
 } from "./service";
 import type { DeliveryDetail, PlanDeliveryInput } from "./types";
+import { pdfBrandFor } from "@/features/branding/pdf-brand";
 
 afterEach(() => {
   vi.clearAllMocks();
@@ -333,7 +334,7 @@ describe("renderAvizPdfBuffer", () => {
   it("randeaza avizul si intoarce un Buffer", async () => {
     renderToBuffer.mockResolvedValue(Buffer.from("pdf-content"));
 
-    const buffer = await renderAvizPdfBuffer(deliveryDetail(), "Lateris Demo");
+    const buffer = await renderAvizPdfBuffer(deliveryDetail(), "Lateris Demo", pdfBrandFor(null));
 
     expect(renderToBuffer).toHaveBeenCalledTimes(1);
     expect(buffer.toString()).toEqual("pdf-content");
