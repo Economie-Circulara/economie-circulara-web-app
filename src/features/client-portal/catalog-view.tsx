@@ -13,6 +13,7 @@ import { KIND_LABELS } from "@/features/items/labels";
 import { initialClientOrderFormState } from "./action-state";
 import { createClientOrderAction } from "./actions";
 import { useCart } from "./cart-context";
+import { DeliveryAddressField } from "./delivery-address-field";
 import { splitAvailableLines } from "./cart-logic";
 import { ProductImage } from "./product-image";
 import type { CartLine, CatalogItem, ItemKind } from "./types";
@@ -139,25 +140,7 @@ function CartPanel({ addresses, lines }: { addresses: ClientAddress[]; lines: Ca
           </div>
 
           <div className="space-y-3 border-t p-4">
-            <FormField label="Adresă livrare" hint="Opțional.">
-              {(id) => (
-                <select
-                  id={id}
-                  name="delivery_address_id"
-                  defaultValue=""
-                  className={selectClassName}
-                >
-                  <option value="">Fără adresă precizată</option>
-                  {addresses.map((address) => (
-                    <option key={address.id} value={address.id}>
-                      {address.label ? `${address.label} - ` : ""}
-                      {address.address}
-                      {address.isDefault ? " (implicită)" : ""}
-                    </option>
-                  ))}
-                </select>
-              )}
-            </FormField>
+            <DeliveryAddressField addresses={addresses} />
 
             <FormField label="Data livrare" hint="Opțional.">
               {(id) => <Input id={id} name="delivery_date" type="date" />}

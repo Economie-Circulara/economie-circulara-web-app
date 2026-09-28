@@ -28,7 +28,8 @@ export type NavIconName =
   | "assistant"
   | "users-admin"
   | "stations"
-  | "aport";
+  | "aport"
+  | "addresses";
 
 export interface NavItem {
   label: string;
@@ -186,6 +187,7 @@ export const CLIENT_NAV: NavItem[] = [
     icon: "documents",
     roles: ["client"],
   },
+  { label: "Adresele mele", href: "/adresele-mele", icon: "addresses", roles: ["client"] },
 ];
 
 /**
@@ -221,9 +223,13 @@ function filterStaffNavForRole(nav: NavEntry[], role: AppRole): NavEntry[] {
 }
 
 /** Portalul client in organizarea `flux`: comenzile proprii primele, apoi catalogul. */
-const CLIENT_NAV_FLUX: NavItem[] = ["/comenzile-mele", "/catalog", "/aport-nou", "/documente"].map(
-  (href) => CLIENT_NAV.find((item) => item.href === href)!,
-);
+const CLIENT_NAV_FLUX: NavItem[] = [
+  "/comenzile-mele",
+  "/catalog",
+  "/aport-nou",
+  "/documente",
+  "/adresele-mele",
+].map((href) => CLIENT_NAV.find((item) => item.href === href)!);
 
 export function navForRole(role: AppRole, layout: NavLayoutKey = "standard"): NavEntry[] {
   const shared = [ASSISTANT_NAV_ITEM, HELP_NAV_ITEM];

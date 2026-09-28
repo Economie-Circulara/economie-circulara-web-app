@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 const { requireRole } = vi.hoisted(() => ({ requireRole: vi.fn() }));
 vi.mock("@/features/auth/session", () => ({ requireRole }));
 
-const { createClientRecord, updateClientRecord, upsertAddress, deleteAddress, DuplicateCuiError } =
+const { createClientRecord, updateClientRecord, upsertAddress, removeAddress, DuplicateCuiError } =
   vi.hoisted(() => {
     class DuplicateCuiError extends Error {
       constructor(public readonly cui: string) {
@@ -15,7 +15,7 @@ const { createClientRecord, updateClientRecord, upsertAddress, deleteAddress, Du
       createClientRecord: vi.fn(),
       updateClientRecord: vi.fn(),
       upsertAddress: vi.fn(),
-      deleteAddress: vi.fn(),
+      removeAddress: vi.fn(),
       DuplicateCuiError,
     };
   });
@@ -23,7 +23,7 @@ vi.mock("./service", () => ({
   createClientRecord,
   updateClientRecord,
   upsertAddress,
-  deleteAddress,
+  removeAddress,
   DuplicateCuiError,
 }));
 
@@ -297,19 +297,19 @@ describe("deleteAddressAction", () => {
     requireRole.mockResolvedValue({ id: "u1" });
     const state = await deleteAddressAction({ error: null }, formData({}));
     expect(state.error).toMatch(/adresă/i);
-    expect(deleteAddress).not.toHaveBeenCalled();
+    expect(removeAddress).not.toHaveBeenCalled();
   });
 
   it("sterge adresa si revalideaza", async () => {
     requireRole.mockResolvedValue({ id: "u1" });
-    deleteAddress.mockResolvedValue(undefined);
+    removeAddress.mockResolvedValue(undefined);
 
     const state = await deleteAddressAction(
       { error: null },
       formData({ id: "addr-1", client_id: "client-1" }),
     );
 
-    expect(deleteAddress).toHaveBeenCalledWith("addr-1");
+    expect(removeAddress).toHaveBeenCalledWith("addr-1");
     expect(revalidatePath).toHaveBeenCalledWith("/clienti/client-1");
     expect(state.error).toBeNull();
   });

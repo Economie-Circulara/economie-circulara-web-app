@@ -4,6 +4,16 @@ Jurnal al sarcinilor lucrate de agenti AI in acest repo. Conform regulii 1.2 din
 [`AGENTS.md`](../AGENTS.md), la **fiecare commit** se adauga o intrare aici.
 Cele mai noi intrari sus.
 
+## 2026-09-28 — Claude Opus 5.5 (Claude Code) — Merge main in PR #72 + renumerotare migrari 0047/0048
+
+- **Cerut:** rezolvarea conflictelor din PR #72 (confirmarea receptiei + adresele mele).
+- **Facut:** merge `main` (teme / organizare, care au luat numerele 0045/0046); migrarile
+  proprii renumerotate `0045_client_confirm_delivery_receipt` -> `0047`,
+  `0046_client_addresses_archive` -> `0048` (+ referintele din cod, teste, AGENTS.md,
+  planuri, manual); testele SQL B28 (receptie) / B29 (adrese) devin B29 / B30, dupa B28
+  din `main`. Conflict semantic: organizarea `flux` a meniului (din `main`) avea lista
+  proprie de pagini client - adaugat si acolo "Adresele mele".
+
 ## 2026-09-28 — Claude Opus 5.5 (Claude Code) — Tema are prioritate fata de culorile din Setari
 
 - **Cerut:** tema aleasa de super-admin era suprascrisa de culorile white-label din
@@ -105,6 +115,28 @@ Cele mai noi intrari sus.
   per organizatie, garda de domeniu, profil de tenant, navigare/dashboard/vizual/PDF per
   profil, setup domenii, export per organizatie); decizia de infrastructura partajata
   notata in AGENTS.md §4.
+## 2026-09-25 — Claude Opus 5.5 (Claude Code) — Portal client: adresele mele + adresa ad hoc
+
+- **Cerut:** clientul nu-si poate pune adresa si nici una ad hoc pentru o livrare.
+- **Facut:** migrarea 0046 (`client_addresses.archived_at`); pagina `/adresele-mele`
+  (meniu "Adresele mele", `AddressSection` reutilizata cu actiunile clientului);
+  `DeliveryAddressField` in cos si aport ("+ Adresă nouă…", salvata sau ad hoc,
+  implicita preselectata); adresa validata pe server (doar adrese active ale
+  clientului); stergerea unei adrese folosite o arhiveaza (si la staff); teste unitare
+  + B29 (suitele SQL rulate pe Postgres local: trec); plan `docs/plans/client-adrese.md`,
+  manual, AGENTS.md.
+
+## 2026-09-25 — Claude Opus 5.5 (Claude Code) — Portal client: confirmarea receptiei livrarii
+
+- **Cerut:** clientul sa poata confirma receptia livrarii (inchiderea comenzii ramane la
+  staff, dupa discutie - emite certificatul organizatiei). PR nou.
+- **Facut:** migrarea 0045 - `deliveries.received_via_portal` + RPC
+  `client_confirm_delivery_receipt` (security definer, atomic: receptie + `delivered`,
+  coduri DR001-DR004); `confirmOwnDeliveryReceiptAction` + formular in cardul "Transport"
+  (email "Livrată"); staff vede "confirmată de client în portal"; teste unitare + B28
+  (suitele SQL rulate pe Postgres local: trec); plan `docs/plans/client-confirma-receptia.md`,
+  manual, AGENTS.md.
+
 ## 2026-09-25 — Claude Opus 5.5 (Claude Code) — Retur/garantie din portal trimise + notificari aport/retur
 
 - **Cerut:** rezolvarea celor 3 inconsistente gasite: retur/garantie din portal raman

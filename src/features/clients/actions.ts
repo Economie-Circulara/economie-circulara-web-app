@@ -10,7 +10,7 @@ import { defaultCuiLookupProvider, type CuiLookupResult } from "./cui-lookup";
 import {
   DuplicateCuiError,
   createClientRecord,
-  deleteAddress,
+  removeAddress,
   setClientArchived,
   updateClientRecord,
   upsertAddress,
@@ -201,7 +201,7 @@ export async function deleteAddressAction(
   if (!id || !clientId) return { error: "Adresă invalidă." };
 
   try {
-    await deleteAddress(id);
+    await removeAddress(id);
   } catch (err) {
     return { error: err instanceof Error ? err.message : "Nu am putut șterge adresa." };
   }
