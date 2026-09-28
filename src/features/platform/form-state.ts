@@ -18,6 +18,13 @@ export const initialCreateOrganizationState: CreateOrganizationState = {
   adminEmail: "",
 };
 
+export interface OrgAppearanceState {
+  error: string | null;
+  message: string | null;
+}
+
+export const initialOrgAppearanceState: OrgAppearanceState = { error: null, message: null };
+
 export interface OrgStatusState {
   error: string | null;
 }

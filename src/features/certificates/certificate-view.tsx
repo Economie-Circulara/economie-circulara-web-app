@@ -1,4 +1,5 @@
 "use client";
+import { PLATFORM_NAME } from "@/lib/brand";
 
 import { useState, useTransition } from "react";
 import { Download, Printer } from "lucide-react";
@@ -19,6 +20,11 @@ export interface CertificateViewProps {
   number: string;
   issuedAt: string;
   orgName: string;
+  /**
+   * Creditul din subsol („emis de <X>”), din `issuerCreditFor` (features/branding).
+   * `null` = fara credit (produsul poarta chiar numele organizatiei); lipsa = platforma.
+   */
+  issuerCredit?: string | null;
   /** Date de identificare fiscala ale emitentului (migrarea 0023) - opționale. */
   orgCui?: string | null;
   orgRegCom?: string | null;
@@ -40,6 +46,7 @@ export function CertificateView({
   number,
   issuedAt,
   orgName,
+  issuerCredit = PLATFORM_NAME,
   orgCui,
   orgRegCom,
   orgAddress,
@@ -183,7 +190,11 @@ export function CertificateView({
           </div>
         </CardContent>
         <div className="flex justify-between bg-primary px-10 py-3 font-mono text-[11px] text-primary-foreground">
-          <span>{orgName} · trasabilitate emisă de Lot cu Lot</span>
+          <span>
+            {issuerCredit
+              ? `${orgName} · trasabilitate emisă de ${issuerCredit}`
+              : `${orgName} · certificat de trasabilitate`}
+          </span>
           <span>{number} · pagina 1/1</span>
         </div>
       </Card>

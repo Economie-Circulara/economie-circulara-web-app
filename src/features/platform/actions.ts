@@ -3,17 +3,22 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireRole } from "@/features/auth/session";
-import { getSiteOrigin } from "@/lib/site-url";
+import { getOrganizationOrigin } from "@/features/auth/origin";
+import { isLayoutKey } from "@/features/branding/layouts";
+import { isThemeKey } from "@/features/branding/themes";
+import { normalizeCustomDomain } from "./domain";
 import { isValidSlug } from "./slug";
 import {
   InviteFailedError,
   ProfileCreateFailedError,
+  DomainTakenError,
   SlugTakenError,
   createOrganizationRow,
   inviteOrganizationAdmin,
   setOrganizationStatus,
+  updateOrganizationAppearance,
 } from "./service";
-import type { CreateOrganizationState, OrgStatusState } from "./form-state";
+import type { CreateOrganizationState, OrgAppearanceState, OrgStatusState } from "./form-state";
 
 function clean(value: FormDataEntryValue | null): string {
   return String(value ?? "").trim();
@@ -90,7 +95,8 @@ export async function createOrganizationAction(
     };
   }
 
-  const origin = await getSiteOrigin();
+  // Domeniul organizatiei TINTA, nu cel de pe care lucreaza super-adminul.
+  const origin = await getOrganizationOrigin(organizationId);
   try {
     await inviteOrganizationAdmin(
       organizationId,
@@ -152,4 +158,46 @@ export async function reactivateOrganizationAction(
   }
   revalidatePath("/platform");
   return { error: null };
+}
+
+/**
+ * Tema vizuala, organizarea (meniu + panou) si domeniul propriu ale unei organizatii
+ * (super-admin; plan multi-domain-tenant-profiles, T4/T5). Domeniul trebuie configurat si in Vercel +
+ * Supabase Auth (docs/setup.md 3.1) - altfel userii organizatiei sunt redirectionati
+ * pe un domeniu care nu raspunde.
+ */
+export async function updateOrganizationAppearanceAction(
+  _prev: OrgAppearanceState,
+  formData: FormData,
+): Promise<OrgAppearanceState> {
+  await requireRole(["super_admin"]);
+  const organizationId = clean(formData.get("organization_id"));
+  if (!organizationId) return { error: "Organizatie invalida.", message: null };
+
+  const theme = clean(formData.get("theme"));
+  if (!isThemeKey(theme)) return { error: "Tema necunoscuta.", message: null };
+
+  const layout = clean(formData.get("layout"));
+  if (!isLayoutKey(layout)) return { error: "Organizare necunoscuta.", message: null };
+
+  const domain = normalizeCustomDomain(clean(formData.get("custom_domain")));
+  if (!domain.ok) return { error: domain.error, message: null };
+
+  try {
+    await updateOrganizationAppearance(organizationId, {
+      theme,
+      layout,
+      customDomain: domain.value,
+    });
+  } catch (err) {
+    const error =
+      err instanceof DomainTakenError
+        ? `Domeniul "${err.domain}" este deja folosit de alta organizatie.`
+        : "Nu am putut salva setarile organizatiei.";
+    return { error, message: null };
+  }
+
+  revalidatePath("/platform");
+  revalidatePath(`/platform/${organizationId}`);
+  return { error: null, message: "Setarile au fost salvate." };
 }

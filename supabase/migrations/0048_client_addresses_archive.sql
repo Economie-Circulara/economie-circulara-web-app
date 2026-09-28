@@ -18,4 +18,4 @@ alter table public.client_addresses
   add column archived_at timestamptz;
 
 comment on column public.client_addresses.archived_at is
-  'Adresa ascunsa din agenda si din pickere (0046): ad hoc (o singura comanda) sau stearsa dupa ce a fost folosita. Comenzile vechi o afiseaza in continuare.';
+  'Adresa ascunsa din agenda si din pickere (0048): ad hoc (o singura comanda) sau stearsa dupa ce a fost folosita. Comenzile vechi o afiseaza in continuare.';

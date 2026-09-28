@@ -11,7 +11,7 @@ import {
   listSellableItemOptions,
 } from "@/features/orders/queries";
 
-export const metadata = { title: "Editează comandă - Lot cu Lot" };
+export const metadata = { title: "Editează comandă" };
 
 interface EditOrderPageProps {
   params: Promise<{ id: string }>;

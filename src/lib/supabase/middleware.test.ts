@@ -4,8 +4,9 @@ import { TENANT_DOMAIN_HEADER, TENANT_SLUG_HEADER } from "@/features/auth/tenant
 
 // `vi.mock` este ridicat (hoisted) deasupra importurilor, deci definim mock-urile cu
 // `vi.hoisted` ca sa fie disponibile in factory.
-const { getUser, createServerClient, singleMock } = vi.hoisted(() => ({
+const { getUser, signOut, createServerClient, singleMock } = vi.hoisted(() => ({
   getUser: vi.fn(),
+  signOut: vi.fn(),
   createServerClient: vi.fn(),
   // Mock-ul lantului `.from("profiles").select(...).eq(...).single()` folosit de
   // guard-ul de organizatie suspendata (T2.1). Implicit: fara profil rezolvat (ca un
@@ -35,7 +36,7 @@ function makeRequest(url: string, headers: Record<string, string>): NextRequest 
 beforeEach(() => {
   singleMock.mockResolvedValue({ data: null, error: null });
   createServerClient.mockReturnValue({
-    auth: { getUser },
+    auth: { getUser, signOut },
     from: vi.fn().mockReturnValue({
       select: vi.fn().mockReturnValue({
         eq: vi.fn().mockReturnValue({ single: singleMock }),
@@ -202,6 +203,74 @@ describe("updateSession - guard cont dezactivat (migrarea 0035)", () => {
 
     const response = await updateSession(request);
 
+    expect(response.status).not.toBe(307);
+  });
+});
+
+describe("updateSession - garda de domeniu (multi-domain T2)", () => {
+  const orgA = (overrides: Record<string, unknown> = {}) => ({
+    data: {
+      organization_id: "org-a",
+      status: "active",
+      organizations: { status: "active", custom_domain: "trace.firma-a.ro", ...overrides },
+    },
+    error: null,
+  });
+
+  it("userul organizatiei A pe domeniul B e delogat local si trimis la login pe A", async () => {
+    getUser.mockResolvedValue({ data: { user: { id: "u1" } } });
+    singleMock.mockResolvedValue(orgA());
+    const request = makeRequest("https://trace.firma-b.ro/dashboard", {
+      host: "trace.firma-b.ro",
+    });
+
+    const response = await updateSession(request);
+
+    expect(signOut).toHaveBeenCalledWith({ scope: "local" });
+    expect(response.status).toBe(307);
+    const location = new URL(response.headers.get("location")!);
+    expect(location.origin).toBe("https://trace.firma-a.ro");
+    expect(location.pathname).toBe("/login");
+    expect(location.searchParams.get("error")).toBe("wrong_domain");
+  });
+
+  it("lasa userul sa treaca pe domeniul propriu", async () => {
+    getUser.mockResolvedValue({ data: { user: { id: "u1" } } });
+    singleMock.mockResolvedValue(orgA());
+    const request = makeRequest("https://trace.firma-a.ro/dashboard", {
+      host: "trace.firma-a.ro",
+    });
+
+    const response = await updateSession(request);
+
+    expect(signOut).not.toHaveBeenCalled();
+    expect(response.status).not.toBe(307);
+  });
+
+  it("super-adminul (fara organizatie) lucreaza pe orice domeniu", async () => {
+    getUser.mockResolvedValue({ data: { user: { id: "sa" } } });
+    singleMock.mockResolvedValue({
+      data: { organization_id: null, status: "active", organizations: null },
+      error: null,
+    });
+    const request = makeRequest("https://trace.firma-b.ro/platform", {
+      host: "trace.firma-b.ro",
+    });
+
+    const response = await updateSession(request);
+
+    expect(signOut).not.toHaveBeenCalled();
+    expect(response.status).not.toBe(307);
+  });
+
+  it("nu se aplica pe localhost (dev / e2e)", async () => {
+    getUser.mockResolvedValue({ data: { user: { id: "u1" } } });
+    singleMock.mockResolvedValue(orgA());
+    const request = makeRequest("http://localhost:3000/dashboard", { host: "localhost:3000" });
+
+    const response = await updateSession(request);
+
+    expect(signOut).not.toHaveBeenCalled();
     expect(response.status).not.toBe(307);
   });
 });

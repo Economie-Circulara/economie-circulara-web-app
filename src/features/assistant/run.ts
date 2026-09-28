@@ -1,4 +1,5 @@
 import { getCurrentOrg } from "@/features/auth/queries";
+import { productNameFor } from "@/features/branding/tenant-profiles";
 import { PLATFORM_NAME } from "@/lib/brand";
 import {
   ChatProviderError,
@@ -135,7 +136,7 @@ export async function runAssistantTurn({
   const org = await getCurrentOrg();
   const history = (await listMessages(id)).slice(-HISTORY_LIMIT);
   const messages: ChatMessage[] = [
-    { role: "system", content: systemPrompt(ctx, org?.name ?? PLATFORM_NAME) },
+    { role: "system", content: systemPrompt(ctx, org?.name ?? PLATFORM_NAME, productNameFor(org)) },
     ...historyToMessages(history),
   ];
 
@@ -455,7 +456,10 @@ async function messagesForContinuation(input: {
   }
 
   return [
-    { role: "system", content: systemPrompt(input.ctx, org?.name ?? PLATFORM_NAME) },
+    {
+      role: "system",
+      content: systemPrompt(input.ctx, org?.name ?? PLATFORM_NAME, productNameFor(org)),
+    },
     ...previous,
     {
       ...assistantCallMessage([call], input.reasoningContent ?? undefined),

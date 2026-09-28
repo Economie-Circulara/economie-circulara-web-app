@@ -143,7 +143,7 @@ describe("listClientAddresses", () => {
     const result = await listClientAddresses("c1");
 
     expect(eq).toHaveBeenCalledWith("client_id", "c1");
-    // Adresele arhivate (ad hoc / sterse dupa folosire, 0046) nu apar in agenda.
+    // Adresele arhivate (ad hoc / sterse dupa folosire, 0048) nu apar in agenda.
     expect(is).toHaveBeenCalledWith("archived_at", null);
     expect(orderDefault).toHaveBeenCalledWith("is_default", { ascending: false });
     expect(result).toHaveLength(1);

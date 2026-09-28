@@ -26,6 +26,11 @@ describe("LoginForm - mesaje de eroare din `?error=`", () => {
     ).toBeInTheDocument();
   });
 
+  it("explica redirectul de pe domeniul altei organizatii (`error=wrong_domain`)", () => {
+    render(<LoginForm orgName="Firma A" errorCode="wrong_domain" />);
+    expect(screen.getByText(/Contul tău aparține acestei adrese/)).toBeInTheDocument();
+  });
+
   it("afiseaza mesajul pentru sesiune expirata/invalida (`error=auth`)", () => {
     render(<LoginForm orgName="Lot cu Lot" errorCode="auth" />);
     expect(screen.getByText(/Link expirat sau invalid/i)).toBeInTheDocument();

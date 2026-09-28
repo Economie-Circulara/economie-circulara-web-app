@@ -1225,7 +1225,45 @@ begin;
 rollback;
 
 -- ===========================================================================
--- B28: clientul confirma receptia livrarii din portal (0045) - atomic: receptie
+-- B28: tema, organizarea (0045/0046) si domeniul propriu - adminul organizatiei NU
+--      le poate schimba (insufficient_privilege); restul setarilor raman editabile.
+-- ===========================================================================
+begin;
+  set local role authenticated;
+  set local request.jwt.claims = '{"sub":"b0000000-0000-0000-0000-0000000000b1"}';
+
+  update public.organizations set name = name where id = :org;
+  select pg_temp.assert_num('B28 adminul isi poate edita organizatia', count(*), 1)
+  from public.organizations where id = :org;
+
+  do $$
+  begin
+    begin
+      update public.organizations set theme = 'industrial'
+        where id = 'a0000000-0000-0000-0000-0000000000a1';
+      raise exception 'FAIL: B28 adminul a schimbat tema';
+    exception
+      when insufficient_privilege then raise notice 'PASS: B28 tema doar de super-admin';
+    end;
+    begin
+      update public.organizations set custom_domain = 'app.exemplu.ro'
+        where id = 'a0000000-0000-0000-0000-0000000000a1';
+      raise exception 'FAIL: B28 adminul a schimbat domeniul propriu';
+    exception
+      when insufficient_privilege then raise notice 'PASS: B28 domeniul doar de super-admin';
+    end;
+    begin
+      update public.organizations set layout = 'flux'
+        where id = 'a0000000-0000-0000-0000-0000000000a1';
+      raise exception 'FAIL: B28 adminul a schimbat organizarea';
+    exception
+      when insufficient_privilege then raise notice 'PASS: B28 organizarea doar de super-admin';
+    end;
+  end $$;
+rollback;
+
+-- ===========================================================================
+-- B29: clientul confirma receptia livrarii din portal (0047) - atomic: receptie
 --      + comanda `delivered`; nu de doua ori (DR003), nu pe comanda altui client
 --      (DR001), nu pe o comanda neconfirmata (DR002), nu fara nume (DR004).
 -- ===========================================================================
@@ -1234,7 +1272,7 @@ begin;
   set local request.jwt.claims = '{"sub":"b0000000-0000-0000-0000-0000000000b1"}';
 
   insert into public.clients (id, organization_id, cui, name)
-  values ('cccc0000-0000-0000-0000-0000000000ca', :org, 'RO998', 'Alt client B28');
+  values ('cccc0000-0000-0000-0000-0000000000ca', :org, 'RO998', 'Alt client B29');
   insert into public.orders (id, organization_id, client_id, order_type, status, created_by)
   values
     ('eeee0000-0000-0000-0000-00000000ee23', :org, :client_demo, 'material', 'accepted',
@@ -1260,9 +1298,9 @@ begin;
     begin
       perform public.client_confirm_delivery_receipt(
         'eeee0000-0000-0000-0000-00000000ee23'::uuid, '   ', null);
-      raise exception 'FAIL: B28 confirmare fara nume acceptata';
+      raise exception 'FAIL: B29 confirmare fara nume acceptata';
     exception
-      when sqlstate 'DR004' then raise notice 'PASS: B28 nume obligatoriu (DR004)';
+      when sqlstate 'DR004' then raise notice 'PASS: B29 nume obligatoriu (DR004)';
     end;
   end $$;
 
@@ -1270,11 +1308,11 @@ begin;
     'eeee0000-0000-0000-0000-00000000ee23', ' Maria Pop ', 'ok');
 
   set local request.jwt.claims = '{"sub":"b0000000-0000-0000-0000-0000000000b1"}';
-  select pg_temp.assert_eq('B28 receptie salvata (nume, portal)',
+  select pg_temp.assert_eq('B29 receptie salvata (nume, portal)',
     received_by_name || '|' || received_via_portal::text || '|' || (received_at is not null)::text,
     'Maria Pop|true|true')
   from public.deliveries where id = 'dddd0000-0000-0000-0000-00000000dd06';
-  select pg_temp.assert_eq('B28 comanda trece in delivered',
+  select pg_temp.assert_eq('B29 comanda trece in delivered',
     status::text || '|' || (delivered_at is not null)::text, 'delivered|true')
   from public.orders where id = 'eeee0000-0000-0000-0000-00000000ee23';
 
@@ -1284,23 +1322,23 @@ begin;
     begin
       perform public.client_confirm_delivery_receipt(
         'eeee0000-0000-0000-0000-00000000ee23'::uuid, 'Maria Pop', null);
-      raise exception 'FAIL: B28 receptie confirmata de doua ori';
+      raise exception 'FAIL: B29 receptie confirmata de doua ori';
     exception
-      when sqlstate 'DR003' then raise notice 'PASS: B28 a doua confirmare respinsa (DR003)';
+      when sqlstate 'DR003' then raise notice 'PASS: B29 a doua confirmare respinsa (DR003)';
     end;
     begin
       perform public.client_confirm_delivery_receipt(
         'eeee0000-0000-0000-0000-00000000ee24'::uuid, 'Maria Pop', null);
-      raise exception 'FAIL: B28 clientul a confirmat livrarea altui client';
+      raise exception 'FAIL: B29 clientul a confirmat livrarea altui client';
     exception
-      when sqlstate 'DR001' then raise notice 'PASS: B28 comanda altui client respinsa (DR001)';
+      when sqlstate 'DR001' then raise notice 'PASS: B29 comanda altui client respinsa (DR001)';
     end;
     begin
       perform public.client_confirm_delivery_receipt(
         'eeee0000-0000-0000-0000-00000000ee25'::uuid, 'Maria Pop', null);
-      raise exception 'FAIL: B28 receptie pe comanda neconfirmata';
+      raise exception 'FAIL: B29 receptie pe comanda neconfirmata';
     exception
-      when sqlstate 'DR002' then raise notice 'PASS: B28 comanda neconfirmata respinsa (DR002)';
+      when sqlstate 'DR002' then raise notice 'PASS: B29 comanda neconfirmata respinsa (DR002)';
     end;
   end $$;
 
@@ -1311,15 +1349,15 @@ begin;
     begin
       perform public.client_confirm_delivery_receipt(
         'eeee0000-0000-0000-0000-00000000ee25'::uuid, 'Admin', null);
-      raise exception 'FAIL: B28 staff-ul a folosit RPC-ul clientului';
+      raise exception 'FAIL: B29 staff-ul a folosit RPC-ul clientului';
     exception
-      when sqlstate 'DR001' then raise notice 'PASS: B28 RPC-ul refuza staff-ul (DR001)';
+      when sqlstate 'DR001' then raise notice 'PASS: B29 RPC-ul refuza staff-ul (DR001)';
     end;
   end $$;
 rollback;
 
 -- ===========================================================================
--- B29: agenda de adrese a clientului (0046) - clientul isi adauga adrese, nu poate
+-- B30: agenda de adrese a clientului (0048) - clientul isi adauga adrese, nu poate
 --      scrie adresa altui client, iar o adresa arhivata (ad hoc / stearsa dupa
 --      folosire) ramane vizibila pe comanda care o foloseste.
 -- ===========================================================================
@@ -1327,13 +1365,13 @@ begin;
   set local role authenticated;
   set local request.jwt.claims = '{"sub":"b0000000-0000-0000-0000-0000000000b1"}';
   insert into public.clients (id, organization_id, cui, name)
-  values ('cccc0000-0000-0000-0000-0000000000cb', :org, 'RO997', 'Alt client B29');
+  values ('cccc0000-0000-0000-0000-0000000000cb', :org, 'RO997', 'Alt client B30');
 
   set local request.jwt.claims = '{"sub":"b0000000-0000-0000-0000-0000000000b3"}';
   insert into public.client_addresses (id, organization_id, client_id, label, address, archived_at)
   values ('aaaa0000-0000-0000-0000-0000000000a9', :org, :client_demo, 'Ad hoc',
           'Santier temporar, Str. X 3', now());
-  select pg_temp.assert_num('B29 clientul isi adauga adresa (ad hoc, arhivata)', count(*), 1)
+  select pg_temp.assert_num('B30 clientul isi adauga adresa (ad hoc, arhivata)', count(*), 1)
   from public.client_addresses where id = 'aaaa0000-0000-0000-0000-0000000000a9';
 
   do $$
@@ -1342,10 +1380,10 @@ begin;
       insert into public.client_addresses (organization_id, client_id, address)
       values ('a0000000-0000-0000-0000-0000000000a1', 'cccc0000-0000-0000-0000-0000000000cb',
               'Adresa altui client');
-      raise exception 'FAIL: B29 clientul a scris adresa altui client';
+      raise exception 'FAIL: B30 clientul a scris adresa altui client';
     exception
       when insufficient_privilege then
-        raise notice 'PASS: B29 adresa altui client respinsa (RLS)';
+        raise notice 'PASS: B30 adresa altui client respinsa (RLS)';
     end;
   end $$;
 
@@ -1353,7 +1391,7 @@ begin;
     delivery_address_id)
   values ('eeee0000-0000-0000-0000-00000000ee26', :org, :client_demo, 'material', 'draft',
           'b0000000-0000-0000-0000-0000000000b3', 'aaaa0000-0000-0000-0000-0000000000a9');
-  select pg_temp.assert_eq('B29 comanda afiseaza adresa arhivata', a.address,
+  select pg_temp.assert_eq('B30 comanda afiseaza adresa arhivata', a.address,
     'Santier temporar, Str. X 3')
   from public.orders o join public.client_addresses a on a.id = o.delivery_address_id
   where o.id = 'eeee0000-0000-0000-0000-00000000ee26';

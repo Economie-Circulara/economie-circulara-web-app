@@ -47,7 +47,7 @@ describe("ClientDeliveryCard", () => {
   });
 });
 
-describe("ClientDeliveryCard - confirmarea receptiei (0045)", () => {
+describe("ClientDeliveryCard - confirmarea receptiei (0047)", () => {
   const action = vi.fn();
 
   it("arata formularul cand primeste actiunea si receptia nu e confirmata", () => {

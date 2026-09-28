@@ -1,7 +1,11 @@
+import { PLATFORM_NAME } from "@/lib/brand";
 import { Document, Page, Path, Rect, StyleSheet, Svg, Text, View } from "@react-pdf/renderer";
 import { layoutSankey } from "@/features/production/sankey-data";
 import { PDF_FONT_FAMILY, registerPdfFonts } from "@/lib/pdf/fonts";
 import { formatIssuerLine } from "./issuer";
+import type { PdfHeaderVariant } from "@/features/branding/themes";
+import { DEFAULT_DOCUMENT_TAGLINE } from "@/features/branding/tenant-profiles";
+import { PdfDocumentFooter, PdfDocumentHeader } from "@/lib/pdf/document-chrome";
 import type { TraceabilitySnapshot } from "./types";
 
 /** Culori implicite (tema "forest" a mockup-ului) - suprascrise de brandingul organizatiei. */
@@ -36,6 +40,17 @@ export interface CertificatePdfProps {
   orgAddress?: string;
   brandColor?: string;
   accentColor?: string;
+  /**
+   * Creditul din subsol („emis de <X>”), din `issuerCreditFor` (features/branding).
+   * `null` = fara credit (produsul poarta chiar numele organizatiei); lipsa = platforma.
+   */
+  issuerCredit?: string | null;
+  /** Stilul antetului, din tema organizatiei (`pdfBrandFor`). */
+  headerVariant?: PdfHeaderVariant;
+  /** Subtitlul de sub numele organizatiei, din profilul tenantului. */
+  tagline?: string;
+  /** Nota din subsol, din profilul tenantului. */
+  footerNote?: string | null;
 }
 
 const dateFormatter = new Intl.DateTimeFormat("ro-RO", { dateStyle: "medium" });
@@ -44,20 +59,7 @@ registerPdfFonts();
 
 const styles = StyleSheet.create({
   page: { paddingBottom: 48, fontSize: 10, fontFamily: PDF_FONT_FAMILY, color: "#1c2b20" },
-  topBar: { height: 6, backgroundColor: "#4d6b53" },
-  body: { paddingHorizontal: 40, paddingTop: 28 },
-  headerRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    borderBottomWidth: 2,
-    borderBottomColor: "#1c2b20",
-    paddingBottom: 16,
-    marginBottom: 18,
-  },
-  orgName: { fontSize: 16, fontWeight: 700 },
-  orgSub: { fontSize: 9, color: "#6b7a70", marginTop: 2 },
-  certTitle: { fontSize: 13, fontWeight: 700, textAlign: "right" },
-  certMeta: { fontSize: 9, color: "#6b7a70", textAlign: "right", marginTop: 3 },
+  body: { paddingHorizontal: 40 },
   infoRow: { flexDirection: "row", marginBottom: 20, gap: 16 },
   infoCol: { flex: 1 },
   infoLabel: { fontSize: 8, color: "#8a978f", textTransform: "uppercase", letterSpacing: 0.5 },
@@ -233,28 +235,29 @@ export function CertificatePdfDocument({
   orgAddress,
   brandColor = DEFAULT_BRAND_COLOR,
   accentColor = DEFAULT_ACCENT_COLOR,
+  issuerCredit = PLATFORM_NAME,
+  headerVariant = "bar",
+  tagline = DEFAULT_DOCUMENT_TAGLINE,
+  footerNote = null,
 }: CertificatePdfProps) {
   const issuerLine = formatIssuerLine(orgCui, orgRegCom, orgAddress);
   return (
     <Document title={`Certificat ${certificateNumber}`}>
       <Page size="A4" style={styles.page}>
-        <View style={[styles.topBar, { backgroundColor: accentColor }]} fixed />
+        <PdfDocumentHeader
+          variant={headerVariant}
+          brandColor={brandColor}
+          accentColor={accentColor}
+          paddingX={40}
+          orgName={orgName}
+          orgLines={issuerLine ? [tagline, issuerLine] : [tagline]}
+          title="Certificat de trasabilitate"
+          meta={[
+            `Nr. ${certificateNumber}`,
+            `Emis: ${dateFormatter.format(new Date(snapshot.generatedAt))}`,
+          ]}
+        />
         <View style={styles.body}>
-          <View style={styles.headerRow}>
-            <View>
-              <Text style={styles.orgName}>{orgName}</Text>
-              <Text style={styles.orgSub}>Materiale de construcții circulare</Text>
-              {issuerLine ? <Text style={styles.orgSub}>{issuerLine}</Text> : null}
-            </View>
-            <View>
-              <Text style={styles.certTitle}>Certificat de trasabilitate</Text>
-              <Text style={styles.certMeta}>Nr. {certificateNumber}</Text>
-              <Text style={styles.certMeta}>
-                Emis: {dateFormatter.format(new Date(snapshot.generatedAt))}
-              </Text>
-            </View>
-          </View>
-
           <View style={styles.infoRow}>
             <View style={styles.infoCol}>
               <Text style={styles.infoLabel}>Client</Text>
@@ -330,10 +333,17 @@ export function CertificatePdfDocument({
           </View>
         </View>
 
-        <View style={styles.pageFooter} fixed>
-          <Text>{orgName} · trasabilitate emisă de Lot cu Lot</Text>
-          <Text render={({ pageNumber, totalPages }) => `pagina ${pageNumber}/${totalPages}`} />
-        </View>
+        <PdfDocumentFooter
+          variant={headerVariant}
+          brandColor={brandColor}
+          paddingX={40}
+          label={
+            issuerCredit
+              ? `${orgName} · trasabilitate emisă de ${issuerCredit}`
+              : `${orgName} · certificat de trasabilitate`
+          }
+          note={footerNote}
+        />
       </Page>
     </Document>
   );

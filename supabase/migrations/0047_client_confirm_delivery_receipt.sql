@@ -24,7 +24,7 @@ alter table public.deliveries
   add column received_via_portal boolean not null default false;
 
 comment on column public.deliveries.received_via_portal is
-  'Receptia a fost confirmata de CLIENT din portal (0045, RPC client_confirm_delivery_receipt), nu de staff.';
+  'Receptia a fost confirmata de CLIENT din portal (0047, RPC client_confirm_delivery_receipt), nu de staff.';
 
 create or replace function public.client_confirm_delivery_receipt(
   p_order_id         uuid,

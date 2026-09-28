@@ -1185,6 +1185,7 @@ export type Database = {
           email_from_address: string | null
           email_from_name: string | null
           id: string
+          layout: string
           logo_url: string | null
           name: string
           primary_color: string | null
@@ -1192,6 +1193,7 @@ export type Database = {
           secondary_color: string | null
           slug: string
           status: Database["public"]["Enums"]["org_status"]
+          theme: string
           updated_at: string
         }
         Insert: {
@@ -1205,6 +1207,7 @@ export type Database = {
           email_from_address?: string | null
           email_from_name?: string | null
           id?: string
+          layout?: string
           logo_url?: string | null
           name: string
           primary_color?: string | null
@@ -1212,6 +1215,7 @@ export type Database = {
           secondary_color?: string | null
           slug: string
           status?: Database["public"]["Enums"]["org_status"]
+          theme?: string
           updated_at?: string
         }
         Update: {
@@ -1225,6 +1229,7 @@ export type Database = {
           email_from_address?: string | null
           email_from_name?: string | null
           id?: string
+          layout?: string
           logo_url?: string | null
           name?: string
           primary_color?: string | null
@@ -1232,6 +1237,7 @@ export type Database = {
           secondary_color?: string | null
           slug?: string
           status?: Database["public"]["Enums"]["org_status"]
+          theme?: string
           updated_at?: string
         }
         Relationships: []
@@ -1980,6 +1986,7 @@ export type Database = {
           primary_color: string
           secondary_color: string
           slug: string
+          theme: string
         }[]
       }
       set_lot_block: {

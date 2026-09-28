@@ -29,7 +29,7 @@ export function ClientDeliveryCard({
   delivery: ClientOrderDelivery;
   /**
    * Doar pe o comanda `accepted` cu receptie neconfirmata: clientul confirma el
-   * receptia (0045). Lipsa -> fara formular.
+   * receptia (0047). Lipsa -> fara formular.
    */
   confirmAction?: (
     prev: ClientReceiptFormState,

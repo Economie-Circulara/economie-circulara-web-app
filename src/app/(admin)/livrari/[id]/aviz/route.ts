@@ -1,6 +1,7 @@
 import { PLATFORM_NAME } from "@/lib/brand";
 import { NextResponse } from "next/server";
 import { getCurrentOrg } from "@/features/auth/queries";
+import { pdfBrandFor } from "@/features/branding/pdf-brand";
 import { requireRole } from "@/features/auth/session";
 import { getDeliveryDetail } from "@/features/deliveries/queries";
 import { renderAvizPdfBuffer } from "@/features/deliveries/service";
@@ -27,12 +28,7 @@ export async function GET(_request: Request, { params }: RouteParams) {
   }
 
   const org = await getCurrentOrg();
-  const buffer = await renderAvizPdfBuffer(
-    delivery,
-    org?.name ?? PLATFORM_NAME,
-    org?.primaryColor,
-    org?.secondaryColor,
-  );
+  const buffer = await renderAvizPdfBuffer(delivery, org?.name ?? PLATFORM_NAME, pdfBrandFor(org));
 
   return new NextResponse(new Uint8Array(buffer), {
     headers: {

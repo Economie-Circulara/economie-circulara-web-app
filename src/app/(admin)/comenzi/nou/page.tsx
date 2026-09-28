@@ -8,7 +8,7 @@ import {
   listSellableItemOptions,
 } from "@/features/orders/queries";
 
-export const metadata = { title: "Comandă nouă - Lot cu Lot" };
+export const metadata = { title: "Comandă nouă" };
 
 /** Ecranul de creare comandă în numele unui client (doar staff, `created_by_admin=true`). */
 export default async function ComandaNouaPage() {

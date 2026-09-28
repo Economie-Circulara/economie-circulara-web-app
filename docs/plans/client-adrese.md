@@ -6,7 +6,7 @@ putea da o adresa punctuala pentru o singura livrare/aport. RLS-ul permitea deja
 clientului CRUD pe propriile `client_addresses` (0014/0016) - lipsea doar UI-ul.
 
 ## Solutie
-- Migrarea `0046`: `client_addresses.archived_at` - adresa ASCUNSA din agenda si din
+- Migrarea `0048`: `client_addresses.archived_at` - adresa ASCUNSA din agenda si din
   pickere, dar pastrata pentru istoricul comenzilor (`orders.delivery_address_id` e
   `on delete set null` - o stergere fizica ar sterge adresa din comenzile vechi).
   Folosita pentru:

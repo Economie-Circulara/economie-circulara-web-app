@@ -79,6 +79,11 @@ export interface SidebarProps {
   /** URL logo organizatie (optional). */
   logoUrl?: string;
   items: NavEntry[];
+  /**
+   * Logo-ul platformei („Lot cu Lot”) in subsolul sidebar-ului. Ascuns pe domeniul
+   * propriu al unui tenant (plan multi-domain-tenant-profiles, T3).
+   */
+  showPlatformLogo?: boolean;
 }
 
 function SidebarBrand({ orgName, logoUrl }: Pick<SidebarProps, "orgName" | "logoUrl">) {
@@ -236,18 +241,22 @@ function PlatformLogoLink() {
         className="rounded-md opacity-80 transition-opacity hover:opacity-100 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/lot-cu-lot-logo.svg" alt="Lot cu Lot" className="h-12 w-auto max-w-full" />
+        <img
+          src="/lot-cu-lot-logo.svg"
+          alt="Lot cu Lot"
+          className="h-12 w-auto max-w-full [filter:var(--sidebar-logo-filter)]"
+        />
       </Link>
     </div>
   );
 }
 
-export function Sidebar({ orgName, logoUrl, items }: SidebarProps) {
+export function Sidebar({ orgName, logoUrl, items, showPlatformLogo = true }: SidebarProps) {
   return (
-    <aside className="sticky top-0 hidden h-svh w-60 shrink-0 flex-col border-r bg-card lg:flex">
+    <aside className="app-sidebar sticky top-0 hidden h-svh w-60 shrink-0 flex-col border-r bg-card lg:flex">
       <SidebarBrand orgName={orgName} logoUrl={logoUrl} />
       <SidebarNav items={items} />
-      <PlatformLogoLink />
+      {showPlatformLogo ? <PlatformLogoLink /> : null}
     </aside>
   );
 }
@@ -263,7 +272,7 @@ export function MobileSidebar({ orgName, logoUrl, items }: SidebarProps) {
           <span className="sr-only">Deschide meniul</span>
         </Button>
       </SheetTrigger>
-      <SheetContent aria-describedby="mobile-sidebar-description">
+      <SheetContent aria-describedby="mobile-sidebar-description" className="app-sidebar">
         <SheetTitle className="sr-only">Navigație</SheetTitle>
         <SheetDescription id="mobile-sidebar-description" className="sr-only">
           Meniu principal pentru navigarea în aplicație.

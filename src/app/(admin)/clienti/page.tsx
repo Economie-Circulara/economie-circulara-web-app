@@ -6,7 +6,7 @@ import { requireRole } from "@/features/auth/session";
 import { ClientTable } from "@/features/clients/client-table";
 import { listClients } from "@/features/clients/queries";
 
-export const metadata = { title: "Clienți - Lot cu Lot" };
+export const metadata = { title: "Clienți" };
 
 interface ClientiPageProps {
   searchParams: Promise<{ q?: string; arhivate?: string }>;

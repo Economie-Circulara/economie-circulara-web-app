@@ -10,7 +10,7 @@ import { getRecipeByItemId } from "@/features/recipes/queries";
 import { RecipeEditor } from "@/features/recipes/recipe-editor";
 import { CreateRecipeButton } from "@/features/recipes/create-recipe-button";
 
-export const metadata = { title: "Rețetă - Lot cu Lot" };
+export const metadata = { title: "Rețetă" };
 
 interface RecipeEditorPageProps {
   params: Promise<{ itemId: string }>;

@@ -215,7 +215,7 @@ export async function listClientAddressesGrouped(): Promise<Record<string, Clien
   const { data, error } = await supabase
     .from("client_addresses")
     .select("id, client_id, label, address, is_default, created_at")
-    // Adresele arhivate (ad hoc / sterse dupa folosire, 0046) nu apar in picker.
+    // Adresele arhivate (ad hoc / sterse dupa folosire, 0048) nu apar in picker.
     .is("archived_at", null)
     .order("is_default", { ascending: false })
     .order("created_at", { ascending: true });

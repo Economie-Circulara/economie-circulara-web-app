@@ -7,7 +7,7 @@ import { listClientAddresses } from "@/features/clients/queries";
 export const metadata = { title: "Adresele mele - Lot cu Lot" };
 
 /**
- * Agenda de adrese a clientului (0046): aceeasi sectiune ca la staff (/clienti/[id]),
+ * Agenda de adrese a clientului (0048): aceeasi sectiune ca la staff (/clienti/[id]),
  * cu actiunile clientului (firma vine din sesiune; RLS `client_addresses_client_*`).
  * Adresele de aici apar in formularele de comanda si de aport.
  */

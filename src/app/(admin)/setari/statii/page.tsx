@@ -5,7 +5,7 @@ import { requireRole } from "@/features/auth/session";
 import { listSites } from "@/features/routing/site-queries";
 import { SiteSection } from "@/features/routing/site-section";
 
-export const metadata = { title: "Puncte de plecare - Lot cu Lot" };
+export const metadata = { title: "Puncte de plecare" };
 
 /**
  * Ecranul "Puncte de plecare" (statii de betoane / depozite) - originea folosita

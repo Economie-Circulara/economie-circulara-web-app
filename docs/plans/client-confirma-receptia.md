@@ -7,7 +7,7 @@ ramane la staff (inchiderea emite certificatul de trasabilitate - atestarea
 organizatiei).
 
 ## Solutie
-- Migrarea `0045`: coloana `deliveries.received_via_portal` (boolean, default false) +
+- Migrarea `0047`: coloana `deliveries.received_via_portal` (boolean, default false) +
   RPC `client_confirm_delivery_receipt(p_order_id, p_received_by_name, p_notes)`,
   `security definer`, cu autorizare explicita (client activ, comanda proprie,
   nestearsa, organizatie activa). Atomic: scrie receptia pe livrarea ACTIVA si trece

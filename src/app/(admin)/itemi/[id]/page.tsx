@@ -9,7 +9,7 @@ import { archiveItemAction, restoreItemAction } from "@/features/items/actions";
 import { getItemById } from "@/features/items/queries";
 import { ItemForm } from "@/features/items/item-form";
 
-export const metadata = { title: "Editează material - Lot cu Lot" };
+export const metadata = { title: "Editează material" };
 
 interface ItemDetailPageProps {
   params: Promise<{ id: string }>;

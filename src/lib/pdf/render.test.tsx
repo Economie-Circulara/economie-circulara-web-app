@@ -3,6 +3,7 @@ import { renderToBuffer } from "@react-pdf/renderer";
 import { describe, expect, it } from "vitest";
 import { CertificatePdfDocument } from "@/features/certificates/pdf";
 import { AvizPdfDocument } from "@/features/deliveries/pdf";
+import { ReportPdfDocument } from "@/features/reports/pdf";
 
 /**
  * Randare REALA (fara mock pe `@react-pdf/renderer`) a documentelor PDF. Celelalte teste
@@ -91,4 +92,26 @@ describe("randare PDF (fara mock)", () => {
     );
     expect(isPdf(buffer)).toBe(true);
   });
+
+  it.each(["bar", "band", "rule"] as const)(
+    "antetul temei (%s) si nota din subsol se randeaza",
+    async (headerVariant) => {
+      const buffer = await renderToBuffer(
+        <ReportPdfDocument
+          reportTitle="Raport test"
+          range={{ from: "2026-09-01", to: "2026-09-30" }}
+          orgName="Etora SRL"
+          issuerCredit={null}
+          headerVariant={headerVariant}
+          tagline="Agregate reciclate"
+          footerNote="office@etora.ro"
+          brandColor="#9a4a2c"
+          accentColor="#d4a94a"
+          columns={[{ key: "a", header: "Coloana" }]}
+          rows={[{ a: "valoare" }]}
+        />,
+      );
+      expect(isPdf(buffer)).toBe(true);
+    },
+  );
 });

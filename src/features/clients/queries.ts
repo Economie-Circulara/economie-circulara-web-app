@@ -77,7 +77,7 @@ export async function listClientAddresses(clientId: string): Promise<ClientAddre
     .from("client_addresses")
     .select("*")
     .eq("client_id", clientId)
-    // Adresele arhivate (ad hoc / sterse dupa folosire, 0046) nu apar in agenda si pickere.
+    // Adresele arhivate (ad hoc / sterse dupa folosire, 0048) nu apar in agenda si pickere.
     .is("archived_at", null)
     .order("is_default", { ascending: false })
     .order("created_at", { ascending: true });

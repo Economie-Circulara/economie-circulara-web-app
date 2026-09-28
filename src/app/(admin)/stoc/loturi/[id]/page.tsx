@@ -17,7 +17,7 @@ import {
 } from "@/features/stock/labels";
 import { getLotById, getLotTraceability, listStockEvents } from "@/features/stock/queries";
 
-export const metadata = { title: "Detaliu lot - Lot cu Lot" };
+export const metadata = { title: "Detaliu lot" };
 
 interface LotDetailPageProps {
   params: Promise<{ id: string }>;

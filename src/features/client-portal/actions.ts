@@ -64,7 +64,7 @@ function unavailableLinesError(lines: OrderLineInput[], allowed: { id: string }[
 const NEW_ADDRESS_VALUE = "__new__";
 
 /**
- * Adresa de livrare/aport aleasa in portal (0046), rezolvata pe server:
+ * Adresa de livrare/aport aleasa in portal (0048), rezolvata pe server:
  * - "" -> fara adresa;
  * - o adresa ACTIVA a clientului (inainte nu se verifica - orice id trecea);
  * - "+ Adresă nouă…" -> o creeaza acum: in agenda (bifa "Salvează în adresele mele")
@@ -271,7 +271,7 @@ export async function deleteOwnDraftOrderAction(orderId: string): Promise<Delete
 
 /**
  * Clientul confirma receptia livrarii comenzii proprii (cardul "Transport" din
- * /comenzile-mele/[id], migrarea 0045). Legata cu `.bind(null, orderId)` in pagina.
+ * /comenzile-mele/[id], migrarea 0047). Legata cu `.bind(null, orderId)` in pagina.
  * RPC-ul face autorizarea si tranzitia `accepted -> delivered` atomic; aici doar
  * validam numele si trimitem emailul "Livrată" (ca la confirmarea facuta de staff,
  * `deliveries/service.ts#confirmDeliveryReceipt`). Inchiderea ramane la staff.
@@ -321,7 +321,7 @@ function revalidateAddressPages(): void {
 }
 
 /**
- * Clientul isi adauga / editeaza o adresa in agenda (/adresele-mele, 0046). Firma si
+ * Clientul isi adauga / editeaza o adresa in agenda (/adresele-mele, 0048). Firma si
  * organizatia vin din sesiune, nu din formular; RLS (`client_addresses_client_*`,
  * 0014/0016) impune oricum `client_id = app.client_id()`.
  */
@@ -355,7 +355,7 @@ export async function upsertOwnAddressAction(
 
 /**
  * Clientul isi "sterge" o adresa din agenda: arhivata daca a fost folosita pe o
- * comanda (istoricul ramane), stearsa fizic altfel - `removeAddress` (0046).
+ * comanda (istoricul ramane), stearsa fizic altfel - `removeAddress` (0048).
  */
 export async function deleteOwnAddressAction(
   _prev: AddressFormState,

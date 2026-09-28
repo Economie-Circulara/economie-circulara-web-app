@@ -1,6 +1,10 @@
+import { PLATFORM_NAME } from "@/lib/brand";
 import { Document, Page, StyleSheet, Text, View } from "@react-pdf/renderer";
 import { PDF_FONT_FAMILY, registerPdfFonts } from "@/lib/pdf/fonts";
 import type { DeliveryDetail } from "./types";
+import type { PdfHeaderVariant } from "@/features/branding/themes";
+import { DEFAULT_DOCUMENT_TAGLINE } from "@/features/branding/tenant-profiles";
+import { PdfDocumentFooter, PdfDocumentHeader } from "@/lib/pdf/document-chrome";
 
 /** Culori implicite (tema "forest" a mockup-ului), suprascrise de brandingul organizatiei - ca la certificat. */
 const DEFAULT_BRAND_COLOR = "#2b3a2f";
@@ -11,6 +15,17 @@ export interface AvizPdfProps {
   orgName: string;
   brandColor?: string;
   accentColor?: string;
+  /**
+   * Creditul din subsol („emis de <X>”), din `issuerCreditFor` (features/branding).
+   * `null` = fara credit (produsul poarta chiar numele organizatiei); lipsa = platforma.
+   */
+  issuerCredit?: string | null;
+  /** Stilul antetului, din tema organizatiei (`pdfBrandFor`). */
+  headerVariant?: PdfHeaderVariant;
+  /** Subtitlul de sub numele organizatiei, din profilul tenantului. */
+  tagline?: string;
+  /** Nota din subsol, din profilul tenantului. */
+  footerNote?: string | null;
 }
 
 const dateFormatter = new Intl.DateTimeFormat("ro-RO", { dateStyle: "medium" });
@@ -38,20 +53,7 @@ export function avizUitStatusText(
 
 const styles = StyleSheet.create({
   page: { paddingBottom: 48, fontSize: 10, fontFamily: PDF_FONT_FAMILY, color: "#1c2b20" },
-  topBar: { height: 6, backgroundColor: "#4d6b53" },
-  body: { paddingHorizontal: 40, paddingTop: 28 },
-  headerRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    borderBottomWidth: 2,
-    borderBottomColor: "#1c2b20",
-    paddingBottom: 16,
-    marginBottom: 18,
-  },
-  orgName: { fontSize: 16, fontWeight: 700 },
-  orgSub: { fontSize: 9, color: "#6b7a70", marginTop: 2 },
-  docTitle: { fontSize: 13, fontWeight: 700, textAlign: "right" },
-  docMeta: { fontSize: 9, color: "#6b7a70", textAlign: "right", marginTop: 3 },
+  body: { paddingHorizontal: 40 },
   infoRow: { flexDirection: "row", marginBottom: 20, gap: 16 },
   infoCol: { flex: 1 },
   infoLabel: { fontSize: 8, color: "#8a978f", textTransform: "uppercase", letterSpacing: 0.5 },
@@ -122,26 +124,28 @@ export function AvizPdfDocument({
   orgName,
   brandColor = DEFAULT_BRAND_COLOR,
   accentColor = DEFAULT_ACCENT_COLOR,
+  issuerCredit = PLATFORM_NAME,
+  headerVariant = "bar",
+  tagline = DEFAULT_DOCUMENT_TAGLINE,
+  footerNote = null,
 }: AvizPdfProps) {
   return (
     <Document title={`Aviz ${delivery.orderNumber ?? delivery.id}`}>
       <Page size="A4" style={styles.page}>
-        <View style={[styles.topBar, { backgroundColor: accentColor }]} fixed />
+        <PdfDocumentHeader
+          variant={headerVariant}
+          brandColor={brandColor}
+          accentColor={accentColor}
+          paddingX={40}
+          orgName={orgName}
+          orgLines={[tagline]}
+          title="Aviz de însoțire a mărfii"
+          meta={[
+            `Comandă ${delivery.orderNumber ?? "-"}`,
+            `Data livrare: ${dateFormatter.format(new Date(delivery.scheduledDate))}`,
+          ]}
+        />
         <View style={styles.body}>
-          <View style={styles.headerRow}>
-            <View>
-              <Text style={styles.orgName}>{orgName}</Text>
-              <Text style={styles.orgSub}>Materiale de construcții circulare</Text>
-            </View>
-            <View>
-              <Text style={styles.docTitle}>Aviz de însoțire a mărfii</Text>
-              <Text style={styles.docMeta}>Comandă {delivery.orderNumber ?? "-"}</Text>
-              <Text style={styles.docMeta}>
-                Data livrare: {dateFormatter.format(new Date(delivery.scheduledDate))}
-              </Text>
-            </View>
-          </View>
-
           <View style={styles.infoRow}>
             <View style={styles.infoCol}>
               <Text style={styles.infoLabel}>Client</Text>
@@ -206,10 +210,13 @@ export function AvizPdfDocument({
           </View>
         </View>
 
-        <View style={styles.pageFooter} fixed>
-          <Text>{orgName} · aviz emis de Lot cu Lot</Text>
-          <Text render={({ pageNumber, totalPages }) => `pagina ${pageNumber}/${totalPages}`} />
-        </View>
+        <PdfDocumentFooter
+          variant={headerVariant}
+          brandColor={brandColor}
+          paddingX={40}
+          label={issuerCredit ? `${orgName} · aviz emis de ${issuerCredit}` : `${orgName} · aviz`}
+          note={footerNote}
+        />
       </Page>
     </Document>
   );

@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 
 /**
  * Clientul confirma receptia livrarii comenzii proprii - RPC-ul
- * `client_confirm_delivery_receipt` (0045): autorizare explicita (comanda proprie,
+ * `client_confirm_delivery_receipt` (0047): autorizare explicita (comanda proprie,
  * livrare activa, comanda `accepted`) + atomic receptie si `accepted -> delivered`.
  * Mesajele de eroare (DR001-DR004) vin gata in romana din RPC.
  */

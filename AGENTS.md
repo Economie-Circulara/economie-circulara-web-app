@@ -214,7 +214,7 @@ Testele unitare sunt **colocate** langa cod (`*.test.ts` / `*.test.tsx`).
   e-Transport, ruta calculata, punctul de plecare si notele de receptie raman interne.
   Orice camp nou expus clientului se adauga in RPC, nu printr-o politica de SELECT.
 - **Clientul poate confirma RECEPTIA livrarii din portal, dar NU inchide comanda**
-  (decizie 2026-09-25, migrarea `0045`): RPC `client_confirm_delivery_receipt`
+  (decizie 2026-09-25, migrarea `0047`): RPC `client_confirm_delivery_receipt`
   (security definer, comanda proprie `accepted`, livrare activa neconfirmata, nume
   obligatoriu) scrie receptia (`received_via_portal = true`) si trece comanda in
   `delivered` ATOMIC. Varianta staff (`/livrari/[id]`) ramane; cine confirma primul
@@ -378,7 +378,7 @@ Testele unitare sunt **colocate** langa cod (`*.test.ts` / `*.test.tsx`).
     `sellable`. Pe o comanda de **aport** exceptia nu se aplica: item arhivat = AR001
     pentru orice rol (migrarea `0043`).
   - **Adrese de livrare: arhivare, nu stergere, daca au istoric** (decizie
-    2026-09-25, migrarea `0046`, `client_addresses.archived_at`): "Sterge" pe o adresa
+    2026-09-25, migrarea `0048`, `client_addresses.archived_at`): "Sterge" pe o adresa
     folosita deja pe o comanda o ARHIVEAZA (`removeAddress`, staff si client) - o
     stergere fizica ar goli adresa din comenzile vechi (`on delete set null`). Tot
     arhivata se creeaza si adresa **ad hoc** a clientului ("doar pentru această
@@ -404,6 +404,31 @@ Testele unitare sunt **colocate** langa cod (`*.test.ts` / `*.test.tsx`).
   - Orice actiune distructiva din UI trece prin `ConfirmActionButton`
     (`src/components/confirm-action-button.tsx`) - dialog de confirmare cu text
     romanesc simplu (ce se intampla si ce NU se pierde).
+
+- **Doi clienti pe aceeasi infrastructura, fiecare pe domeniul lui** (decizie
+  2026-09-25, plan `docs/plans/multi-domain-tenant-profiles.md`): acelasi proiect
+  Vercel + aceeasi baza Supabase e acceptat (finantare UE) DOAR cat timp datele raman
+  izolate (RLS), auditabile si **exportabile integral per organizatie**. Linkurile
+  generate pentru userii unui tenant (auth, invitatii) folosesc domeniul
+  ORGANIZATIEI (`organizations.custom_domain`), nu domeniul de pe care s-a facut
+  cererea; userul unui tenant e redirectionat pe domeniul lui, super-adminul e
+  exceptat. „Lot cu Lot” nu apare pe domeniile tenantilor.
+  - **Tema vizuala (`organizations.theme`), organizarea (`layout`, meniu + panou) si
+    domeniul propriu (`custom_domain`) le schimba DOAR super-adminul** (`/platform/<id>`,
+    trigger din `0045_org_theme.sql`, extins in `0046_org_layout.sql`):
+    un domeniu gresit setat de adminul organizatiei ar redirectiona toti userii ei pe
+    o adresa neconfigurata. Adminul organizatiei pastreaza doar culorile - si acelea
+    se aplica DOAR pe tema implicita („Clasic”): **tema aleasa de platforma are
+    prioritate** (decizie 2026-09-28, `orgBrandColors` in
+    `src/features/branding/brand-colors.ts`, folosit de shell, PDF-uri si harta de
+    rute). Orice loc nou care coloreaza ceva dupa organizatie trece prin el.
+  - O tema noua = cheie in `src/features/branding/themes.ts` + bloc light/dark in
+    `src/app/themes.css` + valoare in CHECK-ul din migrare (`themes.test.ts` verifica
+    toate trei). Temele se aplica prin `data-theme` pe `<html>` (dialogurile sunt in
+    portal) si pe `AppShell`; tokenii derivati se redeclara pe orice `[data-theme]`.
+  - Organizarile (`standard`/`flux`) schimba DOAR prezentarea: orice varianta de meniu
+    contine exact rutele si rolurile din `STAFF_NAV` (verificat de `nav-config.test.ts`).
+    O pagina noua in meniu se adauga in `STAFF_NAV` SI in `STAFF_NAV_FLUX`.
 
 ### 4.1 Limitari cunoscute / trade-off-uri acceptate
 

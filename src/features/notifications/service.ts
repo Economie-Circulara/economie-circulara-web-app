@@ -1,6 +1,7 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { Database } from "@/lib/database.types";
 import type { OrderStatus } from "@/features/orders/types";
+import { productNameFor } from "@/features/branding/tenant-profiles";
 import { getEmailProvider, type EmailProvider } from "./provider";
 import {
   notificationTypeForOrderStatus,
@@ -89,7 +90,7 @@ async function loadOrderContext(
   const { data, error } = await admin
     .from("orders")
     .select(
-      "order_number, clients(name, email), organizations(name, email_from_name, email_from_address)",
+      "order_number, clients(name, email), organizations(name, slug, custom_domain, email_from_name, email_from_address)",
     )
     .eq("id", orderId)
     .maybeSingle();
@@ -102,7 +103,19 @@ async function loadOrderContext(
     clientName: data.clients?.name ?? "client",
     clientEmail: data.clients?.email ?? null,
     organizationName: data.organizations?.name ?? DEFAULT_FROM_NAME,
-    fromName: data.organizations?.email_from_name ?? DEFAULT_FROM_NAME,
+    // Fara nume de expeditor configurat: numele aplicatiei organizatiei (pe domeniu
+    // propriu nu apare „Lot cu Lot” - plan multi-domain-tenant-profiles, T3).
+    fromName:
+      data.organizations?.email_from_name ??
+      productNameFor(
+        data.organizations
+          ? {
+              slug: data.organizations.slug,
+              name: data.organizations.name,
+              customDomain: data.organizations.custom_domain,
+            }
+          : null,
+      ),
     fromAddress: data.organizations?.email_from_address ?? DEFAULT_FROM_ADDRESS,
   };
 }

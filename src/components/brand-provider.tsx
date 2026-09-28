@@ -18,9 +18,16 @@ export interface BrandTheme {
  */
 export function BrandProvider({
   theme,
+  themeKey,
   children,
 }: {
   theme?: BrandTheme;
+  /**
+   * Tema vizuala a organizatiei (`data-theme`, vezi src/app/themes.css). Pe acelasi
+   * element, tokenii derivati se recalculeaza din primitivele temei + override-urile
+   * de culoare de mai sus.
+   */
+  themeKey?: string;
   children: React.ReactNode;
 }) {
   const style: Record<string, string> = {};
@@ -32,7 +39,7 @@ export function BrandProvider({
   if (theme?.accent) style["--accent"] = theme.accent;
 
   return (
-    <div className="contents" style={style as React.CSSProperties}>
+    <div className="contents" data-theme={themeKey} style={style as React.CSSProperties}>
       {children}
     </div>
   );

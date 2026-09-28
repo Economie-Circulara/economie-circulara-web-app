@@ -9,7 +9,7 @@ export interface ClientOrderFormState {
 
 export const initialClientOrderFormState: ClientOrderFormState = { error: null, orderId: null };
 
-/** Starea formularului "Confirmă recepția" (cardul "Transport", 0045). */
+/** Starea formularului "Confirmă recepția" (cardul "Transport", 0047). */
 export interface ClientReceiptFormState {
   error: string | null;
   done: boolean;

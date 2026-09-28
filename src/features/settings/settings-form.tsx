@@ -10,6 +10,8 @@ import { initialSettingsState } from "./action-state";
 import { THEME_PRESETS, colorPickerValue } from "./theme-presets";
 import { LogoUpload } from "./logo-upload";
 import type { CurrentOrg } from "@/features/auth/queries";
+import { themeAllowsOrgColors } from "@/features/branding/brand-colors";
+import { THEMES, resolveThemeKey } from "@/features/branding/themes";
 
 const FORM_ID = "settings-form";
 
@@ -17,6 +19,8 @@ export function SettingsForm({ org }: { org: CurrentOrg }) {
   const [state, action, pending] = useActionState(updateOrganizationAction, initialSettingsState);
   const [primaryColor, setPrimaryColor] = useState(org.primaryColor ?? "");
   const [secondaryColor, setSecondaryColor] = useState(org.secondaryColor ?? "");
+  // Pe o tema aleasa de platforma culorile din Setari nu se aplica (tema are prioritate).
+  const colorsEditable = themeAllowsOrgColors(org.theme);
 
   return (
     <div className="space-y-6">
@@ -42,85 +46,98 @@ export function SettingsForm({ org }: { org: CurrentOrg }) {
       </Card>
 
       <form id={FORM_ID} action={action} className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Culori (white-label)</CardTitle>
-            <CardDescription>
-              Valori CSS valide (ex. <code>#1f5e3a</code> sau <code>oklch(...)</code>). Se aplica in
-              sidebar si pe butoane.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-2 sm:grid-cols-4">
-              {THEME_PRESETS.map((preset) => (
-                <button
-                  key={preset.name}
-                  type="button"
-                  onClick={() => {
-                    setPrimaryColor(preset.primaryColor);
-                    setSecondaryColor(preset.secondaryColor);
-                  }}
-                  className="flex h-11 items-center gap-2 rounded-md border border-border px-3 text-left text-sm font-medium transition-colors hover:bg-muted"
-                >
-                  <span className="flex -space-x-1" aria-hidden="true">
-                    <span
-                      className="size-5 rounded-full border border-background"
-                      style={{ backgroundColor: preset.primaryColor }}
-                    />
-                    <span
-                      className="size-5 rounded-full border border-background"
-                      style={{ backgroundColor: preset.secondaryColor }}
-                    />
-                  </span>
-                  {preset.name}
-                </button>
-              ))}
-            </div>
+        {colorsEditable ? (
+          <Card>
+            <CardHeader>
+              <CardTitle>Culori (white-label)</CardTitle>
+              <CardDescription>
+                Valori CSS valide (ex. <code>#1f5e3a</code> sau <code>oklch(...)</code>). Se aplica
+                in sidebar si pe butoane.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid gap-2 sm:grid-cols-4">
+                {THEME_PRESETS.map((preset) => (
+                  <button
+                    key={preset.name}
+                    type="button"
+                    onClick={() => {
+                      setPrimaryColor(preset.primaryColor);
+                      setSecondaryColor(preset.secondaryColor);
+                    }}
+                    className="flex h-11 items-center gap-2 rounded-md border border-border px-3 text-left text-sm font-medium transition-colors hover:bg-muted"
+                  >
+                    <span className="flex -space-x-1" aria-hidden="true">
+                      <span
+                        className="size-5 rounded-full border border-background"
+                        style={{ backgroundColor: preset.primaryColor }}
+                      />
+                      <span
+                        className="size-5 rounded-full border border-background"
+                        style={{ backgroundColor: preset.secondaryColor }}
+                      />
+                    </span>
+                    {preset.name}
+                  </button>
+                ))}
+              </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
-              <FormField label="Culoare principala (brand)">
-                {(id) => (
-                  <div className="grid grid-cols-[3rem_1fr] gap-2">
-                    <Input
-                      aria-label="Alege culoarea principala"
-                      type="color"
-                      value={colorPickerValue(primaryColor, THEME_PRESETS[0].primaryColor)}
-                      onChange={(e) => setPrimaryColor(e.target.value)}
-                      className="h-10 cursor-pointer p-1"
-                    />
-                    <Input
-                      id={id}
-                      name="primary_color"
-                      value={primaryColor}
-                      onChange={(e) => setPrimaryColor(e.target.value)}
-                      placeholder="#1f5e3a"
-                    />
-                  </div>
-                )}
-              </FormField>
-              <FormField label="Culoare accent">
-                {(id) => (
-                  <div className="grid grid-cols-[3rem_1fr] gap-2">
-                    <Input
-                      aria-label="Alege culoarea accent"
-                      type="color"
-                      value={colorPickerValue(secondaryColor, THEME_PRESETS[0].secondaryColor)}
-                      onChange={(e) => setSecondaryColor(e.target.value)}
-                      className="h-10 cursor-pointer p-1"
-                    />
-                    <Input
-                      id={id}
-                      name="secondary_color"
-                      value={secondaryColor}
-                      onChange={(e) => setSecondaryColor(e.target.value)}
-                      placeholder="#c8862b"
-                    />
-                  </div>
-                )}
-              </FormField>
-            </div>
-          </CardContent>
-        </Card>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <FormField label="Culoare principala (brand)">
+                  {(id) => (
+                    <div className="grid grid-cols-[3rem_1fr] gap-2">
+                      <Input
+                        aria-label="Alege culoarea principala"
+                        type="color"
+                        value={colorPickerValue(primaryColor, THEME_PRESETS[0].primaryColor)}
+                        onChange={(e) => setPrimaryColor(e.target.value)}
+                        className="h-10 cursor-pointer p-1"
+                      />
+                      <Input
+                        id={id}
+                        name="primary_color"
+                        value={primaryColor}
+                        onChange={(e) => setPrimaryColor(e.target.value)}
+                        placeholder="#1f5e3a"
+                      />
+                    </div>
+                  )}
+                </FormField>
+                <FormField label="Culoare accent">
+                  {(id) => (
+                    <div className="grid grid-cols-[3rem_1fr] gap-2">
+                      <Input
+                        aria-label="Alege culoarea accent"
+                        type="color"
+                        value={colorPickerValue(secondaryColor, THEME_PRESETS[0].secondaryColor)}
+                        onChange={(e) => setSecondaryColor(e.target.value)}
+                        className="h-10 cursor-pointer p-1"
+                      />
+                      <Input
+                        id={id}
+                        name="secondary_color"
+                        value={secondaryColor}
+                        onChange={(e) => setSecondaryColor(e.target.value)}
+                        placeholder="#c8862b"
+                      />
+                    </div>
+                  )}
+                </FormField>
+              </div>
+            </CardContent>
+          </Card>
+        ) : (
+          <Card>
+            <CardHeader>
+              <CardTitle>Culori</CardTitle>
+              <CardDescription>
+                Aspectul aplicatiei (culori, font, meniu) e dat de tema{" "}
+                <strong>{THEMES[resolveThemeKey(org.theme)].label}</strong>, aleasa de echipa
+                platformei. Pentru alte culori, cere schimbarea temei la suport.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        )}
 
         <Card>
           <CardHeader>
@@ -169,16 +186,9 @@ export function SettingsForm({ org }: { org: CurrentOrg }) {
           <CardContent className="space-y-4">
             <FormField
               label="Domeniu personalizat"
-              hint="Ex. trace.firma.ro (configurat separat in DNS/Vercel)."
+              hint="Se configureaza de echipa platformei (DNS, Vercel, autentificare) - cere-l la suport."
             >
-              {(id) => (
-                <Input
-                  id={id}
-                  name="custom_domain"
-                  defaultValue={org.customDomain ?? ""}
-                  placeholder="trace.firma.ro"
-                />
-              )}
+              {(id) => <Input id={id} value={org.customDomain ?? "-"} readOnly disabled />}
             </FormField>
             <div className="grid gap-4 sm:grid-cols-2">
               <FormField label="Nume expeditor email">

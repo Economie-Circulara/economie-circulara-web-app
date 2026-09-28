@@ -352,7 +352,7 @@ describe("deleteOwnDraftOrderAction (migrarea 0035)", () => {
   });
 });
 
-describe("confirmOwnDeliveryReceiptAction (migrarea 0045)", () => {
+describe("confirmOwnDeliveryReceiptAction (migrarea 0047)", () => {
   it("cere numele persoanei, fara sa apeleze RPC-ul", async () => {
     requireRole.mockResolvedValue(CLIENT_USER);
 
@@ -431,7 +431,7 @@ describe("confirmOwnDeliveryReceiptAction (migrarea 0045)", () => {
   });
 });
 
-describe("adresa de livrare/aport din portal (0046)", () => {
+describe("adresa de livrare/aport din portal (0048)", () => {
   const LINE = { item_id: "item-1", quantity: "1" };
 
   it("respinge o adresa care nu e (sau nu mai e) a clientului, fara sa creeze comanda", async () => {
@@ -521,7 +521,7 @@ describe("adresa de livrare/aport din portal (0046)", () => {
   });
 });
 
-describe("agenda de adrese a clientului (/adresele-mele, 0046)", () => {
+describe("agenda de adrese a clientului (/adresele-mele, 0048)", () => {
   it("salveaza adresa pe firma din sesiune (ignora client_id din formular)", async () => {
     requireRole.mockResolvedValue(CLIENT_USER);
     upsertAddress.mockResolvedValue({ id: "addr-1" });

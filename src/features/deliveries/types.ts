@@ -26,7 +26,7 @@ export interface DeliveryReceiptInfo {
   receivedAt: string | null;
   receivedByName: string | null;
   receiptNotes: string | null;
-  /** Confirmata de client din portal (0045, `client_confirm_delivery_receipt`). */
+  /** Confirmata de client din portal (0047, `client_confirm_delivery_receipt`). */
   receivedViaPortal: boolean;
 }
 

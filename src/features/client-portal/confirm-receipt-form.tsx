@@ -11,7 +11,7 @@ export interface ConfirmReceiptFormProps {
   action: (prev: ClientReceiptFormState, formData: FormData) => Promise<ClientReceiptFormState>;
 }
 
-/** Formularul "Confirmă recepția" din cardul "Transport" (portal client, 0045). */
+/** Formularul "Confirmă recepția" din cardul "Transport" (portal client, 0047). */
 export function ConfirmReceiptForm({ action }: ConfirmReceiptFormProps) {
   const [state, formAction, pending] = useActionState(action, initialClientReceiptFormState);
 

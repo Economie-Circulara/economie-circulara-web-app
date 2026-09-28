@@ -92,7 +92,9 @@ Fluxul hosted trebuie sa trimita tokenul magic direct la callback-ul aplicatiei.
 **Authentication -> URL Configuration** seteaza:
 
 - **Site URL:** `https://www.lotculot.eu`
-- **Redirect URLs:** `https://www.lotculot.eu/auth/callback`
+- **Redirect URLs:** `https://www.lotculot.eu/auth/callback` + cate o intrare
+  `https://<domeniu-tenant>/auth/callback` pentru fiecare organizatie cu domeniu propriu
+  (vezi 3.1).
 
 In **Authentication -> Email Templates -> Magic Link**, linkul butonului trebuie sa fie:
 
@@ -134,6 +136,79 @@ confirmare explicita sau OTP numeric.
 > `docs/handoff.md` si T1.3 din plan.
 
 ---
+
+### 3.1 Domeniu propriu pentru o organizatie (tenant)
+
+Fiecare organizatie poate lucra pe domeniul ei (un subdomeniu al domeniului clientului),
+pe acelasi deploy si aceeasi baza (plan: `docs/plans/multi-domain-tenant-profiles.md`).
+
+**Domeniile clientilor (decizie 2026-09-28):**
+
+| Organizatie | Domeniu aplicatie        | Apex (site de prezentare, alt cont Vercel) |
+| ----------- | ------------------------ | ------------------------------------------ |
+| Etora       | `circular.etora.ro`      | `etora.ro` / `www.etora.ro`                |
+| Maconxcx    | `abonamente.maconxcx.ro` | `maconxcx.ro` / `www.maconxcx.ro`          |
+
+**DNS-ul e in Cloudflare.** Domeniile sunt inregistrate la chroot.ro
+(`portal.chroot.ro`), care permite doar schimbarea nameserverelor, nu si inregistrari
+DNS - deci zona DNS a fiecarui domeniu e gestionata in Cloudflare (plan Free).
+
+#### 3.1.1 Mutarea DNS-ului in Cloudflare (o singura data per domeniu)
+
+1. Cloudflare -> Add a domain -> `etora.ro` (plan Free). De preferat in contul
+   proprietarului domeniului, cu echipa noastra invitata ca membru.
+2. Verifica inregistrarile importate automat de Cloudflare (MX / email existent etc.) -
+   tot ce trebuie sa functioneze in continuare trebuie sa fie in lista INAINTE de pasul 4.
+3. `portal.chroot.ro`: daca DNSSEC e activ, dezactiveaza-l (altfel domeniul nu se mai
+   rezolva dupa schimbarea nameserverelor). Se poate reactiva ulterior din Cloudflare.
+4. `portal.chroot.ro`: inlocuieste nameserverele cu cele doua afisate de Cloudflare.
+   Propagarea la `.ro` dureaza de obicei cateva ore (pana la ~24h); Cloudflare trimite
+   email cand zona devine activa.
+
+#### 3.1.2 Legarea subdomeniului de aplicatie (per organizatie)
+
+1. **Vercel** (proiectul aplicatiei): Project -> Settings -> Domains -> adauga
+   `circular.etora.ro`. Vercel afiseaza inregistrarile necesare - copiaza-le exact:
+   - `CNAME circular -> <valoarea din Vercel>` (ex. `cname.vercel-dns.com` sau o valoare
+     specifica proiectului, `…vercel-dns-0xx.com`);
+   - eventual `TXT _vercel -> <valoarea din Vercel>` - apare cand domeniul-parinte e
+     folosit si in ALT cont Vercel (site-ul de prezentare de pe apex).
+2. **Cloudflare** -> DNS -> Records: adauga inregistrarile de mai sus cu **Proxy status =
+   DNS only** (norisor gri). Cu proxy-ul Cloudflare activ, Vercel nu poate emite/reinnoi
+   certificatul si apar redirecturi in bucla. Daca zona are inregistrari **CAA**, trebuie
+   sa permita `letsencrypt.org`.
+3. Asteapta in Vercel „Valid Configuration” (certificatul HTTPS se emite automat).
+4. **Supabase:** Authentication -> URL Configuration -> Redirect URLs -> adauga
+   `https://circular.etora.ro/**`. Fara pas, Supabase respinge `redirectTo` si trimite
+   userul pe Site URL.
+5. **Aplicatie (ULTIMUL pas):** super-admin -> `/platform` -> organizatia -> "Domeniu
+   propriu" = `circular.etora.ro` (doar hostul; tot acolo se aleg tema si organizarea).
+   Doar super-adminul il poate schimba (migrarea `0045`). Setat inainte de pasul 3,
+   userii organizatiei ar fi redirectionati pe un domeniu care inca nu raspunde.
+
+Identic pentru `abonamente.maconxcx.ro` (CNAME `abonamente` in zona `maconxcx.ro`).
+
+**Site-ul de prezentare de pe apex** (alt cont Vercel) nu intra in conflict: proprietarul
+adauga `etora.ro` + `www.etora.ro` in proiectul lui, iar in Cloudflare se pun
+inregistrarile cerute de Vercel-ul lui (de regula `A @ -> 76.76.21.21` si
+`CNAME www -> …`), tot **DNS only**.
+
+**Emailurile Auth sunt comune tuturor organizatiilor** (un singur set de template-uri si
+un singur expeditor per proiect Supabase - decizie 2026-09-25). Linkurile duc corect pe
+domeniul organizatiei (`{{ .RedirectTo }}`), dar textul e acelasi pentru toti: scrie
+template-urile (Magic Link, Invite, Reset Password) si numele expeditorului SMTP
+NEUTRU, fara „Lot cu Lot” (ex. „Autentificare în aplicația de trasabilitate”).
+
+Efecte:
+
+- invitatiile (admin, staff, client), magic link-ul, resetarea parolei si login-ul
+  Google ajung pe domeniul organizatiei;
+- un user al organizatiei intrat pe alt domeniu e delogat acolo si trimis la login pe
+  domeniul lui (`?error=wrong_domain`); super-adminul lucreaza pe orice domeniu;
+- garda nu se aplica pe `localhost` si pe preview-urile `*.vercel.app`.
+
+Verificare: invita un user de test -> linkul din email e pe domeniul organizatiei;
+logheaza-te cu el pe `www.lotculot.eu` -> ajungi pe login-ul domeniului organizatiei.
 
 ## 4. Environment Claude Code on the web (ca agentul sa ruleze tot de-aici)
 

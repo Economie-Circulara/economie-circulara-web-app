@@ -19,7 +19,7 @@ export interface DeliveryAddressFieldProps {
 }
 
 /**
- * Campul de adresa din formularele portalului (cos, aport - 0046): adresele din
+ * Campul de adresa din formularele portalului (cos, aport - 0048): adresele din
  * agenda (implicita preselectata) + "+ Adresă nouă…", care deschide campurile
  * adresei noi si bifa "Salvează în adresele mele" (debifat = adresa ad hoc, doar
  * pentru aceasta comanda). Validarea si crearea adresei se fac pe server.

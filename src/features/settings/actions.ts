@@ -37,9 +37,15 @@ export async function updateOrganizationAction(
     .from("organizations")
     .update({
       name,
-      primary_color: clean(formData.get("primary_color")),
-      secondary_color: clean(formData.get("secondary_color")),
-      custom_domain: clean(formData.get("custom_domain")),
+      // Culorile lipsesc din formular cand organizatia are o tema aleasa de platforma
+      // (docs/plans/tema-vs-culori-organizatie.md) - atunci NU le stergem: revin daca
+      // organizatia trece inapoi pe tema implicita.
+      ...(formData.has("primary_color")
+        ? {
+            primary_color: clean(formData.get("primary_color")),
+            secondary_color: clean(formData.get("secondary_color")),
+          }
+        : {}),
       email_from_name: clean(formData.get("email_from_name")),
       email_from_address: clean(formData.get("email_from_address")),
       cui: clean(formData.get("cui")),
@@ -49,11 +55,7 @@ export async function updateOrganizationAction(
     .eq("id", user.organizationId);
 
   if (error) {
-    // Cel mai probabil: custom_domain deja folosit de alta organizatie (unique).
-    return {
-      error: "Nu am putut salva setarile. Verifica daca domeniul nu e deja folosit.",
-      message: null,
-    };
+    return { error: "Nu am putut salva setarile. Incearca din nou.", message: null };
   }
 
   // Tema/numele se reflecta in shell (sidebar) imediat.

@@ -229,7 +229,7 @@ describe("deleteAddress", () => {
   });
 });
 
-describe("removeAddress (0046)", () => {
+describe("removeAddress (0048)", () => {
   function mockFrom(usageCount: number) {
     const usageEq = vi.fn().mockResolvedValue({ count: usageCount, error: null });
     const usageSelect = vi.fn().mockReturnValue({ eq: usageEq });
@@ -266,7 +266,7 @@ describe("removeAddress (0046)", () => {
   });
 });
 
-describe("upsertAddress - adresa ad hoc (0046)", () => {
+describe("upsertAddress - adresa ad hoc (0048)", () => {
   it("se creeaza direct arhivata, niciodata implicita, fara sa atinga implicita existenta", async () => {
     const single = vi.fn().mockResolvedValue({ data: addressRow(), error: null });
     const select = vi.fn().mockReturnValue({ single });

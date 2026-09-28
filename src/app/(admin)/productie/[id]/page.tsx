@@ -11,7 +11,7 @@ import { computeLoss } from "@/features/production/calc";
 import { CancelProcessButton } from "@/features/production/cancel-process-button";
 import { PROVENANCE_LABELS } from "@/features/stock/labels";
 
-export const metadata = { title: "Detaliu proces - Lot cu Lot" };
+export const metadata = { title: "Detaliu proces" };
 
 interface ProcessDetailPageProps {
   params: Promise<{ id: string }>;

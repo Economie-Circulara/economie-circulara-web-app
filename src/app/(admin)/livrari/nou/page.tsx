@@ -7,8 +7,9 @@ import { DeliveryForm } from "@/features/deliveries/delivery-form";
 import { getDeliveryByOrderId } from "@/features/deliveries/queries";
 import { getOrderDetail } from "@/features/orders/queries";
 import { listSites } from "@/features/routing/site-queries";
+import { pdfBrandFor } from "@/features/branding/pdf-brand";
 
-export const metadata = { title: "Planifică livrare - Lot cu Lot" };
+export const metadata = { title: "Planifică livrare" };
 
 interface LivrareNouaPageProps {
   searchParams: Promise<{ orderId?: string }>;
@@ -63,7 +64,7 @@ export default async function LivrareNouaPage({ searchParams }: LivrareNouaPageP
           clientName={order.clientName}
           sites={sites}
           destinationAddress={order.deliveryAddress}
-          recommendedColor={org?.primaryColor}
+          recommendedColor={pdfBrandFor(org).brandColor}
         />
       )}
     </div>

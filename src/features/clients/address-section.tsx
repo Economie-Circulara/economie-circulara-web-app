@@ -12,7 +12,7 @@ import { deleteAddressAction, upsertAddressAction } from "./actions";
 import { DEFAULT_ADDRESS_LABEL } from "./labels";
 import type { ClientAddress } from "./types";
 
-/** Actiune de formular pe adrese - staff (implicit) sau client (`/adresele-mele`, 0046). */
+/** Actiune de formular pe adrese - staff (implicit) sau client (`/adresele-mele`, 0048). */
 type AddressAction = (prev: AddressFormState, formData: FormData) => Promise<AddressFormState>;
 
 interface AddressActions {
@@ -154,7 +154,7 @@ export interface AddressSectionProps {
 /**
  * Sectiunea "Adrese de livrare" - CRUD + o singura adresa implicita. Folosita in
  * /clienti/[id] (staff) si in /adresele-mele (clientul, cu actiunile lui). Stergerea
- * unei adrese folosite deja pe o comanda o arhiveaza (0046), ca istoricul sa ramana.
+ * unei adrese folosite deja pe o comanda o arhiveaza (0048), ca istoricul sa ramana.
  */
 export function AddressSection({
   clientId,

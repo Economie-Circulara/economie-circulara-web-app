@@ -3,7 +3,7 @@ import { requireRole } from "@/features/auth/session";
 import { listItemOptions } from "@/features/stock/queries";
 import { LotForm } from "@/features/stock/lot-form";
 
-export const metadata = { title: "Adaugă lot - Lot cu Lot" };
+export const metadata = { title: "Adaugă lot" };
 
 interface StocNouPageProps {
   searchParams: Promise<{ item_id?: string }>;

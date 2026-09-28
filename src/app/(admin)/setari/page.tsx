@@ -6,7 +6,7 @@ import { getCurrentOrg } from "@/features/auth/queries";
 import { requireRole } from "@/features/auth/session";
 import { SettingsForm } from "@/features/settings/settings-form";
 
-export const metadata = { title: "Setari - Lot cu Lot" };
+export const metadata = { title: "Setari" };
 
 /**
  * Ecranul Setari (doar admin): white-label + acces la managementul utilizatorilor

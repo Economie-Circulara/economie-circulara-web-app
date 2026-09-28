@@ -13,7 +13,7 @@ export interface ReceiptFormProps {
   receivedAt: string | null;
   receivedByName: string | null;
   receiptNotes: string | null;
-  /** Receptia a fost confirmata de client din portal (0045), nu de staff. */
+  /** Receptia a fost confirmata de client din portal (0047), nu de staff. */
   receivedViaPortal?: boolean;
 }
 

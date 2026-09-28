@@ -146,7 +146,7 @@ export interface UpsertAddressInput {
   address: string;
   isDefault: boolean;
   /**
-   * Adresa AD HOC (0046): creata direct arhivata - folosita pe o singura comanda,
+   * Adresa AD HOC (0048): creata direct arhivata - folosita pe o singura comanda,
    * fara sa apara in agenda / pickere. Doar la creare.
    */
   adHoc?: boolean;
@@ -200,7 +200,7 @@ export async function deleteAddress(id: string): Promise<void> {
 }
 
 /**
- * "Sterge" o adresa din agenda (0046). Daca e deja folosita pe o comanda, doar o
+ * "Sterge" o adresa din agenda (0048). Daca e deja folosita pe o comanda, doar o
  * ARHIVEAZA (ascunsa din agenda si pickere, pastrata pe comenzile vechi - o stergere
  * fizica le-ar goli adresa, `on delete set null`); altfel o sterge fizic.
  * Intoarce ce s-a intamplat, pentru mesajul din UI.
