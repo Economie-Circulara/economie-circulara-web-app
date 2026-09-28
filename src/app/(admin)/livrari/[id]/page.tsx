@@ -11,6 +11,7 @@ import { getDeliveryDetail } from "@/features/deliveries/queries";
 import { ReceiptForm } from "@/features/deliveries/receipt-form";
 import { RoutePanel } from "@/features/deliveries/route-panel";
 import { getCurrentOrg } from "@/features/auth/queries";
+import { pdfBrandFor } from "@/features/branding/pdf-brand";
 
 export const metadata = { title: "Detalii livrare" };
 
@@ -114,7 +115,7 @@ export default async function DeliveryDetailPage({ params }: DeliveryDetailPageP
               durationSeconds={delivery.route.durationSeconds}
               alternatives={delivery.route.alternatives}
               selectedIndex={delivery.route.selectedIndex}
-              recommendedColor={org?.primaryColor}
+              recommendedColor={pdfBrandFor(org).brandColor}
             />
           </CardContent>
         </Card>

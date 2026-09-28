@@ -4,6 +4,16 @@ Jurnal al sarcinilor lucrate de agenti AI in acest repo. Conform regulii 1.2 din
 [`AGENTS.md`](../AGENTS.md), la **fiecare commit** se adauga o intrare aici.
 Cele mai noi intrari sus.
 
+## 2026-09-28 — Claude Opus 5.5 (Claude Code) — Tema are prioritate fata de culorile din Setari
+
+- **Cerut:** tema aleasa de super-admin era suprascrisa de culorile white-label din
+  setarile organizatiei - eliminarea conflictului.
+- **Facut:** plan `docs/plans/tema-vs-culori-organizatie.md`. `orgBrandColors` (culorile
+  organizatiei doar pe tema implicita) folosit in shell (admin/client/help), PDF-uri
+  (`pdfBrandFor`) si harta de rute; in Setari cardul „Culori” apare doar pe Clasic
+  (altfel mesaj cu tema), iar salvarea nu mai sterge culorile cand lipsesc din
+  formular. Texte actualizate in `/platform`, manual, AGENTS.md. Teste noi.
+
 ## 2026-09-28 — Claude Opus 5.5 (Claude Code) — Setup domenii: Cloudflare + subdomenii finale
 
 - **Cerut:** documentarea domeniilor finale (`circular.etora.ro`,

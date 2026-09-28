@@ -115,7 +115,8 @@ ORGANIZARE (meniu, dashboard, nume produs, text footer PDF) ramane in profil (T3
     colorat, login split.
 - Migrare: `organizations.theme text not null default 'default'` + check pe cheile
   cunoscute; modificabila **doar de super-admin** (acelasi model ca `ai_*`). Selector in
-  `/platform`. `primary_color`/`secondary_color` raman override optional peste tema.
+  `/platform`. `primary_color`/`secondary_color` se aplica DOAR pe tema implicita (decizie
+  2026-09-28, `docs/plans/tema-vs-culori-organizatie.md`).
 - `/showcase?theme=<key>` pentru previzualizare; test: fiecare tema defineste toate
   variabilele cerute.
 - Implementare: metadate in `src/features/branding/themes.ts` (nu `src/config/`), CSS in
