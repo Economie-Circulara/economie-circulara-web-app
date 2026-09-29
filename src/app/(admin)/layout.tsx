@@ -10,6 +10,7 @@ import { orgBrandColors } from "@/features/branding/brand-colors";
 import { resolveLayoutKey } from "@/features/branding/layouts";
 import { ROLE_LABELS } from "@/features/auth/roles";
 import { requireRole } from "@/features/auth/session";
+import { inlineLogoOf } from "@/features/branding/logos";
 
 /**
  * Shell admin/operator: sidebar + tema white-label a organizatiei (culori din DB
@@ -19,7 +20,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const user = await requireRole(["admin", "operator"]);
   const org = await getCurrentOrg();
   const orgName = org?.name ?? PLATFORM_NAME;
-  const logoUrl = org?.logoUrl ?? undefined;
+  const logoUrl = inlineLogoOf(org);
   const items = navForRole(user.role, resolveLayoutKey(org?.layout));
 
   return (

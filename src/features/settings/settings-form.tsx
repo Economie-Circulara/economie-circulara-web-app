@@ -33,14 +33,31 @@ export function SettingsForm({ org }: { org: CurrentOrg }) {
       <Card>
         <CardHeader>
           <CardTitle>Identitate</CardTitle>
-          <CardDescription>Numele si logo-ul afisate in aplicatie.</CardDescription>
+          <CardDescription>Numele si logo-urile afisate in aplicatie.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <FormField label="Nume organizatie" required>
             {(id) => <Input id={id} name="name" form={FORM_ID} defaultValue={org.name} required />}
           </FormField>
-          <FormField label="Logo">
-            {() => <LogoUpload orgName={org.name} logoUrl={org.logoUrl} />}
+          <FormField label="Logo orizontal">
+            {() => (
+              <LogoUpload
+                orgName={org.name}
+                logoUrl={org.logoUrl}
+                variant="inline"
+                hint="Simbol + nume pe un rând. Apare în meniul lateral, pe login și pe pagina de start. PNG, JPEG, WEBP, SVG sau GIF, max 2MB; marginile albe se decupează automat."
+              />
+            )}
+          </FormField>
+          <FormField label="Logo pătrat">
+            {() => (
+              <LogoUpload
+                orgName={org.name}
+                logoUrl={org.logoSquareUrl}
+                variant="square"
+                hint="Simbolul (sau simbol + nume dedesubt). Apare ca iconiță în tab-ul browserului. Dacă lipsește una dintre variante, se folosește cealaltă."
+              />
+            )}
           </FormField>
         </CardContent>
       </Card>

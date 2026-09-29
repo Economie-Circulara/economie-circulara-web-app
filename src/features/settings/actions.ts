@@ -4,7 +4,13 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getCurrentUser } from "@/features/auth/session";
-import { validateLogoFile } from "./logo-validation";
+import {
+  LOGO_VARIANTS,
+  logoColumnPatch,
+  parseLogoVariant,
+  validateLogoFile,
+  type LogoVariant,
+} from "./logo-validation";
 import { trimLogo } from "./logo-processing";
 import type { SettingsState } from "./action-state";
 
@@ -65,12 +71,14 @@ export async function updateOrganizationAction(
 }
 
 /**
- * Incarca (sau inlocuieste) logo-ul organizatiei curente in bucket-ul public
- * `org-logos`, la un path FIX per organizatie (`${organizationId}/logo`, cu
- * upsert) - un singur obiect per organizatie, fara fisiere orfane la inlocuire.
+ * Incarca (sau inlocuieste) o varianta de logo a organizatiei curente (camp
+ * `variant`: `inline` = orizontal, `square` = patrat - `LOGO_VARIANTS`) in
+ * bucket-ul public `org-logos`, la un path FIX per organizatie si varianta
+ * (`${organizationId}/logo`, `${organizationId}/logo-square`, cu upsert) - un
+ * singur obiect per varianta, fara fisiere orfane la inlocuire.
  * Foloseste clientul admin pentru upload (bucketul nu are politici pe
  * `storage.objects`, vezi migrarea) - autorizarea e facuta aici, la nivel de
- * server action. URL-ul public salvat in `organizations.logo_url` primeste un
+ * server action. URL-ul public salvat in coloana variantei primeste un
  * parametru de cache-busting, altfel browserul ar continua sa arate logo-ul
  * vechi de la acelasi URL (path fix).
  */
@@ -83,6 +91,10 @@ export async function uploadOrgLogoAction(
     return { error: "Nu ai permisiunea de a modifica setarile organizatiei.", message: null };
   }
 
+  const variant = parseLogoVariant(formData.get("variant"));
+  if (!variant) return { error: "Varianta de logo necunoscută.", message: null };
+  const { fileName } = LOGO_VARIANTS[variant];
+
   const file = formData.get("logo");
   if (!(file instanceof File) || file.size === 0) {
     return { error: "Alege un fișier pentru logo.", message: null };
@@ -92,7 +104,7 @@ export async function uploadOrgLogoAction(
   if (validationError) return { error: validationError, message: null };
 
   const admin = createAdminClient();
-  const path = `${user.organizationId}/logo`;
+  const path = `${user.organizationId}/${fileName}`;
 
   const body = await trimLogo(Buffer.from(await file.arrayBuffer()), file.type);
 
@@ -111,7 +123,7 @@ export async function uploadOrgLogoAction(
   const supabase = await createClient();
   const { error } = await supabase
     .from("organizations")
-    .update({ logo_url: `${publicUrl}?v=${Date.now()}` })
+    .update(logoColumnPatch(variant, `${publicUrl}?v=${Date.now()}`))
     .eq("id", user.organizationId);
 
   if (error) {
@@ -123,22 +135,28 @@ export async function uploadOrgLogoAction(
 }
 
 /**
- * Sterge logo-ul organizatiei curente (fisier din storage + referinta din DB).
- * Apelata direct din `onClick` (fara FormData), la fel ca `acceptReturnAction`.
+ * Sterge o varianta de logo a organizatiei curente (fisier din storage +
+ * referinta din DB); cealalta varianta ramane neatinsa. Apelata direct din
+ * `onClick` (fara FormData), la fel ca `acceptReturnAction`.
  */
-export async function removeOrgLogoAction(): Promise<SettingsState> {
+export async function removeOrgLogoAction(variantInput: LogoVariant): Promise<SettingsState> {
   const user = await getCurrentUser();
   if (!user || user.role !== "admin" || !user.organizationId) {
     return { error: "Nu ai permisiunea de a modifica setarile organizatiei.", message: null };
   }
 
+  // Argumentul vine de la client - validat, nu doar tipat.
+  const variant = parseLogoVariant(variantInput);
+  if (!variant) return { error: "Varianta de logo necunoscută.", message: null };
+  const { fileName } = LOGO_VARIANTS[variant];
+
   const admin = createAdminClient();
-  await admin.storage.from(LOGO_BUCKET).remove([`${user.organizationId}/logo`]);
+  await admin.storage.from(LOGO_BUCKET).remove([`${user.organizationId}/${fileName}`]);
 
   const supabase = await createClient();
   const { error } = await supabase
     .from("organizations")
-    .update({ logo_url: null })
+    .update(logoColumnPatch(variant, null))
     .eq("id", user.organizationId);
 
   if (error) {

@@ -59,6 +59,21 @@ describe("faviconFor", () => {
     );
   });
 
+  it("tenant cu ambele variante de logo -> cel patrat; doar orizontal -> orizontalul", () => {
+    expect(
+      faviconFor(
+        { name: "Etora SRL", logoUrl: "https://x/inline.png", logoSquareUrl: "https://x/sq.png" },
+        "#000",
+      ),
+    ).toBe("https://x/sq.png");
+    expect(
+      faviconFor(
+        { name: "Etora SRL", logoUrl: "https://x/inline.png", logoSquareUrl: null },
+        "#000",
+      ),
+    ).toBe("https://x/inline.png");
+  });
+
   it("tenant fara logo -> initialele pe culoarea brandului, fara marca platformei", () => {
     const icon = decodeURIComponent(faviconFor({ name: "Etora SRL" }, "#9a4a2c"));
     expect(icon).toMatch(/^data:image\/svg\+xml,/);

@@ -1,4 +1,5 @@
 import { PLATFORM_NAME } from "@/lib/brand";
+import { squareLogoOf, type OrgLogos } from "./logos";
 
 /**
  * Profilul unui tenant = ce difera in ORGANIZAREA aplicatiei intre organizatii
@@ -63,16 +64,18 @@ export function productNameFor(
 }
 
 /**
- * Favicon-ul pe hostul unui tenant: logo-ul organizatiei, altfel un patrat cu
+ * Favicon-ul pe hostul unui tenant: logo-ul organizatiei (varianta patrata, altfel
+ * cea orizontala - `squareLogoOf`), altfel un patrat cu
  * initialele, in culoarea brandului temei (fara marca „Lot cu Lot”). Pe domeniul
  * platformei - iconita platformei. Intoarce un URL (fisier sau data-URI SVG).
  */
 export function faviconFor(
-  org: { name: string; logoUrl?: string | null } | null | undefined,
+  org: ({ name: string } & OrgLogos) | null | undefined,
   brandColor: string,
 ): string {
   if (!org) return PLATFORM_ICON_PATH;
-  if (org.logoUrl) return org.logoUrl;
+  const logo = squareLogoOf(org);
+  if (logo) return logo;
   const initials =
     org.name
       .split(/\s+/)

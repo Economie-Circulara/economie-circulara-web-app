@@ -4,6 +4,15 @@ Jurnal al sarcinilor lucrate de agenti AI in acest repo. Conform regulii 1.2 din
 [`AGENTS.md`](../AGENTS.md), la **fiecare commit** se adauga o intrare aici.
 Cele mai noi intrari sus.
 
+## 2026-09-29 — Claude Opus 5.5 (Claude Code) — Logo orizontal + logo patrat
+
+- **Cerut:** doua variante de logo per organizatie (orizontal si patrat, oricare sau
+  ambele); sidebar-ul foloseste orizontalul, favicon-ul patratul.
+- **Facut:** migrarea `0049_org_logo_square.sql` (`logo_square_url` + `org_branding`),
+  `branding/logos.ts` (`inlineLogoOf` / `squareLogoOf`, rezerva reciproca), favicon pe
+  varianta patrata, doua campuri de upload in Setari cu actiuni pe varianta (validata
+  pe server). Tipuri DB, plan, manual, AGENTS.md si teste actualizate.
+
 ## 2026-09-29 — Claude Opus 5.5 (Claude Code) — Logo-ul organizatiei vizibil si adaptat
 
 - **Cerut:** logo-ul din sidebar era foarte mic; sa fie vizibil si adaptat (orizontal

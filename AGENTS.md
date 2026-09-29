@@ -422,6 +422,12 @@ Testele unitare sunt **colocate** langa cod (`*.test.ts` / `*.test.tsx`).
     prioritate** (decizie 2026-09-28, `orgBrandColors` in
     `src/features/branding/brand-colors.ts`, folosit de shell, PDF-uri si harta de
     rute). Orice loc nou care coloreaza ceva dupa organizatie trece prin el.
+  - **Logo-ul organizatiei are doua variante, ambele optionale** (decizie 2026-09-29,
+    migrarea `0049`): `logo_url` = ORIZONTAL (sidebar, login, pagina de start),
+    `logo_square_url` = PATRAT (favicon). Adminul organizatiei le gestioneaza singur
+    (Setari). Orice loc nou care afiseaza logo-ul alege varianta prin
+    `inlineLogoOf` / `squareLogoOf` (`src/features/branding/logos.ts`) - cealalta e
+    rezerva - nu citeste direct `logoUrl`.
   - O tema noua = cheie in `src/features/branding/themes.ts` + bloc light/dark in
     `src/app/themes.css` + valoare in CHECK-ul din migrare (`themes.test.ts` verifica
     toate trei). Temele se aplica prin `data-theme` pe `<html>` (dialogurile sunt in

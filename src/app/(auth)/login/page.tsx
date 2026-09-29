@@ -5,6 +5,7 @@ import { LoginForm } from "@/features/auth/login-form";
 import { getCurrentUser, homePathForRole } from "@/features/auth/session";
 import { getOrgBranding } from "@/features/auth/queries";
 import { resolveTenant } from "@/features/auth/tenant";
+import { inlineLogoOf } from "@/features/branding/logos";
 
 export const metadata = { title: "Autentificare" };
 
@@ -27,7 +28,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   return (
     <LoginForm
       orgName={branding?.name ?? PLATFORM_NAME}
-      logoUrl={branding?.logoUrl ?? undefined}
+      logoUrl={inlineLogoOf(branding)}
       errorCode={error}
     />
   );
