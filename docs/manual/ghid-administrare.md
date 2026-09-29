@@ -22,12 +22,17 @@ deschide ecranul **"Setări organizație"**, cu formularul de configurare:
 
 - **"Nume organizație"** (obligatoriu) - numele afișat în aplicație (sidebar,
   ecranul de autentificare, antetul certificatelor și rapoartelor PDF).
-- **"Fișier logo"** - încarcă imaginea logo-ului (PNG, JPEG, WEBP, SVG sau GIF,
-  max. 2MB) cu **"Încarcă"** (sau **"Înlocuiește"**, dacă există deja); se afișează pe
-  ecranul de autentificare, pe pagina de start și în meniul lateral. Recomandat:
-  **varianta orizontală** (simbol + nume pe un rând) - ocupă toată lățimea meniului,
-  iar numele scris nu se mai repetă lângă ea. Un logo pătrat se afișează mărit, cu
-  numele organizației alături. Marginile albe din jurul imaginii (PNG, JPEG, WEBP) se
+- **"Logo orizontal"** și **"Logo pătrat"** - două variante, oricare opțională
+  (PNG, JPEG, WEBP, SVG sau GIF, max. 2MB), încărcate cu **"Încarcă"** (sau
+  **"Înlocuiește"**, dacă există deja):
+  - **orizontal** (simbol + nume pe un rând) - în meniul lateral, pe ecranul de
+    autentificare și pe pagina de start; ocupă toată lățimea meniului, iar numele
+    scris nu se mai repetă lângă el;
+  - **pătrat** (simbolul) - iconița din tab-ul browserului.
+
+  Dacă încarci doar una dintre variante, ea se folosește peste tot (un logo pătrat
+  apare mărit în meniu, cu numele organizației alături). Fără niciun logo se afișează
+  numele organizației. Marginile albe din jurul imaginii (PNG, JPEG, WEBP) se
   decupează automat la încărcare; un logo încărcat anterior se re-încarcă pentru a
   beneficia de decupare.
 

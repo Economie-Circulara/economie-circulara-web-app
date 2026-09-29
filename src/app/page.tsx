@@ -8,6 +8,7 @@ import { getCurrentUser, homePathForRole } from "@/features/auth/session";
 import { resolveTenant } from "@/features/auth/tenant";
 import type { Metadata } from "next";
 import { getHostProductName } from "@/features/branding/queries";
+import { inlineLogoOf } from "@/features/branding/logos";
 import { PLATFORM_DESCRIPTION, PLATFORM_NAME } from "@/lib/brand";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -104,7 +105,7 @@ export default async function Home({ searchParams }: HomeProps = {}) {
     <div className="bg-pattern flex min-h-svh flex-col">
       <header className="flex items-center justify-between gap-4 px-6 py-5 sm:px-10">
         {branding ? (
-          <OrgBrand name={branding.name} logoUrl={branding.logoUrl} variant="header" />
+          <OrgBrand name={branding.name} logoUrl={inlineLogoOf(branding)} variant="header" />
         ) : (
           // SVG-ul include wordmark-ul complet; il folosim doar pe domeniul platformei,
           // fara sa concuram cu identitatea vizuala a unui tenant.

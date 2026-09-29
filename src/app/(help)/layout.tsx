@@ -11,6 +11,7 @@ import { ROLE_LABELS } from "@/features/auth/roles";
 import { requireUser } from "@/features/auth/session";
 import { SignOutButton } from "@/features/auth/sign-out-button";
 import { PLATFORM_NAME } from "@/lib/brand";
+import { inlineLogoOf } from "@/features/branding/logos";
 
 /**
  * Shell pentru manualul din aplicatie. `/ajutor` e o singura ruta pentru TOATE
@@ -47,7 +48,7 @@ export default async function HelpLayout({ children }: { children: React.ReactNo
   const org = await getCurrentOrg();
   const items = navForRole(user.role, resolveLayoutKey(org?.layout));
   const orgName = org?.name ?? PLATFORM_NAME;
-  const logoUrl = org?.logoUrl ?? undefined;
+  const logoUrl = inlineLogoOf(org);
 
   return (
     <AppShell

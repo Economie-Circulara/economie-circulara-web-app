@@ -6,7 +6,10 @@ export interface OrgBranding {
   name: string;
   slug: string;
   customDomain: string | null;
+  /** Logo orizontal (`organizations.logo_url`). */
   logoUrl: string | null;
+  /** Logo patrat (`organizations.logo_square_url`, 0049). */
+  logoSquareUrl: string | null;
   primaryColor: string | null;
   secondaryColor: string | null;
   /** Cheia temei vizuale (`organizations.theme`, 0045). */
@@ -46,7 +49,7 @@ export async function getCurrentOrg(): Promise<CurrentOrg | null> {
   const { data: org } = await supabase
     .from("organizations")
     .select(
-      "id, name, slug, custom_domain, logo_url, primary_color, secondary_color, theme, layout, email_from_name, email_from_address, cui, reg_com, address",
+      "id, name, slug, custom_domain, logo_url, logo_square_url, primary_color, secondary_color, theme, layout, email_from_name, email_from_address, cui, reg_com, address",
     )
     .eq("id", profile.organization_id)
     .single();
@@ -58,6 +61,7 @@ export async function getCurrentOrg(): Promise<CurrentOrg | null> {
     slug: org.slug,
     customDomain: org.custom_domain,
     logoUrl: org.logo_url,
+    logoSquareUrl: org.logo_square_url,
     primaryColor: org.primary_color,
     secondaryColor: org.secondary_color,
     theme: org.theme,
@@ -94,6 +98,7 @@ export async function getOrgBranding(hint: TenantHint): Promise<OrgBranding | nu
     slug: data.slug,
     customDomain: data.custom_domain,
     logoUrl: data.logo_url,
+    logoSquareUrl: data.logo_square_url,
     primaryColor: data.primary_color,
     secondaryColor: data.secondary_color,
     theme: data.theme,

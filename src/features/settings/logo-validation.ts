@@ -23,3 +23,28 @@ export function validateLogoFile(file: { size: number; type: string }): string |
   }
   return null;
 }
+
+/**
+ * Variantele de logo ale organizatiei (migrarea 0049): `inline` = orizontal
+ * (`logo_url`), `square` = patrat (`logo_square_url`). Fiecare are fisierul ei in
+ * bucket, la un path fix per organizatie.
+ */
+export type LogoVariant = "inline" | "square";
+
+export const LOGO_VARIANTS: Record<LogoVariant, { fileName: string }> = {
+  inline: { fileName: "logo" },
+  square: { fileName: "logo-square" },
+};
+
+/** Varianta primita din formular; orice valoare necunoscuta -> `null`. */
+export function parseLogoVariant(value: unknown): LogoVariant | null {
+  return value === "inline" || value === "square" ? value : null;
+}
+
+/** Update-ul pe `organizations` care seteaza (sau goleste) coloana variantei. */
+export function logoColumnPatch(
+  variant: LogoVariant,
+  url: string | null,
+): { logo_url: string | null } | { logo_square_url: string | null } {
+  return variant === "inline" ? { logo_url: url } : { logo_square_url: url };
+}

@@ -11,13 +11,14 @@ import { resolveLayoutKey } from "@/features/branding/layouts";
 import { ROLE_LABELS } from "@/features/auth/roles";
 import { requireRole } from "@/features/auth/session";
 import { CartProvider } from "@/features/client-portal/cart-context";
+import { inlineLogoOf } from "@/features/branding/logos";
 
 /** Shell portal client: tema white-label a organizatiei + navigatie de client. */
 export default async function ClientLayout({ children }: { children: React.ReactNode }) {
   const user = await requireRole(["client"]);
   const org = await getCurrentOrg();
   const orgName = org?.name ?? PLATFORM_NAME;
-  const logoUrl = org?.logoUrl ?? undefined;
+  const logoUrl = inlineLogoOf(org);
   const items = navForRole(user.role, resolveLayoutKey(org?.layout));
 
   return (

@@ -26,6 +26,23 @@
 
 Logo-urile deja incarcate NU sunt decupate retroactiv - se re-incarca din Setari.
 
+## Etapa 2: doua variante de logo (orizontal + patrat)
+
+Cerinta: organizatia poate avea logo orizontal, patrat sau ambele; sidebar-ul
+foloseste orizontalul, favicon-ul patratul.
+
+- Migrarea `0049_org_logo_square.sql`: coloana `organizations.logo_square_url` +
+  `org_branding` o intoarce (branding pe login / favicon inainte de autentificare).
+  `logo_url` ramane varianta orizontala (datele existente nu se muta).
+- `src/features/branding/logos.ts`: `inlineLogoOf` (orizontal, altfel patrat) pentru
+  sidebar / login / pagina de start; `squareLogoOf` (patrat, altfel orizontal) pentru
+  favicon (`faviconFor`). Fara niciun logo: numele / initialele, ca inainte.
+- Setari: doua campuri de upload ("Logo orizontal", "Logo pătrat"); actiunile primesc
+  varianta (`inline` / `square`, validata pe server), fisiere separate in bucket
+  (`<org>/logo`, `<org>/logo-square`), stergerea uneia nu o atinge pe cealalta.
+- `OrgBrand` pastreaza detectia formei: un logo patrat folosit ca rezerva in sidebar
+  se afiseaza compact, cu numele alaturi.
+
 ## Impact asistent AI (regula 2.4)
 
 - Decizia: `none` - strict prezentare.

@@ -1186,6 +1186,7 @@ export type Database = {
           email_from_name: string | null
           id: string
           layout: string
+          logo_square_url: string | null
           logo_url: string | null
           name: string
           primary_color: string | null
@@ -1208,6 +1209,7 @@ export type Database = {
           email_from_name?: string | null
           id?: string
           layout?: string
+          logo_square_url?: string | null
           logo_url?: string | null
           name: string
           primary_color?: string | null
@@ -1230,6 +1232,7 @@ export type Database = {
           email_from_name?: string | null
           id?: string
           layout?: string
+          logo_square_url?: string | null
           logo_url?: string | null
           name?: string
           primary_color?: string | null
@@ -1981,6 +1984,7 @@ export type Database = {
         Returns: {
           custom_domain: string
           id: string
+          logo_square_url: string
           logo_url: string
           name: string
           primary_color: string

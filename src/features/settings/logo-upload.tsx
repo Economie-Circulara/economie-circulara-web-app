@@ -3,18 +3,26 @@
 import { useActionState, useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { FormField } from "@/components/form-field";
 import { initialSettingsState } from "./action-state";
 import { removeOrgLogoAction, uploadOrgLogoAction } from "./actions";
+import type { LogoVariant } from "./logo-validation";
 
 export interface LogoUploadProps {
   orgName: string;
   logoUrl: string | null;
+  /** `inline` = orizontal (sidebar, login), `square` = patrat (favicon). */
+  variant: LogoVariant;
+  hint: string;
 }
 
-/** Incarcare logo organizatie ca fisier (bucket public `org-logos`), cu previzualizare. */
-export function LogoUpload({ orgName, logoUrl }: LogoUploadProps) {
+/**
+ * Incarcare a unei variante de logo ca fisier (bucket public `org-logos`), cu
+ * previzualizare in forma variantei.
+ */
+export function LogoUpload({ orgName, logoUrl, variant, hint }: LogoUploadProps) {
   const router = useRouter();
   const [uploadState, uploadAction, uploadPending] = useActionState(
     uploadOrgLogoAction,
@@ -35,7 +43,7 @@ export function LogoUpload({ orgName, logoUrl }: LogoUploadProps) {
   function removeLogo() {
     setRemoveError(null);
     startRemoveTransition(async () => {
-      const result = await removeOrgLogoAction();
+      const result = await removeOrgLogoAction(variant);
       if (result.error) {
         setRemoveError(result.error);
         return;
@@ -47,7 +55,12 @@ export function LogoUpload({ orgName, logoUrl }: LogoUploadProps) {
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-4">
-        <div className="flex h-16 w-40 shrink-0 items-center justify-center rounded-md border border-dashed border-border bg-muted/40">
+        <div
+          className={cn(
+            "flex h-16 shrink-0 items-center justify-center rounded-md border border-dashed border-border bg-muted/40",
+            variant === "inline" ? "w-40" : "w-16",
+          )}
+        >
           {logoUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={logoUrl} alt={orgName} className="size-full rounded object-contain p-1" />
@@ -57,10 +70,8 @@ export function LogoUpload({ orgName, logoUrl }: LogoUploadProps) {
         </div>
 
         <form ref={formRef} action={uploadAction} className="flex-1 space-y-2">
-          <FormField
-            label="Fișier logo"
-            hint="PNG, JPEG, WEBP, SVG sau GIF, max 2MB. Recomandat: varianta orizontală (simbol + nume pe un rând). Marginile albe se decupează automat."
-          >
+          <input type="hidden" name="variant" value={variant} />
+          <FormField label="Fișier logo" hint={hint}>
             {(id) => (
               <div className="flex gap-2">
                 <Input
