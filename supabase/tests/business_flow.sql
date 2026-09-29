@@ -1397,4 +1397,45 @@ begin;
   where o.id = 'eeee0000-0000-0000-0000-00000000ee26';
 rollback;
 
+-- ===========================================================================
+-- B31: domeniul de email (0050) - adminul organizatiei NU poate schimba domeniul de
+--      trimitere, starea verificarii sau adresa expeditorului; poate schimba numele
+--      expeditorului si adresa de raspuns (reply-to).
+-- ===========================================================================
+begin;
+  set local role authenticated;
+  set local request.jwt.claims = '{"sub":"b0000000-0000-0000-0000-0000000000b1"}';
+
+  update public.organizations
+     set email_from_name = 'Demo Trimiteri', email_reply_to = 'contact@demo.ro'
+   where id = :org;
+  select pg_temp.assert_eq('B31 adminul isi seteaza reply-to', email_reply_to, 'contact@demo.ro')
+  from public.organizations where id = :org;
+
+  do $$
+  begin
+    begin
+      update public.organizations set email_domain = 'exemplu.ro'
+        where id = 'a0000000-0000-0000-0000-0000000000a1';
+      raise exception 'FAIL: B31 adminul a schimbat domeniul de email';
+    exception
+      when insufficient_privilege then raise notice 'PASS: B31 domeniul de email doar de super-admin';
+    end;
+    begin
+      update public.organizations set email_domain_status = 'verified'
+        where id = 'a0000000-0000-0000-0000-0000000000a1';
+      raise exception 'FAIL: B31 adminul si-a marcat domeniul verificat';
+    exception
+      when insufficient_privilege then raise notice 'PASS: B31 statusul verificarii doar de super-admin';
+    end;
+    begin
+      update public.organizations set email_from_address = 'x@altceva.ro'
+        where id = 'a0000000-0000-0000-0000-0000000000a1';
+      raise exception 'FAIL: B31 adminul a schimbat adresa expeditorului';
+    exception
+      when insufficient_privilege then raise notice 'PASS: B31 adresa expeditorului doar de super-admin';
+    end;
+  end $$;
+rollback;
+
 select '*** TOATE TESTELE FUNCTIONALE DE BUSINESS AU TRECUT ***' as result;

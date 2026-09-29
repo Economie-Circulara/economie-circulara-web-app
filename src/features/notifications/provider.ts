@@ -28,6 +28,8 @@ export interface EmailMessage {
   subject: string;
   html: string;
   text: string;
+  /** Adresa la care ajung raspunsurile (organizatia, nu expeditorul automat). */
+  replyTo?: string | null;
 }
 
 export interface EmailProvider {
@@ -72,6 +74,7 @@ export class HttpApiEmailProvider implements EmailProvider {
         subject: message.subject,
         html: message.html,
         text: message.text,
+        ...(message.replyTo ? { reply_to: message.replyTo } : {}),
       }),
     });
 
@@ -84,9 +87,14 @@ export class HttpApiEmailProvider implements EmailProvider {
   }
 }
 
+/** Endpoint-ul de trimitere Resend, folosit cand exista doar `RESEND_API_KEY`. */
+export const RESEND_SEND_URL = "https://api.resend.com/emails";
+
 /**
  * Alege providerul de email in functie de mediu: `EMAIL_API_URL` +
- * `EMAIL_API_KEY` setate -> providerul real (HTTP API); altfel providerul mock
+ * `EMAIL_API_KEY` setate -> providerul real (HTTP API); altfel, daca exista
+ * `RESEND_API_KEY` (cheia folosita si pentru domeniile de email, plan
+ * email-white-label-per-domeniu) -> direct Resend; altfel providerul mock
  * (dezvoltare/teste). Nu esueaza niciodata din lipsa de credentiale.
  */
 export function getEmailProvider(): EmailProvider {
@@ -94,6 +102,10 @@ export function getEmailProvider(): EmailProvider {
   const apiKey = process.env.EMAIL_API_KEY;
   if (apiUrl && apiKey) {
     return new HttpApiEmailProvider(apiUrl, apiKey);
+  }
+  const resendKey = process.env.RESEND_API_KEY;
+  if (resendKey) {
+    return new HttpApiEmailProvider(RESEND_SEND_URL, resendKey);
   }
   return new ConsoleEmailProvider();
 }

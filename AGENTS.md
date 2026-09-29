@@ -428,6 +428,18 @@ Testele unitare sunt **colocate** langa cod (`*.test.ts` / `*.test.tsx`).
     (Setari). Orice loc nou care afiseaza logo-ul alege varianta prin
     `inlineLogoOf` / `squareLogoOf` (`src/features/branding/logos.ts`) - cealalta e
     rezerva - nu citeste direct `logoUrl`.
+  - **Emailurile au brandul si expeditorul ORGANIZATIEI destinatarului** (decizie
+    2026-09-29, migrarea `0050`, plan `docs/plans/email-white-label-per-domeniu.md`;
+    inlocuieste decizia din 2026-09-25 „emailurile Auth sunt comune”): emailurile Auth
+    trec prin Supabase **Send Email Hook** (`/auth/email-hook`), nu prin template-urile
+    din dashboard. Expeditorul e pe domeniul organizatiei DOAR cand domeniul e
+    verificat la provider (`email_domain_status = 'verified'`, `resolveEmailSender`);
+    altfel adresa platformei cu numele organizatiei - niciun email pierdut. Domeniul de
+    email si adresa expeditorului le schimba DOAR super-adminul (`/platform/<id>`);
+    adminul pastreaza numele expeditorului si reply-to. Orice email nou trece prin
+    `emailBrandFor` + `renderEmailLayout` (`src/features/notifications/`), iar orice
+    invitatie noua pune `data.organization_id` in `inviteUserByEmail` (la invitatie
+    profilul nu exista inca cand ruleaza hook-ul).
   - O tema noua = cheie in `src/features/branding/themes.ts` + bloc light/dark in
     `src/app/themes.css` + valoare in CHECK-ul din migrare (`themes.test.ts` verifica
     toate trei). Temele se aplica prin `data-theme` pe `<html>` (dialogurile sunt in

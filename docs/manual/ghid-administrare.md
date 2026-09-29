@@ -56,9 +56,18 @@ organizația trece înapoi pe Clasic.
   suport. Când organizația are domeniu propriu, toate linkurile din emailuri
   (invitații, autentificare) duc pe el, iar utilizatorii organizației care intră
   pe altă adresă sunt trimiși automat la autentificare pe domeniul lor.
-- **"Nume expeditor email"** și **"Adresă expeditor email"** - identitatea cu
-  care organizația trimite notificările automate (confirmare comandă, schimbări
-  de status etc.) către clienții ei.
+- **"Adresă expeditor email"** - afișată doar pentru informare: adresa de pe care
+  pleacă emailurile organizației. Domeniul de email îl configurează **echipa
+  platformei** (super-admin, secțiunea 3.3); până e verificat, emailurile pleacă de
+  pe adresa platformei, dar cu numele organizației.
+- **"Nume expeditor email"** - numele afișat ca expeditor (ex. „Etora”).
+- **"Adresă de răspuns (reply-to)"** - unde ajung răspunsurile clienților la
+  emailurile automate.
+
+Toate emailurile (invitații, autentificare, resetare parolă, notificări de
+comenzi) folosesc automat logo-ul orizontal, tema și datele firmei (CUI, Reg. Com.,
+adresă). Pentru emailuri e de preferat un logo PNG/JPG (clienții de email nu
+afișează SVG).
 
 Apasă **"Salvează setările"** pentru a confirma modificările.
 
@@ -163,8 +172,15 @@ Click pe numele organizației în listă -> ecranul organizației (`/platform/<i
   drepturile rămân aceleași.
 - **"Domeniu propriu"** - doar hostul (ex. `app.firma.ro`); gol = domeniul
   platformei. Vezi secțiunea 4.3 înainte de salvare.
+- **"Email"** - domeniul de pe care pleacă emailurile organizației (ex. `etora.ro`)
+  și adresa expeditorului (ex. `notificari`). La **"Salveaza domeniul"** aplicația
+  îl înregistrează la providerul de email (Resend) și afișează înregistrările DNS de
+  adăugat în Cloudflare (DNS only). După ce le adaugi, apasă **"Verifica DNS"** până
+  statusul devine **Verificat** - de atunci emailurile pleacă de pe adresa
+  organizației. **"Scoate domeniul"** revine la adresa platformei. Pașii tehnici:
+  `docs/setup.md`, secțiunea 3.2.
 
-Tema, organizarea și domeniul pot fi schimbate **doar de super-admin** (impus și în baza de
+Tema, organizarea, domeniul și domeniul de email pot fi schimbate **doar de super-admin** (impus și în baza de
 date) - adminul organizației le vede, dar nu le poate modifica.
 ### 3.4 Suspendarea și reactivarea unei organizații
 

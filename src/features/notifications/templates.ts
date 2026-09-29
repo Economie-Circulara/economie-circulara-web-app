@@ -1,4 +1,6 @@
 import type { OrderStatus } from "@/features/orders/types";
+import { emailBrandFor, type EmailBrand } from "./email-brand";
+import { renderEmailLayout } from "./layout";
 import type { NotificationType } from "./types";
 
 /**
@@ -15,6 +17,10 @@ export interface OrderEmailData {
   clientName: string;
   organizationName: string;
   kind?: OrderEmailKind;
+  /** Brandul organizatiei (logo, culoare, subsol); lipsa -> brandul platformei cu `organizationName`. */
+  brand?: EmailBrand;
+  /** Linkul catre comanda in portalul clientului (buton); lipsa -> fara buton. */
+  portalUrl?: string | null;
 }
 
 export interface RenderedEmail {
@@ -106,32 +112,6 @@ const TEMPLATES: Record<NotifiableOrderStatus, (data: OrderEmailData) => Templat
   },
 };
 
-function escapeHtml(value: string): string {
-  return value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
-}
-
-function renderHtml(orgName: string, clientName: string, intro: string): string {
-  return [
-    "<!doctype html>",
-    '<html lang="ro">',
-    '  <body style="font-family: sans-serif; color: #1f2937;">',
-    `    <p>Bună ziua, ${escapeHtml(clientName)},</p>`,
-    `    <p>${escapeHtml(intro)}</p>`,
-    `    <p>Cu stimă,<br/>Echipa ${escapeHtml(orgName)}</p>`,
-    "  </body>",
-    "</html>",
-  ].join("\n");
-}
-
-function renderText(orgName: string, clientName: string, intro: string): string {
-  return `Bună ziua, ${clientName},\n\n${intro}\n\nCu stimă,\nEchipa ${orgName}\n`;
-}
-
 /**
  * Randare PURA (fara I/O, testabila direct) a emailului pt. o tranzitie de
  * status comanda. Arunca daca `toStatus` nu are template (doar `draft`, care nu
@@ -144,9 +124,18 @@ export function renderOrderStatusEmail(data: OrderEmailData, toStatus: OrderStat
   }
 
   const { subject, intro } = TEMPLATES[toStatus](data);
-  return {
-    subject,
-    html: renderHtml(data.organizationName, data.clientName, intro),
-    text: renderText(data.organizationName, data.clientName, intro),
+  const brand = data.brand ?? {
+    ...emailBrandFor(null),
+    organizationName: data.organizationName,
   };
+  const layout = renderEmailLayout(brand, {
+    preheader: intro,
+    paragraphs: [
+      `Bună ziua, ${data.clientName},`,
+      intro,
+      `Cu stimă,\nEchipa ${data.organizationName}`,
+    ],
+    action: data.portalUrl ? { label: "Deschide în portal", url: data.portalUrl } : undefined,
+  });
+  return { subject, ...layout };
 }

@@ -76,6 +76,7 @@ describe("listOrganizations", () => {
         createdAt: "2026-01-01T00:00:00.000Z",
         userCount: 2,
         accessUrl: "/acme",
+        email: expect.objectContaining({ status: "not_configured", records: [] }),
       },
       {
         id: "org-2",
@@ -86,6 +87,7 @@ describe("listOrganizations", () => {
         createdAt: "2026-02-01T00:00:00.000Z",
         userCount: 1,
         accessUrl: "https://trace.beta.ro",
+        email: expect.objectContaining({ status: "not_configured", records: [] }),
       },
     ]);
   });

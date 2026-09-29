@@ -193,11 +193,8 @@ adauga `etora.ro` + `www.etora.ro` in proiectul lui, iar in Cloudflare se pun
 inregistrarile cerute de Vercel-ul lui (de regula `A @ -> 76.76.21.21` si
 `CNAME www -> …`), tot **DNS only**.
 
-**Emailurile Auth sunt comune tuturor organizatiilor** (un singur set de template-uri si
-un singur expeditor per proiect Supabase - decizie 2026-09-25). Linkurile duc corect pe
-domeniul organizatiei (`{{ .RedirectTo }}`), dar textul e acelasi pentru toti: scrie
-template-urile (Magic Link, Invite, Reset Password) si numele expeditorului SMTP
-NEUTRU, fara „Lot cu Lot” (ex. „Autentificare în aplicația de trasabilitate”).
+**Emailurile (Auth + notificari) au brandul si expeditorul organizatiei** - vezi 3.2.
+Template-urile din dashboard-ul Supabase NU se mai folosesc dupa activarea hook-ului.
 
 Efecte:
 
@@ -209,6 +206,68 @@ Efecte:
 
 Verificare: invita un user de test -> linkul din email e pe domeniul organizatiei;
 logheaza-te cu el pe `www.lotculot.eu` -> ajungi pe login-ul domeniului organizatiei.
+
+### 3.2 Emailuri pe domeniul organizatiei (Resend + Cloudflare + hook Supabase)
+
+Plan: `docs/plans/email-white-label-per-domeniu.md`. Toate emailurile (invitatie, magic
+link, resetare parola, notificari de comenzi) folosesc logo-ul, tema si datele
+organizatiei destinatarului si pleaca de pe domeniul ei **dupa ce domeniul e verificat**;
+pana atunci pleaca de pe adresa platformei (`EMAIL_DEFAULT_FROM_ADDRESS`, implicit
+`notificari@lotculot.eu`), cu numele organizatiei.
+
+#### 3.2.1 O singura data (platforma)
+
+1. **Resend**: aplicatia foloseste aceeasi cheie si la trimitere, si la gestionarea
+   domeniilor. Daca in Vercel exista deja `EMAIL_API_URL=https://api.resend.com/emails` +
+   `EMAIL_API_KEY`, nu mai e nevoie de nimic - DOAR ca cheia trebuie sa aiba permisiunea
+   **Full access** (o cheie „Sending access” trimite emailuri, dar nu poate crea/verifica
+   domenii; in `/platform/<id>` apare atunci eroarea Resend). Altfel: cheie noua Full
+   access in `EMAIL_API_KEY` sau separat in `RESEND_API_KEY` (are prioritate la domenii).
+2. Domeniul platformei (`lotculot.eu`) trebuie verificat si el in Resend (adresa de
+   rezerva). Il poti adauga din Resend -> Domains, cu aceiasi pasi DNS ca mai jos.
+3. **Supabase** -> Authentication -> **Hooks** -> **Send Email** -> tip HTTPS:
+   - URL: `https://www.lotculot.eu/auth/email-hook`;
+   - **Generate secret** -> copiaza valoarea (`v1,whsec_...`) in Vercel ca
+     `SEND_EMAIL_HOOK_SECRET`, apoi redeploy;
+   - activeaza hook-ul. Din acest moment Supabase nu mai trimite emailuri prin SMTP:
+     le trimite aplicatia, cu brandul organizatiei userului. Daca hook-ul raspunde cu
+     eroare, userul vede eroarea (nu se pierde nimic in tacere).
+4. Invitatiile trimise inainte de deploy nu au `organization_id` in metadata - hook-ul
+   gaseste organizatia dupa profil sau dupa domeniul din link, deci merg in continuare.
+
+#### 3.2.2 Per organizatie (ex. Etora, Maconxcx)
+
+1. Aplicatie: super-admin -> `/platform/<id>` -> sectiunea **Email** -> „Domeniu de
+   trimitere” = domeniul firmei (ex. `etora.ro`), „Adresa expeditorului” (ex.
+   `notificari`) -> **Salveaza domeniul**. Aplicatia creeaza domeniul in Resend (regiunea
+   EU, click/open tracking oprite - altfel linkurile Auth sunt rescrise) si afiseaza
+   inregistrarile DNS.
+2. **Cloudflare** -> zona `etora.ro` -> DNS -> Records: adauga EXACT inregistrarile
+   afisate, cu **Proxy status = DNS only**. De regula:
+
+   | Tip | Nume                | Valoare                                  | Prioritate |
+   | --- | ------------------- | ---------------------------------------- | ---------- |
+   | MX  | `send`              | `feedback-smtp.eu-west-1.amazonses.com`  | 10         |
+   | TXT | `send`              | `v=spf1 include:amazonses.com ~all`      | -          |
+   | TXT | `resend._domainkey` | cheia DKIM (lunga) din pagina            | -          |
+
+   Sunt pe subdomenii (`send`, `resend._domainkey`), deci **nu ating emailul existent al
+   firmei** (MX/SPF de pe `etora.ro` raman neschimbate - nu adauga un al doilea SPF pe
+   radacina). Recomandat, daca zona nu are deja: `TXT _dmarc` =
+   `v=DMARC1; p=none; rua=mailto:<adresa firmei>` (dupa cateva saptamani fara probleme se
+   poate trece pe `p=quarantine`).
+3. Inapoi in `/platform/<id>` -> **Verifica DNS**. Propagarea dureaza de la minute la
+   cateva ore; reapasa pana apare „Verificat”. De atunci emailurile organizatiei pleaca
+   de pe `notificari@etora.ro`.
+4. Adminul organizatiei poate seta din Setari numele expeditorului si adresa de raspuns
+   (reply-to); domeniul si adresa expeditorului raman la super-admin (migrarea `0050`).
+
+Logo-ul din emailuri e varianta orizontala (Setari); clientii de email nu afiseaza SVG,
+deci pentru emailuri e de preferat un logo PNG/JPG.
+
+Verificare: invita un user de test in organizatie -> emailul vine de la
+`notificari@etora.ro`, are logo-ul/culoarea Etora, iar linkul duce pe
+`circular.etora.ro`.
 
 ## 4. Environment Claude Code on the web (ca agentul sa ruleze tot de-aici)
 

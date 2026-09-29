@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { parseStoredRecords, resolveEmailDomainStatus } from "./email-domain";
 import type { OrganizationSummary } from "./types";
 
 /**
@@ -46,6 +47,15 @@ export async function listOrganizations(): Promise<OrganizationSummary[]> {
     createdAt: org.created_at,
     userCount: userCounts.get(org.id) ?? 0,
     accessUrl: buildAccessUrl(org.slug, org.custom_domain),
+    email: {
+      domain: org.email_domain,
+      fromName: org.email_from_name,
+      fromAddress: org.email_from_address,
+      replyTo: org.email_reply_to,
+      status: resolveEmailDomainStatus(org.email_domain_status),
+      records: parseStoredRecords(org.email_domain_records),
+      checkedAt: org.email_domain_checked_at,
+    },
   }));
 }
 

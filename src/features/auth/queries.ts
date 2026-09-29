@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { canSendFromOrgDomain } from "@/features/notifications/sender";
 import type { TenantHint } from "./tenant";
 
 export interface OrgBranding {
@@ -21,6 +22,10 @@ export interface CurrentOrg extends OrgBranding {
   layout: string;
   emailFromName: string | null;
   emailFromAddress: string | null;
+  /** Adresa de raspuns a emailurilor (0050) - o seteaza adminul organizatiei. */
+  emailReplyTo: string | null;
+  /** Adresa de pe care pleaca efectiv emailurile (domeniu verificat), altfel `null` = adresa platformei. */
+  emailSendingAddress: string | null;
   /** Date de identificare fiscala (migrarea 0023) - afisate pe certificatul de trasabilitate. */
   cui: string | null;
   regCom: string | null;
@@ -49,7 +54,7 @@ export async function getCurrentOrg(): Promise<CurrentOrg | null> {
   const { data: org } = await supabase
     .from("organizations")
     .select(
-      "id, name, slug, custom_domain, logo_url, logo_square_url, primary_color, secondary_color, theme, layout, email_from_name, email_from_address, cui, reg_com, address",
+      "id, name, slug, custom_domain, logo_url, logo_square_url, primary_color, secondary_color, theme, layout, email_from_name, email_from_address, email_reply_to, email_domain, email_domain_status, cui, reg_com, address",
     )
     .eq("id", profile.organization_id)
     .single();
@@ -68,6 +73,14 @@ export async function getCurrentOrg(): Promise<CurrentOrg | null> {
     layout: org.layout,
     emailFromName: org.email_from_name,
     emailFromAddress: org.email_from_address,
+    emailReplyTo: org.email_reply_to,
+    emailSendingAddress: canSendFromOrgDomain({
+      fromAddress: org.email_from_address,
+      emailDomain: org.email_domain,
+      emailDomainStatus: org.email_domain_status,
+    })
+      ? org.email_from_address
+      : null,
     cui: org.cui,
     regCom: org.reg_com,
     address: org.address,

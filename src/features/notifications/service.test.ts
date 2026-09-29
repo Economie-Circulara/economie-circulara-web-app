@@ -43,8 +43,21 @@ const ORDER_ROW = {
   clients: { name: "Apex SRL", email: "client@apex.ro" },
   organizations: {
     name: "Reciclare Prod SRL",
+    slug: "reciclare-prod",
+    custom_domain: "trace.reciclare-prod.ro",
+    logo_url: null,
+    logo_square_url: null,
+    primary_color: null,
+    secondary_color: null,
+    theme: "default",
     email_from_name: "Reciclare Prod",
     email_from_address: "notificari@reciclare-prod.ro",
+    email_domain: "reciclare-prod.ro",
+    email_domain_status: "verified",
+    email_reply_to: "contact@reciclare-prod.ro",
+    cui: "RO123",
+    reg_com: null,
+    address: null,
   },
 };
 
@@ -104,7 +117,37 @@ describe("sendOrderStatusNotification", () => {
       expect.objectContaining({
         to: "client@apex.ro",
         from: { name: "Reciclare Prod", address: "notificari@reciclare-prod.ro" },
+        replyTo: "contact@reciclare-prod.ro",
         subject: expect.stringContaining("CMD-2026-0007"),
+        html: expect.stringContaining("https://trace.reciclare-prod.ro/comenzile-mele/order-1"),
+      }),
+    );
+  });
+
+  it("domeniu de email neverificat: trimite de pe adresa platformei, cu numele organizatiei", async () => {
+    const admin = makeAdmin({
+      notifications: [
+        { data: null },
+        { data: { id: "notif-1", ...baseNotificationRow(), status: "queued" } },
+        { data: { id: "notif-1", ...baseNotificationRow(), status: "sent" } },
+      ],
+      orders: [
+        {
+          data: {
+            ...ORDER_ROW,
+            organizations: { ...ORDER_ROW.organizations, email_domain_status: "pending" },
+          },
+        },
+      ],
+    });
+    createAdminClient.mockReturnValue(admin);
+    const provider = mockProvider();
+
+    await sendOrderStatusNotification(EVENT, provider);
+
+    expect(provider.send).toHaveBeenCalledWith(
+      expect.objectContaining({
+        from: { name: "Reciclare Prod", address: "notificari@lotculot.eu" },
       }),
     );
   });

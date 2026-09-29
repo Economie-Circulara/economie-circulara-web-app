@@ -36,6 +36,8 @@ export async function inviteStaffAction(
 
   const { data, error } = await adminClient.auth.admin.inviteUserByEmail(email, {
     redirectTo: `${origin}/auth/callback?next=/set-password`,
+    // Brandul + expeditorul organizatiei in emailul de invitatie (auth-hook.ts).
+    data: { organization_id: admin.organizationId },
   });
   if (error || !data?.user) {
     return { error: "Nu am putut trimite invitatia (poate exista deja un cont).", message: null };
@@ -113,6 +115,8 @@ export async function sendClientInvite(clientId: string, rawEmail: string): Prom
   const origin = await getOrganizationOrigin(admin.organizationId);
   const { data, error } = await adminClient.auth.admin.inviteUserByEmail(email, {
     redirectTo: `${origin}/auth/callback?next=/set-password`,
+    // Brandul + expeditorul organizatiei in emailul de invitatie (auth-hook.ts).
+    data: { organization_id: admin.organizationId },
   });
   if (error || !data?.user) {
     return { error: "Nu am putut trimite invitatia (poate exista deja un cont).", message: null };
@@ -200,6 +204,8 @@ export async function resendClientInvite(clientId: string): Promise<UserMgmtStat
   const origin = await getOrganizationOrigin(admin.organizationId);
   const { error } = await adminClient.auth.admin.inviteUserByEmail(profile.email, {
     redirectTo: `${origin}/auth/callback?next=/set-password`,
+    // Brandul + expeditorul organizatiei in emailul de invitatie (auth-hook.ts).
+    data: { organization_id: admin.organizationId },
   });
   if (error) {
     return { error: "Nu am putut retrimite invitatia. Incearca din nou.", message: null };

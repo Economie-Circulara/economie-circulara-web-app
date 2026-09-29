@@ -54,7 +54,8 @@ export async function updateOrganizationAction(
           }
         : {}),
       email_from_name: clean(formData.get("email_from_name")),
-      email_from_address: clean(formData.get("email_from_address")),
+      // Adresa expeditorului + domeniul de email le seteaza super-adminul (0050).
+      email_reply_to: clean(formData.get("email_reply_to")),
       cui: clean(formData.get("cui")),
       reg_com: clean(formData.get("reg_com")),
       address: clean(formData.get("address")),

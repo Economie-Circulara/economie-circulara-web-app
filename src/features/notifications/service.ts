@@ -1,7 +1,7 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { Database } from "@/lib/database.types";
 import type { OrderStatus } from "@/features/orders/types";
-import { productNameFor } from "@/features/branding/tenant-profiles";
+import { ORG_EMAIL_COLUMNS, emailBrandFor, type EmailBrand } from "./email-brand";
 import { getEmailProvider, type EmailProvider } from "./provider";
 import {
   notificationTypeForOrderStatus,
@@ -12,10 +12,6 @@ import type { NotificationRecord, NotificationType } from "./types";
 
 type NotificationRow = Database["public"]["Tables"]["notifications"]["Row"];
 type AdminClient = ReturnType<typeof createAdminClient>;
-
-/** Sender implicit cand organizatia nu are configurat email_from_name/email_from_address (T1.3 white-label). */
-const DEFAULT_FROM_NAME = "Lot cu Lot";
-const DEFAULT_FROM_ADDRESS = "notificari@lotculot.eu";
 
 /** Evenimentul minim necesar trimiterii unei notificari de tranzitie de status. */
 export interface OrderStatusNotificationEvent {
@@ -69,9 +65,28 @@ interface OrderContextForEmail {
   orderNumber: string | null;
   clientName: string;
   clientEmail: string | null;
-  organizationName: string;
-  fromName: string;
-  fromAddress: string;
+  /** Brandul + expeditorul organizatiei (`emailBrandFor`, plan email-white-label-per-domeniu). */
+  brand: EmailBrand;
+}
+
+/**
+ * Linkul catre comanda in portalul clientului: pe domeniul organizatiei, altfel pe
+ * originea canonica (`NEXT_PUBLIC_SITE_URL`); fara nicio origine cunoscuta -> fara link.
+ */
+export function orderPortalUrl(
+  orderId: string,
+  customOrigin: string | null,
+  siteUrl: string | undefined = process.env.NEXT_PUBLIC_SITE_URL,
+): string | null {
+  let origin = customOrigin;
+  if (!origin && siteUrl) {
+    try {
+      origin = new URL(siteUrl).origin;
+    } catch {
+      origin = null;
+    }
+  }
+  return origin ? `${origin}/comenzile-mele/${orderId}` : null;
 }
 
 /**
@@ -89,9 +104,7 @@ async function loadOrderContext(
 ): Promise<OrderContextForEmail> {
   const { data, error } = await admin
     .from("orders")
-    .select(
-      "order_number, clients(name, email), organizations(name, slug, custom_domain, email_from_name, email_from_address)",
-    )
+    .select(`order_number, clients(name, email), organizations(${ORG_EMAIL_COLUMNS})`)
     .eq("id", orderId)
     .maybeSingle();
 
@@ -102,21 +115,9 @@ async function loadOrderContext(
     orderNumber: data.order_number,
     clientName: data.clients?.name ?? "client",
     clientEmail: data.clients?.email ?? null,
-    organizationName: data.organizations?.name ?? DEFAULT_FROM_NAME,
-    // Fara nume de expeditor configurat: numele aplicatiei organizatiei (pe domeniu
-    // propriu nu apare „Lot cu Lot” - plan multi-domain-tenant-profiles, T3).
-    fromName:
-      data.organizations?.email_from_name ??
-      productNameFor(
-        data.organizations
-          ? {
-              slug: data.organizations.slug,
-              name: data.organizations.name,
-              customDomain: data.organizations.custom_domain,
-            }
-          : null,
-      ),
-    fromAddress: data.organizations?.email_from_address ?? DEFAULT_FROM_ADDRESS,
+    // Fara organizatie (defensiv): brandul platformei. Pe domeniu propriu nu apare
+    // „Lot cu Lot” (plan multi-domain-tenant-profiles, T3) - vezi `productNameFor`.
+    brand: emailBrandFor(data.organizations),
   };
 }
 
@@ -182,8 +183,10 @@ export async function sendOrderStatusNotification(
     {
       orderNumber: context.orderNumber,
       clientName: context.clientName,
-      organizationName: context.organizationName,
+      organizationName: context.brand.organizationName,
       kind: event.kind,
+      brand: context.brand,
+      portalUrl: orderPortalUrl(event.orderId, context.brand.customOrigin),
     },
     event.toStatus,
   );
@@ -209,7 +212,8 @@ export async function sendOrderStatusNotification(
   try {
     await provider.send({
       to: context.clientEmail,
-      from: { name: context.fromName, address: context.fromAddress },
+      from: context.brand.from,
+      replyTo: context.brand.replyTo,
       subject: rendered.subject,
       html: rendered.html,
       text: rendered.text,

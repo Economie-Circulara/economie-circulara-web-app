@@ -207,6 +207,19 @@ export function SettingsForm({ org }: { org: CurrentOrg }) {
             >
               {(id) => <Input id={id} value={org.customDomain ?? "-"} readOnly disabled />}
             </FormField>
+            <FormField
+              label="Adresa expeditor email"
+              hint="Emailurile pleaca de pe domeniul organizatiei dupa ce echipa platformei il verifica (DNS); pana atunci, de pe adresa platformei, cu numele organizatiei - cere-l la suport."
+            >
+              {(id) => (
+                <Input
+                  id={id}
+                  value={org.emailSendingAddress ?? "adresa platformei"}
+                  readOnly
+                  disabled
+                />
+              )}
+            </FormField>
             <div className="grid gap-4 sm:grid-cols-2">
               <FormField label="Nume expeditor email">
                 {(id) => (
@@ -218,13 +231,16 @@ export function SettingsForm({ org }: { org: CurrentOrg }) {
                   />
                 )}
               </FormField>
-              <FormField label="Adresa expeditor email">
+              <FormField
+                label="Adresa de raspuns (reply-to)"
+                hint="Unde ajung raspunsurile clientilor la emailurile automate."
+              >
                 {(id) => (
                   <Input
                     id={id}
-                    name="email_from_address"
+                    name="email_reply_to"
                     type="email"
-                    defaultValue={org.emailFromAddress ?? ""}
+                    defaultValue={org.emailReplyTo ?? ""}
                     placeholder="comenzi@firma.ro"
                   />
                 )}
