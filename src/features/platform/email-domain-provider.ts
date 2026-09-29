@@ -4,7 +4,8 @@ import { mapProviderStatus, type EmailDnsRecord, type EmailDomainStatus } from "
  * Adapter peste API-ul de domenii al providerului de email (plan:
  * docs/plans/email-white-label-per-domeniu.md, Etapa 2) - ca la rutare / e-Transport,
  * restul codului nu stie de Resend. Implementare unica: `ResendDomainProvider`, activa
- * doar cu `RESEND_API_KEY` (cheie cu acces COMPLET - cheile „sending access” nu pot
+ * doar cu o cheie Resend (`RESEND_API_KEY`, sau `EMAIL_API_KEY` cand `EMAIL_API_URL` e
+ * Resend - `resendApiKeyFromEnv`) cu acces COMPLET (cheile „sending access” nu pot
  * gestiona domenii). Fara cheie nu exista mock: un mock care marcheaza domenii drept
  * verificate ar face aplicatia sa trimita de pe domenii pe care providerul le respinge.
  */
@@ -147,8 +148,23 @@ export class ResendDomainProvider implements EmailDomainProvider {
   }
 }
 
-/** Providerul configurat sau `null` (fara `RESEND_API_KEY` - gestionare indisponibila). */
+/**
+ * Cheia Resend din mediu: `RESEND_API_KEY`, altfel `EMAIL_API_KEY` daca trimiterea merge
+ * deja prin Resend (`EMAIL_API_URL` pe api.resend.com) - aceeasi cheie, fara dublura.
+ */
+export function resendApiKeyFromEnv(env: Record<string, string | undefined> = process.env) {
+  if (env.RESEND_API_KEY) return env.RESEND_API_KEY;
+  let host: string | null = null;
+  try {
+    host = env.EMAIL_API_URL ? new URL(env.EMAIL_API_URL).host : null;
+  } catch {
+    host = null;
+  }
+  return host === "api.resend.com" && env.EMAIL_API_KEY ? env.EMAIL_API_KEY : null;
+}
+
+/** Providerul configurat sau `null` (fara cheie Resend - gestionare indisponibila). */
 export function getEmailDomainProvider(): EmailDomainProvider | null {
-  const key = process.env.RESEND_API_KEY;
+  const key = resendApiKeyFromEnv();
   return key ? new ResendDomainProvider(key) : null;
 }

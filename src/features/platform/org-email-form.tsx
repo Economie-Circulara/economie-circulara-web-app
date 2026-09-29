@@ -32,7 +32,7 @@ const STATUS_VARIANT: Record<EmailDomainStatus, BadgeVariant> = {
 export interface OrgEmailFormProps {
   organizationId: string;
   email: OrganizationEmailSettings;
-  /** `RESEND_API_KEY` lipseste - gestionarea domeniilor nu e disponibila. */
+  /** Lipseste cheia Resend - gestionarea domeniilor nu e disponibila. */
   providerConfigured: boolean;
   /** Adresa platformei, folosita pana la verificarea domeniului. */
   platformAddress: string;
@@ -82,8 +82,8 @@ export function OrgEmailForm({
 
       {!providerConfigured ? (
         <p className="text-sm text-warn">
-          Gestionarea domeniilor nu e configurata: lipseste RESEND_API_KEY (cheie Resend cu acces
-          complet) in Vercel. Vezi docs/setup.md.
+          Gestionarea domeniilor nu e configurata: lipseste cheia Resend in Vercel (EMAIL_API_URL =
+          https://api.resend.com/emails + EMAIL_API_KEY, sau RESEND_API_KEY). Vezi docs/setup.md.
         </p>
       ) : null}
 

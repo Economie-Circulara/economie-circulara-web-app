@@ -45,12 +45,12 @@ template-ul lor (nu „Lot cu Lot”), cat mai automat, gestionat din panoul sup
    neverificat face trimiterea sa esueze. Adminul organizatiei pastreaza numele
    expeditorului si primeste campul nou „Adresa de raspuns (reply-to)”.
 5. **Etapa 2 - automatizare prin Resend Domains API** (`platform/email-domain-provider.ts`,
-   adapter ca la rutare/e-Transport; activ doar cu `RESEND_API_KEY` full access): in
+   adapter ca la rutare/e-Transport; activ doar cu o cheie Resend full access - `RESEND_API_KEY` sau `EMAIL_API_KEY` cand `EMAIL_API_URL` e Resend): in
    `/platform/<id>` -> sectiunea „Email”, super-adminul introduce domeniul si adresa;
    aplicatia creeaza domeniul in Resend (regiunea EU, click/open tracking OPRITE - altfel
    linkurile Auth sunt rescrise), salveaza si afiseaza inregistrarile DNS de pus in
    Cloudflare, iar butonul „Verifica DNS” cere verificarea si actualizeaza statusul.
-   Fara `RESEND_API_KEY` sectiunea explica ce lipseste (nu exista mock care sa marcheze
+   Fara cheie Resend sectiunea explica ce lipseste (nu exista mock care sa marcheze
    un domeniu drept verificat - ar trimite emailuri care pica).
 6. Trimiterea: `getEmailProvider()` accepta in continuare `EMAIL_API_URL`/`EMAIL_API_KEY`;
    daca lipsesc dar exista `RESEND_API_KEY`, trimite direct prin Resend. Mesajul are acum

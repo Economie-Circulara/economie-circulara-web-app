@@ -217,10 +217,12 @@ pana atunci pleaca de pe adresa platformei (`EMAIL_DEFAULT_FROM_ADDRESS`, implic
 
 #### 3.2.1 O singura data (platforma)
 
-1. **Resend** -> API Keys -> o cheie cu **Full access** (gestioneaza si domenii).
-   **Vercel** -> Environment Variables (Production): `RESEND_API_KEY=<cheia>`.
-   `EMAIL_API_URL`/`EMAIL_API_KEY` nu mai sunt necesare (daca sunt setate, au prioritate
-   la trimitere).
+1. **Resend**: aplicatia foloseste aceeasi cheie si la trimitere, si la gestionarea
+   domeniilor. Daca in Vercel exista deja `EMAIL_API_URL=https://api.resend.com/emails` +
+   `EMAIL_API_KEY`, nu mai e nevoie de nimic - DOAR ca cheia trebuie sa aiba permisiunea
+   **Full access** (o cheie „Sending access” trimite emailuri, dar nu poate crea/verifica
+   domenii; in `/platform/<id>` apare atunci eroarea Resend). Altfel: cheie noua Full
+   access in `EMAIL_API_KEY` sau separat in `RESEND_API_KEY` (are prioritate la domenii).
 2. Domeniul platformei (`lotculot.eu`) trebuie verificat si el in Resend (adresa de
    rezerva). Il poti adauga din Resend -> Domains, cu aceiasi pasi DNS ca mai jos.
 3. **Supabase** -> Authentication -> **Hooks** -> **Send Email** -> tip HTTPS:

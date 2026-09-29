@@ -4,6 +4,13 @@ Jurnal al sarcinilor lucrate de agenti AI in acest repo. Conform regulii 1.2 din
 [`AGENTS.md`](../AGENTS.md), la **fiecare commit** se adauga o intrare aici.
 Cele mai noi intrari sus.
 
+## 2026-09-29 — Claude Opus 5.5 (Claude Code) — Cheia Resend refolosita pentru domenii
+
+- **Cerut:** cheia Resend e deja in Vercel ca `EMAIL_API_KEY`; fara variabila dublura.
+- **Facut:** `resendApiKeyFromEnv` - gestionarea domeniilor foloseste `RESEND_API_KEY`,
+  altfel `EMAIL_API_KEY` cand `EMAIL_API_URL` e api.resend.com (niciodata cheia altui
+  provider). Mesaje UI, setup, `.env.example`, plan si teste actualizate.
+
 ## 2026-09-29 — Claude Opus 5.5 (Claude Code) — Emailuri white-label per domeniu
 
 - **Cerut:** organizatiile cu domeniu propriu (Etora, Maconxcx) sa trimita emailurile de

@@ -220,7 +220,7 @@ export async function updateOrganizationAppearanceAction(
 }
 
 const NO_EMAIL_PROVIDER_ERROR =
-  "Gestionarea domeniilor de email nu e configurata: seteaza RESEND_API_KEY (cheie Resend cu acces complet) in Vercel - vezi docs/setup.md.";
+  "Gestionarea domeniilor de email nu e configurata: lipseste cheia Resend (EMAIL_API_URL = https://api.resend.com/emails + EMAIL_API_KEY, sau RESEND_API_KEY) in Vercel - vezi docs/setup.md.";
 
 function emailProviderErrorMessage(err: unknown, fallback: string): string {
   if (err instanceof EmailDomainProviderError) return err.message;

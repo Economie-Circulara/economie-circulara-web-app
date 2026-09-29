@@ -1,5 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
-import { EmailDomainProviderError, ResendDomainProvider } from "./email-domain-provider";
+import {
+  EmailDomainProviderError,
+  ResendDomainProvider,
+  resendApiKeyFromEnv,
+} from "./email-domain-provider";
 
 const DOMAIN = {
   id: "dom-1",
@@ -111,5 +115,30 @@ describe("ResendDomainProvider", () => {
         fetchSequence(response(401, { message: "API key is invalid" })) as unknown as typeof fetch,
       ).getDomain("x"),
     ).rejects.toThrow(/API key is invalid/);
+  });
+});
+
+describe("resendApiKeyFromEnv", () => {
+  it("RESEND_API_KEY are prioritate", () => {
+    expect(resendApiKeyFromEnv({ RESEND_API_KEY: "re_1", EMAIL_API_KEY: "re_2" })).toBe("re_1");
+  });
+
+  it("refoloseste EMAIL_API_KEY cand EMAIL_API_URL e Resend", () => {
+    expect(
+      resendApiKeyFromEnv({
+        EMAIL_API_URL: "https://api.resend.com/emails",
+        EMAIL_API_KEY: "re_2",
+      }),
+    ).toBe("re_2");
+  });
+
+  it("nu trimite cheia altui provider catre Resend", () => {
+    expect(
+      resendApiKeyFromEnv({
+        EMAIL_API_URL: "https://api.postmarkapp.com/email",
+        EMAIL_API_KEY: "pm",
+      }),
+    ).toBeNull();
+    expect(resendApiKeyFromEnv({})).toBeNull();
   });
 });
