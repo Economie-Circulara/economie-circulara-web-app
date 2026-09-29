@@ -135,14 +135,20 @@ export async function updateSession(request: NextRequest) {
       .single();
 
     // Garda de domeniu (plan multi-domain-tenant-profiles, T2): userul unei organizatii
-    // cu domeniu propriu lucreaza doar acolo. Sesiunea nu se poate muta intre domenii
+    // lucreaza doar pe domeniul ei (propriu, altfel al platformei). Sesiunea nu se poate muta intre domenii
     // (cookie-urile sunt per host), deci o inchidem pe hostul curent si trimitem userul
     // la login pe domeniul corect. `scope: "local"` - `global` ar revoca si sesiunea
     // valida de pe domeniul organizatiei.
-    const correctDomain = tenantDomainRedirect(
-      request.headers.get("host"),
-      profile?.organizations?.custom_domain,
-    );
+    const correctDomain = tenantDomainRedirect({
+      host: request.headers.get("host"),
+      organization: profile?.organization_id
+        ? { customDomain: profile.organizations?.custom_domain }
+        : null,
+      platform: {
+        siteUrl: process.env.NEXT_PUBLIC_SITE_URL,
+        rootDomain: process.env.NEXT_PUBLIC_ROOT_DOMAIN,
+      },
+    });
     if (correctDomain) {
       await supabase.auth.signOut({ scope: "local" });
       const target = new URL(`https://${correctDomain}/login`);
