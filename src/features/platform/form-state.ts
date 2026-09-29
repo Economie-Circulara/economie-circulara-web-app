@@ -46,3 +46,11 @@ export interface AiLimitsFormState {
 }
 
 export const initialAiLimitsFormState: AiLimitsFormState = { error: null, message: null };
+
+/** Sectiunea „Email” din `/platform/<id>` (domeniu de trimitere + verificare DNS). */
+export interface OrgEmailState {
+  error: string | null;
+  message: string | null;
+}
+
+export const initialOrgEmailState: OrgEmailState = { error: null, message: null };

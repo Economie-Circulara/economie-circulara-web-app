@@ -197,6 +197,7 @@ describe("inviteClientAction - flux fericit", () => {
     expect(getOrganizationOrigin).toHaveBeenCalledWith("org-1");
     expect(inviteUserByEmail).toHaveBeenCalledWith("client@acme.ro", {
       redirectTo: "https://trace.acme.ro/auth/callback?next=/set-password",
+      data: { organization_id: "org-1" },
     });
     expect(insert).toHaveBeenCalledWith({
       id: "user-1",
@@ -306,6 +307,7 @@ describe("resendClientInviteAction", () => {
     expect(getUserById).toHaveBeenCalledWith("user-1");
     expect(inviteUserByEmail).toHaveBeenCalledWith("client@acme.ro", {
       redirectTo: "https://trace.acme.ro/auth/callback?next=/set-password",
+      data: { organization_id: "org-1" },
     });
     expect(revalidatePath).toHaveBeenCalledWith("/clienti/client-1");
     expect(state.error).toBeNull();

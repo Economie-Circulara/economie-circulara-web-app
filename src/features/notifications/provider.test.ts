@@ -1,5 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { ConsoleEmailProvider, HttpApiEmailProvider, getEmailProvider } from "./provider";
+import {
+  ConsoleEmailProvider,
+  HttpApiEmailProvider,
+  RESEND_SEND_URL,
+  getEmailProvider,
+} from "./provider";
 
 const MESSAGE = {
   to: "client@example.ro",
@@ -54,6 +59,18 @@ describe("HttpApiEmailProvider", () => {
     });
   });
 
+  it("trimite reply_to doar cand mesajul il are", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, status: 200 });
+    global.fetch = fetchMock as unknown as typeof fetch;
+    const provider = new HttpApiEmailProvider("https://email.example.com/send", "secret-key");
+
+    await provider.send({ ...MESSAGE, replyTo: "contact@firma.ro" });
+    await provider.send(MESSAGE);
+
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body as string).reply_to).toBe("contact@firma.ro");
+    expect(JSON.parse(fetchMock.mock.calls[1][1].body as string)).not.toHaveProperty("reply_to");
+  });
+
   it("arunca daca raspunsul nu e ok", async () => {
     global.fetch = vi.fn().mockResolvedValue({
       ok: false,
@@ -73,6 +90,7 @@ describe("getEmailProvider", () => {
   beforeEach(() => {
     delete process.env.EMAIL_API_URL;
     delete process.env.EMAIL_API_KEY;
+    delete process.env.RESEND_API_KEY;
   });
 
   afterEach(() => {
@@ -88,5 +106,20 @@ describe("getEmailProvider", () => {
     process.env.EMAIL_API_KEY = "secret-key";
 
     expect(getEmailProvider()).toBeInstanceOf(HttpApiEmailProvider);
+  });
+
+  it("cade pe Resend cand exista doar RESEND_API_KEY", async () => {
+    process.env.RESEND_API_KEY = "re_key";
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, status: 200 });
+    const originalFetch = global.fetch;
+    global.fetch = fetchMock as unknown as typeof fetch;
+    try {
+      const provider = getEmailProvider();
+      expect(provider).toBeInstanceOf(HttpApiEmailProvider);
+      await provider.send(MESSAGE);
+      expect(fetchMock).toHaveBeenCalledWith(RESEND_SEND_URL, expect.anything());
+    } finally {
+      global.fetch = originalFetch;
+    }
   });
 });

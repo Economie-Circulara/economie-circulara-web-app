@@ -90,6 +90,7 @@ describe("inviteOrganizationAdmin", () => {
 
     expect(inviteUserByEmail).toHaveBeenCalledWith("admin@acme.ro", {
       redirectTo: "https://app/auth/callback",
+      data: { organization_id: "org-1" },
     });
     expect(from).toHaveBeenCalledWith("profiles");
     expect(insert).toHaveBeenCalledWith({

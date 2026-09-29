@@ -7,6 +7,18 @@ import { getOrganizationOrigin } from "@/features/auth/origin";
 import { isLayoutKey } from "@/features/branding/layouts";
 import { isThemeKey } from "@/features/branding/themes";
 import { normalizeCustomDomain } from "./domain";
+import {
+  EMAIL_DOMAIN_STATUS_LABELS,
+  normalizeEmailDomain,
+  normalizeLocalPart,
+} from "./email-domain";
+import { EmailDomainProviderError, getEmailDomainProvider } from "./email-domain-provider";
+import {
+  EmailDomainNotConfiguredError,
+  configureEmailDomain,
+  refreshEmailDomain,
+  removeEmailDomain,
+} from "./email-domain-service";
 import { isValidSlug } from "./slug";
 import {
   InviteFailedError,
@@ -18,7 +30,12 @@ import {
   setOrganizationStatus,
   updateOrganizationAppearance,
 } from "./service";
-import type { CreateOrganizationState, OrgAppearanceState, OrgStatusState } from "./form-state";
+import type {
+  CreateOrganizationState,
+  OrgAppearanceState,
+  OrgEmailState,
+  OrgStatusState,
+} from "./form-state";
 
 function clean(value: FormDataEntryValue | null): string {
   return String(value ?? "").trim();
@@ -200,4 +217,114 @@ export async function updateOrganizationAppearanceAction(
   revalidatePath("/platform");
   revalidatePath(`/platform/${organizationId}`);
   return { error: null, message: "Setarile au fost salvate." };
+}
+
+const NO_EMAIL_PROVIDER_ERROR =
+  "Gestionarea domeniilor de email nu e configurata: seteaza RESEND_API_KEY (cheie Resend cu acces complet) in Vercel - vezi docs/setup.md.";
+
+function emailProviderErrorMessage(err: unknown, fallback: string): string {
+  if (err instanceof EmailDomainProviderError) return err.message;
+  if (err instanceof EmailDomainNotConfiguredError) return err.message;
+  return fallback;
+}
+
+function revalidateOrganization(organizationId: string) {
+  revalidatePath("/platform");
+  revalidatePath(`/platform/${organizationId}`);
+}
+
+/**
+ * Domeniul de trimitere + adresa expeditorului unei organizatii (super-admin; plan
+ * docs/plans/email-white-label-per-domeniu.md). Un domeniu nou se creeaza la Resend,
+ * iar inregistrarile DNS de adaugat in Cloudflare apar in pagina; pana la verificare,
+ * emailurile organizatiei pleaca de pe adresa platformei (cu numele organizatiei).
+ */
+export async function updateOrganizationEmailDomainAction(
+  _prev: OrgEmailState,
+  formData: FormData,
+): Promise<OrgEmailState> {
+  await requireRole(["super_admin"]);
+  const organizationId = clean(formData.get("organization_id"));
+  if (!organizationId) return { error: "Organizatie invalida.", message: null };
+
+  const domain = normalizeEmailDomain(clean(formData.get("email_domain")));
+  if (!domain.ok) return { error: domain.error, message: null };
+  const localPart = normalizeLocalPart(clean(formData.get("email_local_part")));
+  if (!localPart.ok) return { error: localPart.error, message: null };
+
+  const provider = getEmailDomainProvider();
+  if (!provider) return { error: NO_EMAIL_PROVIDER_ERROR, message: null };
+
+  try {
+    await configureEmailDomain(
+      organizationId,
+      { domain: domain.value, localPart: localPart.value },
+      provider,
+    );
+  } catch (err) {
+    return {
+      error: emailProviderErrorMessage(err, "Nu am putut salva domeniul de email."),
+      message: null,
+    };
+  }
+
+  revalidateOrganization(organizationId);
+  return {
+    error: null,
+    message: domain.value
+      ? "Salvat. Adauga inregistrarile DNS de mai jos, apoi apasa „Verifica DNS”."
+      : "Domeniul de email a fost scos - emailurile pleaca de pe adresa platformei.",
+  };
+}
+
+/** Cere reverificarea DNS a domeniului de email la Resend si salveaza statusul. */
+export async function verifyOrganizationEmailDomainAction(
+  _prev: OrgEmailState,
+  formData: FormData,
+): Promise<OrgEmailState> {
+  await requireRole(["super_admin"]);
+  const organizationId = clean(formData.get("organization_id"));
+  if (!organizationId) return { error: "Organizatie invalida.", message: null };
+
+  const provider = getEmailDomainProvider();
+  if (!provider) return { error: NO_EMAIL_PROVIDER_ERROR, message: null };
+
+  try {
+    const info = await refreshEmailDomain(organizationId, provider);
+    revalidateOrganization(organizationId);
+    return {
+      error: null,
+      message:
+        info.status === "verified"
+          ? "Domeniul e verificat - emailurile pleaca de acum de pe adresa organizatiei."
+          : `Status: ${EMAIL_DOMAIN_STATUS_LABELS[info.status]}. Propagarea DNS poate dura; reincearca peste cateva minute.`,
+    };
+  } catch (err) {
+    return {
+      error: emailProviderErrorMessage(err, "Nu am putut verifica domeniul de email."),
+      message: null,
+    };
+  }
+}
+
+/**
+ * Scoate domeniul de email al organizatiei (revine pe adresa platformei). Legat cu
+ * `.bind(null, id)` si pasat lui `ConfirmActionButton` (AGENTS.md 4.2).
+ */
+export async function removeOrganizationEmailDomainAction(
+  organizationId: string,
+): Promise<{ error: string | null }> {
+  await requireRole(["super_admin"]);
+  if (!organizationId) return { error: "Organizatie invalida." };
+
+  const provider = getEmailDomainProvider();
+  if (!provider) return { error: NO_EMAIL_PROVIDER_ERROR };
+
+  try {
+    await removeEmailDomain(organizationId, provider);
+  } catch (err) {
+    return { error: emailProviderErrorMessage(err, "Nu am putut scoate domeniul de email.") };
+  }
+  revalidateOrganization(organizationId);
+  return { error: null };
 }

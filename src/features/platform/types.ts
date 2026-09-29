@@ -1,4 +1,5 @@
 import type { Database } from "@/lib/database.types";
+import type { EmailDnsRecord, EmailDomainStatus } from "./email-domain";
 
 export type OrgStatus = Database["public"]["Enums"]["org_status"];
 
@@ -17,4 +18,16 @@ export interface OrganizationSummary {
   userCount: number;
   /** URL-ul pe care organizatia isi acceseaza tenantul (custom domain / subdomeniu / path). */
   accessUrl: string;
+  /** Domeniul de trimitere a emailurilor + verificarea lui (plan email-white-label-per-domeniu). */
+  email: OrganizationEmailSettings;
+}
+
+export interface OrganizationEmailSettings {
+  domain: string | null;
+  fromName: string | null;
+  fromAddress: string | null;
+  replyTo: string | null;
+  status: EmailDomainStatus;
+  records: EmailDnsRecord[];
+  checkedAt: string | null;
 }

@@ -1182,8 +1182,14 @@ export type Database = {
           created_at: string
           cui: string | null
           custom_domain: string | null
+          email_domain: string | null
+          email_domain_checked_at: string | null
+          email_domain_provider_id: string | null
+          email_domain_records: Json
+          email_domain_status: string
           email_from_address: string | null
           email_from_name: string | null
+          email_reply_to: string | null
           id: string
           layout: string
           logo_square_url: string | null
@@ -1205,8 +1211,14 @@ export type Database = {
           created_at?: string
           cui?: string | null
           custom_domain?: string | null
+          email_domain?: string | null
+          email_domain_checked_at?: string | null
+          email_domain_provider_id?: string | null
+          email_domain_records?: Json
+          email_domain_status?: string
           email_from_address?: string | null
           email_from_name?: string | null
+          email_reply_to?: string | null
           id?: string
           layout?: string
           logo_square_url?: string | null
@@ -1228,8 +1240,14 @@ export type Database = {
           created_at?: string
           cui?: string | null
           custom_domain?: string | null
+          email_domain?: string | null
+          email_domain_checked_at?: string | null
+          email_domain_provider_id?: string | null
+          email_domain_records?: Json
+          email_domain_status?: string
           email_from_address?: string | null
           email_from_name?: string | null
+          email_reply_to?: string | null
           id?: string
           layout?: string
           logo_square_url?: string | null

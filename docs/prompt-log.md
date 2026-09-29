@@ -4,6 +4,20 @@ Jurnal al sarcinilor lucrate de agenti AI in acest repo. Conform regulii 1.2 din
 [`AGENTS.md`](../AGENTS.md), la **fiecare commit** se adauga o intrare aici.
 Cele mai noi intrari sus.
 
+## 2026-09-29 — Claude Opus 5.5 (Claude Code) — Emailuri white-label per domeniu
+
+- **Cerut:** organizatiile cu domeniu propriu (Etora, Maconxcx) sa trimita emailurile de
+  pe domeniul lor si cu template-ul lor (nu „Lot cu Lot”), cat mai automat, din panoul
+  super-admin; ce DNS in Cloudflare si ce setari in Resend.
+- **Facut:** plan `docs/plans/email-white-label-per-domeniu.md`. Etapa 1: Supabase Send
+  Email Hook (`/auth/email-hook`, semnatura Standard Webhooks), layout de email comun cu
+  brandul organizatiei (logo, tema, date firma) pentru Auth si notificari de comenzi,
+  expeditor pe domeniul organizatiei doar cand e verificat (altfel adresa platformei cu
+  numele organizatiei), reply-to, `organization_id` in metadata invitatiilor. Etapa 2:
+  sectiunea „Email” din `/platform/<id>` - domeniul se creeaza in Resend (EU, tracking
+  oprit), inregistrarile DNS apar in pagina, „Verifica DNS” actualizeaza statusul.
+  Migrarea `0050` (coloane + garda super-admin), test B31, setup/manual/AGENTS.md, teste.
+
 ## 2026-09-29 — Claude Opus 5.5 (Claude Code) — Logo orizontal + logo patrat
 
 - **Cerut:** doua variante de logo per organizatie (orizontal si patrat, oricare sau

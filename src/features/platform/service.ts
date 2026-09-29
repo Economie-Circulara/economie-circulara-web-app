@@ -105,7 +105,12 @@ export async function inviteOrganizationAdmin(
 ): Promise<void> {
   const admin = createAdminClient();
 
-  const { data, error } = await admin.auth.admin.inviteUserByEmail(email, { redirectTo });
+  // `organization_id` in metadata: hook-ul de email (auth-hook.ts) alege brandul si
+  // expeditorul organizatiei - profilul de mai jos inca nu exista cand pleaca emailul.
+  const { data, error } = await admin.auth.admin.inviteUserByEmail(email, {
+    redirectTo,
+    data: { organization_id: organizationId },
+  });
   if (error || !data?.user) {
     throw new InviteFailedError(
       error?.message || "Nu am putut trimite invitatia (poate exista deja un cont cu acest email).",
