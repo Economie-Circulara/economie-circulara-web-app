@@ -4,6 +4,15 @@ Jurnal al sarcinilor lucrate de agenti AI in acest repo. Conform regulii 1.2 din
 [`AGENTS.md`](../AGENTS.md), la **fiecare commit** se adauga o intrare aici.
 Cele mai noi intrari sus.
 
+## 2026-09-29 — Claude Opus 5.5 (Claude Code) — Garda de domeniu pt. organizatii fara domeniu
+
+- **Cerut:** un user se putea loga (Google) pe domeniul altui tenant (`abonamente.maconxcx.ro`)
+  si lucra acolo; userii sa fie redirectionati pe domeniul organizatiei lor.
+- **Facut:** `tenantDomainRedirect` primeste organizatia + domeniile platformei; o
+  organizatie fara `custom_domain` e trimisa de pe domeniul altui tenant la login pe
+  originea canonica (`NEXT_PUBLIC_SITE_URL`). Super-admin, localhost si `*.vercel.app`
+  raman exceptate. Plan (T2), AGENTS.md si teste (functia pura + middleware) actualizate.
+
 ## 2026-09-29 — Claude Opus 5.5 (Claude Code) — Cheia Resend refolosita pentru domenii
 
 - **Cerut:** cheia Resend e deja in Vercel ca `EMAIL_API_KEY`; fara variabila dublura.

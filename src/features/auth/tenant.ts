@@ -132,19 +132,58 @@ function isExemptFromDomainGuard(host: string): boolean {
   return isLocalHost(host) || host.endsWith(".vercel.app");
 }
 
+/** Domeniile platformei (nu ale unui tenant), din config. */
+export interface PlatformDomains {
+  /** Originea canonica (`NEXT_PUBLIC_SITE_URL`), ex. "https://www.lotculot.eu". */
+  siteUrl?: string | null;
+  /** Domeniul radacina (`NEXT_PUBLIC_ROOT_DOMAIN`), ex. "lotculot.eu". */
+  rootDomain?: string | null;
+}
+
+function hostOfUrl(url: string | null | undefined): string {
+  if (!url?.trim()) return "";
+  try {
+    return normalizeHost(new URL(url.trim()).host);
+  } catch {
+    return "";
+  }
+}
+
+/** Hostul apartine platformei: originea canonica, root domain-ul sau un subdomeniu al lui. */
+function isPlatformHost(host: string, siteHost: string, root: string): boolean {
+  if (siteHost && host === siteHost) return true;
+  return !!root && (host === root || host.endsWith(`.${root}`));
+}
+
+export interface TenantDomainRedirectInput {
+  host: string | null | undefined;
+  /** Organizatia userului; `null` = fara organizatie (super-admin). */
+  organization: { customDomain: string | null | undefined } | null;
+  platform: PlatformDomains;
+}
+
 /**
  * Garda de domeniu (plan multi-domain-tenant-profiles, T2): userul unei organizatii
- * cu `custom_domain` lucreaza DOAR pe acel domeniu. Intoarce domeniul pe care trebuie
- * redirectionat, sau `null` daca cererea e deja pe domeniul corect / organizatia n-are
- * domeniu propriu / userul n-are organizatie (super-admin) / hostul e exceptat.
+ * lucreaza DOAR pe domeniul ei - `custom_domain` daca il are, altfel domeniul
+ * platformei (nu pe domeniul altui tenant, unde ar vedea brandul acestuia peste datele
+ * lui). Intoarce domeniul pe care trebuie redirectionat, sau `null` daca cererea e deja
+ * pe domeniul corect / userul n-are organizatie (super-admin) / hostul e exceptat /
+ * domeniul platformei nu e configurat.
  */
-export function tenantDomainRedirect(
-  host: string | null | undefined,
-  orgCustomDomain: string | null | undefined,
-): string | null {
-  const expected = normalizeHost(orgCustomDomain);
-  if (!expected) return null;
+export function tenantDomainRedirect({
+  host,
+  organization,
+  platform,
+}: TenantDomainRedirectInput): string | null {
+  if (!organization) return null;
   const current = normalizeHost(host);
-  if (isExemptFromDomainGuard(current) || current === expected) return null;
-  return expected;
+  if (isExemptFromDomainGuard(current)) return null;
+
+  const expected = normalizeHost(organization.customDomain);
+  if (expected) return current === expected ? null : expected;
+
+  const siteHost = hostOfUrl(platform.siteUrl);
+  const root = normalizeHost(platform.rootDomain);
+  if (isPlatformHost(current, siteHost, root)) return null;
+  return siteHost || root || null;
 }

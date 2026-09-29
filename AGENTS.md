@@ -412,7 +412,8 @@ Testele unitare sunt **colocate** langa cod (`*.test.ts` / `*.test.tsx`).
   generate pentru userii unui tenant (auth, invitatii) folosesc domeniul
   ORGANIZATIEI (`organizations.custom_domain`), nu domeniul de pe care s-a facut
   cererea; userul unui tenant e redirectionat pe domeniul lui, super-adminul e
-  exceptat. „Lot cu Lot” nu apare pe domeniile tenantilor.
+  exceptat. Userul unei organizatii FARA domeniu propriu lucreaza doar pe domeniul
+  platformei - niciodata pe domeniul altui tenant (`tenantDomainRedirect`, 2026-09-29). „Lot cu Lot” nu apare pe domeniile tenantilor.
   - **Tema vizuala (`organizations.theme`), organizarea (`layout`, meniu + panou) si
     domeniul propriu (`custom_domain`) le schimba DOAR super-adminul** (`/platform/<id>`,
     trigger din `0045_org_theme.sql`, extins in `0046_org_layout.sql`):

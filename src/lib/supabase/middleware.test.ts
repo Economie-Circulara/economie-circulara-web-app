@@ -48,6 +48,7 @@ beforeEach(() => {
 afterEach(() => {
   vi.clearAllMocks();
   delete process.env.NEXT_PUBLIC_ROOT_DOMAIN;
+  delete process.env.NEXT_PUBLIC_SITE_URL;
 });
 
 describe("updateSession - propagare tenant pe request headers", () => {
@@ -256,6 +257,37 @@ describe("updateSession - garda de domeniu (multi-domain T2)", () => {
     const request = makeRequest("https://trace.firma-b.ro/platform", {
       host: "trace.firma-b.ro",
     });
+
+    const response = await updateSession(request);
+
+    expect(signOut).not.toHaveBeenCalled();
+    expect(response.status).not.toBe(307);
+  });
+
+  it("userul unei organizatii fara domeniu propriu e trimis de pe domeniul B pe platforma", async () => {
+    process.env.NEXT_PUBLIC_SITE_URL = "https://www.lotculot.eu";
+    process.env.NEXT_PUBLIC_ROOT_DOMAIN = "lotculot.eu";
+    getUser.mockResolvedValue({ data: { user: { id: "u1" } } });
+    singleMock.mockResolvedValue(orgA({ custom_domain: null }));
+    const request = makeRequest("https://trace.firma-b.ro/dashboard", {
+      host: "trace.firma-b.ro",
+    });
+
+    const response = await updateSession(request);
+
+    expect(signOut).toHaveBeenCalledWith({ scope: "local" });
+    const location = new URL(response.headers.get("location")!);
+    expect(location.origin).toBe("https://www.lotculot.eu");
+    expect(location.pathname).toBe("/login");
+    expect(location.searchParams.get("error")).toBe("wrong_domain");
+  });
+
+  it("userul unei organizatii fara domeniu propriu trece pe domeniul platformei", async () => {
+    process.env.NEXT_PUBLIC_SITE_URL = "https://www.lotculot.eu";
+    process.env.NEXT_PUBLIC_ROOT_DOMAIN = "lotculot.eu";
+    getUser.mockResolvedValue({ data: { user: { id: "u1" } } });
+    singleMock.mockResolvedValue(orgA({ custom_domain: null }));
+    const request = makeRequest("https://www.lotculot.eu/dashboard", { host: "www.lotculot.eu" });
 
     const response = await updateSession(request);
 
