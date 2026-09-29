@@ -1,5 +1,9 @@
-/** Marimea maxima a unui document incarcat (bytes). */
-export const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10MB
+/**
+ * Marimea maxima a unui document incarcat (bytes). Uploadul trece printr-un server
+ * action, deci e plafonat de limita Vercel de 4.5MB pe corpul cererii (vezi
+ * `bodySizeLimit` in `next.config.ts`) - 4MB lasa loc restului formularului.
+ */
+export const MAX_FILE_SIZE_BYTES = 4 * 1024 * 1024; // 4MB
 
 /** Tipuri de fisier acceptate: PDF, imagini uzuale, documente Office. */
 export const ALLOWED_MIME_TYPES = [

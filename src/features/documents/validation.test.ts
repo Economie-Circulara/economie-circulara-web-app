@@ -14,7 +14,7 @@ describe("validateFile", () => {
     const error = validateFile({ size: MAX_FILE_SIZE_BYTES + 1, type: "application/pdf" });
     expect(error).not.toBeNull();
     expect(error?.code).toBe("too_large");
-    expect(error?.message).toMatch(/10MB/);
+    expect(error?.message).toMatch(/4MB/);
   });
 
   it("accepta fisierul exact la limita maxima", () => {

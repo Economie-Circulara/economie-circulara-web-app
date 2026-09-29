@@ -39,7 +39,7 @@ export function DocumentUpload({ ownerType, ownerId, revalidatePath }: DocumentU
       <input type="hidden" name="revalidate_path" value={revalidatePath} />
 
       <div className="grid gap-4 sm:grid-cols-[1fr_auto]">
-        <FormField label="Fișier" required hint="PDF, imagine sau document Office, max 10MB.">
+        <FormField label="Fișier" required hint="PDF, imagine sau document Office, max 4MB.">
           {(id) => (
             <Input
               id={id}
