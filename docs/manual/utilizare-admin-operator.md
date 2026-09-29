@@ -98,7 +98,7 @@ Din listă, click pe o firmă deschide ecranul de detaliu, cu secțiunile:
   (etichetă sugerată "Contract") - platforma nu gestionează structurat perioade,
   obligații sau tarife contractuale, doar arhivează PDF-ul semnat.
   - Formular **"Încarcă document nou"**: alege **Fișier** (PDF, imagine sau Office,
-    max. 10MB) și, opțional, o **Etichetă** (sugestii: "Contract", "Certificat",
+    max. 4MB) și, opțional, o **Etichetă** (sugestii: "Contract", "Certificat",
     "Aviz"), apoi apasă **"Încarcă"**.
   - Fiecare document din listă are butoanele **"Descarcă"** și **"Șterge"**
     (cu confirmare).
@@ -150,7 +150,7 @@ Pentru a adăuga un material, apasă **"+ Adaugă material"** și completează:
   produse separate (fără conversii între unități).
 - **Urmărește stocul** - dezactivează doar pentru materiale generice fără cantitate
   limitată (ex: apă, aer).
-- **URL poză** (opțional)
+- **Poză** (opțional) - fișier PNG, JPEG, WEBP sau GIF, max. 2MB
 - Bifa **"Vandabil (apare în catalogul clientului)"** - doar materialele
   vandabile apar în catalogul portalului client.
 
@@ -174,7 +174,7 @@ organizației - **fără stoc și fără prețuri** (ex. mentenanță periodică
 fără opțiunea de urmărire a stocului (irelevantă pentru un abonament).
 
 Pentru a adăuga un abonament, apasă **"+ Adaugă abonament"** și completează
-**Titlu**, **Unitate de măsură**, opțional **Descriere** și **URL poză**, apoi
+**Titlu**, **Unitate de măsură**, opțional **Descriere** și **Poză** (max. 2MB), apoi
 bifa **"Vandabil"** dacă abonamentul trebuie să apară în catalogul clientului.
 
 Apasă **"Creează abonamentul"**.

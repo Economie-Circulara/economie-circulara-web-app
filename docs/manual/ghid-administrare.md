@@ -22,8 +22,9 @@ deschide ecranul **"Setări organizație"**, cu formularul de configurare:
 
 - **"Nume organizație"** (obligatoriu) - numele afișat în aplicație (sidebar,
   ecranul de autentificare, antetul certificatelor și rapoartelor PDF).
-- **"URL logo"** - adresa publică a unei imagini (PNG/SVG), afișată pe ecranul de
-  autentificare și în interfață.
+- **"Fișier logo"** - încarcă imaginea logo-ului (PNG, JPEG, WEBP, SVG sau GIF,
+  max. 2MB) cu **"Încarcă"** (sau **"Înlocuiește"**, dacă există deja); se afișează pe
+  ecranul de autentificare și în interfață.
 
 ### 1.2 Culori (white-label)
 

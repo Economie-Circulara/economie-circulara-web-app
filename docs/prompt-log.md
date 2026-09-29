@@ -4,6 +4,17 @@ Jurnal al sarcinilor lucrate de agenti AI in acest repo. Conform regulii 1.2 din
 [`AGENTS.md`](../AGENTS.md), la **fiecare commit** se adauga o intrare aici.
 Cele mai noi intrari sus.
 
+## 2026-09-29 — Claude Opus 5.5 (Claude Code) — Limita de upload prin server actions
+
+- **Cerut:** uploadul de logo cadea (server action, `bodySizeLimit` implicit 1MB, UI
+  promite 2MB); marirea limitei la o valoare reala.
+- **Facut:** plan `docs/plans/upload-body-size-limit.md`. `bodySizeLimit = "4.5mb"`
+  (plafonul Vercel pe corpul cererii); limita documentelor 10MB -> 4MB (10MB nu putea
+  functiona pe Vercel), cu hint UI, manual si test actualizate. Regula in AGENTS.md 4.2.
+- **Follow-up:** manualul actualizat si la logo (`ghid-administrare.md`: "Fișier logo",
+  max. 2MB, in loc de vechiul "URL logo") si la poza de material/abonament ("Poză",
+  max. 2MB, in loc de "URL poză"). Hint-urile din formulare erau deja corecte.
+
 ## 2026-09-28 — Claude Opus 5.5 (Claude Code) — Merge main in PR #72 + renumerotare migrari 0047/0048
 
 - **Cerut:** rezolvarea conflictelor din PR #72 (confirmarea receptiei + adresele mele).

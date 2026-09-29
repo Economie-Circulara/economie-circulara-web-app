@@ -490,6 +490,11 @@ modificata primeste un test aici**, nu doar un test unitar cu RPC-ul mock-uit.
   (ex. `archiveItemAction.bind(null, item.id)` pasat lui `ConfirmActionButton`) -
   server actions sunt serializabile peste granita, functiile obisnuite nu.
 
+- **Upload prin server action = max 4.5MB pe TOATA cererea** (plafonul Vercel; in
+  `next.config.ts`, `serverActions.bodySizeLimit = "4.5mb"`, implicitul Next e 1MB).
+  Limita per fisier trebuie sa ramana sub el (documente 4MB, imagini 2MB). Pentru
+  fisiere mai mari: upload direct in Storage cu URL semnat, ca la atasamentele
+  asistentului (`createSignedUploadUrl`), nu ridicarea limitei.
 - **Soft-delete ascuns prin RLS => coloana se seteaza DOAR prin RPC `security
 definer`.** Daca politica de SELECT/UPDATE cere `deleted_at is null` (ca la
   `orders`/`deliveries` din 0035), un `UPDATE ... SET deleted_at = now()` al
