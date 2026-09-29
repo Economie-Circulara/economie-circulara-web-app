@@ -69,24 +69,69 @@ describe("resolveTenant - path (dev / fara root domain)", () => {
 });
 
 describe("tenantDomainRedirect", () => {
+  const platform = { siteUrl: "https://www.lotculot.eu", rootDomain: ROOT };
+  const orgA = { customDomain: "trace.firma-a.ro" };
+  const orgFaraDomeniu = { customDomain: null };
+  const redirect = (host: string, organization: { customDomain: string | null } | null) =>
+    tenantDomainRedirect({ host, organization, platform });
+
   it("trimite userul pe domeniul organizatiei cand e pe alt domeniu", () => {
-    expect(tenantDomainRedirect("trace.firma-b.ro", "trace.firma-a.ro")).toBe("trace.firma-a.ro");
-    expect(tenantDomainRedirect("www.lotculot.eu", "trace.firma-a.ro")).toBe("trace.firma-a.ro");
+    expect(redirect("trace.firma-b.ro", orgA)).toBe("trace.firma-a.ro");
+    expect(redirect("www.lotculot.eu", orgA)).toBe("trace.firma-a.ro");
   });
 
   it("nu redirectioneaza pe domeniul corect (case/port ignorate)", () => {
-    expect(tenantDomainRedirect("Trace.Firma-A.ro:443", "trace.firma-a.ro")).toBeNull();
+    expect(redirect("Trace.Firma-A.ro:443", orgA)).toBeNull();
   });
 
-  it("nu redirectioneaza fara domeniu propriu sau fara organizatie (super-admin)", () => {
-    expect(tenantDomainRedirect("trace.firma-b.ro", null)).toBeNull();
-    expect(tenantDomainRedirect("trace.firma-b.ro", undefined)).toBeNull();
+  it("organizatia fara domeniu propriu e trimisa de pe domeniul altui tenant pe platforma", () => {
+    expect(redirect("trace.firma-b.ro", orgFaraDomeniu)).toBe("www.lotculot.eu");
+  });
+
+  it("organizatia fara domeniu propriu lucreaza pe domeniile platformei", () => {
+    expect(redirect("www.lotculot.eu", orgFaraDomeniu)).toBeNull();
+    expect(redirect("lotculot.eu", orgFaraDomeniu)).toBeNull();
+    expect(redirect("acme.lotculot.eu", orgFaraDomeniu)).toBeNull();
+  });
+
+  it("fara root domain, doar originea canonica e a platformei", () => {
+    const only = { siteUrl: "https://www.lotculot.eu" };
+    expect(
+      tenantDomainRedirect({
+        host: "www.lotculot.eu",
+        organization: orgFaraDomeniu,
+        platform: only,
+      }),
+    ).toBeNull();
+    expect(
+      tenantDomainRedirect({
+        host: "trace.firma-b.ro",
+        organization: orgFaraDomeniu,
+        platform: only,
+      }),
+    ).toBe("www.lotculot.eu");
+  });
+
+  it("fara domeniul platformei configurat nu redirectioneaza organizatia fara domeniu", () => {
+    expect(
+      tenantDomainRedirect({
+        host: "trace.firma-b.ro",
+        organization: orgFaraDomeniu,
+        platform: {},
+      }),
+    ).toBeNull();
+  });
+
+  it("super-adminul (fara organizatie) lucreaza pe orice domeniu", () => {
+    expect(redirect("trace.firma-b.ro", null)).toBeNull();
   });
 
   it("nu se aplica pe dev, e2e si preview-uri Vercel", () => {
-    expect(tenantDomainRedirect("localhost:3000", "trace.firma-a.ro")).toBeNull();
-    expect(tenantDomainRedirect("127.0.0.1:3000", "trace.firma-a.ro")).toBeNull();
-    expect(tenantDomainRedirect("acme.localhost:3000", "trace.firma-a.ro")).toBeNull();
-    expect(tenantDomainRedirect("app-git-x.vercel.app", "trace.firma-a.ro")).toBeNull();
+    for (const org of [orgA, orgFaraDomeniu]) {
+      expect(redirect("localhost:3000", org)).toBeNull();
+      expect(redirect("127.0.0.1:3000", org)).toBeNull();
+      expect(redirect("acme.localhost:3000", org)).toBeNull();
+      expect(redirect("app-git-x.vercel.app", org)).toBeNull();
+    }
   });
 });

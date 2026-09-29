@@ -52,7 +52,13 @@ Aceeasi codebase, acelasi proiect Vercel, aceeasi baza Supabase, dar:
   acest domeniu; `global` ar invalida si sesiunea valida de pe domeniul corect) +
   redirect la `https://<custom_domain>/login?error=wrong_domain`, cu cookie-urile sterse
   copiate pe raspunsul de redirect.
-- Super-adminul (fara organizatie) si organizatiile fara `custom_domain` nu sunt afectate.
+- Super-adminul (fara organizatie) nu e afectat.
+- **Extindere (2026-09-29):** userul unei organizatii FARA `custom_domain` lucreaza doar
+  pe domeniile platformei (originea `NEXT_PUBLIC_SITE_URL`, `NEXT_PUBLIC_ROOT_DOMAIN` si
+  subdomeniile lui). Pe domeniul altui tenant vedea brandul acestuia peste datele lui
+  (bug raportat: cont „Organizatie Test” logat cu Google pe `abonamente.maconxcx.ro`).
+  Acelasi tratament: `signOut` local + login pe originea canonica. Fara domeniul
+  platformei configurat, garda nu redirectioneaza. Impact asistent AI: `none`.
 - Login: mesaj pentru `error=wrong_domain`.
 - Teste: functia pura + `middleware.test.ts` (A pe domeniul B, domeniu corect,
   super-admin, localhost).

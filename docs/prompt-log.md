@@ -4,6 +4,15 @@ Jurnal al sarcinilor lucrate de agenti AI in acest repo. Conform regulii 1.2 din
 [`AGENTS.md`](../AGENTS.md), la **fiecare commit** se adauga o intrare aici.
 Cele mai noi intrari sus.
 
+## 2026-09-29 — Claude Opus 5.5 (Claude Code) — Site prezentare: merge main, logo patrat, contact
+
+- **Cerut:** rezolvarea conflictelor din PR; adresele de contact `notificari@etora.ro`
+  si `no-reply@maconxcx.ro`.
+- **Facut:** merge `main` (conflict doar in prompt-log). Site-ul preia si
+  `logo_square_url` din `org_branding` (0049): antet = orizontal, favicon = patrat,
+  fiecare rezerva pentru celalalt (aceeasi regula ca `branding/logos.ts`); camp local
+  `logoSquare` in continut. Emailurile de contact actualizate. Teste noi.
+
 ## 2026-09-29 — Claude Opus 5.5 (Claude Code) — Site de prezentare per tenant (apex)
 
 - **Cerut:** pagina one-page de prezentare pe `etora.ro` / `maconxcx.ro`, in acelasi
@@ -16,6 +25,15 @@ Cele mai noi intrari sus.
   (typecheck, test, build pe ambii tenanti). Plan `docs/plans/site-prezentare-tenanti.md`,
   `docs/setup.md` 3.1.3 (proiecte Vercel, Ignored Build Step, DNS), AGENTS.md 3.1.
   Scanarea istoricului git (298 commituri): niciun secret real.
+
+## 2026-09-29 — Claude Opus 5.5 (Claude Code) — Garda de domeniu pt. organizatii fara domeniu
+
+- **Cerut:** un user se putea loga (Google) pe domeniul altui tenant (`abonamente.maconxcx.ro`)
+  si lucra acolo; userii sa fie redirectionati pe domeniul organizatiei lor.
+- **Facut:** `tenantDomainRedirect` primeste organizatia + domeniile platformei; o
+  organizatie fara `custom_domain` e trimisa de pe domeniul altui tenant la login pe
+  originea canonica (`NEXT_PUBLIC_SITE_URL`). Super-admin, localhost si `*.vercel.app`
+  raman exceptate. Plan (T2), AGENTS.md si teste (functia pura + middleware) actualizate.
 
 ## 2026-09-29 — Claude Opus 5.5 (Claude Code) — Cheia Resend refolosita pentru domenii
 
