@@ -47,7 +47,7 @@ export function LogoUpload({ orgName, logoUrl }: LogoUploadProps) {
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-4">
-        <div className="flex size-16 items-center justify-center rounded-md border border-dashed border-border bg-muted/40">
+        <div className="flex h-16 w-40 shrink-0 items-center justify-center rounded-md border border-dashed border-border bg-muted/40">
           {logoUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={logoUrl} alt={orgName} className="size-full rounded object-contain p-1" />
@@ -57,7 +57,10 @@ export function LogoUpload({ orgName, logoUrl }: LogoUploadProps) {
         </div>
 
         <form ref={formRef} action={uploadAction} className="flex-1 space-y-2">
-          <FormField label="Fișier logo" hint="PNG, JPEG, WEBP, SVG sau GIF, max 2MB.">
+          <FormField
+            label="Fișier logo"
+            hint="PNG, JPEG, WEBP, SVG sau GIF, max 2MB. Recomandat: varianta orizontală (simbol + nume pe un rând). Marginile albe se decupează automat."
+          >
             {(id) => (
               <div className="flex gap-2">
                 <Input

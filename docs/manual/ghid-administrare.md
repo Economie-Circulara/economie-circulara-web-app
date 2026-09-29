@@ -24,7 +24,12 @@ deschide ecranul **"Setări organizație"**, cu formularul de configurare:
   ecranul de autentificare, antetul certificatelor și rapoartelor PDF).
 - **"Fișier logo"** - încarcă imaginea logo-ului (PNG, JPEG, WEBP, SVG sau GIF,
   max. 2MB) cu **"Încarcă"** (sau **"Înlocuiește"**, dacă există deja); se afișează pe
-  ecranul de autentificare și în interfață.
+  ecranul de autentificare, pe pagina de start și în meniul lateral. Recomandat:
+  **varianta orizontală** (simbol + nume pe un rând) - ocupă toată lățimea meniului,
+  iar numele scris nu se mai repetă lângă ea. Un logo pătrat se afișează mărit, cu
+  numele organizației alături. Marginile albe din jurul imaginii (PNG, JPEG, WEBP) se
+  decupează automat la încărcare; un logo încărcat anterior se re-încarcă pentru a
+  beneficia de decupare.
 
 ### 1.2 Culori (white-label)
 

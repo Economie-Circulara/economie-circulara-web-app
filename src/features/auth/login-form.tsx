@@ -5,6 +5,7 @@ import { useActionState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { OrgBrand } from "@/components/org-brand";
 import {
   signInWithGoogleAction,
   signInWithMagicLinkAction,
@@ -47,9 +48,7 @@ export function LoginForm({ orgName, logoUrl, errorCode }: LoginFormProps) {
   return (
     <div className="w-full max-w-sm space-y-6">
       <div className="flex flex-col items-center gap-3 text-center">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        {logoUrl ? <img src={logoUrl} alt={orgName} className="h-12 w-auto" /> : null}
-        <h1 className="text-2xl font-semibold tracking-tight">{orgName}</h1>
+        <OrgBrand name={orgName} logoUrl={logoUrl} variant="login" nameAs="h1" />
         <p className="text-sm text-muted-foreground">Autentifica-te pentru a continua.</p>
       </div>
 

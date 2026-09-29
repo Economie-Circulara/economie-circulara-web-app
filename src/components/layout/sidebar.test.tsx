@@ -18,11 +18,11 @@ const items: NavEntry[] = [
 
 describe("Sidebar", () => {
   it("pastreaza organizatia sus si afiseaza logo-ul platformei centrat, cu link la homepage", () => {
-    render(
+    const { container } = render(
       <Sidebar orgName="Beton Circular" logoUrl="https://example.com/org-logo.svg" items={items} />,
     );
 
-    expect(screen.getByRole("img", { name: "Beton Circular" })).toHaveAttribute(
+    expect(container.querySelector("img.org-logo")).toHaveAttribute(
       "src",
       "https://example.com/org-logo.svg",
     );
