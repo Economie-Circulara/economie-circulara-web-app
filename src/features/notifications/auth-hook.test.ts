@@ -100,7 +100,8 @@ describe("parseSendEmailHookPayload", () => {
 
 describe("handleSendEmailHook", () => {
   it("invitatie: organizatia din metadata, expeditorul si domeniul ei", async () => {
-    const admin = makeAdmin({ organizations: [ORG_ROW] });
+    // Profilul inca nu exista in momentul invitatiei.
+    const admin = makeAdmin({ profiles: [null], organizations: [ORG_ROW] });
     createAdminClient.mockReturnValue(admin);
     const provider = { send: vi.fn().mockResolvedValue(undefined) };
 
@@ -109,7 +110,6 @@ describe("handleSendEmailHook", () => {
       provider,
     );
 
-    expect(admin.from).not.toHaveBeenCalledWith("profiles");
     expect(admin.eqCalls).toContainEqual(["organizations", "id", "org-1"]);
     const message = provider.send.mock.calls[0][0];
     expect(message.to).toBe("ana@client.ro");

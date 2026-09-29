@@ -17,6 +17,7 @@ Cele mai noi intrari sus.
   sectiunea „Email” din `/platform/<id>` - domeniul se creeaza in Resend (EU, tracking
   oprit), inregistrarile DNS apar in pagina, „Verifica DNS” actualizeaza statusul.
   Migrarea `0050` (coloane + garda super-admin), test B31, setup/manual/AGENTS.md, teste.
+  Commit de urmare: fixtura testului de invitatie aliniata cu ordinea profil -> metadata.
 
 ## 2026-09-29 — Claude Opus 5.5 (Claude Code) — Logo orizontal + logo patrat
 
