@@ -144,10 +144,10 @@ pe acelasi deploy si aceeasi baza (plan: `docs/plans/multi-domain-tenant-profile
 
 **Domeniile clientilor (decizie 2026-09-28):**
 
-| Organizatie | Domeniu aplicatie        | Apex (site de prezentare, alt cont Vercel) |
-| ----------- | ------------------------ | ------------------------------------------ |
-| Etora       | `circular.etora.ro`      | `etora.ro` / `www.etora.ro`                |
-| Maconxcx    | `abonamente.maconxcx.ro` | `maconxcx.ro` / `www.maconxcx.ro`          |
+| Organizatie | Domeniu aplicatie        | Apex (site de prezentare, `sites/prezentare`) |
+| ----------- | ------------------------ | --------------------------------------------- |
+| Etora       | `circular.etora.ro`      | `etora.ro` / `www.etora.ro`                   |
+| Maconxcx    | `abonamente.maconxcx.ro` | `maconxcx.ro` / `www.maconxcx.ro`             |
 
 **DNS-ul e in Cloudflare.** Domeniile sunt inregistrate la chroot.ro
 (`portal.chroot.ro`), care permite doar schimbarea nameserverelor, nu si inregistrari
@@ -188,10 +188,7 @@ DNS - deci zona DNS a fiecarui domeniu e gestionata in Cloudflare (plan Free).
 
 Identic pentru `abonamente.maconxcx.ro` (CNAME `abonamente` in zona `maconxcx.ro`).
 
-**Site-ul de prezentare de pe apex** (alt cont Vercel) nu intra in conflict: proprietarul
-adauga `etora.ro` + `www.etora.ro` in proiectul lui, iar in Cloudflare se pun
-inregistrarile cerute de Vercel-ul lui (de regula `A @ -> 76.76.21.21` si
-`CNAME www -> …`), tot **DNS only**.
+**Site-ul de prezentare de pe apex** e in acest repo (`sites/prezentare`) - vezi 3.1.3.
 
 **Emailurile (Auth + notificari) au brandul si expeditorul organizatiei** - vezi 3.2.
 Template-urile din dashboard-ul Supabase NU se mai folosesc dupa activarea hook-ului.
@@ -206,6 +203,37 @@ Efecte:
 
 Verificare: invita un user de test -> linkul din email e pe domeniul organizatiei;
 logheaza-te cu el pe `www.lotculot.eu` -> ajungi pe login-ul domeniului organizatiei.
+
+#### 3.1.3 Site-ul de prezentare de pe apex (`sites/prezentare`)
+
+Un singur cod (Next static, plan `docs/plans/site-prezentare-tenanti.md`), cate un
+proiect Vercel per client, in ACELASI cont/echipa cu aplicatia:
+
+1. **Vercel** -> Add New Project -> acelasi repo GitHub. Nume: `etora-site`
+   (respectiv `maconxcx-site`). **Root Directory = `sites/prezentare`** (framework
+   Next.js detectat automat).
+2. **Environment Variables** (Production + Preview):
+   - `SITE_TENANT=etora` (numele fisierului din `sites/prezentare/content/`);
+   - optional `SUPABASE_URL` + `SUPABASE_PUBLISHABLE_KEY` (aceleasi valori ca
+     `NEXT_PUBLIC_SUPABASE_*` ale aplicatiei; cheia publishable e publica): la build,
+     site-ul ia tema si logo-ul setate in `/platform` (RPC `org_branding` dupa
+     `appDomain`). Fara ele - tema/logo-ul din fisierul de continut.
+3. **Settings -> Git -> Ignored Build Step** = `git diff --quiet HEAD^ HEAD -- .`
+   (build doar cand s-a schimbat ceva in `sites/prezentare`). La proiectul
+   APLICATIEI, acelasi camp = `git diff --quiet HEAD^ HEAD -- . ':(exclude)sites'`,
+   ca o modificare doar in site sa nu redeploy-eze aplicatia.
+4. **Domains**: adauga `etora.ro` si `www.etora.ro` (unul redirectioneaza pe
+   celalalt - Vercel propune). In Cloudflare pune inregistrarile cerute (de regula
+   `A @ -> 76.76.21.21` si `CNAME www -> cname.vercel-dns.com`), **DNS only**, ca la
+   3.1.2.
+5. O schimbare de tema/logo in `/platform` NU redeploy-eaza site-ul: Deployments ->
+   Redeploy (sau orice push in `sites/prezentare`).
+
+Continutul se editeaza in `sites/prezentare/content/<tenant>.json` (validat la build: un
+camp obligatoriu lipsa opreste build-ul). `"draft": true` = pagina e `noindex`; treci
+pe `false` cand textele de la client sunt finale. Logo / sigle UE: fisiere in
+`sites/prezentare/public/<tenant>/`, referite ca `/etora/logo.svg`. Local:
+`cd sites/prezentare && pnpm install && SITE_TENANT=etora pnpm dev`.
 
 ### 3.2 Emailuri pe domeniul organizatiei (Resend + Cloudflare + hook Supabase)
 

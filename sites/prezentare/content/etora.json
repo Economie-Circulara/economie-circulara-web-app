@@ -1,0 +1,56 @@
+{
+  "draft": true,
+  "name": "Etora",
+  "appDomain": "circular.etora.ro",
+  "siteDomain": "etora.ro",
+  "theme": "teren",
+  "logo": null,
+  "tagline": "Materiale de construcții cu origine dovedită",
+  "description": "Transformăm deșeurile din construcții în agregate reciclate și urmărim fiecare lot, de la intrare până la produsul livrat.",
+  "about": {
+    "title": "Despre Etora",
+    "paragraphs": [
+      "Text placeholder: cine suntem, de când activăm și ce facem. Se înlocuiește cu descrierea primită de la client.",
+      "Fiecare livrare vine cu un certificat de trasabilitate care arată din ce loturi de materie primă, inclusiv reciclată, este făcut produsul."
+    ]
+  },
+  "services": {
+    "title": "Ce oferim",
+    "items": [
+      {
+        "title": "Preluare moloz",
+        "text": "Preluăm deșeurile din construcții și demolări direct de la client."
+      },
+      {
+        "title": "Agregate reciclate",
+        "text": "Nisip, pietriș și balast obținute prin concasare și sortare."
+      },
+      {
+        "title": "Produse din materiale reciclate",
+        "text": "Produse realizate din rețete cu conținut reciclat declarat."
+      }
+    ]
+  },
+  "stats": [],
+  "portal": {
+    "title": "Portalul clienților",
+    "text": "Clienții Etora își urmăresc comenzile și documentele online.",
+    "bullets": [
+      "Comenzi și cereri de preluare trimise online",
+      "Statusul livrărilor și avizele de însoțire",
+      "Certificatele de trasabilitate pentru fiecare comandă"
+    ]
+  },
+  "contact": {
+    "email": "office@etora.ro",
+    "phone": null,
+    "address": null,
+    "hours": null
+  },
+  "legal": {
+    "companyName": "Etora SRL",
+    "cui": null,
+    "regCom": null
+  },
+  "euFunding": null
+}

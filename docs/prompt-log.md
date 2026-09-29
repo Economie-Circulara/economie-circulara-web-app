@@ -4,6 +4,19 @@ Jurnal al sarcinilor lucrate de agenti AI in acest repo. Conform regulii 1.2 din
 [`AGENTS.md`](../AGENTS.md), la **fiecare commit** se adauga o intrare aici.
 Cele mai noi intrari sus.
 
+## 2026-09-29 — Claude Opus 5.5 (Claude Code) — Site de prezentare per tenant (apex)
+
+- **Cerut:** pagina one-page de prezentare pe `etora.ro` / `maconxcx.ro`, in acelasi
+  repo (monorepo), deploy separat pe Vercel; verificare secrete in istoricul git.
+- **Facut:** `sites/prezentare/` (Next static, `package.json` propriu): continut per
+  tenant in `content/<tenant>.json` validat la build, `SITE_TENANT` alege clientul,
+  tema + logo citite la build din `org_branding` (fallback: continutul), temele
+  aplicatiei copiate (light), `draft` -> `noindex`. Teste vitest (continut, branding cu
+  fetch mock-uit, tenant, teme). Radacina exclude `sites/` la typecheck; job CI nou
+  (typecheck, test, build pe ambii tenanti). Plan `docs/plans/site-prezentare-tenanti.md`,
+  `docs/setup.md` 3.1.3 (proiecte Vercel, Ignored Build Step, DNS), AGENTS.md 3.1.
+  Scanarea istoricului git (298 commituri): niciun secret real.
+
 ## 2026-09-29 — Claude Opus 5.5 (Claude Code) — Cheia Resend refolosita pentru domenii
 
 - **Cerut:** cheia Resend e deja in Vercel ca `EMAIL_API_KEY`; fara variabila dublura.
