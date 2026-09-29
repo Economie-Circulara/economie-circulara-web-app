@@ -1,6 +1,7 @@
 import { headers } from "next/headers";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { OrgBrand } from "@/components/org-brand";
 import { Button } from "@/components/ui/button";
 import { getOrgBranding } from "@/features/auth/queries";
 import { getCurrentUser, homePathForRole } from "@/features/auth/session";
@@ -102,26 +103,18 @@ export default async function Home({ searchParams }: HomeProps = {}) {
   return (
     <div className="bg-pattern flex min-h-svh flex-col">
       <header className="flex items-center justify-between gap-4 px-6 py-5 sm:px-10">
-        <div className="flex min-w-0 items-center gap-3">
-          {branding?.logoUrl ? (
-            // Logo-ul de tenant vine din Supabase Storage, cu domenii variabile per
-            // proiect - <img> simplu, fara next/image (fara allowlist de domenii).
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={branding.logoUrl} alt="" className="h-8 w-auto shrink-0" />
-          ) : branding ? null : (
-            // SVG-ul include wordmark-ul complet; il folosim doar pe domeniul platformei,
-            // fara sa concuram cu identitatea vizuala a unui tenant.
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src="/lot-cu-lot-logo.svg"
-              alt={PLATFORM_NAME}
-              className="h-9 w-auto shrink-0 sm:h-10"
-            />
-          )}
-          {branding ? (
-            <span className="truncate text-lg font-semibold tracking-tight">{branding.name}</span>
-          ) : null}
-        </div>
+        {branding ? (
+          <OrgBrand name={branding.name} logoUrl={branding.logoUrl} variant="header" />
+        ) : (
+          // SVG-ul include wordmark-ul complet; il folosim doar pe domeniul platformei,
+          // fara sa concuram cu identitatea vizuala a unui tenant.
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src="/lot-cu-lot-logo.svg"
+            alt={PLATFORM_NAME}
+            className="h-9 w-auto shrink-0 sm:h-10"
+          />
+        )}
         <Button asChild size="sm" variant="outline">
           <Link href={userHomePath ?? "/login"}>{user ? "Contul meu" : "Autentificare"}</Link>
         </Button>

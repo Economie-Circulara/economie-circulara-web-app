@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getCurrentUser } from "@/features/auth/session";
 import { validateLogoFile } from "./logo-validation";
+import { trimLogo } from "./logo-processing";
 import type { SettingsState } from "./action-state";
 
 /** Numele bucket-ului public creat in migrarea 0019_organization_logos_storage.sql. */
@@ -93,7 +94,9 @@ export async function uploadOrgLogoAction(
   const admin = createAdminClient();
   const path = `${user.organizationId}/logo`;
 
-  const { error: uploadError } = await admin.storage.from(LOGO_BUCKET).upload(path, file, {
+  const body = await trimLogo(Buffer.from(await file.arrayBuffer()), file.type);
+
+  const { error: uploadError } = await admin.storage.from(LOGO_BUCKET).upload(path, body, {
     contentType: file.type,
     upsert: true,
   });

@@ -225,3 +225,11 @@
     display: var(--login-panel-display);
   }
 }
+
+/* Logo-ul organizatiei (OrgBrand): placa alba discreta, ca logo-urile cu fundal alb
+   sau cu text inchis sa ramana lizibile pe sidebar-uri inchise si in tema dark. */
+.org-logo {
+  background-color: #fff;
+  border-radius: calc(var(--radius) - 2px);
+  padding: 0.25rem;
+}

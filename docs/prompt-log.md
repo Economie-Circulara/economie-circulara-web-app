@@ -4,6 +4,16 @@ Jurnal al sarcinilor lucrate de agenti AI in acest repo. Conform regulii 1.2 din
 [`AGENTS.md`](../AGENTS.md), la **fiecare commit** se adauga o intrare aici.
 Cele mai noi intrari sus.
 
+## 2026-09-29 — Claude Opus 5.5 (Claude Code) — Logo-ul organizatiei vizibil si adaptat
+
+- **Cerut:** logo-ul din sidebar era foarte mic; sa fie vizibil si adaptat (orizontal
+  sau patrat), la fel pe homepage si login; fara logo - numele firmei.
+- **Facut:** plan `docs/plans/logo-organizatie-vizibil.md`. Componenta `OrgBrand`
+  (forma detectata din dimensiunile imaginii: orizontal = logo pe toata latimea, fara
+  nume duplicat; compact = logo marit + nume; fara logo = nume/initiale), folosita in
+  sidebar, login si homepage. Decupare automata a marginilor albe la upload (`sharp`).
+  Previzualizare + recomandare in Setari, manual actualizat. Teste noi.
+
 ## 2026-09-29 — Claude Opus 5.5 (Claude Code) — Limita de upload prin server actions
 
 - **Cerut:** uploadul de logo cadea (server action, `bodySizeLimit` implicit 1MB, UI

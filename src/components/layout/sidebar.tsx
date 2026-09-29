@@ -37,6 +37,7 @@ import {
 } from "./nav-config";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { OrgBrand } from "@/components/org-brand";
 import {
   Sheet,
   SheetContent,
@@ -88,16 +89,17 @@ export interface SidebarProps {
 
 function SidebarBrand({ orgName, logoUrl }: Pick<SidebarProps, "orgName" | "logoUrl">) {
   return (
-    <div className="flex h-14 items-center gap-2 border-b px-4 pr-10">
-      {logoUrl ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={logoUrl} alt={orgName} className="size-7 rounded object-contain" />
-      ) : (
-        <span className="flex size-7 items-center justify-center rounded bg-primary text-xs font-bold text-primary-foreground">
-          {orgName.slice(0, 2).toUpperCase()}
-        </span>
-      )}
-      <span className="truncate font-semibold">{orgName}</span>
+    <div className="flex min-h-14 items-center border-b px-4 py-2 pr-10 lg:pr-4">
+      <OrgBrand
+        name={orgName}
+        logoUrl={logoUrl}
+        variant="sidebar"
+        fallback={
+          <span className="flex size-8 shrink-0 items-center justify-center rounded bg-primary text-xs font-bold text-primary-foreground">
+            {orgName.slice(0, 2).toUpperCase()}
+          </span>
+        }
+      />
     </div>
   );
 }
