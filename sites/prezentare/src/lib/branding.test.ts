@@ -30,7 +30,13 @@ describe("resolveBranding", () => {
     const fetchMock = vi.fn();
     const b = await resolveBranding(content, {}, fetchMock);
     expect(fetchMock).not.toHaveBeenCalled();
-    expect(b).toEqual({ name: "Etora", theme: "teren", logo: null, source: "content" });
+    expect(b).toEqual({
+      name: "Etora",
+      theme: "teren",
+      logo: null,
+      icon: null,
+      source: "content",
+    });
   });
 
   it("apeleaza org_branding dupa domeniul aplicatiei si ia tema + logo-ul din platforma", async () => {
@@ -50,8 +56,27 @@ describe("resolveBranding", () => {
       name: "Etora",
       theme: "ciclu",
       logo: "https://cdn/logo.png",
+      icon: "https://cdn/logo.png",
       source: "platform",
     });
+  });
+
+  it("antetul foloseste logo-ul orizontal, favicon-ul pe cel patrat (fiecare e rezerva)", async () => {
+    const both = await resolveBranding(
+      content,
+      env,
+      respond([
+        { logo_url: "https://cdn/h.png", logo_square_url: "https://cdn/s.png", theme: null },
+      ]),
+    );
+    expect([both.logo, both.icon]).toEqual(["https://cdn/h.png", "https://cdn/s.png"]);
+
+    const onlySquare = await resolveBranding(
+      content,
+      env,
+      respond([{ logo_url: null, logo_square_url: "https://cdn/s.png", theme: null }]),
+    );
+    expect([onlySquare.logo, onlySquare.icon]).toEqual(["https://cdn/s.png", "https://cdn/s.png"]);
   });
 
   it("logo-ul local are prioritate; tema necunoscuta din DB -> tema din continut", async () => {

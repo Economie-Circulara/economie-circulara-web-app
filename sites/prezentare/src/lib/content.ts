@@ -30,8 +30,10 @@ export interface SiteContent {
   siteDomain: string;
   /** Tema de rezerva, daca nu se poate citi cea din `/platform`. */
   theme: ThemeKey;
-  /** Logo local (cale din `public/`, ex. `/etora/logo.svg`). */
+  /** Logo local ORIZONTAL (cale din `public/`, ex. `/etora/logo.svg`) - antet. */
   logo: string | null;
+  /** Logo local PATRAT (cale din `public/`) - favicon. */
+  logoSquare: string | null;
   tagline: string;
   description: string;
   about: { title: string; paragraphs: string[] };
@@ -99,9 +101,14 @@ export function parseSiteContent(tenant: string, raw: unknown): SiteContent {
   const theme = root.theme ?? "default";
   if (!isThemeKey(theme)) fail(`theme trebuie sa fie una din: ${THEME_KEYS.join(", ")}`);
 
-  const logo = optStr(root.logo, "logo");
-  if (logo !== null && !logo.startsWith("/"))
-    fail("logo trebuie sa fie o cale din public/, ex. /etora/logo.svg");
+  const localPath = (value: unknown, field: string): string | null => {
+    const v = optStr(value, field);
+    if (v !== null && !v.startsWith("/"))
+      fail(`${field} trebuie sa fie o cale din public/, ex. /etora/logo.svg`);
+    return v;
+  };
+  const logo = localPath(root.logo, "logo");
+  const logoSquare = localPath(root.logoSquare, "logoSquare");
 
   const about = obj(root.about, "about");
   const services = obj(root.services, "services");
@@ -136,6 +143,7 @@ export function parseSiteContent(tenant: string, raw: unknown): SiteContent {
     siteDomain: host(root.siteDomain, "siteDomain"),
     theme: theme as ThemeKey,
     logo,
+    logoSquare,
     tagline: str(root.tagline, "tagline"),
     description: str(root.description, "description"),
     about: {

@@ -21,7 +21,7 @@ export async function generateMetadata(): Promise<Metadata> {
     title: `${branding.name} - ${content.tagline}`,
     description: content.description,
     alternates: { canonical: "/" },
-    icons: branding.logo ? { icon: branding.logo } : undefined,
+    icons: branding.icon ? { icon: branding.icon } : undefined,
     openGraph: {
       type: "website",
       locale: "ro_RO",

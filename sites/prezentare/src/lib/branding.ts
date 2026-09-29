@@ -13,8 +13,10 @@ import { isThemeKey, type SiteContent, type ThemeKey } from "./content";
 export interface ResolvedBranding {
   name: string;
   theme: ThemeKey;
-  /** URL absolut (Storage) sau cale locala din `public/`; `null` -> wordmark text. */
+  /** Logo pentru antet (orizontal, altfel patrat); `null` -> wordmark text. */
   logo: string | null;
+  /** Logo pentru favicon (patrat, altfel orizontal); `null` -> iconita implicita. */
+  icon: string | null;
   /** De unde vine brandingul - afisat in logul de build. */
   source: "platform" | "content";
 }
@@ -31,11 +33,31 @@ type FetchLike = (
 
 interface OrgBrandingRow {
   logo_url: string | null;
+  logo_square_url?: string | null;
   theme: string | null;
 }
 
+interface Logos {
+  inline: string | null;
+  square: string | null;
+}
+
+/**
+ * Aceeasi regula ca `inlineLogoOf` / `squareLogoOf` din aplicatie
+ * (src/features/branding/logos.ts): fiecare loc foloseste varianta potrivita, iar
+ * cealalta e rezerva cand lipseste.
+ */
+function pickLogos({ inline, square }: Logos): { logo: string | null; icon: string | null } {
+  return { logo: inline || square || null, icon: square || inline || null };
+}
+
 export function fromContent(content: SiteContent): ResolvedBranding {
-  return { name: content.name, theme: content.theme, logo: content.logo, source: "content" };
+  return {
+    name: content.name,
+    theme: content.theme,
+    ...pickLogos({ inline: content.logo, square: content.logoSquare }),
+    source: "content",
+  };
 }
 
 export async function resolveBranding(
@@ -77,7 +99,10 @@ export async function resolveBranding(
     name: content.name,
     theme: isThemeKey(row.theme) ? row.theme : content.theme,
     // Un logo pus explicit in repo (calitate controlata) are prioritate fata de cel din aplicatie.
-    logo: content.logo ?? (row.logo_url?.trim() || null),
+    ...pickLogos({
+      inline: content.logo ?? (row.logo_url?.trim() || null),
+      square: content.logoSquare ?? (row.logo_square_url?.trim() || null),
+    }),
     source: "platform",
   };
 }

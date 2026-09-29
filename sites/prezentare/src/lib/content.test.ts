@@ -79,6 +79,9 @@ describe("parseSiteContent", () => {
       "/etora/logo.svg",
     );
     expect(() => parseSiteContent("etora", { ...valid(), logo: "logo.svg" })).toThrow(/logo/);
+    expect(() => parseSiteContent("etora", { ...valid(), logoSquare: "icon.png" })).toThrow(
+      /logoSquare/,
+    );
   });
 
   it("finantarea UE: text obligatoriu, sigle optionale", () => {
