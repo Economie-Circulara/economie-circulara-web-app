@@ -128,6 +128,7 @@ pregateste `.env.local`).
 | `middleware.ts`           | Middleware Next.js - reimprospateaza sesiunea Supabase (rutarea pe roluri se adauga in T1.2).                                                                                                                                     |
 | `tests/e2e/`              | Teste Playwright (suita completa in Task X4).                                                                                                                                                                                     |
 | `supabase/`               | `config.toml` + `migrations/` (o migrare per task, prefix numerotat). Schema de business completa in T1.1.                                                                                                                        |
+| `sites/prezentare/`       | Site-ul de prezentare one-page de pe apex-ul fiecarui tenant (Next static, `package.json` propriu, deploy separat per client prin `SITE_TENANT`) - vezi `docs/setup.md` 3.1.3.                                                    |
 | `docs/`                   | Cerinte, design si planuri (vezi `docs/plans/`).                                                                                                                                                                                  |
 
 Testele unitare sunt **colocate** langa cod (`*.test.ts` / `*.test.tsx`).

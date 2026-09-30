@@ -1,0 +1,56 @@
+{
+  "draft": true,
+  "name": "Macon XCX",
+  "appDomain": "abonamente.maconxcx.ro",
+  "siteDomain": "maconxcx.ro",
+  "theme": "industrial",
+  "logo": null,
+  "tagline": "Echipamente de construcții în regim de abonament",
+  "description": "Folosești ce îți trebuie, cât îți trebuie: echipamentele se întorc la noi, se recondiționează și intră din nou în circuit.",
+  "about": {
+    "title": "Despre Macon XCX",
+    "paragraphs": [
+      "Text placeholder: cine suntem, de când activăm și ce facem. Se înlocuiește cu descrierea primită de la client.",
+      "Modelul de abonament ține produsele în uz cât mai mult timp; fiecare retur și fiecare recondiționare sunt înregistrate."
+    ]
+  },
+  "services": {
+    "title": "Ce oferim",
+    "items": [
+      {
+        "title": "Abonamente",
+        "text": "Acces la echipamente pe perioada lucrării, fără costul achiziției."
+      },
+      {
+        "title": "Recondiționare",
+        "text": "Echipamentele returnate sunt verificate și readuse în stare de funcționare."
+      },
+      {
+        "title": "Materiale",
+        "text": "Materiale de construcții livrate împreună cu documentele de trasabilitate."
+      }
+    ]
+  },
+  "stats": [],
+  "portal": {
+    "title": "Portalul clienților",
+    "text": "Abonamentele, comenzile și documentele, într-un singur loc.",
+    "bullets": [
+      "Comenzi și abonamente gestionate online",
+      "Cereri de retur și garanție trimise din portal",
+      "Certificatele de trasabilitate pentru fiecare comandă"
+    ]
+  },
+  "contact": {
+    "email": "no-reply@maconxcx.ro",
+    "phone": null,
+    "address": null,
+    "hours": null
+  },
+  "legal": {
+    "companyName": "Macon XCX SRL",
+    "cui": null,
+    "regCom": null
+  },
+  "euFunding": null
+}

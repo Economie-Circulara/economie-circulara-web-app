@@ -12,6 +12,11 @@ const eslintConfig = [
       "playwright-report/**",
       "test-results/**",
       "docs/**",
+      // Site-urile din sites/ au build-ul lor (typecheck-ul lor ruleaza separat in CI).
+      "sites/*/node_modules/**",
+      "sites/*/.next/**",
+      "sites/*/out/**",
+      "sites/*/next-env.d.ts",
     ],
   },
   ...next,

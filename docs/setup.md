@@ -144,10 +144,10 @@ pe acelasi deploy si aceeasi baza (plan: `docs/plans/multi-domain-tenant-profile
 
 **Domeniile clientilor (decizie 2026-09-28):**
 
-| Organizatie | Domeniu aplicatie        | Apex (site de prezentare, alt cont Vercel) |
-| ----------- | ------------------------ | ------------------------------------------ |
-| Etora       | `circular.etora.ro`      | `etora.ro` / `www.etora.ro`                |
-| Maconxcx    | `abonamente.maconxcx.ro` | `maconxcx.ro` / `www.maconxcx.ro`          |
+| Organizatie | Domeniu aplicatie        | Apex (site de prezentare, `sites/prezentare`) |
+| ----------- | ------------------------ | --------------------------------------------- |
+| Etora       | `circular.etora.ro`      | `etora.ro` / `www.etora.ro`                   |
+| Maconxcx    | `abonamente.maconxcx.ro` | `maconxcx.ro` / `www.maconxcx.ro`             |
 
 **DNS-ul e in Cloudflare.** Domeniile sunt inregistrate la chroot.ro
 (`portal.chroot.ro`), care permite doar schimbarea nameserverelor, nu si inregistrari
@@ -188,10 +188,7 @@ DNS - deci zona DNS a fiecarui domeniu e gestionata in Cloudflare (plan Free).
 
 Identic pentru `abonamente.maconxcx.ro` (CNAME `abonamente` in zona `maconxcx.ro`).
 
-**Site-ul de prezentare de pe apex** (alt cont Vercel) nu intra in conflict: proprietarul
-adauga `etora.ro` + `www.etora.ro` in proiectul lui, iar in Cloudflare se pun
-inregistrarile cerute de Vercel-ul lui (de regula `A @ -> 76.76.21.21` si
-`CNAME www -> …`), tot **DNS only**.
+**Site-ul de prezentare de pe apex** e in acest repo (`sites/prezentare`) - vezi 3.1.3.
 
 **Emailurile (Auth + notificari) au brandul si expeditorul organizatiei** - vezi 3.2.
 Template-urile din dashboard-ul Supabase NU se mai folosesc dupa activarea hook-ului.
@@ -206,6 +203,37 @@ Efecte:
 
 Verificare: invita un user de test -> linkul din email e pe domeniul organizatiei;
 logheaza-te cu el pe `www.lotculot.eu` -> ajungi pe login-ul domeniului organizatiei.
+
+#### 3.1.3 Site-ul de prezentare de pe apex (`sites/prezentare`)
+
+Un singur cod (Next static, plan `docs/plans/site-prezentare-tenanti.md`), cate un
+proiect Vercel per client, in ACELASI cont/echipa cu aplicatia:
+
+1. **Vercel** -> Add New Project -> acelasi repo GitHub. Nume: `etora-site`
+   (respectiv `maconxcx-site`). **Root Directory = `sites/prezentare`** (framework
+   Next.js detectat automat).
+2. **Environment Variables** (Production + Preview):
+   - `SITE_TENANT=etora` (numele fisierului din `sites/prezentare/content/`);
+   - optional `SUPABASE_URL` + `SUPABASE_PUBLISHABLE_KEY` (aceleasi valori ca
+     `NEXT_PUBLIC_SUPABASE_*` ale aplicatiei; cheia publishable e publica): la build,
+     site-ul ia tema si logo-ul setate in `/platform` (RPC `org_branding` dupa
+     `appDomain`). Fara ele - tema/logo-ul din fisierul de continut.
+3. **Settings -> Git -> Ignored Build Step** = `git diff --quiet HEAD^ HEAD -- .`
+   (build doar cand s-a schimbat ceva in `sites/prezentare`). La proiectul
+   APLICATIEI, acelasi camp = `git diff --quiet HEAD^ HEAD -- . ':(exclude)sites'`,
+   ca o modificare doar in site sa nu redeploy-eze aplicatia.
+4. **Domains**: adauga `etora.ro` si `www.etora.ro` (unul redirectioneaza pe
+   celalalt - Vercel propune). In Cloudflare pune inregistrarile cerute (de regula
+   `A @ -> 76.76.21.21` si `CNAME www -> cname.vercel-dns.com`), **DNS only**, ca la
+   3.1.2.
+5. O schimbare de tema/logo in `/platform` NU redeploy-eaza site-ul: Deployments ->
+   Redeploy (sau orice push in `sites/prezentare`).
+
+Continutul se editeaza in `sites/prezentare/content/<tenant>.json` (validat la build: un
+camp obligatoriu lipsa opreste build-ul). `"draft": true` = pagina e `noindex`; treci
+pe `false` cand textele de la client sunt finale. Logo / sigle UE: fisiere in
+`sites/prezentare/public/<tenant>/`, referite ca `/etora/logo.svg`. Local:
+`cd sites/prezentare && pnpm install && SITE_TENANT=etora pnpm dev`.
 
 ### 3.2 Emailuri pe domeniul organizatiei (Resend + Cloudflare + hook Supabase)
 
@@ -268,6 +296,30 @@ deci pentru emailuri e de preferat un logo PNG/JPG.
 Verificare: invita un user de test in organizatie -> emailul vine de la
 `notificari@etora.ro`, are logo-ul/culoarea Etora, iar linkul duce pe
 `circular.etora.ro`.
+
+#### 3.2.3 Primire email: adrese proprii, catch-all, forward (Cloudflare Email Routing)
+
+Resend doar TRIMITE (primirea la Resend inseamna webhook + cod, fara casuta si fara
+forward). Pentru adrese de tip `contact@etora.ro` redirectionate catre o casuta reala
+folosim **Cloudflare Email Routing** (gratuit, zona e deja in Cloudflare). Per domeniu:
+
+1. **Verifica MX-ul de pe `@`** (Cloudflare -> DNS). Daca firma are deja email pe
+   domeniu (Google Workspace, hosting), NU activa Email Routing - ar inlocui MX-ul si
+   mailul lor n-ar mai ajunge; forward-ul se face din sistemul lor.
+2. Email -> **Email Routing** -> Get started. Cloudflare adauga singur `MX @` ->
+   `route1/2/3.mx.cloudflare.net`, `TXT @` SPF (`include:_spf.mx.cloudflare.net`) si
+   DKIM-ul lui. Pe `@` trebuie sa ramana **un singur** TXT `v=spf1`.
+3. **Destination addresses**: casutele reale (ex. Gmail); fiecare se confirma o data
+   din emailul primit.
+4. **Routing rules**: adrese proprii (`contact@`, `notificari@` -> destinatie),
+   **Catch-all** -> Send to (tot restul), `no-reply@` -> Drop.
+
+Nu se bate cu Resend: inregistrarile Resend sunt pe subdomenii (`send`,
+`resend._domainkey`, 3.2.2), Email Routing pe radacina.
+
+**Raspuns „ca” `contact@etora.ro` din Gmail**: Setari -> Conturi -> Trimite e-mail ca
+-> SMTP `smtp.resend.com`, port 465 (SSL), user `resend`, parola = o cheie API Resend
+SEPARATA, doar „Sending access” pe domeniul respectiv (nu cheia aplicatiei).
 
 ## 4. Environment Claude Code on the web (ca agentul sa ruleze tot de-aici)
 
