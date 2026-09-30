@@ -4,6 +4,17 @@ Jurnal al sarcinilor lucrate de agenti AI in acest repo. Conform regulii 1.2 din
 [`AGENTS.md`](../AGENTS.md), la **fiecare commit** se adauga o intrare aici.
 Cele mai noi intrari sus.
 
+## 2026-09-30 — Claude Opus 5.5 (Claude Code) — Asistentul AI scos de la clienti
+
+- **Cerut:** asistentul AI sa fie disponibil doar staff-ului organizatiei (admin/operator),
+  nu si clientilor.
+- **Facut:** `assistant/access.ts` (`ASSISTANT_ROLES`: super-admin, admin, operator);
+  meniul nu mai arata „Asistent AI” clientului; rutele `/asistent*` si server actions
+  cer `requireRole(ASSISTANT_ROLES)`; tool-urile `cauta_in_manual`/`cauta` fara rolul
+  `client`; migrarea `0054` - scrierile pe conversatii/mesaje/propuneri cer
+  `app.can_use_assistant()` (test T15 in `assistant_rls.sql`); manualul clientului si
+  e2e actualizate; regula in AGENTS.md. Plan: `docs/plans/asistent-fara-clienti.md`.
+
 ## 2026-09-30 — Claude Opus 5.5 (Claude Code) — Email de contact hello@ pe site-uri
 
 - **Cerut:** adresele de email de pe site-urile de prezentare sa fie `hello@<domeniu>`

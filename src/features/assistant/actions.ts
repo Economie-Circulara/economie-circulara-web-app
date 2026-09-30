@@ -1,6 +1,7 @@
 "use server";
 
-import { requireUser } from "@/features/auth/session";
+import { requireRole } from "@/features/auth/session";
+import { ASSISTANT_ROLES } from "./access";
 import {
   attachmentReference,
   MAX_ATTACHMENTS_PER_MESSAGE,
@@ -10,9 +11,9 @@ import { AttachmentError, getAttachment, registerAttachment } from "./attachment
 import { confirmAction, rejectAction, runAssistantTurn } from "./run";
 import type { AssistantTurn, ToolContext } from "./types";
 
-/** Contextul de tool pentru utilizatorul autentificat curent. */
+/** Contextul de tool pentru utilizatorul curent - doar rolurile cu asistent (fara client). */
 async function currentContext(): Promise<ToolContext> {
-  const user = await requireUser();
+  const user = await requireRole(ASSISTANT_ROLES);
   return {
     userId: user.id,
     role: user.role,
@@ -21,7 +22,7 @@ async function currentContext(): Promise<ToolContext> {
   };
 }
 
-/** Doar staff-ul ataseaza fisiere: clientul nu are tool-uri care sa le foloseasca. */
+/** Doar staff-ul organizatiei ataseaza fisiere (super-adminul n-are tool-uri care sa le foloseasca). */
 function canAttach(ctx: ToolContext): boolean {
   return ctx.role === "admin" || ctx.role === "operator";
 }

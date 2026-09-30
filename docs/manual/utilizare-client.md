@@ -203,18 +203,6 @@ browser) sau **"Descarcă PDF"** (descarcă fișierul PDF al certificatului).
 
 ---
 
-## Asistent AI
-
-Meniul **"Asistent AI"** răspunde la întrebări despre cum se folosește platforma
-și caută în manual - nu poate propune sau executa nicio acțiune pentru contul
-tău (creare/trimitere de comenzi rămâne doar din ecranele obișnuite).
-
----
-
-
-Consumul asistentului se măsoară în **credite AI** (cardul de lângă chat): o întrebare
-simplă consumă puțin, una cu mai mulți pași mai mult. Bugetul se reînnoiește lunar; butonul
-„i” de lângă titlul cardului explică regulile.
 ## Rezumat rapid - ce poți și ce nu poți face
 
 | Poți | Nu poți |
@@ -225,3 +213,4 @@ simplă consumă puțin, una cu mai mulți pași mai mult. Bugetul se reînnoie�
 | Descărca documentele și certificatele proprii | Încărca sau șterge documente |
 | Repeta o comandă anterioară | Crea alți utilizatori pentru firma ta (un singur cont per firmă client) |
 | Șterge propriile ciorne (comenzi netrimise) | Șterge o comandă deja trimisă |
+| Căuta în manual („Ajutor”) | Folosi asistentul AI (e disponibil doar echipei organizației) |

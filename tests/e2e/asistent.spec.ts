@@ -37,12 +37,12 @@ test.describe("Asistent AI", () => {
     await expect(messages.getByText("cum adaug un lot în stoc?")).toBeVisible();
   });
 
-  test("clientul are asistentul, dar fara acțiuni de organizație", async ({ page }) => {
+  test("clientul nu are asistentul: fara meniu, ruta il trimite acasa", async ({ page }) => {
     await login(page, "client@demo.local");
-    await page.goto("/asistent");
+    await expect(page.getByRole("link", { name: "Asistent AI" })).toHaveCount(0);
 
-    await expect(page.getByRole("heading", { name: "Asistent AI" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Cum plasez o comandă?" })).toBeVisible();
+    await page.goto("/asistent");
+    await expect(page).not.toHaveURL(/\/asistent/);
   });
 
   test("nelogat, asistentul cere autentificare", async ({ page }) => {
