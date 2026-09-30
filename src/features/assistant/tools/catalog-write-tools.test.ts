@@ -29,7 +29,9 @@ const CTX: ToolContext = { userId: "u1", role: "admin", organizationId: "org-1",
 
 const CLIENT = {
   id: "c1",
+  clientType: "juridica",
   cui: "12345678",
+  cnp: null,
   name: "ACME SRL",
   regCom: "J40/1/2020",
   isVatPayer: true,
@@ -71,8 +73,10 @@ describe("editeaza_client", () => {
 
     expect(clientService.updateClientRecord).toHaveBeenCalledWith({
       id: "c1",
+      clientType: "juridica",
       name: "ACME SRL",
       cui: "12345678",
+      cnp: null,
       regCom: "J40/1/2020",
       hqAddress: "București",
       email: "nou@acme.ro",
@@ -94,6 +98,65 @@ describe("editeaza_client", () => {
     const telefon = card.fields.find((field) => field.name === "telefon");
     expect(telefon).toMatchObject({ editable: true, value: "0722" });
     expect(card.fields.find((field) => field.name === "email")?.value).toBe("old@acme.ro");
+  });
+});
+
+describe("editeaza_client - persoana fizica (0051)", () => {
+  const PERSON = {
+    ...CLIENT,
+    id: "p1",
+    clientType: "fizica",
+    cui: null,
+    cnp: "1900101000006",
+    name: "Ion Popescu",
+    regCom: null,
+    isVatPayer: false,
+  };
+
+  it("schimba CNP-ul si ignora CUI / reg. com. / TVA propuse", async () => {
+    vi.mocked(getClient).mockResolvedValue(PERSON as never);
+    vi.mocked(clientService.updateClientRecord).mockResolvedValue({ id: "p1" } as never);
+
+    const input = editeazaClient.parse({
+      client_id: "p1",
+      cnp: "2900215 123459",
+      cui: "12345678",
+      platitor_tva: true,
+    });
+    await editeazaClient.execute(input, CTX);
+
+    expect(clientService.updateClientRecord).toHaveBeenCalledWith(
+      expect.objectContaining({
+        clientType: "fizica",
+        cnp: "2900215123459",
+        cui: null,
+        regCom: null,
+        isVatPayer: false,
+      }),
+    );
+  });
+
+  it("refuza un CNP invalid", () => {
+    expect(() => editeazaClient.parse({ client_id: "p1", cnp: "1900101000000" })).toThrow(
+      InvalidToolArgumentsError,
+    );
+  });
+
+  it("cardul are CNP in loc de CUI, fara TVA, si semnaleaza campurile ignorate", async () => {
+    vi.mocked(getClient).mockResolvedValue(PERSON as never);
+    const card = await editeazaClient.presentation!(
+      editeazaClient.parse({ client_id: "p1", cui: "12345678" }),
+      CTX,
+    );
+    if (card.renderer !== "generic") throw new Error("renderer");
+    const names = card.fields.map((field) => field.name);
+    expect(names).toContain("cnp");
+    expect(names).not.toContain("cui");
+    expect(names).not.toContain("platitor_tva");
+    expect(card.fields.find((field) => field.name === "client_id")?.displayValue).toBe(
+      "Ion Popescu (Persoană fizică)",
+    );
+    expect(card.fields.find((field) => field.name === "ignorat")?.displayValue).toContain("CUI");
   });
 });
 

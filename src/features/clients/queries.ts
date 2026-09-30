@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/database.types";
+import { toClientType } from "./labels";
 import type { Client, ClientAddress } from "./types";
 
 type ClientRow = Database["public"]["Tables"]["clients"]["Row"];
@@ -8,7 +9,9 @@ type ClientAddressRow = Database["public"]["Tables"]["client_addresses"]["Row"];
 function mapClient(row: ClientRow): Client {
   return {
     id: row.id,
+    clientType: toClientType(row.client_type),
     cui: row.cui,
+    cnp: row.cnp ?? null,
     name: row.name,
     regCom: row.reg_com,
     isVatPayer: row.is_vat_payer,
@@ -35,7 +38,7 @@ function mapAddress(row: ClientAddressRow): ClientAddress {
 }
 
 export interface ListClientsFilters {
-  /** Cauta in denumire SAU CUI (case-insensitive, substring). */
+  /** Cauta in denumire, CUI SAU CNP (case-insensitive, substring). */
   search?: string;
   /**
    * Include si clientii arhivati (comutatorul "Arată arhivați" de pe /clienti).
@@ -54,7 +57,7 @@ export async function listClients(filters: ListClientsFilters = {}): Promise<Cli
   const search = filters.search?.trim();
   if (search) {
     const escaped = search.replace(/[%_]/g, (m) => `\\${m}`);
-    query = query.or(`name.ilike.%${escaped}%,cui.ilike.%${escaped}%`);
+    query = query.or(`name.ilike.%${escaped}%,cui.ilike.%${escaped}%,cnp.ilike.%${escaped}%`);
   }
 
   const { data, error } = await query;

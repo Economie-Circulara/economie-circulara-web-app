@@ -4,6 +4,19 @@ Jurnal al sarcinilor lucrate de agenti AI in acest repo. Conform regulii 1.2 din
 [`AGENTS.md`](../AGENTS.md), la **fiecare commit** se adauga o intrare aici.
 Cele mai noi intrari sus.
 
+## 2026-09-30 — Claude Opus 5.5 (Claude Code) — Clienti persoana fizica
+
+- **Cerut:** clienti persoana fizica (nume + CNP obligatorii, restul fluxului identic),
+  bifa firma / persoana fizica in formularul de client, suport in asistentul AI.
+- **Facut:** migrarea `0051` (`clients.client_type`, `cnp`, `cui` nullable, CHECK de
+  consistenta, CNP unic per organizatie); validare CNP (`clients/cnp.ts`); formularul
+  de client cu "Tip client" (CNP in loc de CUI, fara reg. com./TVA/ANAF); CNP vizibil
+  doar staff-ului - comenzi, avize, certificate, cautare, selecturi afiseaza
+  "Persoană fizică" (`clientTaxIdLabel`). Asistent: `creeaza_client` v2 (`tip`, `cnp`),
+  `editeaza_client` v2 (`cnp`), `listeaza_clienti` v2 (`tip`, fara CNP), system
+  prompt. Manual + AGENTS.md (regula de business + capcana CHECK/NULL). Teste unitare
+  + `business_flow.sql` B32. Plan: `docs/plans/clienti-persoana-fizica.md`.
+
 ## 2026-09-30 — Claude Opus 5.5 (Claude Code) — Primire email: Cloudflare Email Routing
 
 - **Cerut:** cum primim mailuri pe domeniile tenantilor (adrese proprii, catch-all,

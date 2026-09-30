@@ -190,7 +190,17 @@ Testele unitare sunt **colocate** langa cod (`*.test.ts` / `*.test.tsx`).
   materiale generice fara stoc real (apa, aer). Se comporta ca orice item fizic, dar
   sunt sarite de la consumul/scaderea de stoc si de la FIFO - exact ca serviciile in
   `accept_order` (0022), acum si in `confirm_process`.
-- Un **client = un singur utilizator**; clientii sunt doar firme juridice.
+- Un **client = un singur utilizator**. Clientii sunt **firme (persoane juridice) SAU
+  persoane fizice** (decizie 2026-09-30, migrarea `0051`, inlocuieste regula "doar
+  firme juridice"): `clients.client_type` = `juridica` (CUI obligatoriu) | `fizica`
+  (nume + **CNP** obligatorii - facturare; fara CUI / reg. com. / TVA, impus de
+  CHECK-ul `clients_identity_check`); CNP unic per organizatie. Restul fluxului e
+  identic (invitatie in portal, adrese, comenzi, certificate). **CNP-ul e data
+  personala**: apare DOAR staff-ului, in lista si pe pagina clientului; oriunde
+  altundeva (comenzi, avize, certificate, cautare, selecturi, portal, raspunsurile
+  tool-urilor de citire ale asistentului - adica tot ce pleaca spre furnizorul
+  modelului AI) identificatorul se afiseaza prin `clientTaxIdLabel` /
+  `clientTaxIdValue` (`src/features/clients/labels.ts`) = "Persoană fizică".
 - Certificatul PDF se genereaza **automat la inchiderea** comenzii.
 - Clientul **nu** vede stocul si procesele interne - doar comenzile, documentele si
   certificatele proprii.
@@ -486,6 +496,10 @@ Daca scrii plpgsql sau treci date peste granita server/client, citeste asta.
   (migrarea de fix: `0018_fix_cancel_order_stock_restore.sql`). Inainte de a pune
   `for update`, verifica ce politici are tabelul - si lock-uieste entitatea care chiar
   are nevoie (aici: `orders`, nu auditul).
+- **Un CHECK care evalueaza la NULL TRECE.** `cnp ~ '^[0-9]{13}$'` pe un `cnp` NULL
+  da NULL, nu false, deci randul e acceptat. Intr-un CHECK cu ramuri `or`, pune
+  explicit `col is not null` langa orice comparatie/regex pe o coloana obligatorie
+  (prins la `clients_identity_check`, migrarea `0051`, inainte de merge).
 - **Corpul unei functii plpgsql NU e verificat la tip la creare, doar la executie.**
   O migrare se poate aplica impecabil si functia sa cada la primul apel. O migrare
   aplicata cu succes **nu** e dovada ca RPC-ul functioneaza.

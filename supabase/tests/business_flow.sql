@@ -1438,4 +1438,66 @@ begin;
   end $$;
 rollback;
 
+-- ===========================================================================
+-- B32: clienti persoana fizica (0051) - CNP obligatoriu (13 cifre), fara CUI /
+--      reg. com. / TVA; CNP unic per organizatie; firmele raman cu CUI obligatoriu.
+-- ===========================================================================
+begin;
+  set local role authenticated;
+  set local request.jwt.claims = '{"sub":"b0000000-0000-0000-0000-0000000000b1"}';
+
+  insert into public.clients (id, organization_id, client_type, cnp, name)
+  values ('cccc0000-0000-0000-0000-0000000000cf', :org, 'fizica', '1900101000006', 'Ion Popescu');
+  select pg_temp.assert_eq('B32 persoana fizica creata', client_type, 'fizica')
+  from public.clients where id = 'cccc0000-0000-0000-0000-0000000000cf';
+  select pg_temp.assert_eq('B32 clientii existenti raman firme', client_type, 'juridica')
+  from public.clients where id = :client_demo;
+
+  do $$
+  begin
+    begin
+      insert into public.clients (organization_id, client_type, name)
+      values ('a0000000-0000-0000-0000-0000000000a1', 'fizica', 'Fara CNP');
+      raise exception 'FAIL: B32 persoana fizica fara CNP';
+    exception
+      when check_violation then raise notice 'PASS: B32 CNP obligatoriu';
+    end;
+    begin
+      insert into public.clients (organization_id, client_type, cnp, cui, name)
+      values ('a0000000-0000-0000-0000-0000000000a1', 'fizica', '2900215123459', 'RO123', 'Cu CUI');
+      raise exception 'FAIL: B32 persoana fizica cu CUI';
+    exception
+      when check_violation then raise notice 'PASS: B32 persoana fizica fara CUI';
+    end;
+    begin
+      insert into public.clients (organization_id, client_type, cnp, name, is_vat_payer)
+      values ('a0000000-0000-0000-0000-0000000000a1', 'fizica', '2900215123459', 'TVA', true);
+      raise exception 'FAIL: B32 persoana fizica platitoare de TVA';
+    exception
+      when check_violation then raise notice 'PASS: B32 persoana fizica fara TVA';
+    end;
+    begin
+      insert into public.clients (organization_id, client_type, cnp, name)
+      values ('a0000000-0000-0000-0000-0000000000a1', 'fizica', '19001', 'CNP scurt');
+      raise exception 'FAIL: B32 CNP cu format gresit';
+    exception
+      when check_violation then raise notice 'PASS: B32 CNP de 13 cifre';
+    end;
+    begin
+      insert into public.clients (organization_id, client_type, name)
+      values ('a0000000-0000-0000-0000-0000000000a1', 'juridica', 'Firma fara CUI');
+      raise exception 'FAIL: B32 firma fara CUI';
+    exception
+      when check_violation then raise notice 'PASS: B32 CUI obligatoriu la firme';
+    end;
+    begin
+      insert into public.clients (organization_id, client_type, cnp, name)
+      values ('a0000000-0000-0000-0000-0000000000a1', 'fizica', '1900101000006', 'Duplicat');
+      raise exception 'FAIL: B32 CNP duplicat in organizatie';
+    exception
+      when unique_violation then raise notice 'PASS: B32 CNP unic per organizatie';
+    end;
+  end $$;
+rollback;
+
 select '*** TOATE TESTELE FUNCTIONALE DE BUSINESS AU TRECUT ***' as result;

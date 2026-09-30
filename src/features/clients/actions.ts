@@ -6,9 +6,9 @@ import { requireRole } from "@/features/auth/session";
 import { listClientUserIds, setAuthUsersBanned } from "@/features/settings/auth-ban";
 import { sendClientInvite } from "@/features/settings/user-actions";
 import type { AddressFormState, ClientFormState } from "./action-state";
+import { isValidCnp, normalizeCnp } from "./cnp";
 import { defaultCuiLookupProvider, type CuiLookupResult } from "./cui-lookup";
 import {
-  DuplicateCuiError,
   createClientRecord,
   removeAddress,
   setClientArchived,
@@ -30,23 +30,39 @@ function readClientFields(formData: FormData): {
   fields: ClientFields | null;
   error: string | null;
 } {
-  const cui = clean(formData.get("cui"));
   const name = clean(formData.get("name"));
+  const common = {
+    hqAddress: clean(formData.get("hq_address")),
+    email: clean(formData.get("email")),
+    phone: clean(formData.get("phone")),
+    contactPerson: clean(formData.get("contact_person")),
+    isSupplier: checkbox(formData.get("is_supplier")),
+    notes: clean(formData.get("notes")),
+  };
+
+  // Persoana fizica (0051): nume + CNP obligatorii; fara CUI / reg. com. / TVA.
+  if (formData.get("client_type") === "fizica") {
+    const cnp = normalizeCnp(clean(formData.get("cnp")) ?? "");
+    if (!name) return { fields: null, error: "Numele este obligatoriu." };
+    if (!cnp) return { fields: null, error: "CNP-ul este obligatoriu." };
+    if (!isValidCnp(cnp)) {
+      return { fields: null, error: "CNP invalid - verifică cele 13 cifre." };
+    }
+    return { fields: { clientType: "fizica", cnp, name, ...common }, error: null };
+  }
+
+  const cui = clean(formData.get("cui"));
   if (!cui) return { fields: null, error: "CUI-ul este obligatoriu." };
   if (!name) return { fields: null, error: "Denumirea este obligatorie." };
 
   return {
     fields: {
+      clientType: "juridica",
       cui,
       name,
       regCom: clean(formData.get("reg_com")),
       isVatPayer: checkbox(formData.get("is_vat_payer")),
-      hqAddress: clean(formData.get("hq_address")),
-      email: clean(formData.get("email")),
-      phone: clean(formData.get("phone")),
-      contactPerson: clean(formData.get("contact_person")),
-      isSupplier: checkbox(formData.get("is_supplier")),
-      notes: clean(formData.get("notes")),
+      ...common,
     },
     error: null,
   };
@@ -78,19 +94,14 @@ export async function createClientAction(
       await upsertAddress({
         clientId,
         organizationId: user.organizationId,
-        label: "Sediu social",
+        label: fields.clientType === "fizica" ? "Domiciliu" : "Sediu social",
         address: fields.hqAddress,
         isDefault: true,
       });
     }
   } catch (err) {
     return {
-      error:
-        err instanceof DuplicateCuiError
-          ? err.message
-          : err instanceof Error
-            ? err.message
-            : "Nu am putut crea clientul.",
+      error: err instanceof Error ? err.message : "Nu am putut crea clientul.",
     };
   }
 
@@ -126,12 +137,7 @@ export async function updateClientAction(
     await updateClientRecord({ ...fields, id });
   } catch (err) {
     return {
-      error:
-        err instanceof DuplicateCuiError
-          ? err.message
-          : err instanceof Error
-            ? err.message
-            : "Nu am putut actualiza clientul.",
+      error: err instanceof Error ? err.message : "Nu am putut actualiza clientul.",
     };
   }
 

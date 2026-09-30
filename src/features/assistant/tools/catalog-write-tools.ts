@@ -1,4 +1,5 @@
 import { normalizeCui } from "@/features/clients/cui-lookup";
+import { clientTaxIdLabel } from "@/features/clients/labels";
 import { getClient } from "@/features/clients/queries";
 import { setClientArchived, updateClientRecord } from "@/features/clients/service";
 import { itemHref } from "@/features/items/item-links";
@@ -10,6 +11,7 @@ import { getRecipeByItemId } from "@/features/recipes/queries";
 import { setRecipeArchived } from "@/features/recipes/service";
 import { resultField } from "../result-summary";
 import type { ToolContext } from "../types";
+import { parseCnp } from "./client-args";
 import { booleanField, infoField, textField } from "./fields";
 import type { CardPresentation } from "./presentation-types";
 import {
@@ -55,6 +57,8 @@ interface EditClientInput {
   client_id: string;
   denumire: string | null;
   cui: string | null;
+  /** Doar pentru clientii persoana fizica (0051). */
+  cnp: string | null;
   reg_com: string | null;
   adresa: string | null;
   email: string | null;
@@ -63,21 +67,39 @@ interface EditClientInput {
   platitor_tva: boolean | null;
 }
 
-/** Valorile finale: ce a propus modelul peste datele actuale ale clientului. */
-function mergedClient(
-  client: NonNullable<Awaited<ReturnType<typeof getClient>>>,
-  input: EditClientInput,
-) {
+type ExistingClient = NonNullable<Awaited<ReturnType<typeof getClient>>>;
+
+/**
+ * Valorile finale: ce a propus modelul peste datele actuale ale clientului. Tipul
+ * clientului NU se schimba din asistent (doar din formular): la o persoana fizica
+ * CUI / reg. com. / TVA propuse se ignora, la o firma CNP-ul propus se ignora -
+ * cardul le semnaleaza (`ignoredFields`).
+ */
+function mergedClient(client: ExistingClient, input: EditClientInput) {
+  const individual = client.clientType === "fizica";
   return {
     denumire: input.denumire ?? client.name,
-    cui: input.cui ?? client.cui,
-    reg_com: input.reg_com ?? client.regCom,
+    cui: individual ? null : (input.cui ?? client.cui),
+    cnp: individual ? (input.cnp ?? client.cnp) : null,
+    reg_com: individual ? null : (input.reg_com ?? client.regCom),
     adresa: input.adresa ?? client.hqAddress,
     email: input.email ?? client.email,
     telefon: input.telefon ?? client.phone,
     persoana_contact: input.persoana_contact ?? client.contactPerson,
-    platitor_tva: input.platitor_tva ?? client.isVatPayer,
+    platitor_tva: individual ? false : (input.platitor_tva ?? client.isVatPayer),
   };
+}
+
+/** Campurile propuse care nu se aplica tipului clientului (vezi `mergedClient`). */
+function ignoredFields(client: ExistingClient, input: EditClientInput): string[] {
+  if (client.clientType === "fizica") {
+    return [
+      input.cui ? "CUI" : null,
+      input.reg_com ? "nr. reg. com." : null,
+      input.platitor_tva ? "plătitor de TVA" : null,
+    ].filter((label): label is string => label !== null);
+  }
+  return input.cnp ? ["CNP"] : [];
 }
 
 async function requireClient(id: string) {
@@ -90,7 +112,8 @@ export const editeazaClient: AssistantTool<EditClientInput> = {
   name: "editeaza_client",
   description:
     "Propune modificarea datelor unui client existent (`client_id` din `listeaza_clienti`). " +
-    "Trimite DOAR câmpurile care se schimbă; restul rămân cum sunt. " +
+    "Trimite DOAR câmpurile care se schimbă; restul rămân cum sunt. Firmele au CUI / " +
+    "reg. com. / TVA, persoanele fizice au CNP; tipul clientului nu se schimbă de aici. " +
     "Acțiunea NU se execută până la confirmare.",
   parameters: {
     type: "object",
@@ -98,8 +121,9 @@ export const editeazaClient: AssistantTool<EditClientInput> = {
     properties: {
       client_id: { type: "string" },
       denumire: { type: "string" },
-      cui: { type: "string" },
-      reg_com: { type: "string" },
+      cui: { type: "string", description: "Doar firme." },
+      cnp: { type: "string", description: "Doar persoane fizice (13 cifre)." },
+      reg_com: { type: "string", description: "Doar firme." },
       adresa: { type: "string", description: "Adresa sediului social." },
       email: { type: "string" },
       telefon: { type: "string" },
@@ -109,15 +133,17 @@ export const editeazaClient: AssistantTool<EditClientInput> = {
     required: ["client_id"],
   },
   roles: ["admin", "operator"],
-  version: 1,
+  version: 2,
   kind: "write",
   parse: (args) => {
     const raw = asObject(args);
     const cui = optionalString(raw, "cui");
+    const cnp = optionalString(raw, "cnp");
     return {
       client_id: requiredString(raw, "client_id"),
       denumire: optionalString(raw, "denumire"),
       cui: cui ? normalizeCui(cui) : null,
+      cnp: cnp ? parseCnp(cnp) : null,
       reg_com: optionalString(raw, "reg_com"),
       adresa: optionalString(raw, "adresa"),
       email: optionalString(raw, "email"),
@@ -138,18 +164,33 @@ export const editeazaClient: AssistantTool<EditClientInput> = {
       };
     }
     const next = mergedClient(client, input);
+    const individual = client.clientType === "fizica";
+    const ignored = ignoredFields(client, input);
     return {
       renderer: "generic",
       fields: [
-        infoField("client_id", "Client", `${client.name} (CUI ${client.cui})`),
-        textField("denumire", "Denumire", next.denumire),
-        textField("cui", "CUI", next.cui),
-        textField("reg_com", "Nr. reg. com.", next.reg_com),
-        textField("adresa", "Adresă sediu", next.adresa),
+        infoField("client_id", "Client", `${client.name} (${clientTaxIdLabel(client)})`),
+        ...(ignored.length
+          ? [
+              infoField(
+                "ignorat",
+                "Nu se aplică",
+                `${ignored.join(", ")} - ${individual ? "clientul e persoană fizică" : "clientul e firmă"}; tipul se schimbă din pagina clientului.`,
+              ),
+            ]
+          : []),
+        textField("denumire", individual ? "Nume și prenume" : "Denumire", next.denumire),
+        ...(individual
+          ? [textField("cnp", "CNP", next.cnp)]
+          : [
+              textField("cui", "CUI", next.cui),
+              textField("reg_com", "Nr. reg. com.", next.reg_com),
+            ]),
+        textField("adresa", individual ? "Adresă domiciliu" : "Adresă sediu", next.adresa),
         textField("email", "Email", next.email),
         textField("telefon", "Telefon", next.telefon),
         textField("persoana_contact", "Persoană de contact", next.persoana_contact),
-        booleanField("platitor_tva", "Plătitor de TVA", next.platitor_tva),
+        ...(individual ? [] : [booleanField("platitor_tva", "Plătitor de TVA", next.platitor_tva)]),
       ],
     };
   },
@@ -158,8 +199,10 @@ export const editeazaClient: AssistantTool<EditClientInput> = {
     const next = mergedClient(client, input);
     const updated = await updateClientRecord({
       id: client.id,
+      clientType: client.clientType,
       name: next.denumire,
       cui: next.cui,
+      cnp: next.cnp,
       regCom: next.reg_com,
       hqAddress: next.adresa,
       email: next.email,
