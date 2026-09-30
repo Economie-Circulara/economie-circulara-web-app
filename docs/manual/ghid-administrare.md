@@ -252,6 +252,27 @@ folosite luna aceasta din bugetul efectiv, procentul și starea (**Buget epuizat
 - **Jurnal**: fiecare modificare de limite și fiecare top-up rămân înregistrate, cu data,
   autorul și ce s-a schimbat.
 
+### 3.5 Utilizarea asistentului AI
+
+Pe pagina **„Consum AI”**, linkul **„Utilizare asistent”** (`/platform/ai/utilizare`) arată
+**cum** e folosit asistentul, pe ultimele 7, 30 sau 90 de zile. Pagina conține **doar
+numere**: conversațiile rămân private, iar super-adminul nu vede textul mesajelor,
+datele consultate sau argumentele acțiunilor.
+
+- **Pe organizații**: utilizatori activi, conversații, mesaje, citiri de date, acțiuni
+  propuse și rezultatul lor (confirmate / respinse / eșuate / fără răspuns), rata de
+  confirmare, costul și câți utilizatori au semnale.
+- **Pe utilizatori**: aceleași contoare, plus zilele active și ultima activitate.
+  Utilizatorii cu **semnale** apar primii:
+  - **Multe propuneri respinse**: asistentul propune altceva decât vrea utilizatorul;
+  - **Multe erori**: acțiunile sau citirile cad (date lipsă, argumente greșite);
+  - **Propuneri lăsate fără răspuns**: cardurile de confirmare sunt ignorate;
+  - **Doar conversație, fără date**: multe mesaje fără nicio consultare de date;
+  - **Cost mare pe mesaj**: peste 3x media platformei.
+
+  Semnalele sunt indicii pentru o discuție sau o instruire, nu verdicte.
+- **Pe funcții ale asistentului**: ce funcții se folosesc și cu ce rezultat.
+
 ## 4. Operare tehnică (echipa de dezvoltare/operare)
 
 Această secțiune este tehnică - se adresează persoanei/echipei care menține

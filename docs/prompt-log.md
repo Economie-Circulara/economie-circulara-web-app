@@ -10,7 +10,20 @@ Cele mai noi intrari sus.
   (exista catch-all pe mail).
 - **Facut:** `content/etora.json` -> `hello@etora.ro`, `content/maconxcx.json` ->
   `hello@maconxcx.ro`; test care impune `hello@<siteDomain>` pe toate fisierele de
-  continut; regula adaugata in `AGENTS.md`.
+  continut; regula adaugata in `AGENTS.md`. Merge `main` (conflict doar in prompt-log).
+
+## 2026-09-30 — Claude Opus 5.5 (Claude Code) — Utilizarea asistentului AI, vedere super-admin
+
+- **Cerut:** super-adminul sa vada cum folosesc clientii asistentul AI (varianta fara
+  continutul conversatiilor).
+- **Facut:** migrarea `0053` - RPC-uri `security definer` doar-super-admin care intorc
+  CONTOARE (activitate per utilizator, apeluri per tool/status), fara text; pagina
+  `/platform/ai/utilizare` (7/30/90 zile: pe organizatii, pe utilizatori cu semnale de
+  utilizare problematica, pe tool-uri); agregare + semnale pure in
+  `platform/ai-usage-insights.ts` cu teste; test DB T14 in `assistant_rls.sql`; manual
+  3.5; regula in AGENTS.md. Plan: `docs/plans/asistent-utilizare-super-admin.md`.
+  Merge `main`: migrarea renumerotata `0051` -> `0053` (`main` are `0051_client_individuals`
+  si `0052_quote_requests`).
 
 ## 2026-09-30 — Claude Opus 5.5 (Claude Code) — Proiecte Vercel pt. site-uri + ignoreCommand in cod
 
