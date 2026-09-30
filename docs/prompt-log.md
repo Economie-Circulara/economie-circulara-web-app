@@ -4,6 +4,16 @@ Jurnal al sarcinilor lucrate de agenti AI in acest repo. Conform regulii 1.2 din
 [`AGENTS.md`](../AGENTS.md), la **fiecare commit** se adauga o intrare aici.
 Cele mai noi intrari sus.
 
+## 2026-09-30 — Claude Opus 5.5 (Claude Code) — Proiecte Vercel pt. site-uri + ignoreCommand in cod
+
+- **Cerut:** crearea proiectelor Vercel pentru site-urile de prezentare si „Ignored
+  Build Step” si pe aplicatie; un PR nou.
+- **Facut:** (in Vercel, prin conector) proiectele `etora-site` / `maconxcx-site`
+  (Root Directory `sites/prezentare`, `SITE_TENANT`, domeniile apex + `www` cu redirect
+  308), primul deploy de productie reusit pe ambele. In repo: `vercel.json` (aplicatia
+  sare build-ul cand se schimba doar `sites/`) si `sites/prezentare/vercel.json` (site-ul
+  construieste doar la schimbari in folderul lui); `docs/setup.md` 3.1.3 actualizat.
+
 ## 2026-09-30 — Claude Opus 5.5 (Claude Code) — Merge main in cererile de oferta
 
 - **Cerut:** rezolvarea conflictelor cu `main` (clienti persoana fizica).

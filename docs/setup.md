@@ -207,25 +207,33 @@ logheaza-te cu el pe `www.lotculot.eu` -> ajungi pe login-ul domeniului organiza
 #### 3.1.3 Site-ul de prezentare de pe apex (`sites/prezentare`)
 
 Un singur cod (Next static, plan `docs/plans/site-prezentare-tenanti.md`), cate un
-proiect Vercel per client, in ACELASI cont/echipa cu aplicatia:
+proiect Vercel per client, in ACEEASI echipa cu aplicatia (`economie-circulara`).
 
-1. **Vercel** -> Add New Project -> acelasi repo GitHub. Nume: `etora-site`
-   (respectiv `maconxcx-site`). **Root Directory = `sites/prezentare`** (framework
-   Next.js detectat automat).
+**Stare (2026-09-30):** proiectele `etora-site` si `maconxcx-site` exista, legate de
+repo, cu Root Directory `sites/prezentare`, `SITE_TENANT` setat si domeniile adaugate
+(`etora.ro` / `maconxcx.ro` + `www.` cu redirect 308 pe domeniul fara `www`).
+
+Pentru un tenant nou (sau refacerea unui proiect):
+
+1. **Vercel** -> Add New Project -> acelasi repo GitHub. Nume: `<tenant>-site`.
+   **Root Directory = `sites/prezentare`** (framework Next.js detectat automat).
 2. **Environment Variables** (Production + Preview):
-   - `SITE_TENANT=etora` (numele fisierului din `sites/prezentare/content/`);
+   - `SITE_TENANT=<tenant>` (numele fisierului din `sites/prezentare/content/`);
    - optional `SUPABASE_URL` + `SUPABASE_PUBLISHABLE_KEY` (aceleasi valori ca
      `NEXT_PUBLIC_SUPABASE_*` ale aplicatiei; cheia publishable e publica): la build,
      site-ul ia tema si logo-ul setate in `/platform` (RPC `org_branding` dupa
-     `appDomain`). Fara ele - tema/logo-ul din fisierul de continut.
-3. **Settings -> Git -> Ignored Build Step** = `git diff --quiet HEAD^ HEAD -- .`
-   (build doar cand s-a schimbat ceva in `sites/prezentare`). La proiectul
-   APLICATIEI, acelasi camp = `git diff --quiet HEAD^ HEAD -- . ':(exclude)sites'`,
-   ca o modificare doar in site sa nu redeploy-eze aplicatia.
-4. **Domains**: adauga `etora.ro` si `www.etora.ro` (unul redirectioneaza pe
-   celalalt - Vercel propune). In Cloudflare pune inregistrarile cerute (de regula
-   `A @ -> 76.76.21.21` si `CNAME www -> cname.vercel-dns.com`), **DNS only**, ca la
-   3.1.2.
+     `appDomain`). Fara ele - tema/logo-ul din fisierul de continut. In aplicatie
+     variabilele sunt de tip „sensitive” (nu se pot citi/copia automat) - se adauga de
+     mana.
+3. **Build doar cand e cazul** - in cod, nu in dashboard: `vercel.json` din radacina
+   (aplicatia: `ignoreCommand` sare build-ul cand s-a schimbat DOAR `sites/`) si
+   `sites/prezentare/vercel.json` (site-ul: build doar cand s-a schimbat ceva in
+   `sites/prezentare`). `ignoreCommand` din `vercel.json` are prioritate fata de
+   campul „Ignored Build Step” din Settings.
+4. **Domains**: `<domeniu>` + `www.<domeniu>` cu redirect pe `<domeniu>`. In Cloudflare
+   pune exact inregistrarile afisate de Vercel in Settings -> Domains (de regula
+   `A @ -> 76.76.21.21` si `CNAME www -> …vercel-dns…`), **DNS only**, ca la 3.1.2.
+   Nu ating MX-urile de la Email Routing (3.2.3).
 5. O schimbare de tema/logo in `/platform` NU redeploy-eaza site-ul: Deployments ->
    Redeploy (sau orice push in `sites/prezentare`).
 
