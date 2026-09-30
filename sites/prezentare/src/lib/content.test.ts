@@ -148,4 +148,15 @@ describe("content/*.json din repo", () => {
     const raw: unknown = JSON.parse(readFileSync(path.join(dir, `${tenant}.json`), "utf8"));
     expect(() => parseSiteContent(tenant, raw)).not.toThrow();
   });
+
+  it.each(availableTenants(dir))(
+    "%s.json foloseste hello@<siteDomain> ca email de contact",
+    (tenant) => {
+      const c = parseSiteContent(
+        tenant,
+        JSON.parse(readFileSync(path.join(dir, `${tenant}.json`), "utf8")),
+      );
+      expect(c.contact.email).toBe(`hello@${c.siteDomain}`);
+    },
+  );
 });
