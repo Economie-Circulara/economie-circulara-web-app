@@ -4,6 +4,14 @@ Jurnal al sarcinilor lucrate de agenti AI in acest repo. Conform regulii 1.2 din
 [`AGENTS.md`](../AGENTS.md), la **fiecare commit** se adauga o intrare aici.
 Cele mai noi intrari sus.
 
+## 2026-09-30 — Claude Opus 5.5 (Claude Code) — Primire email: Cloudflare Email Routing
+
+- **Cerut:** cum primim mailuri pe domeniile tenantilor (adrese proprii, catch-all,
+  forward) - Resend sau altceva.
+- **Facut:** `docs/setup.md` 3.2.3: Cloudflare Email Routing (verificarea MX-ului
+  existent, catch-all, reguli, `no-reply@` -> Drop, coexistenta cu Resend pe
+  subdomenii) + raspuns din Gmail prin SMTP Resend cu cheie dedicata.
+
 ## 2026-09-29 — Claude Opus 5.5 (Claude Code) — Site prezentare: merge main, logo patrat, contact
 
 - **Cerut:** rezolvarea conflictelor din PR; adresele de contact `notificari@etora.ro`

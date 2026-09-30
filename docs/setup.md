@@ -297,6 +297,30 @@ Verificare: invita un user de test in organizatie -> emailul vine de la
 `notificari@etora.ro`, are logo-ul/culoarea Etora, iar linkul duce pe
 `circular.etora.ro`.
 
+#### 3.2.3 Primire email: adrese proprii, catch-all, forward (Cloudflare Email Routing)
+
+Resend doar TRIMITE (primirea la Resend inseamna webhook + cod, fara casuta si fara
+forward). Pentru adrese de tip `contact@etora.ro` redirectionate catre o casuta reala
+folosim **Cloudflare Email Routing** (gratuit, zona e deja in Cloudflare). Per domeniu:
+
+1. **Verifica MX-ul de pe `@`** (Cloudflare -> DNS). Daca firma are deja email pe
+   domeniu (Google Workspace, hosting), NU activa Email Routing - ar inlocui MX-ul si
+   mailul lor n-ar mai ajunge; forward-ul se face din sistemul lor.
+2. Email -> **Email Routing** -> Get started. Cloudflare adauga singur `MX @` ->
+   `route1/2/3.mx.cloudflare.net`, `TXT @` SPF (`include:_spf.mx.cloudflare.net`) si
+   DKIM-ul lui. Pe `@` trebuie sa ramana **un singur** TXT `v=spf1`.
+3. **Destination addresses**: casutele reale (ex. Gmail); fiecare se confirma o data
+   din emailul primit.
+4. **Routing rules**: adrese proprii (`contact@`, `notificari@` -> destinatie),
+   **Catch-all** -> Send to (tot restul), `no-reply@` -> Drop.
+
+Nu se bate cu Resend: inregistrarile Resend sunt pe subdomenii (`send`,
+`resend._domainkey`, 3.2.2), Email Routing pe radacina.
+
+**Raspuns „ca” `contact@etora.ro` din Gmail**: Setari -> Conturi -> Trimite e-mail ca
+-> SMTP `smtp.resend.com`, port 465 (SSL), user `resend`, parola = o cheie API Resend
+SEPARATA, doar „Sending access” pe domeniul respectiv (nu cheia aplicatiei).
+
 ## 4. Environment Claude Code on the web (ca agentul sa ruleze tot de-aici)
 
 Documentatie: https://code.claude.com/docs/en/claude-code-on-the-web
