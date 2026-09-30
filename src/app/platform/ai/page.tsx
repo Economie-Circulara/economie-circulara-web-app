@@ -93,9 +93,17 @@ export default async function PlatformAiPage() {
         title="Consum AI"
         description="Costul real al asistentului, pe organizații și pe modele (ultimele 30 de zile), și prețurile folosite la calcul."
         actions={
-          <Link href="/platform" className="text-sm text-primary underline underline-offset-4">
-            ← Organizații
-          </Link>
+          <div className="flex gap-4 text-sm">
+            <Link
+              href="/platform/ai/utilizare"
+              className="text-primary underline underline-offset-4"
+            >
+              Utilizare asistent
+            </Link>
+            <Link href="/platform" className="text-primary underline underline-offset-4">
+              ← Organizații
+            </Link>
+          </div>
         }
       />
 
