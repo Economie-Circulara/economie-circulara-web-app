@@ -1,7 +1,9 @@
 import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/database.types";
+import { normalizeCnp } from "./cnp";
 import { normalizeCui } from "./cui-lookup";
-import type { Client, ClientAddress } from "./types";
+import { toClientType } from "./labels";
+import type { Client, ClientAddress, ClientType } from "./types";
 
 type ClientRow = Database["public"]["Tables"]["clients"]["Row"];
 type ClientAddressRow = Database["public"]["Tables"]["client_addresses"]["Row"];
@@ -20,10 +22,22 @@ export class DuplicateCuiError extends Error {
   }
 }
 
+/** Exista deja un client persoana fizica cu acest CNP in organizatia curenta. */
+export class DuplicateCnpError extends Error {
+  constructor() {
+    super(
+      "Există deja un client cu acest CNP în organizația ta (verifică și clienții arhivați - îl poți restaura).",
+    );
+    this.name = "DuplicateCnpError";
+  }
+}
+
 function mapClient(row: ClientRow): Client {
   return {
     id: row.id,
+    clientType: toClientType(row.client_type),
     cui: row.cui,
+    cnp: row.cnp ?? null,
     name: row.name,
     regCom: row.reg_com,
     isVatPayer: row.is_vat_payer,
@@ -50,7 +64,12 @@ function mapAddress(row: ClientAddressRow): ClientAddress {
 }
 
 export interface ClientFields {
-  cui: string;
+  /** Implicit `juridica` (compatibil cu apelantii de dinainte de 0051). */
+  clientType?: ClientType;
+  /** Obligatoriu pentru `juridica`; ignorat pentru `fizica`. */
+  cui?: string | null;
+  /** Obligatoriu pentru `fizica`; ignorat pentru `juridica`. */
+  cnp?: string | null;
   name: string;
   regCom?: string | null;
   isVatPayer?: boolean;
@@ -62,42 +81,93 @@ export interface ClientFields {
   notes?: string | null;
 }
 
+type ClientPayload = Pick<
+  Database["public"]["Tables"]["clients"]["Insert"],
+  | "client_type"
+  | "cui"
+  | "cnp"
+  | "name"
+  | "reg_com"
+  | "is_vat_payer"
+  | "hq_address"
+  | "email"
+  | "phone"
+  | "contact_person"
+  | "is_supplier"
+  | "notes"
+>;
+
+/**
+ * Coloanele salvate pentru un client, dupa tipul lui (0051): CUI normalizat (fara
+ * "RO"/spatii - vezi cui-lookup.ts) la firme, CNP normalizat la persoane fizice.
+ * Campurile celuilalt tip sunt golite explicit - schimbarea tipului la editare nu
+ * lasa in urma un CUI/CNP vechi, iar CHECK-ul `clients_identity_check` ar refuza
+ * oricum combinatia.
+ */
+export function clientPayload(fields: ClientFields): ClientPayload {
+  const common = {
+    name: fields.name,
+    hq_address: fields.hqAddress ?? null,
+    email: fields.email ?? null,
+    phone: fields.phone ?? null,
+    contact_person: fields.contactPerson ?? null,
+    is_supplier: fields.isSupplier ?? false,
+    notes: fields.notes ?? null,
+  };
+
+  if (fields.clientType === "fizica") {
+    const cnp = normalizeCnp(fields.cnp ?? "");
+    if (!cnp) throw new Error("CNP-ul este obligatoriu pentru o persoană fizică.");
+    return {
+      ...common,
+      client_type: "fizica",
+      cnp,
+      cui: null,
+      reg_com: null,
+      is_vat_payer: false,
+    };
+  }
+
+  const cui = normalizeCui(fields.cui ?? "");
+  if (!cui) throw new Error("CUI-ul este obligatoriu pentru o persoană juridică.");
+  return {
+    ...common,
+    client_type: "juridica",
+    cui,
+    cnp: null,
+    reg_com: fields.regCom ?? null,
+    is_vat_payer: fields.isVatPayer ?? false,
+  };
+}
+
+function duplicateError(fields: ClientPayload): Error {
+  return fields.client_type === "fizica"
+    ? new DuplicateCnpError()
+    : new DuplicateCuiError(fields.cui ?? "");
+}
+
 export interface CreateClientInput extends ClientFields {
   /** Organizatia curenta (din sesiune) - RLS impune `app.is_staff_of(organization_id)`. */
   organizationId: string;
 }
 
 /**
- * Creeaza un client nou. CUI normalizat (fara "RO"/spatii - vezi cui-lookup.ts)
- * inainte de salvare, ca sa nu apara duplicate din formatari diferite ale
- * aceluiasi CUI. `organization_id` vine explicit din sesiune (nu exista RPC
- * dedicat - schema + migrarea 0004 sunt inghetate, Task A nu adauga alta migrare
- * de schema, doar bucket-ul de storage din 0006).
+ * Creeaza un client nou (firma sau persoana fizica - vezi `clientPayload`). CUI/CNP
+ * normalizat inainte de salvare, ca sa nu apara duplicate din formatari diferite.
+ * `organization_id` vine explicit din sesiune (nu exista RPC dedicat).
  */
 export async function createClientRecord(input: CreateClientInput): Promise<Client> {
   const supabase = await createClient();
-  const cui = normalizeCui(input.cui);
+  const fields = clientPayload(input);
 
   const { data, error } = await supabase
     .from("clients")
-    .insert({
-      organization_id: input.organizationId,
-      cui,
-      name: input.name,
-      reg_com: input.regCom ?? null,
-      is_vat_payer: input.isVatPayer ?? false,
-      hq_address: input.hqAddress ?? null,
-      email: input.email ?? null,
-      phone: input.phone ?? null,
-      contact_person: input.contactPerson ?? null,
-      is_supplier: input.isSupplier ?? false,
-      notes: input.notes ?? null,
-    })
+    .insert({ organization_id: input.organizationId, ...fields })
     .select()
     .single();
 
   if (error || !data) {
-    if (error?.code === ERR_UNIQUE_VIOLATION) throw new DuplicateCuiError(cui);
+    if (error?.code === ERR_UNIQUE_VIOLATION) throw duplicateError(fields);
     throw new Error(error?.message ?? "Nu am putut crea clientul.");
   }
   return mapClient(data);
@@ -107,31 +177,20 @@ export interface UpdateClientInput extends ClientFields {
   id: string;
 }
 
-/** Actualizeaza un client existent. Acelasi tratament de duplicat CUI ca la creare. */
+/** Actualizeaza un client existent. Acelasi tratament de duplicat CUI/CNP ca la creare. */
 export async function updateClientRecord(input: UpdateClientInput): Promise<Client> {
   const supabase = await createClient();
-  const cui = normalizeCui(input.cui);
+  const fields = clientPayload(input);
 
   const { data, error } = await supabase
     .from("clients")
-    .update({
-      cui,
-      name: input.name,
-      reg_com: input.regCom ?? null,
-      is_vat_payer: input.isVatPayer ?? false,
-      hq_address: input.hqAddress ?? null,
-      email: input.email ?? null,
-      phone: input.phone ?? null,
-      contact_person: input.contactPerson ?? null,
-      is_supplier: input.isSupplier ?? false,
-      notes: input.notes ?? null,
-    })
+    .update(fields)
     .eq("id", input.id)
     .select()
     .single();
 
   if (error || !data) {
-    if (error?.code === ERR_UNIQUE_VIOLATION) throw new DuplicateCuiError(cui);
+    if (error?.code === ERR_UNIQUE_VIOLATION) throw duplicateError(fields);
     throw new Error(error?.message ?? "Nu am putut actualiza clientul.");
   }
   return mapClient(data);

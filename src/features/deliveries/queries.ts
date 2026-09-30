@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { clientTaxIdValue } from "@/features/clients/labels";
 import type { Database } from "@/lib/database.types";
 import type { RouteChoiceView } from "@/features/routing/route-actions";
 import type { DeliveryDetail, DeliveryItemLine, DeliveryListRow, DeliveryRecord } from "./types";
@@ -142,7 +143,7 @@ export async function getDeliveryDetail(id: string): Promise<DeliveryDetail | nu
   const supabase = await createClient();
   const { data: delivery, error } = await supabase
     .from("deliveries")
-    .select(`${CORE_COLUMNS}, orders(order_number, clients(name, cui))`)
+    .select(`${CORE_COLUMNS}, orders(order_number, clients(name, cui, client_type))`)
     .eq("id", id)
     .maybeSingle();
   if (error) throw new Error("Nu am putut incarca livrarea.");
@@ -154,7 +155,13 @@ export async function getDeliveryDetail(id: string): Promise<DeliveryDetail | nu
     ...mapDelivery(delivery),
     orderNumber: delivery.orders?.order_number ?? null,
     clientName: delivery.orders?.clients?.name ?? "-",
-    clientCui: delivery.orders?.clients?.cui ?? "-",
+    // Persoana fizica: „Persoană fizică”, nu CNP-ul (date personale, 0051).
+    clientCui: delivery.orders?.clients
+      ? clientTaxIdValue({
+          clientType: delivery.orders.clients.client_type,
+          cui: delivery.orders.clients.cui,
+        })
+      : "-",
     items,
   };
 }

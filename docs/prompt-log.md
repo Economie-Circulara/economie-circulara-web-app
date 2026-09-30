@@ -8,12 +8,58 @@ Cele mai noi intrari sus.
 
 - **Cerut:** super-adminul sa vada cum folosesc clientii asistentul AI (varianta fara
   continutul conversatiilor).
-- **Facut:** migrarea `0051` - RPC-uri `security definer` doar-super-admin care intorc
+- **Facut:** migrarea `0053` - RPC-uri `security definer` doar-super-admin care intorc
   CONTOARE (activitate per utilizator, apeluri per tool/status), fara text; pagina
   `/platform/ai/utilizare` (7/30/90 zile: pe organizatii, pe utilizatori cu semnale de
   utilizare problematica, pe tool-uri); agregare + semnale pure in
   `platform/ai-usage-insights.ts` cu teste; test DB T14 in `assistant_rls.sql`; manual
   3.5; regula in AGENTS.md. Plan: `docs/plans/asistent-utilizare-super-admin.md`.
+  Merge `main`: migrarea renumerotata `0051` -> `0053` (`main` are `0051_client_individuals`
+  si `0052_quote_requests`).
+
+## 2026-09-30 — Claude Opus 5.5 (Claude Code) — Proiecte Vercel pt. site-uri + ignoreCommand in cod
+
+- **Cerut:** crearea proiectelor Vercel pentru site-urile de prezentare si „Ignored
+  Build Step” si pe aplicatie; un PR nou.
+- **Facut:** (in Vercel, prin conector) proiectele `etora-site` / `maconxcx-site`
+  (Root Directory `sites/prezentare`, `SITE_TENANT`, domeniile apex + `www` cu redirect
+  308), primul deploy de productie reusit pe ambele. In repo: `vercel.json` (aplicatia
+  sare build-ul cand se schimba doar `sites/`) si `sites/prezentare/vercel.json` (site-ul
+  construieste doar la schimbari in folderul lui); `docs/setup.md` 3.1.3 actualizat.
+
+## 2026-09-30 — Claude Opus 5.5 (Claude Code) — Merge main in cererile de oferta
+
+- **Cerut:** rezolvarea conflictelor cu `main` (clienti persoana fizica).
+- **Facut:** migrarea cererilor de oferta renumerotata `0051` -> `0052` (`main` are
+  `0051_client_individuals`), testul ei in `business_flow.sql` devine B33; prompt-log
+  cu ambele intrari.
+
+## 2026-09-30 — Claude Opus 5.5 (Claude Code) — Site Macon XCX + formularul „Cere o ofertă”
+
+- **Cerut:** analiza unui demo extern de site pentru Macon XCX si preluarea lui;
+  trimiterea cererilor „Cere o ofertă” pe email. Decizii: Macon = beton, transport,
+  concasare; cererea pe email SI in aplicatie; noutatile mai tarziu.
+- **Facut:** plan `docs/plans/site-cerere-oferta.md`. Site: sectiuni optionale
+  `circular` + `quote` (+ `tag` pe servicii), formular client cu acord + capcana
+  anti-bot, pagina `/confidentialitate`, continutul Macon din demo. App: migrarea
+  `0052` (`quote_requests` + RPC `submit_quote_request` doar `service_role`, limita
+  pe IP hash-uit si per organizatie), `POST /api/public/cerere-oferta` (CORS pe
+  apex/`www`, email cu brandul organizatiei, best-effort), ecranul `/cereri-oferta`
+  (meniu Comenzi / Vânzări), manual 7.6, AGENTS.md. Teste: unitare (app + site) +
+  `business_flow.sql` B33, rulate pe un Postgres 16 local cu stub Supabase.
+
+## 2026-09-30 — Claude Opus 5.5 (Claude Code) — Clienti persoana fizica
+
+- **Cerut:** clienti persoana fizica (nume + CNP obligatorii, restul fluxului identic),
+  bifa firma / persoana fizica in formularul de client, suport in asistentul AI.
+- **Facut:** migrarea `0051` (`clients.client_type`, `cnp`, `cui` nullable, CHECK de
+  consistenta, CNP unic per organizatie); validare CNP (`clients/cnp.ts`); formularul
+  de client cu "Tip client" (CNP in loc de CUI, fara reg. com./TVA/ANAF); CNP vizibil
+  doar staff-ului - comenzi, avize, certificate, cautare, selecturi afiseaza
+  "Persoană fizică" (`clientTaxIdLabel`). Asistent: `creeaza_client` v2 (`tip`, `cnp`),
+  `editeaza_client` v2 (`cnp`), `listeaza_clienti` v2 (`tip`, fara CNP), system
+  prompt. Manual + AGENTS.md (regula de business + capcana CHECK/NULL). Teste unitare
+  + `business_flow.sql` B32. Plan: `docs/plans/clienti-persoana-fizica.md`.
 
 ## 2026-09-30 — Claude Opus 5.5 (Claude Code) — Primire email: Cloudflare Email Routing
 

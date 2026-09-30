@@ -12,6 +12,7 @@ import {
   Factory,
   FileText,
   History,
+  Inbox,
   LayoutDashboard,
   LayoutGrid,
   MapPin,
@@ -72,6 +73,7 @@ const NAV_ICONS: Record<NavIconName, LucideIcon> = {
   stations: MapPin,
   aport: Recycle,
   addresses: MapPinHouse,
+  "quote-requests": Inbox,
 };
 
 export interface SidebarProps {

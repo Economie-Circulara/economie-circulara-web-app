@@ -6,7 +6,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { DataTable } from "@/components/data-table";
 import { EmptyState } from "@/components/empty-state";
 import { Badge } from "@/components/ui/badge";
-import { SUPPLIER_LABEL, VAT_PAYER_LABEL } from "./labels";
+import { CLIENT_TYPE_LABELS, SUPPLIER_LABEL, VAT_PAYER_LABEL } from "./labels";
 import type { Client } from "./types";
 
 const columns: ColumnDef<Client>[] = [
@@ -21,7 +21,13 @@ const columns: ColumnDef<Client>[] = [
       </div>
     ),
   },
-  { accessorKey: "cui", header: "CUI" },
+  {
+    id: "identifier",
+    header: "CUI / CNP",
+    // Tabelul e doar pentru staff (ca pagina clientului) - CNP-ul poate aparea aici.
+    cell: ({ row }) =>
+      row.original.clientType === "fizica" ? (row.original.cnp ?? "-") : (row.original.cui ?? "-"),
+  },
   {
     id: "contact",
     header: "Contact",
@@ -36,6 +42,9 @@ const columns: ColumnDef<Client>[] = [
     header: "Flag-uri",
     cell: ({ row }) => (
       <div className="flex flex-wrap gap-1.5">
+        {row.original.clientType === "fizica" ? (
+          <Badge variant="neutral">{CLIENT_TYPE_LABELS.fizica}</Badge>
+        ) : null}
         {row.original.isSupplier ? <Badge variant="accent">{SUPPLIER_LABEL}</Badge> : null}
         {row.original.isVatPayer ? <Badge variant="info">{VAT_PAYER_LABEL}</Badge> : null}
       </div>
@@ -51,7 +60,7 @@ export function ClientTable({ clients }: { clients: Client[] }) {
       <EmptyState
         icon={<Building2 />}
         title="Niciun client"
-        description="Adaugă primul client - poți căuta datele firmei după CUI."
+        description="Adaugă primul client - o firmă (poți căuta datele după CUI) sau o persoană fizică."
       />
     );
   }

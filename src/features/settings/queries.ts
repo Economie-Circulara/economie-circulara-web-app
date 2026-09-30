@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { clientTaxIdLabel } from "@/features/clients/labels";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { Database } from "@/lib/database.types";
 import { listClients } from "@/features/clients/queries";
@@ -34,11 +35,12 @@ export async function listOrgUsers(): Promise<OrgUser[]> {
 export interface AvailableClient {
   id: string;
   name: string;
-  cui: string;
+  /** „CUI …” sau „Persoană fizică” - fara CNP (0051). */
+  taxIdLabel: string;
 }
 
 /**
- * Firmele-client din organizatie care NU au inca un utilizator `client` legat
+ * Clientii (firme sau persoane fizice) din organizatie care NU au inca un utilizator `client` legat
  * (`profiles.client_id`) - candidate pentru invitare (un client = un singur user,
  * vezi AGENTS.md). Foloseste clientul de sesiune (RLS), doar citire.
  */
@@ -54,7 +56,7 @@ export async function listAvailableClientsForInvite(): Promise<AvailableClient[]
 
   return clients
     .filter((c) => !linkedIds.has(c.id))
-    .map((c) => ({ id: c.id, name: c.name, cui: c.cui }));
+    .map((c) => ({ id: c.id, name: c.name, taxIdLabel: clientTaxIdLabel(c) }));
 }
 
 /**

@@ -80,13 +80,15 @@ describe("listClients", () => {
     expect(result[0].archivedAt).toBe("2026-09-01T00:00:00.000Z");
   });
 
-  it("cauta dupa denumire SAU CUI (ilike, or())", async () => {
+  it("cauta dupa denumire, CUI SAU CNP (ilike, or())", async () => {
     const builder = makeListBuilder({ data: [], error: null });
     createClient.mockResolvedValue({ from: vi.fn().mockReturnValue(builder) });
 
     await listClients({ search: "exemplu" });
 
-    expect(builder.or).toHaveBeenCalledWith("name.ilike.%exemplu%,cui.ilike.%exemplu%");
+    expect(builder.or).toHaveBeenCalledWith(
+      "name.ilike.%exemplu%,cui.ilike.%exemplu%,cnp.ilike.%exemplu%",
+    );
   });
 
   it("arunca eroare cand interogarea esueaza", async () => {

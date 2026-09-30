@@ -69,6 +69,7 @@ export interface OrderItemRow {
 /** Comanda + date client/livrare + linii - ecranul /comenzi/[id]. */
 export interface OrderDetail extends Order {
   clientName: string;
+  /** Identificatorul afisabil: „CUI …” sau „Persoană fizică” (fara CNP, 0051). */
   clientCui: string;
   deliveryAddressLabel: string | null;
   deliveryAddress: string | null;

@@ -96,6 +96,50 @@ describe("parseSiteContent", () => {
       /euFunding\.text/,
     );
   });
+
+  it("sectiunile optionale lipsesc implicit", () => {
+    const c = parseSiteContent("etora", valid());
+    expect(c.circular).toBeNull();
+    expect(c.quote).toBeNull();
+    expect(c.services.items[0].tag).toBeNull();
+  });
+
+  it("fluxul circular: minim doi pasi, fiecare complet", () => {
+    const step = { label: "Intrare", title: "Moloz", text: "Colectat" };
+    const circular = { title: "Circular", intro: "Intro", steps: [step, step] };
+    expect(parseSiteContent("etora", { ...valid(), circular }).circular).toEqual({
+      ...circular,
+      note: null,
+    });
+    expect(() =>
+      parseSiteContent("etora", { ...valid(), circular: { ...circular, steps: [step] } }),
+    ).toThrow(/circular\.steps/);
+    expect(() =>
+      parseSiteContent("etora", {
+        ...valid(),
+        circular: { ...circular, steps: [step, { label: "X", title: "Y" }] },
+      }),
+    ).toThrow(/circular\.steps\[1\]\.text/);
+  });
+
+  it("formularul de oferta cere servicii, fara duplicate", () => {
+    expect(
+      parseSiteContent("etora", { ...valid(), quote: { services: ["Beton", "Transport"] } }).quote,
+    ).toEqual({ services: ["Beton", "Transport"] });
+    expect(() => parseSiteContent("etora", { ...valid(), quote: { services: [] } })).toThrow(
+      /quote\.services/,
+    );
+    expect(() =>
+      parseSiteContent("etora", { ...valid(), quote: { services: ["Beton", "Beton"] } }),
+    ).toThrow(/duplicate/);
+  });
+
+  it("eticheta serviciului e optionala", () => {
+    const services = { title: "S", items: [{ title: "A", text: "B", tag: "Stație proprie" }] };
+    expect(parseSiteContent("etora", { ...valid(), services }).services.items[0].tag).toBe(
+      "Stație proprie",
+    );
+  });
 });
 
 describe("content/*.json din repo", () => {

@@ -12,6 +12,15 @@ export type ThemeKey = (typeof THEME_KEYS)[number];
 export interface SiteService {
   title: string;
   text: string;
+  /** Eticheta scurta de pe card (ex. „Stație proprie”). */
+  tag: string | null;
+}
+
+export interface SiteCircularStep {
+  /** Eticheta pasului (ex. „Intrare”, „Procesare”). */
+  label: string;
+  title: string;
+  text: string;
 }
 
 export interface SiteStat {
@@ -39,6 +48,13 @@ export interface SiteContent {
   about: { title: string; paragraphs: string[] };
   services: { title: string; items: SiteService[] };
   stats: SiteStat[];
+  /** Fluxul de economie circulara al firmei (optional - altfel lipseste sectiunea). */
+  circular: { title: string; intro: string; steps: SiteCircularStep[]; note: string | null } | null;
+  /**
+   * Formularul „Cere o ofertă” (optional): serviciile din lista. Cererea ajunge in
+   * aplicatie (`https://<appDomain>/api/public/cerere-oferta`) si pe emailul firmei.
+   */
+  quote: { services: string[] } | null;
   portal: { title: string; text: string; bullets: string[] };
   contact: {
     email: string | null;
@@ -124,6 +140,34 @@ export function parseSiteContent(tenant: string, raw: unknown): SiteContent {
   };
   if (!contactValue.email && !contactValue.phone) fail("contact are nevoie de email sau telefon");
 
+  let circular: SiteContent["circular"] = null;
+  if (root.circular !== undefined && root.circular !== null) {
+    const c = obj(root.circular, "circular");
+    circular = {
+      title: str(c.title, "circular.title"),
+      intro: str(c.intro, "circular.intro"),
+      steps: arr(c.steps, "circular.steps", 2).map((item, i) => {
+        const step = obj(item, `circular.steps[${i}]`);
+        return {
+          label: str(step.label, `circular.steps[${i}].label`),
+          title: str(step.title, `circular.steps[${i}].title`),
+          text: str(step.text, `circular.steps[${i}].text`),
+        };
+      }),
+      note: optStr(c.note, "circular.note"),
+    };
+  }
+
+  let quote: SiteContent["quote"] = null;
+  if (root.quote !== undefined && root.quote !== null) {
+    const q = obj(root.quote, "quote");
+    const services = arr(q.services, "quote.services", 1).map((v, i) =>
+      str(v, `quote.services[${i}]`),
+    );
+    if (new Set(services).size !== services.length) fail("quote.services are valori duplicate");
+    quote = { services };
+  }
+
   let euFunding: SiteContent["euFunding"] = null;
   if (root.euFunding !== undefined && root.euFunding !== null) {
     const eu = obj(root.euFunding, "euFunding");
@@ -159,6 +203,7 @@ export function parseSiteContent(tenant: string, raw: unknown): SiteContent {
         return {
           title: str(s.title, `services.items[${i}].title`),
           text: str(s.text, `services.items[${i}].text`),
+          tag: optStr(s.tag, `services.items[${i}].tag`),
         };
       }),
     },
@@ -172,6 +217,8 @@ export function parseSiteContent(tenant: string, raw: unknown): SiteContent {
               label: str(s.label, `stats[${i}].label`),
             };
           }),
+    circular,
+    quote,
     portal: {
       title: str(portal.title, "portal.title"),
       text: str(portal.text, "portal.text"),

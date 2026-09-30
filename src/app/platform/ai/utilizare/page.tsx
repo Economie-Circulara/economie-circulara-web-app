@@ -57,7 +57,7 @@ interface PageProps {
 
 /**
  * Cum folosesc organizatiile asistentul - DOAR contoare, fara continutul conversatiilor
- * (docs/plans/asistent-utilizare-super-admin.md, RPC-urile din migrarea 0051).
+ * (docs/plans/asistent-utilizare-super-admin.md, RPC-urile din migrarea 0053).
  */
 export default async function PlatformAiUsagePage({ searchParams }: PageProps) {
   await requireRole(["super_admin"]);

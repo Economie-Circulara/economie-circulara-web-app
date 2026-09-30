@@ -11,7 +11,7 @@ cere opt-in + clauza contractuala + jurnal de acces - nu face parte din acest ta
 - **Doar metadate, niciun text.** Conversatiile raman PERSONALE prin RLS (0020). Nu
   adaugam politici de SELECT pentru super-admin pe `assistant_conversations`,
   `assistant_messages`, `assistant_tool_calls` (ar expune `content`, `arguments`,
-  `result`). In schimb, migrarea `0051_ai_usage_insights.sql` adauga doua RPC-uri
+  `result`). In schimb, migrarea `0053_ai_usage_insights.sql` adauga doua RPC-uri
   `security definer` care intorc DOAR contoare si verifica explicit
   `app.is_super_admin()` (altfel 0 randuri):
   - `platform_ai_user_activity(p_since)` - per (organizatie, utilizator): conversatii

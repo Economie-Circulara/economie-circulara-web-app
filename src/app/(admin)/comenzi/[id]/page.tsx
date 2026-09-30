@@ -177,7 +177,7 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
           </CardHeader>
           <CardContent className="space-y-1 text-sm">
             <p className="font-medium">{order.clientName}</p>
-            <p className="text-muted-foreground">CUI {order.clientCui}</p>
+            <p className="text-muted-foreground">{order.clientCui}</p>
             {order.createdByAdmin ? (
               <p className="text-xs text-muted-foreground">
                 Creată de organizație în numele clientului.

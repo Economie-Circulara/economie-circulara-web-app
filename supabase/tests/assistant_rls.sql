@@ -337,7 +337,7 @@ begin;
     from public.ai_credit_grants;
 rollback;
 
--- ===== TEST 14: utilizarea asistentului (0051) - contoare doar pentru super-admin =====
+-- ===== TEST 14: utilizarea asistentului (0053) - contoare doar pentru super-admin =====
 begin;
   insert into auth.users (id, instance_id, aud, role, email) values
     ('a5555555-5555-5555-5555-555555555555','00000000-0000-0000-0000-000000000000','authenticated','authenticated','ai-super@test.ro');

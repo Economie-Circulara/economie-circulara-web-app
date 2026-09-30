@@ -4,8 +4,8 @@ import type { UserRole } from "@/features/auth/session";
 /**
  * Utilizarea asistentului AI, vazuta de super-admin (`/platform/ai/utilizare`,
  * docs/plans/asistent-utilizare-super-admin.md). DOAR contoare: conversatiile raman
- * personale, RPC-urile din migrarea 0051 nu intorc niciun text. Aceeasi granita netipata
- * ca `ai-usage-queries.ts` (0037/0051 nu sunt inca in `database.types.ts`).
+ * personale, RPC-urile din migrarea 0053 nu intorc niciun text. Aceeasi granita netipata
+ * ca `ai-usage-queries.ts` (0037/0053 nu sunt inca in `database.types.ts`).
  */
 
 interface UntypedClient {
