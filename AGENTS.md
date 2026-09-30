@@ -476,6 +476,10 @@ Testele unitare sunt **colocate** langa cod (`*.test.ts` / `*.test.tsx`).
   `/cereri-oferta`. Staff-ul schimba DOAR `status`; datele solicitantului raman cum au
   venit. Formularul colecteaza date personale => acord explicit + pagina
   `/confidentialitate` pe site; fara cookie-uri.
+  - **Emailul de contact de pe site-ul de prezentare e `hello@<siteDomain>`**
+    (decizie 2026-09-30): domeniile au catch-all pe mail, deci adresa publica e
+    uniforma pe toti tenantii; nu se folosesc adrese de sistem (`notificari@`,
+    `no-reply@`). Verificat de `sites/prezentare/src/lib/content.test.ts`.
   - **Grant pe coloana cere `revoke` pe tabel intai**: default privileges Supabase dau
     `all` lui `anon`/`authenticated` pe orice tabel nou din `public`, deci un
     `grant update (col)` singur NU restrange nimic.

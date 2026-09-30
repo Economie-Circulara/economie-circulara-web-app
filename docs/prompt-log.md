@@ -4,6 +4,14 @@ Jurnal al sarcinilor lucrate de agenti AI in acest repo. Conform regulii 1.2 din
 [`AGENTS.md`](../AGENTS.md), la **fiecare commit** se adauga o intrare aici.
 Cele mai noi intrari sus.
 
+## 2026-09-30 — Claude Opus 5.5 (Claude Code) — Email de contact hello@ pe site-uri
+
+- **Cerut:** adresele de email de pe site-urile de prezentare sa fie `hello@<domeniu>`
+  (exista catch-all pe mail).
+- **Facut:** `content/etora.json` -> `hello@etora.ro`, `content/maconxcx.json` ->
+  `hello@maconxcx.ro`; test care impune `hello@<siteDomain>` pe toate fisierele de
+  continut; regula adaugata in `AGENTS.md`. Merge `main` (conflict doar in prompt-log).
+
 ## 2026-09-30 — Claude Opus 5.5 (Claude Code) — Utilizarea asistentului AI, vedere super-admin
 
 - **Cerut:** super-adminul sa vada cum folosesc clientii asistentul AI (varianta fara
