@@ -1512,6 +1512,69 @@ export type Database = {
           },
         ]
       }
+      quote_requests: {
+        Row: {
+          created_at: string
+          email: string | null
+          handled_at: string | null
+          handled_by: string | null
+          id: string
+          ip_hash: string | null
+          message: string | null
+          name: string
+          organization_id: string
+          phone: string
+          service: string
+          source_domain: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          handled_at?: string | null
+          handled_by?: string | null
+          id?: string
+          ip_hash?: string | null
+          message?: string | null
+          name: string
+          organization_id: string
+          phone: string
+          service: string
+          source_domain: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          handled_at?: string | null
+          handled_by?: string | null
+          id?: string
+          ip_hash?: string | null
+          message?: string | null
+          name?: string
+          organization_id?: string
+          phone?: string
+          service?: string
+          source_domain?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quote_requests_handled_by_fkey"
+            columns: ["handled_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quote_requests_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       recipe_components: {
         Row: {
           component_item_id: string
@@ -2046,6 +2109,18 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      submit_quote_request: {
+        Args: {
+          p_domain: string
+          p_email?: string
+          p_ip_hash?: string
+          p_message?: string
+          p_name: string
+          p_phone: string
+          p_service: string
+        }
+        Returns: string
       }
     }
     Enums: {
