@@ -1,4 +1,4 @@
--- RLS pentru asistentul AI (migrarea 0020): conversatiile sunt PERSONALE, iar
+-- RLS pentru asistentul AI (migrarile 0020, 0054): conversatiile sunt PERSONALE, iar
 -- consumul e vizibil intregii organizatii (adminul trebuie sa stie de ce s-a
 -- terminat quota), dar scriibil doar de proprietar.
 --
@@ -364,6 +364,48 @@ begin;
   set local request.jwt.claims = '{"sub":"a2222222-2222-2222-2222-222222222222"}';
   select pg_temp.assert('T14 operatorul nu primeste nici propria activitate', count(*), 0)
     from public.platform_ai_user_activity(now() - interval '30 days');
+rollback;
+
+-- ===== TEST 15: clientul nu are asistent (0054) - nu poate crea conversatii/mesaje =====
+begin;
+  insert into auth.users (id, instance_id, aud, role, email) values
+    ('a6666666-6666-6666-6666-666666666666','00000000-0000-0000-0000-000000000000','authenticated','authenticated','ai-client-a@test.ro');
+  insert into public.clients (id, organization_id, cui, name) values
+    ('a7777777-7777-7777-7777-777777777777','a0000000-0000-0000-0000-00000000000a','RO999','AI Client A');
+  insert into public.profiles (id, organization_id, role, client_id) values
+    ('a6666666-6666-6666-6666-666666666666','a0000000-0000-0000-0000-00000000000a','client','a7777777-7777-7777-7777-777777777777');
+  -- Conversatie veche a clientului (dinainte de 0054): ramane citibila, dar inghetata.
+  insert into public.assistant_conversations (id, organization_id, user_id, title) values
+    ('a6666666-0000-0000-0000-000000000001','a0000000-0000-0000-0000-00000000000a','a6666666-6666-6666-6666-666666666666','Veche');
+
+  set local role authenticated;
+  set local request.jwt.claims = '{"sub":"a6666666-6666-6666-6666-666666666666"}';
+  select pg_temp.assert('T15 clientul isi vede conversatia veche', count(*), 1)
+    from public.assistant_conversations;
+  do $$
+  begin
+    begin
+      insert into public.assistant_conversations (organization_id, user_id, title)
+        values ('a0000000-0000-0000-0000-00000000000a', auth.uid(), 'Noua');
+      raise exception 'FAIL: T15 clientul a creat o conversatie';
+    exception when insufficient_privilege then
+      raise notice 'PASS: T15 clientul nu poate crea conversatii';
+    end;
+    begin
+      insert into public.assistant_messages (conversation_id, role, content)
+        values ('a6666666-0000-0000-0000-000000000001', 'user', 'salut');
+      raise exception 'FAIL: T15 clientul a scris un mesaj';
+    exception when insufficient_privilege then
+      raise notice 'PASS: T15 clientul nu poate scrie mesaje nici in conversatia veche';
+    end;
+  end $$;
+
+  -- Staff-ul (operatorul) creeaza in continuare conversatii.
+  set local request.jwt.claims = '{"sub":"a2222222-2222-2222-2222-222222222222"}';
+  insert into public.assistant_conversations (organization_id, user_id, title)
+    values ('a0000000-0000-0000-0000-00000000000a', auth.uid(), 'Staff');
+  select pg_temp.assert('T15 operatorul creeaza conversatii', count(*), 2)
+    from public.assistant_conversations;
 rollback;
 
 select '*** TOATE TESTELE RLS DE ASISTENT AU TRECUT ***' as result;

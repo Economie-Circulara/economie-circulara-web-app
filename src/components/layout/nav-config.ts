@@ -1,3 +1,5 @@
+import { ASSISTANT_ROLES } from "@/features/assistant/access";
+
 export type AppRole = "super_admin" | "admin" | "operator" | "client";
 
 /**
@@ -215,12 +217,12 @@ export const HELP_NAV_ITEM: NavItem = {
   roles: ["super_admin", "admin", "operator", "client"],
 };
 
-/** Asistentul AI - la fel ca ajutorul, vizibil tuturor rolurilor si tinut separat. */
+/** Asistentul AI - tinut separat ca ajutorul, dar doar pentru staff (fara client). */
 export const ASSISTANT_NAV_ITEM: NavItem = {
   label: "Asistent AI",
   href: "/asistent",
   icon: "assistant",
-  roles: ["super_admin", "admin", "operator", "client"],
+  roles: ASSISTANT_ROLES,
 };
 
 /** Filtreaza navigatia staff pe rol - pastreaza grupurile, dar le elimina daca raman fara copii. */
@@ -244,7 +246,7 @@ const CLIENT_NAV_FLUX: NavItem[] = [
 ].map((href) => CLIENT_NAV.find((item) => item.href === href)!);
 
 export function navForRole(role: AppRole, layout: NavLayoutKey = "standard"): NavEntry[] {
-  const shared = [ASSISTANT_NAV_ITEM, HELP_NAV_ITEM];
+  const shared = [ASSISTANT_NAV_ITEM, HELP_NAV_ITEM].filter((item) => item.roles.includes(role));
   if (role === "client") return [...(layout === "flux" ? CLIENT_NAV_FLUX : CLIENT_NAV), ...shared];
   const staffNav = layout === "flux" ? STAFF_NAV_FLUX : STAFF_NAV;
   return [...filterStaffNavForRole(staffNav, role), ...shared];

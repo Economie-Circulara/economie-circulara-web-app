@@ -2,12 +2,8 @@ import { describe, expect, it } from "vitest";
 import { ASSISTANT_TOOLS, findTool, toolDefinitions, toolsForRole } from "./registry";
 
 describe("registry de tool-uri", () => {
-  it("clientul nu primeste niciun tool de scriere", () => {
-    const clientTools = toolsForRole("client");
-
-    expect(clientTools.length).toBeGreaterThan(0);
-    expect(clientTools.every((tool) => tool.kind === "read")).toBe(true);
-    expect(clientTools.map((tool) => tool.name)).not.toContain("creeaza_client");
+  it("clientul nu are asistent: niciun tool, nici macar de citire", () => {
+    expect(toolsForRole("client")).toEqual([]);
   });
 
   it("staff-ul primeste si tool-urile de scriere", () => {
@@ -47,16 +43,6 @@ describe("registry de tool-uri", () => {
   it("super-adminul (fara organizatie) nu primeste tool-urile de scriere noi", () => {
     const writes = toolsForRole("super_admin").filter((tool) => tool.kind === "write");
     expect(writes).toEqual([]);
-  });
-
-  it("clientul nu vede tool-urile de organizatie (aport, livrari)", () => {
-    const names = toolsForRole("client").map((tool) => tool.name);
-
-    expect(names).not.toContain("itemi_aport");
-    expect(names).not.toContain("context_livrare");
-    expect(names).not.toContain("planifica_livrare");
-    expect(names).not.toContain("listeaza_comenzi");
-    expect(names).not.toContain("reteta_produs");
   });
 
   it("findTool respecta rolul, nu doar numele", () => {

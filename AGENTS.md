@@ -247,6 +247,13 @@ Testele unitare sunt **colocate** langa cod (`*.test.ts` / `*.test.tsx`).
   intai o PROPUNERE (`assistant_tool_calls.status = 'proposed'`), executata doar dupa
   confirmarea utilizatorului pe argumentele afisate - asta acopera si greselile
   modelului, si prompt injection-ul din date.
+- **Asistentul AI e doar pentru staff (admin/operator) si super-admin, NU pentru client**
+  (decizie 2026-09-30, migrarea `0054`, plan `docs/plans/asistent-fara-clienti.md`):
+  rolurile sunt in `ASSISTANT_ROLES` (`src/features/assistant/access.ts`), folosit de
+  meniu, rutele `/asistent*` si server actions (`requireRole`); in DB, scrierile pe
+  conversatii/mesaje/propuneri cer `app.can_use_assistant()`. Niciun tool nu mai are
+  rolul `client` (`toolsForRole("client")` e gol). Conversatiile vechi ale clientilor
+  raman citibile doar prin DB (nu se sterge istoric).
 - **Super-adminul vede CUM e folosit asistentul, nu CE s-a discutat** (decizie
   2026-09-30, migrarea `0053`, `/platform/ai/utilizare`): conversatiile raman personale
   (RLS 0020, fara politici de citire pentru super-admin); statisticile vin din RPC-uri

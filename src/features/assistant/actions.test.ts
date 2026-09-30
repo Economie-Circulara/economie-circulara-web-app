@@ -1,7 +1,13 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-const { requireUser } = vi.hoisted(() => ({ requireUser: vi.fn() }));
-vi.mock("@/features/auth/session", () => ({ requireUser }));
+// `requireRole` real redirectioneaza (arunca NEXT_REDIRECT) cand rolul nu e permis.
+const { currentUser } = vi.hoisted(() => ({ currentUser: vi.fn() }));
+const requireRole = vi.fn(async (roles: string[]) => {
+  const user = await currentUser();
+  if (!roles.includes(user.role)) throw new Error("NEXT_REDIRECT");
+  return user;
+});
+vi.mock("@/features/auth/session", () => ({ requireRole }));
 
 vi.mock("./attachments", () => ({
   AttachmentError: class extends Error {},
@@ -27,7 +33,7 @@ afterEach(() => {
 
 describe("sendAssistantMessageAction - atasamente", () => {
   it("adauga referintele DOAR pentru atasamentele gasite (RLS), ignora restul", async () => {
-    requireUser.mockResolvedValue(STAFF);
+    currentUser.mockResolvedValue(STAFF);
     vi.mocked(getAttachment).mockImplementation(async (id) =>
       id === ID
         ? { id, fileName: "nisip.jpg", mimeType: "image/jpeg", sizeBytes: 1, storagePath: "p" }
@@ -46,7 +52,7 @@ describe("sendAssistantMessageAction - atasamente", () => {
   });
 
   it("un mesaj doar cu atasament (fara text) e acceptat", async () => {
-    requireUser.mockResolvedValue(STAFF);
+    currentUser.mockResolvedValue(STAFF);
     vi.mocked(getAttachment).mockResolvedValue({
       id: ID,
       fileName: "r.pdf",
@@ -62,8 +68,23 @@ describe("sendAssistantMessageAction - atasamente", () => {
     );
   });
 
-  it("clientul nu poate atasa: nici URL de upload, nici referinte", async () => {
-    requireUser.mockResolvedValue({ ...STAFF, role: "client", clientId: "c1" });
+  it("clientul nu are asistent: e oprit inainte de orice apel", async () => {
+    currentUser.mockResolvedValue({ ...STAFF, role: "client", clientId: "c1" });
+
+    await expect(
+      prepareAssistantAttachmentAction({ name: "a.png", type: "image/png", size: 1 }),
+    ).rejects.toThrow("NEXT_REDIRECT");
+    await expect(
+      sendAssistantMessageAction({ conversationId: null, message: "x", attachmentIds: [ID] }),
+    ).rejects.toThrow("NEXT_REDIRECT");
+
+    expect(registerAttachment).not.toHaveBeenCalled();
+    expect(getAttachment).not.toHaveBeenCalled();
+    expect(runAssistantTurn).not.toHaveBeenCalled();
+  });
+
+  it("super-adminul foloseste asistentul, dar nu ataseaza fisiere", async () => {
+    currentUser.mockResolvedValue({ ...STAFF, role: "super_admin", organizationId: null });
 
     const prepared = await prepareAssistantAttachmentAction({
       name: "a.png",
@@ -74,7 +95,6 @@ describe("sendAssistantMessageAction - atasamente", () => {
 
     expect(prepared.ok).toBe(false);
     expect(registerAttachment).not.toHaveBeenCalled();
-    expect(getAttachment).not.toHaveBeenCalled();
     expect(vi.mocked(runAssistantTurn).mock.calls[0][0].message).toBe("x");
   });
 });

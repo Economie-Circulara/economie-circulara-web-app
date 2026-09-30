@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { PageHeader } from "@/components/page-header";
-import { requireUser } from "@/features/auth/session";
+import { requireRole } from "@/features/auth/session";
+import { ASSISTANT_ROLES } from "./access";
 import type { Bubble } from "./assistant-chat";
 import { AssistantChat } from "./assistant-chat";
 import { ConversationSidebar, MobileConversationSidebar } from "./conversation-sidebar";
@@ -8,24 +9,21 @@ import { isChatProviderConfigured } from "./provider";
 import { getQuotaStatus } from "./quota";
 import { getConversation, listConversations, listMessages } from "./service";
 
-/** Sugestii diferite pe rol - clientul n-are acces la actiuni de organizatie. */
-const SUGGESTIONS: Record<string, string[]> = {
-  staff: [
-    "Cum adaug un lot în stoc?",
-    "Caută firma cu CUI 12345678",
-    "Ce materiale și abonamente vandabile am?",
-    "Cât stoc mai am la agregate?",
-    "Planifică livrarea pentru comanda acceptată a clientului X",
-  ],
-  client: ["Cum plasez o comandă?", "Unde îmi găsesc certificatele?", "Cum fac un retur?"],
-};
+const SUGGESTIONS = [
+  "Cum adaug un lot în stoc?",
+  "Caută firma cu CUI 12345678",
+  "Ce materiale și abonamente vandabile am?",
+  "Cât stoc mai am la agregate?",
+  "Planifică livrarea pentru comanda acceptată a clientului X",
+];
 
 /**
  * Continutul paginii de asistent, partajat intre `/asistent` (conversatie noua) si
  * `/asistent/[id]` (conversatie existenta), ca sa nu se dubleze data-loading-ul.
  */
 export async function AssistantPageContent({ conversationId }: { conversationId?: string }) {
-  const user = await requireUser();
+  // Clientul nu are asistent (ASSISTANT_ROLES) - e redirectionat la pagina lui.
+  const user = await requireRole(ASSISTANT_ROLES);
   const ctx = {
     userId: user.id,
     role: user.role,
@@ -64,7 +62,7 @@ export async function AssistantPageContent({ conversationId }: { conversationId?
           initialConversationId={conversationId ?? null}
           initialMessages={initialMessages}
           initialQuota={quota}
-          suggestions={SUGGESTIONS[user.role === "client" ? "client" : "staff"]}
+          suggestions={SUGGESTIONS}
           providerConfigured={isChatProviderConfigured()}
           canAttach={user.role === "admin" || user.role === "operator"}
         />
