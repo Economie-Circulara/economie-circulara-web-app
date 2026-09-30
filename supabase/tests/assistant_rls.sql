@@ -337,4 +337,33 @@ begin;
     from public.ai_credit_grants;
 rollback;
 
+-- ===== TEST 14: utilizarea asistentului (0053) - contoare doar pentru super-admin =====
+begin;
+  insert into auth.users (id, instance_id, aud, role, email) values
+    ('a5555555-5555-5555-5555-555555555555','00000000-0000-0000-0000-000000000000','authenticated','authenticated','ai-super@test.ro');
+  insert into public.profiles (id, organization_id, role, client_id) values
+    ('a5555555-5555-5555-5555-555555555555',null,'super_admin',null);
+
+  set local role authenticated;
+  set local request.jwt.claims = '{"sub":"a5555555-5555-5555-5555-555555555555"}';
+  select pg_temp.assert('T14 super-adminul vede activitatea operatorului', user_messages, 1)
+    from public.platform_ai_user_activity(now() - interval '30 days')
+    where user_id = 'a2222222-2222-2222-2222-222222222222';
+  select pg_temp.assert('T14 super-adminul vede propunerea (doar contorul)', calls, 1)
+    from public.platform_ai_tool_activity(now() - interval '30 days')
+    where tool = 'creeaza_client' and status = 'proposed';
+  select pg_temp.assert('T14 super-adminul tot NU vede mesajele', count(*), 0)
+    from public.assistant_messages;
+
+  set local request.jwt.claims = '{"sub":"a1111111-1111-1111-1111-111111111111"}';
+  select pg_temp.assert('T14 adminul organizatiei nu primeste activitatea', count(*), 0)
+    from public.platform_ai_user_activity(now() - interval '30 days');
+  select pg_temp.assert('T14 adminul organizatiei nu primeste tool-urile', count(*), 0)
+    from public.platform_ai_tool_activity(now() - interval '30 days');
+
+  set local request.jwt.claims = '{"sub":"a2222222-2222-2222-2222-222222222222"}';
+  select pg_temp.assert('T14 operatorul nu primeste nici propria activitate', count(*), 0)
+    from public.platform_ai_user_activity(now() - interval '30 days');
+rollback;
+
 select '*** TOATE TESTELE RLS DE ASISTENT AU TRECUT ***' as result;

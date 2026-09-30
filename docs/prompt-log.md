@@ -4,6 +4,19 @@ Jurnal al sarcinilor lucrate de agenti AI in acest repo. Conform regulii 1.2 din
 [`AGENTS.md`](../AGENTS.md), la **fiecare commit** se adauga o intrare aici.
 Cele mai noi intrari sus.
 
+## 2026-09-30 — Claude Opus 5.5 (Claude Code) — Utilizarea asistentului AI, vedere super-admin
+
+- **Cerut:** super-adminul sa vada cum folosesc clientii asistentul AI (varianta fara
+  continutul conversatiilor).
+- **Facut:** migrarea `0053` - RPC-uri `security definer` doar-super-admin care intorc
+  CONTOARE (activitate per utilizator, apeluri per tool/status), fara text; pagina
+  `/platform/ai/utilizare` (7/30/90 zile: pe organizatii, pe utilizatori cu semnale de
+  utilizare problematica, pe tool-uri); agregare + semnale pure in
+  `platform/ai-usage-insights.ts` cu teste; test DB T14 in `assistant_rls.sql`; manual
+  3.5; regula in AGENTS.md. Plan: `docs/plans/asistent-utilizare-super-admin.md`.
+  Merge `main`: migrarea renumerotata `0051` -> `0053` (`main` are `0051_client_individuals`
+  si `0052_quote_requests`).
+
 ## 2026-09-30 — Claude Opus 5.5 (Claude Code) — Proiecte Vercel pt. site-uri + ignoreCommand in cod
 
 - **Cerut:** crearea proiectelor Vercel pentru site-urile de prezentare si „Ignored

@@ -247,6 +247,12 @@ Testele unitare sunt **colocate** langa cod (`*.test.ts` / `*.test.tsx`).
   intai o PROPUNERE (`assistant_tool_calls.status = 'proposed'`), executata doar dupa
   confirmarea utilizatorului pe argumentele afisate - asta acopera si greselile
   modelului, si prompt injection-ul din date.
+- **Super-adminul vede CUM e folosit asistentul, nu CE s-a discutat** (decizie
+  2026-09-30, migrarea `0053`, `/platform/ai/utilizare`): conversatiile raman personale
+  (RLS 0020, fara politici de citire pentru super-admin); statisticile vin din RPC-uri
+  `security definer` doar-super-admin care intorc DOAR contoare (mesaje, conversatii,
+  apeluri per tool si status). Accesul la continut ar cere opt-in per organizatie,
+  clauza contractuala si jurnal de acces - nu se adauga ca o simpla politica de SELECT.
 - **Asistentul poate ACCEPTA si ANULA comenzi** (decizie 2026-09-24, anterior exclus
   explicit): tot prin card de confirmare care spune efectul pe stoc (scade la
   acceptare / se reface la anulare), si doar la cererea explicita a utilizatorului
