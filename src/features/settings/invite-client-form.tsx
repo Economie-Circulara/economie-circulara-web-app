@@ -37,11 +37,11 @@ export function InviteClientForm({ clients }: InviteClientFormProps) {
             className="h-9 rounded-md border border-input bg-transparent px-3 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             <option value="" disabled>
-              Selecteaza firma
+              Selecteaza clientul
             </option>
             {clients.map((c) => (
               <option key={c.id} value={c.id}>
-                {c.name} ({c.cui})
+                {c.name} ({c.taxIdLabel})
               </option>
             ))}
           </select>

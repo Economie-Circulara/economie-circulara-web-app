@@ -1,7 +1,16 @@
-/** Un client (firma juridica), asa cum il returneaza `queries.ts`/`service.ts`. */
+/**
+ * Tipul clientului (0051): `juridica` = firma (CUI), `fizica` = persoana fizica (CNP).
+ */
+export type ClientType = "juridica" | "fizica";
+
+/** Un client (firma sau persoana fizica), asa cum il returneaza `queries.ts`/`service.ts`. */
 export interface Client {
   id: string;
-  cui: string;
+  clientType: ClientType;
+  /** CUI-ul firmei; `null` pentru o persoana fizica. */
+  cui: string | null;
+  /** CNP-ul persoanei fizice (date personale - afisat doar staff-ului); `null` la firme. */
+  cnp: string | null;
   name: string;
   regCom: string | null;
   isVatPayer: boolean;

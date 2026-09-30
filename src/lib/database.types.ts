@@ -366,9 +366,11 @@ export type Database = {
         Row: {
           archived_at?: string | null
           archived_by: string | null
+          client_type: string
+          cnp: string | null
           contact_person: string | null
           created_at: string
-          cui: string
+          cui: string | null
           email: string | null
           hq_address: string | null
           id: string
@@ -384,9 +386,11 @@ export type Database = {
         Insert: {
           archived_at?: string | null
           archived_by?: string | null
+          client_type?: string
+          cnp?: string | null
           contact_person?: string | null
           created_at?: string
-          cui: string
+          cui?: string | null
           email?: string | null
           hq_address?: string | null
           id?: string
@@ -402,9 +406,11 @@ export type Database = {
         Update: {
           archived_at?: string | null
           archived_by?: string | null
+          client_type?: string
+          cnp?: string | null
           contact_person?: string | null
           created_at?: string
-          cui?: string
+          cui?: string | null
           email?: string | null
           hq_address?: string | null
           id?: string

@@ -55,23 +55,34 @@ pagina "Rapoarte" (link **"Vezi rapoarte"**).
 
 ## 3. Clienți
 
-Meniul **"Clienți"** afișează firmele cu care organizația lucrează (cumpărători și,
-opțional, furnizori de materiale/deșeuri). **Regulă de business: un client = o
-singură firmă juridică, cu un singur utilizator de portal** (nu persoane fizice).
+Meniul **"Clienți"** afișează clienții cu care organizația lucrează (cumpărători și,
+opțional, furnizori de materiale/deșeuri): **firme (persoane juridice)** sau
+**persoane fizice**. **Regulă de business: un client = un singur utilizator de
+portal.**
 
 ### 3.1 Lista clienților
 
-Ecranul **"Clienți"** listează firmele existente, cu o casetă **"Căutare"**
-(după denumire sau CUI) și butonul **"Filtrează"** / **"Resetează"**.
+Ecranul **"Clienți"** listează clienții existenți, cu o casetă **"Căutare"**
+(după denumire, CUI sau CNP) și butonul **"Filtrează"** / **"Resetează"**. Coloana
+**"CUI / CNP"** arată identificatorul fiecăruia; persoanele fizice au eticheta
+**"Persoană fizică"**.
 
 ### 3.2 Adăugarea unui client nou
 
 1. Din lista de clienți, apasă **"+ Adaugă client"** -> ecranul **"Adaugă client"**.
-2. Completează câmpul **CUI** (fără prefixul "RO" - se normalizează automat) și
+   Alege **"Tip client"**: **"Persoană juridică"** (implicit) sau **"Persoană fizică"**.
+2. **Persoană juridică:** completează câmpul **CUI** (fără prefixul "RO" - se normalizează automat) și
    apasă **"Caută"** lângă el: sistemul interoghează baza publică ANAF și, dacă
    găsește firma, precompletează automat **Denumire**, **Nr. Registrul Comerțului**,
    **Adresă sediu** și bifa **"Plătitor de TVA"**. Datele rămân complet editabile -
    dacă lookup-ul eșuează sau firma nu e găsită, se completează manual.
+
+   **Persoană fizică:** completează **Nume și prenume** și **CNP** (ambele
+   obligatorii, pentru facturare; CNP-ul se verifică - 13 cifre cu cifra de control
+   corectă) și, opțional, **Adresă domiciliu**. Nu există CUI, Nr. Registrul
+   Comerțului sau bifa de TVA. **CNP-ul e vizibil doar echipei organizației**, pe
+   pagina clientului: pe comenzi, avize, certificate și în portal clientul apare ca
+   **"Persoană fizică"**.
 3. Completează, opțional, secțiunea **"Contact"**: Email, Telefon, Persoană de
    contact, Note, și bifa **"Este și furnizor (materiale/deșeuri)"** dacă firma
    aduce și materiale la reciclare.
@@ -86,8 +97,9 @@ Ecranul **"Clienți"** listează firmele existente, cu o casetă **"Căutare"**
 
 Din listă, click pe o firmă deschide ecranul de detaliu, cu secțiunile:
 
-- **"Date firmă"** - același formular ca la creare, editabil (buton
-  **"Salvează modificările"**). Lângă titlu apare starea contului din portal:
+- **"Date firmă"** (la persoane fizice **"Date client"**) - același formular ca la
+  creare, editabil (buton **"Salvează modificările"**); tipul clientului se poate
+  schimba tot de aici. Lângă titlu apare starea contului din portal:
   **"Are cont în portal"**, **"Invitație trimisă"** (clientul nu și-a activat
   încă contul - administratorul poate apăsa **"Retrimite invitația"**, de ex.
   dacă linkul a expirat) sau, pentru administrator, **"Invită în portal"**.
@@ -124,8 +136,9 @@ trasabilitate.
 - **"Restaurează"** (pe ecranul de detaliu) îl readuce în liste și îi deblochează
   utilizatorul din portal.
 
-CUI-ul rămâne unic: dacă încerci să adaugi din nou o firmă arhivată, primești
-mesajul că firma există deja - restaureaz-o în loc să o creezi din nou.
+CUI-ul (și CNP-ul, la persoane fizice) rămâne unic: dacă încerci să adaugi din nou
+un client arhivat, primești mesajul că există deja - restaurează-l în loc să îl
+creezi din nou.
 
 ---
 
@@ -620,7 +633,7 @@ acțiuni. Orice acțiune se arată întâi într-un **card de confirmare**, neex
 
 | Zonă | Ce poate propune asistentul |
 | ---- | --------------------------- |
-| Clienți | client nou, modificarea datelor unui client, arhivare |
+| Clienți | client nou (firmă sau **persoană fizică** - numele și CNP-ul le dai tu în conversație), modificarea datelor unui client (tipul se schimbă doar din pagina clientului), arhivare |
 | Materiale / abonamente | produs nou, modificare (denumire, UM, vandabil, nelimitat), arhivare |
 | Rețete | rețetă nouă (card cu materiile prime și procentele, editabile), arhivare |
 | Comenzi | comandă nouă (inclusiv **aport**), trimitere spre acceptare, **acceptare** (scade stocul; la aport, materialul intră în stoc), anulare (stocul se reface), ștergerea unei ciorne |

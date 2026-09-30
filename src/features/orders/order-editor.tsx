@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { FormField } from "@/components/form-field";
 import type { Client, ClientAddress } from "@/features/clients/types";
+import { clientTaxIdLabel } from "@/features/clients/labels";
 import type { ItemOption } from "@/features/items/types";
 import { ORDER_TYPE_DESCRIPTIONS, ORDER_TYPE_LABELS, ORDER_TYPE_OPTIONS } from "./labels";
 import type { OrderType } from "./types";
@@ -214,7 +215,7 @@ export function OrderEditor({
                 </option>
                 {clients.map((client) => (
                   <option key={client.id} value={client.id}>
-                    {client.name} ({client.cui})
+                    {client.name} ({clientTaxIdLabel(client)})
                   </option>
                 ))}
               </select>

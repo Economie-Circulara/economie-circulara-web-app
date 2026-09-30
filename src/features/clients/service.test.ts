@@ -4,7 +4,9 @@ const { createClient } = vi.hoisted(() => ({ createClient: vi.fn() }));
 vi.mock("@/lib/supabase/server", () => ({ createClient }));
 
 import {
+  DuplicateCnpError,
   DuplicateCuiError,
+  clientPayload,
   createClientRecord,
   deleteAddress,
   removeAddress,
@@ -49,6 +51,43 @@ function addressRow(overrides: Record<string, unknown> = {}) {
     ...overrides,
   };
 }
+
+describe("clientPayload - tipul clientului (0051)", () => {
+  it("firma: CUI normalizat, CNP golit", () => {
+    expect(
+      clientPayload({
+        cui: "RO 4183300",
+        cnp: "1900101000006",
+        name: "SC X SRL",
+        isVatPayer: true,
+      }),
+    ).toMatchObject({ client_type: "juridica", cui: "4183300", cnp: null, is_vat_payer: true });
+  });
+
+  it("persoana fizica: CNP normalizat, campurile de firma golite", () => {
+    expect(
+      clientPayload({
+        clientType: "fizica",
+        cnp: "190 0101 000006",
+        cui: "4183300",
+        regCom: "J40/1/2020",
+        isVatPayer: true,
+        name: "Ion Popescu",
+      }),
+    ).toMatchObject({
+      client_type: "fizica",
+      cnp: "1900101000006",
+      cui: null,
+      reg_com: null,
+      is_vat_payer: false,
+    });
+  });
+
+  it("refuza identificatorul lipsa", () => {
+    expect(() => clientPayload({ clientType: "fizica", name: "Ion" })).toThrow(/CNP/);
+    expect(() => clientPayload({ name: "SC X SRL" })).toThrow(/CUI/);
+  });
+});
 
 describe("createClientRecord", () => {
   it("normalizeaza CUI si insereaza clientul cu organization_id din sesiune", async () => {
@@ -286,5 +325,52 @@ describe("upsertAddress - adresa ad hoc (0048)", () => {
     expect(insert).toHaveBeenCalledWith(
       expect.objectContaining({ is_default: false, archived_at: expect.any(String) }),
     );
+  });
+});
+
+describe("createClientRecord - persoana fizica (0051)", () => {
+  it("insereaza clientul cu CNP si mapeaza tipul", async () => {
+    const single = vi.fn().mockResolvedValue({
+      data: clientRow({
+        client_type: "fizica",
+        cui: null,
+        cnp: "1900101000006",
+        name: "Ion Popescu",
+        reg_com: null,
+        is_vat_payer: false,
+      }),
+      error: null,
+    });
+    const insert = vi.fn().mockReturnValue({ select: vi.fn().mockReturnValue({ single }) });
+    createClient.mockResolvedValue({ from: vi.fn().mockReturnValue({ insert }) });
+
+    const result = await createClientRecord({
+      clientType: "fizica",
+      cnp: "1900101000006",
+      name: "Ion Popescu",
+      organizationId: "org-1",
+    });
+
+    expect(insert).toHaveBeenCalledWith(
+      expect.objectContaining({ client_type: "fizica", cnp: "1900101000006", cui: null }),
+    );
+    expect(result).toMatchObject({ clientType: "fizica", cnp: "1900101000006", cui: null });
+  });
+
+  it("arunca DuplicateCnpError la CNP duplicat in organizatie", async () => {
+    const single = vi
+      .fn()
+      .mockResolvedValue({ data: null, error: { message: "duplicate key", code: "23505" } });
+    const insert = vi.fn().mockReturnValue({ select: vi.fn().mockReturnValue({ single }) });
+    createClient.mockResolvedValue({ from: vi.fn().mockReturnValue({ insert }) });
+
+    await expect(
+      createClientRecord({
+        clientType: "fizica",
+        cnp: "1900101000006",
+        name: "Ion Popescu",
+        organizationId: "org-1",
+      }),
+    ).rejects.toBeInstanceOf(DuplicateCnpError);
   });
 });

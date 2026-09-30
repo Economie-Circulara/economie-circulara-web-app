@@ -37,7 +37,7 @@ create table public.quote_requests (
 );
 
 comment on table public.quote_requests is
-  'Cereri de oferta din site-ul de prezentare (0051). Inserate doar de RPC-ul submit_quote_request.';
+  'Cereri de oferta din site-ul de prezentare (0052). Inserate doar de RPC-ul submit_quote_request.';
 
 create index quote_requests_org_created_idx
   on public.quote_requests (organization_id, created_at desc);

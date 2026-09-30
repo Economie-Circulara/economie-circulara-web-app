@@ -7,7 +7,7 @@ export const metadata = { title: "Cereri de ofertă" };
 
 /**
  * Cererile trimise din formularul „Cere o ofertă” de pe site-ul de prezentare
- * (migrarea 0051, plan docs/plans/site-cerere-oferta.md). Doar staff; fiecare cerere
+ * (migrarea 0052, plan docs/plans/site-cerere-oferta.md). Doar staff; fiecare cerere
  * ajunge si pe email, iar aici se tine evidenta celor rezolvate.
  */
 export default async function CereriOfertaPage() {

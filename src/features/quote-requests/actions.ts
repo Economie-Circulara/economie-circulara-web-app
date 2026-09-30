@@ -11,7 +11,7 @@ export interface QuoteActionResult {
 
 /**
  * Marcheaza o cerere de oferta rezolvata / o redeschide - doar staff. Cine si cand o
- * rezolva stampileaza triggerul din 0051; RLS limiteaza la cererile organizatiei.
+ * rezolva stampileaza triggerul din 0052; RLS limiteaza la cererile organizatiei.
  */
 export async function setQuoteRequestStatusAction(
   id: string,

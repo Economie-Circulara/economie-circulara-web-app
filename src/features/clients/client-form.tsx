@@ -8,7 +8,10 @@ import { FormField } from "@/components/form-field";
 import type { UserRole } from "@/features/auth/session";
 import type { ClientFormState } from "./action-state";
 import { lookupCuiAction } from "./actions";
-import type { Client } from "./types";
+import { CLIENT_TYPE_LABELS } from "./labels";
+import type { Client, ClientType } from "./types";
+
+const CLIENT_TYPES: ClientType[] = ["juridica", "fizica"];
 
 export interface ClientFormProps {
   mode: "create" | "edit";
@@ -30,6 +33,9 @@ export interface ClientFormProps {
  * `lookupCuiAction` (nu e un submit de formular - e o precompletare) si umple
  * denumire/adresă/reg.com/TVA, ramanand complet editabile manual (lookup-ul
  * ANAF poate esua sau poate sa nu gaseasca firma - vezi cui-lookup.ts).
+ *
+ * Tipul clientului (0051) se alege sus: `fizica` inlocuieste CUI-ul cu CNP-ul si
+ * ascunde campurile de firma (reg. com., TVA, lookup ANAF); restul e identic.
  */
 export function ClientForm({
   mode,
@@ -40,7 +46,10 @@ export function ClientForm({
 }: ClientFormProps) {
   const [state, formAction, pending] = useActionState(action, initialState);
 
+  const [clientType, setClientType] = useState<ClientType>(client?.clientType ?? "juridica");
+  const isIndividual = clientType === "fizica";
   const [cui, setCui] = useState(client?.cui ?? "");
+  const [cnp, setCnp] = useState(client?.cnp ?? "");
   const [name, setName] = useState(client?.name ?? "");
   const [regCom, setRegCom] = useState(client?.regCom ?? "");
   const [hqAddress, setHqAddress] = useState(client?.hqAddress ?? "");
@@ -92,44 +101,85 @@ export function ClientForm({
 
       <Card>
         <CardHeader>
-          <CardTitle>Identificare firmă</CardTitle>
+          <CardTitle>{isIndividual ? "Identificare persoană" : "Identificare firmă"}</CardTitle>
           <CardDescription>
-            {mode === "create"
-              ? "Caută firma după CUI pentru precompletare, apoi confirmă datele manual."
-              : "Datele de identificare ale firmei."}
+            {isIndividual
+              ? "Numele și CNP-ul sunt obligatorii (facturare). CNP-ul e vizibil doar echipei tale."
+              : mode === "create"
+                ? "Caută firma după CUI pentru precompletare, apoi confirmă datele manual."
+                : "Datele de identificare ale firmei."}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <FormField label="CUI" required hint='Fără "RO" - se normalizează automat.'>
-            {(id) => (
-              <div className="flex gap-2">
+          <fieldset className="space-y-2">
+            <legend className="text-sm font-medium">Tip client</legend>
+            <div className="flex flex-wrap gap-4">
+              {CLIENT_TYPES.map((type) => (
+                <label key={type} className="flex items-center gap-2 text-sm">
+                  <input
+                    type="radio"
+                    name="client_type"
+                    value={type}
+                    checked={clientType === type}
+                    onChange={() => {
+                      setClientType(type);
+                      setLookupMessage(null);
+                    }}
+                    className="size-4 border-input"
+                  />
+                  {CLIENT_TYPE_LABELS[type]}
+                </label>
+              ))}
+            </div>
+          </fieldset>
+
+          {isIndividual ? (
+            <FormField label="CNP" required hint="13 cifre - se verifică cifra de control.">
+              {(id) => (
                 <Input
                   id={id}
-                  name="cui"
+                  name="cnp"
                   required
-                  value={cui}
-                  onChange={(e) => setCui(e.target.value)}
-                  placeholder="ex. 4183300"
+                  inputMode="numeric"
+                  autoComplete="off"
+                  value={cnp}
+                  onChange={(e) => setCnp(e.target.value)}
+                  placeholder="ex. 1900101000006"
                 />
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={handleLookup}
-                  disabled={lookupPending}
-                >
-                  {lookupPending ? "Se caută..." : "Caută"}
-                </Button>
-              </div>
-            )}
-          </FormField>
+              )}
+            </FormField>
+          ) : (
+            <FormField label="CUI" required hint='Fără "RO" - se normalizează automat.'>
+              {(id) => (
+                <div className="flex gap-2">
+                  <Input
+                    id={id}
+                    name="cui"
+                    required
+                    value={cui}
+                    onChange={(e) => setCui(e.target.value)}
+                    placeholder="ex. 4183300"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleLookup}
+                    disabled={lookupPending}
+                  >
+                    {lookupPending ? "Se caută..." : "Caută"}
+                  </Button>
+                </div>
+              )}
+            </FormField>
+          )}
 
-          {lookupMessage ? (
+          {lookupMessage && !isIndividual ? (
             <p className={`text-sm ${lookupMessage.tone === "error" ? "text-danger" : "text-ok"}`}>
               {lookupMessage.text}
             </p>
           ) : null}
 
-          <FormField label="Denumire" required>
+          <FormField label={isIndividual ? "Nume și prenume" : "Denumire"} required>
             {(id) => (
               <Input
                 id={id}
@@ -142,17 +192,19 @@ export function ClientForm({
           </FormField>
 
           <div className="grid gap-4 sm:grid-cols-2">
-            <FormField label="Nr. Registrul Comerțului">
-              {(id) => (
-                <Input
-                  id={id}
-                  name="reg_com"
-                  value={regCom}
-                  onChange={(e) => setRegCom(e.target.value)}
-                />
-              )}
-            </FormField>
-            <FormField label="Adresă sediu">
+            {isIndividual ? null : (
+              <FormField label="Nr. Registrul Comerțului">
+                {(id) => (
+                  <Input
+                    id={id}
+                    name="reg_com"
+                    value={regCom}
+                    onChange={(e) => setRegCom(e.target.value)}
+                  />
+                )}
+              </FormField>
+            )}
+            <FormField label={isIndividual ? "Adresă domiciliu" : "Adresă sediu"}>
               {(id) => (
                 <Input
                   id={id}
@@ -164,16 +216,18 @@ export function ClientForm({
             </FormField>
           </div>
 
-          <label className="flex items-center gap-2 text-sm font-medium">
-            <input
-              type="checkbox"
-              name="is_vat_payer"
-              checked={isVatPayer}
-              onChange={(e) => setIsVatPayer(e.target.checked)}
-              className="size-4 rounded border-input"
-            />
-            Plătitor de TVA
-          </label>
+          {isIndividual ? null : (
+            <label className="flex items-center gap-2 text-sm font-medium">
+              <input
+                type="checkbox"
+                name="is_vat_payer"
+                checked={isVatPayer}
+                onChange={(e) => setIsVatPayer(e.target.checked)}
+                className="size-4 rounded border-input"
+              />
+              Plătitor de TVA
+            </label>
+          )}
         </CardContent>
       </Card>
 

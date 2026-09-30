@@ -4,6 +4,13 @@ Jurnal al sarcinilor lucrate de agenti AI in acest repo. Conform regulii 1.2 din
 [`AGENTS.md`](../AGENTS.md), la **fiecare commit** se adauga o intrare aici.
 Cele mai noi intrari sus.
 
+## 2026-09-30 — Claude Opus 5.5 (Claude Code) — Merge main in cererile de oferta
+
+- **Cerut:** rezolvarea conflictelor cu `main` (clienti persoana fizica).
+- **Facut:** migrarea cererilor de oferta renumerotata `0051` -> `0052` (`main` are
+  `0051_client_individuals`), testul ei in `business_flow.sql` devine B33; prompt-log
+  cu ambele intrari.
+
 ## 2026-09-30 — Claude Opus 5.5 (Claude Code) — Site Macon XCX + formularul „Cere o ofertă”
 
 - **Cerut:** analiza unui demo extern de site pentru Macon XCX si preluarea lui;
@@ -12,11 +19,24 @@ Cele mai noi intrari sus.
 - **Facut:** plan `docs/plans/site-cerere-oferta.md`. Site: sectiuni optionale
   `circular` + `quote` (+ `tag` pe servicii), formular client cu acord + capcana
   anti-bot, pagina `/confidentialitate`, continutul Macon din demo. App: migrarea
-  `0051` (`quote_requests` + RPC `submit_quote_request` doar `service_role`, limita
+  `0052` (`quote_requests` + RPC `submit_quote_request` doar `service_role`, limita
   pe IP hash-uit si per organizatie), `POST /api/public/cerere-oferta` (CORS pe
   apex/`www`, email cu brandul organizatiei, best-effort), ecranul `/cereri-oferta`
   (meniu Comenzi / Vânzări), manual 7.6, AGENTS.md. Teste: unitare (app + site) +
-  `business_flow.sql` B32, rulate pe un Postgres 16 local cu stub Supabase.
+  `business_flow.sql` B33, rulate pe un Postgres 16 local cu stub Supabase.
+
+## 2026-09-30 — Claude Opus 5.5 (Claude Code) — Clienti persoana fizica
+
+- **Cerut:** clienti persoana fizica (nume + CNP obligatorii, restul fluxului identic),
+  bifa firma / persoana fizica in formularul de client, suport in asistentul AI.
+- **Facut:** migrarea `0051` (`clients.client_type`, `cnp`, `cui` nullable, CHECK de
+  consistenta, CNP unic per organizatie); validare CNP (`clients/cnp.ts`); formularul
+  de client cu "Tip client" (CNP in loc de CUI, fara reg. com./TVA/ANAF); CNP vizibil
+  doar staff-ului - comenzi, avize, certificate, cautare, selecturi afiseaza
+  "Persoană fizică" (`clientTaxIdLabel`). Asistent: `creeaza_client` v2 (`tip`, `cnp`),
+  `editeaza_client` v2 (`cnp`), `listeaza_clienti` v2 (`tip`, fara CNP), system
+  prompt. Manual + AGENTS.md (regula de business + capcana CHECK/NULL). Teste unitare
+  + `business_flow.sql` B32. Plan: `docs/plans/clienti-persoana-fizica.md`.
 
 ## 2026-09-30 — Claude Opus 5.5 (Claude Code) — Primire email: Cloudflare Email Routing
 

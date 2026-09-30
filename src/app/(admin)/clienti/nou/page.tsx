@@ -14,7 +14,7 @@ export default async function ClientNouPage() {
     <div className="space-y-6">
       <PageHeader
         title="Adaugă client"
-        description="Caută firma după CUI (opțional) sau completează datele manual."
+        description="Firmă (caută după CUI, opțional) sau persoană fizică (nume + CNP)."
         breadcrumbs={[{ label: "Clienți", href: "/clienti" }, { label: "Client nou" }]}
       />
       <ClientForm

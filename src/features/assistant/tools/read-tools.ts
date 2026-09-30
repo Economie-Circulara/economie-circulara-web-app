@@ -124,7 +124,8 @@ export const cautaFirmaDupaCui: AssistantTool<{ cui: string }> = {
 export const listeazaClienti: AssistantTool<{ cautare: string | null }> = {
   name: "listeaza_clienti",
   description:
-    "Listează clienții organizației, opțional filtrați după denumire sau CUI. " +
+    "Listează clienții organizației (firme și persoane fizice), opțional filtrați după " +
+    "denumire sau CUI. `tip` = juridica | fizica; CNP-ul persoanelor fizice nu e returnat. " +
     "Folosește-l ca să găsești `client_id`-ul necesar pentru o comandă.",
   parameters: {
     type: "object",
@@ -132,7 +133,7 @@ export const listeazaClienti: AssistantTool<{ cautare: string | null }> = {
     properties: { cautare: { type: "string", description: "Filtru după denumire sau CUI." } },
   },
   roles: ["super_admin", "admin", "operator"],
-  version: 1,
+  version: 2,
   kind: "read",
   parse: (args) => ({ cautare: optionalString(asObject(args), "cautare") }),
   execute: async (input) => {
@@ -144,7 +145,9 @@ export const listeazaClienti: AssistantTool<{ cautare: string | null }> = {
     return clients.slice(0, LIMIT).map((client) => ({
       client_id: client.id,
       denumire: client.name,
-      cui: client.cui,
+      tip: client.clientType,
+      // CNP-ul (date personale) nu pleaca spre furnizorul modelului - doar CUI-ul firmelor.
+      cui: client.clientType === "fizica" ? null : client.cui,
       email: client.email,
       link: `/clienti/${client.id}`,
     }));

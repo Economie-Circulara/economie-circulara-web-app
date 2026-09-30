@@ -1,4 +1,5 @@
 import { PLATFORM_NAME } from "@/lib/brand";
+import { clientTaxIdValue } from "@/features/clients/labels";
 import { pdfBrandFor, pdfBrandProps, type PdfBrand } from "@/features/branding/pdf-brand";
 import { createElement } from "react";
 import { renderToBuffer } from "@react-pdf/renderer";
@@ -132,7 +133,7 @@ export async function buildOrderTraceabilitySnapshot(
 ): Promise<OrderForSnapshot | null> {
   const { data: order, error } = await supabase
     .from("orders")
-    .select("id, organization_id, order_number, clients(name, cui)")
+    .select("id, organization_id, order_number, clients(name, cui, client_type)")
     .eq("id", orderId)
     .maybeSingle();
   if (error) throw new Error("Nu am putut încărca comanda pentru certificat.");
@@ -148,7 +149,10 @@ export async function buildOrderTraceabilitySnapshot(
       id: order.id,
       number: order.order_number,
       clientName: order.clients?.name ?? "-",
-      clientCui: order.clients?.cui ?? "-",
+      // Persoana fizica: „Persoană fizică”, nu CNP-ul (date personale, 0051).
+      clientCui: order.clients
+        ? clientTaxIdValue({ clientType: order.clients.client_type, cui: order.clients.cui })
+        : "-",
     },
     deliveredItems: aggregateDeliveredItems(raw.delivered),
     graph,

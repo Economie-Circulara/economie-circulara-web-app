@@ -17,7 +17,7 @@ const PUBLIC_PREFIXES = [
   "/set-password",
   "/auth",
   "/showcase",
-  // Endpoint-uri apelate fara sesiune (formularul de oferta din site - 0051).
+  // Endpoint-uri apelate fara sesiune (formularul de oferta din site - 0052).
   "/api/public",
 ];
 

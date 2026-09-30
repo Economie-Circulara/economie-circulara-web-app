@@ -14,6 +14,7 @@ import {
   updateClientAction,
 } from "@/features/clients/actions";
 import { ClientForm } from "@/features/clients/client-form";
+import { CLIENT_TYPE_LABELS } from "@/features/clients/labels";
 import { ClientPortalInvite } from "@/features/clients/invite-portal-access";
 import { getClient, listClientAddresses } from "@/features/clients/queries";
 import { getClientPortalStatus } from "@/features/settings/queries";
@@ -53,7 +54,11 @@ export default async function ClientDetailPage({ params, searchParams }: ClientD
     <div className="space-y-8">
       <PageHeader
         title={client.name}
-        description={`CUI ${client.cui}`}
+        description={
+          client.clientType === "fizica"
+            ? `${CLIENT_TYPE_LABELS.fizica} · CNP ${client.cnp ?? "-"}`
+            : `CUI ${client.cui ?? "-"}`
+        }
         breadcrumbs={[{ label: "Clienți", href: "/clienti" }, { label: client.name }]}
         actions={
           client.archivedAt ? (
@@ -92,7 +97,9 @@ export default async function ClientDetailPage({ params, searchParams }: ClientD
 
       <section className="space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 className="text-lg font-semibold">Date firmă</h2>
+          <h2 className="text-lg font-semibold">
+            {client.clientType === "fizica" ? "Date client" : "Date firmă"}
+          </h2>
           <ClientPortalInvite
             clientId={id}
             defaultEmail={client.email}

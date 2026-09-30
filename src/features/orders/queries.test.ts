@@ -214,11 +214,41 @@ describe("getOrderDetail", () => {
     expect(result).toMatchObject({
       id: "order-1",
       clientName: "Construcții Apex SRL",
-      clientCui: "RO14820391",
+      clientCui: "CUI RO14820391",
       deliveryAddressLabel: "Depozit",
       deliveryAddress: "Str. Exemplu 1",
       items: [{ itemId: "item-1", itemTitle: "Cărămidă eco", unit: "bucata", quantity: 4 }],
     });
+  });
+});
+
+describe("getOrderDetail - client persoana fizica (0051)", () => {
+  it("afiseaza „Persoană fizică”, nu CNP-ul", async () => {
+    const orderBuilder = makeQueryBuilder({
+      data: {
+        id: "order-2",
+        client_id: "client-2",
+        order_number: null,
+        status: "draft",
+        created_by_admin: true,
+        delivery_address_id: null,
+        delivery_date: null,
+        expected_return_date: null,
+        notes: null,
+        created_at: "2026-07-01T00:00:00.000Z",
+        updated_at: "2026-07-01T00:00:00.000Z",
+        clients: { name: "Ion Popescu", cui: null, client_type: "fizica" },
+        client_addresses: null,
+      },
+      error: null,
+    });
+    const itemsBuilder = makeQueryBuilder({ data: [], error: null });
+    const from = vi.fn((table: string) => (table === "orders" ? orderBuilder : itemsBuilder));
+    createClient.mockResolvedValue({ from });
+
+    const result = await getOrderDetail("order-2");
+
+    expect(result?.clientCui).toBe("Persoană fizică");
   });
 });
 

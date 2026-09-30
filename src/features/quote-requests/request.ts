@@ -18,7 +18,7 @@ export type ParsedQuoteRequest =
   | { kind: "bot" }
   | { kind: "invalid"; error: string };
 
-/** Limitele sunt aceleasi ca in RPC-ul `submit_quote_request` (0051). */
+/** Limitele sunt aceleasi ca in RPC-ul `submit_quote_request` (0052). */
 export const QUOTE_LIMITS = {
   service: 100,
   name: 120,

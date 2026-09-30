@@ -42,7 +42,7 @@ de informare. Tot fara cookie-uri (nu e nevoie de banner).
 
 ## Aplicatie
 
-### DB - migrarea `0051_quote_requests.sql`
+### DB - migrarea `0052_quote_requests.sql`
 
 - Tabel `quote_requests` (organizatie, serviciu, nume, telefon, email, detalii,
   domeniul de origine, hash-ul IP-ului, status `new`/`handled`, cine/cand a

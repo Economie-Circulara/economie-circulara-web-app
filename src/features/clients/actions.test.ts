@@ -148,6 +148,66 @@ describe("createClientAction", () => {
   });
 });
 
+describe("createClientAction - persoana fizica (0051)", () => {
+  it("cere numele si un CNP valid", async () => {
+    requireRole.mockResolvedValue({ id: "u1", organizationId: "org-1", role: "operator" });
+
+    const noCnp = await createClientAction(
+      { error: null },
+      formData({ client_type: "fizica", name: "Ion Popescu" }),
+    );
+    expect(noCnp.error).toMatch(/cnp/i);
+
+    const badCnp = await createClientAction(
+      { error: null },
+      formData({ client_type: "fizica", name: "Ion Popescu", cnp: "1900101000000" }),
+    );
+    expect(badCnp.error).toMatch(/cnp invalid/i);
+
+    const noName = await createClientAction(
+      { error: null },
+      formData({ client_type: "fizica", cnp: "1900101000006" }),
+    );
+    expect(noName.error).toMatch(/numele/i);
+    expect(createClientRecord).not.toHaveBeenCalled();
+  });
+
+  it("creeaza persoana fizica fara CUI / reg. com. / TVA, cu adresa de domiciliu", async () => {
+    requireRole.mockResolvedValue({ id: "u1", organizationId: "org-1", role: "operator" });
+    createClientRecord.mockResolvedValue({ id: "client-2" });
+    upsertAddress.mockResolvedValue({ id: "addr-2" });
+
+    await expect(
+      createClientAction(
+        { error: null },
+        formData({
+          client_type: "fizica",
+          name: "Ion Popescu",
+          cnp: "190 0101 000006",
+          // Ramase in formular dintr-o comutare de tip - ignorate.
+          cui: "4183300",
+          is_vat_payer: "on",
+          hq_address: "Str. Lalelelor 3",
+          email: "ion@example.ro",
+        }),
+      ),
+    ).rejects.toThrow("REDIRECT:/clienti/client-2");
+
+    const fields = createClientRecord.mock.calls[0][0];
+    expect(fields).toMatchObject({
+      clientType: "fizica",
+      cnp: "1900101000006",
+      name: "Ion Popescu",
+      email: "ion@example.ro",
+    });
+    expect(fields.cui).toBeUndefined();
+    expect(fields.isVatPayer).toBeUndefined();
+    expect(upsertAddress).toHaveBeenCalledWith(
+      expect.objectContaining({ label: "Domiciliu", address: "Str. Lalelelor 3" }),
+    );
+  });
+});
+
 describe("createClientAction - invitatie automata in portal", () => {
   const ADMIN = { id: "u1", role: "admin", organizationId: "org-1" };
   const OPERATOR = { id: "u2", role: "operator", organizationId: "org-1" };
