@@ -6,6 +6,9 @@ separata de aplicatie. Un cod, cate un deploy per client (`SITE_TENANT`).
 - Continut: `content/<tenant>.json` (validat la build de `src/lib/content.ts`).
 - Tema + logo: din `/platform` (RPC `org_branding`) daca sunt setate `SUPABASE_URL` +
   `SUPABASE_PUBLISHABLE_KEY`, altfel din fisierul de continut.
+- Sectiuni optionale per tenant: `circular` (fluxul de economie circulara) si `quote`
+  (formularul „Cere o ofertă”, trimis la `https://<appDomain>/api/public/cerere-oferta`
+  - plan `docs/plans/site-cerere-oferta.md`).
 - Deploy si DNS: `docs/setup.md` 3.1.3. Plan: `docs/plans/site-prezentare-tenanti.md`.
 
 ```bash

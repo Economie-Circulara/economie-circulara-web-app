@@ -16,6 +16,9 @@ hostata pe Vercel.
   prin `SITE_TENANT`. Repo-ul ramane public; Vercel Hobby.
 - **Static** (`output: "export"`): fara server, fara formular (contact prin
   `mailto:`/`tel:` - fara date personale colectate, fara banner de cookies).
+  **Schimbat 2026-09-30** (`docs/plans/site-cerere-oferta.md`): formularul optional
+  „Cere o ofertă” trimite la aplicatia tenantului; site-ul ramane static si fara
+  cookie-uri, dar colecteaza date cu acord explicit (`/confidentialitate`).
 - **Tema = cea din aplicatie**: aceleasi 4 teme (`default`/`teren`/`industrial`/
   `ciclu`), tokenii copiati din `src/app/globals.css` + `src/app/themes.css`
   (doar light). La build, daca sunt setate `SUPABASE_URL` +

@@ -11,7 +11,15 @@ import {
 } from "@/features/auth/tenant";
 
 /** Prefixe de cale publice (nu necesita autentificare). */
-const PUBLIC_PREFIXES = ["/login", "/forgot-password", "/set-password", "/auth", "/showcase"];
+const PUBLIC_PREFIXES = [
+  "/login",
+  "/forgot-password",
+  "/set-password",
+  "/auth",
+  "/showcase",
+  // Endpoint-uri apelate fara sesiune (formularul de oferta din site - 0051).
+  "/api/public",
+];
 
 /**
  * Pagina dedicata organizatiilor suspendate (T2.1) - trebuie exclusa din verificarea

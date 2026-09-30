@@ -449,6 +449,24 @@ dispare din listă. Comenzile trimise sau acceptate se **anulează** (butonul
 Dacă editezi o ciornă mai veche care folosește un client sau un material arhivat
 între timp, ecranul de editare te avertizează: alege altele înainte de a salva.
 
+### 7.6 Cereri de ofertă (din site)
+
+Dacă site-ul de prezentare al firmei are formularul **„Cere o ofertă”**, fiecare
+cerere trimisă de un vizitator (serviciul, numele, telefonul, eventual emailul și
+detaliile) ajunge în două locuri:
+
+- **pe email** - la adresa de răspuns a organizației (Setări), iar dacă nu e setată,
+  la toți administratorii. Dacă solicitantul și-a lăsat emailul, un „Răspunde” din
+  căsuța de email îi scrie direct lui;
+- **în aplicație**, în meniul **Comenzi → Cereri de ofertă**: cererile noi apar
+  primele. După ce ai sunat sau ai scris solicitantului, apasă **„Marchează
+  rezolvată”** (se reține cine și când a rezolvat-o); **„Redeschide”** o aduce înapoi
+  între cele noi.
+
+Datele cererii nu se pot modifica din aplicație - rămân exact cum au fost trimise.
+O cerere nu devine automat client sau comandă: dacă se ajunge la o colaborare,
+adaugă clientul și comanda ca de obicei.
+
 ---
 
 ## 8. Retur și garanție

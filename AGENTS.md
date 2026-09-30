@@ -450,6 +450,20 @@ Testele unitare sunt **colocate** langa cod (`*.test.ts` / `*.test.tsx`).
     contine exact rutele si rolurile din `STAFF_NAV` (verificat de `nav-config.test.ts`).
     O pagina noua in meniu se adauga in `STAFF_NAV` SI in `STAFF_NAV_FLUX`.
 
+- **Cererile de oferta din site ajung pe email SI in aplicatie** (decizie 2026-09-30,
+  migrarea `0051`, plan `docs/plans/site-cerere-oferta.md`): site-ul de prezentare e
+  static, deci formularul trimite la `POST /api/public/cerere-oferta` pe domeniul
+  APLICATIEI organizatiei (organizatia = cea cu `custom_domain` = hostul cererii; CORS
+  doar pentru apex + `www.`). Salvarea trece DOAR prin RPC-ul `submit_quote_request`
+  (`service_role`, niciodata `anon` - altfel s-ar ocoli ruta), care impune si limita
+  anti-spam (IP hash-uit, nu in clar). Emailul e best-effort: cererea e deja in
+  `/cereri-oferta`. Staff-ul schimba DOAR `status`; datele solicitantului raman cum au
+  venit. Formularul colecteaza date personale => acord explicit + pagina
+  `/confidentialitate` pe site; fara cookie-uri.
+  - **Grant pe coloana cere `revoke` pe tabel intai**: default privileges Supabase dau
+    `all` lui `anon`/`authenticated` pe orice tabel nou din `public`, deci un
+    `grant update (col)` singur NU restrange nimic.
+
 ### 4.1 Limitari cunoscute / trade-off-uri acceptate
 
 - **`stock_events` audit trail**: pentru acum, nicio reconciliere automata cu `lots.remaining_qty`;

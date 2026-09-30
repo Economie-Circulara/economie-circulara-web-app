@@ -1438,4 +1438,113 @@ begin;
   end $$;
 rollback;
 
+-- ===========================================================================
+-- B32: cererile de oferta din site (0051) - RPC-ul `submit_quote_request` rezolva
+--      organizatia din domeniu, valideaza, limiteaza pe IP; doar `service_role` il
+--      poate apela; staff-ul organizatiei vede si rezolva cererea (autor stampilat),
+--      clientul si staff-ul altei organizatii nu o vad.
+-- ===========================================================================
+begin;
+  -- Fixture (ca postgres): domeniul organizatiei demo + o a doua organizatie cu admin.
+  update public.organizations set custom_domain = 'app.demo-b32.test' where id = :org;
+  insert into public.organizations (id, name, slug, custom_domain)
+    values ('a0000000-0000-0000-0000-0000000032a2', 'Org B32', 'org-b32', 'app.alta-b32.test');
+  insert into auth.users (id, email) values ('b0000000-0000-0000-0000-0000000032b2', 'b32@alta.test');
+  insert into public.profiles (id, organization_id, role, full_name, email)
+    values ('b0000000-0000-0000-0000-0000000032b2', 'a0000000-0000-0000-0000-0000000032a2',
+            'admin', 'Admin B32', 'b32@alta.test');
+
+  -- anon / authenticated NU pot apela RPC-ul (ar ocoli verificarile rutei).
+  do $$
+  begin
+    set local role anon;
+    begin
+      perform public.submit_quote_request('app.demo-b32.test', 'Beton', 'X', '0700');
+      raise exception 'FAIL: B32 anon a apelat submit_quote_request';
+    exception
+      when insufficient_privilege then raise notice 'PASS: B32 anon nu poate apela RPC-ul';
+    end;
+    reset role;
+  end $$;
+
+  set local role service_role;
+  select public.submit_quote_request(
+    'APP.demo-b32.test', ' Beton ', 'Ion Pop', '0722 000 000', null, '20 mc, Iasi', 'ip-a'
+  ) as quote_id \gset
+  select pg_temp.assert_eq('B32 cererea e in organizatia domeniului', organization_id::text,
+                           'a0000000-0000-0000-0000-0000000000a1')
+    from public.quote_requests where id = :'quote_id';
+  select pg_temp.assert_eq('B32 campurile sunt normalizate', service || '|' || source_domain,
+                           'Beton|app.demo-b32.test')
+    from public.quote_requests where id = :'quote_id';
+
+  do $$
+  begin
+    begin
+      perform public.submit_quote_request('necunoscut.test', 'Beton', 'X', '0700');
+      raise exception 'FAIL: B32 domeniu necunoscut acceptat';
+    exception when sqlstate 'QR001' then raise notice 'PASS: B32 domeniu necunoscut -> QR001';
+    end;
+    begin
+      perform public.submit_quote_request('app.demo-b32.test', 'Beton', '  ', '0700');
+      raise exception 'FAIL: B32 nume gol acceptat';
+    exception when sqlstate 'QR004' then raise notice 'PASS: B32 nume gol -> QR004';
+    end;
+    begin
+      perform public.submit_quote_request('app.demo-b32.test', 'Beton', 'X', '0700', null,
+                                          repeat('a', 2001));
+      raise exception 'FAIL: B32 mesaj prea lung acceptat';
+    exception when sqlstate 'QR004' then raise notice 'PASS: B32 mesaj prea lung -> QR004';
+    end;
+    -- 'ip-a' are deja 1 cerere; inca 4 trec, a 6-a pica.
+    for i in 1..4 loop
+      perform public.submit_quote_request('app.demo-b32.test', 'Beton', 'X', '0700', null, null, 'ip-a');
+    end loop;
+    begin
+      perform public.submit_quote_request('app.demo-b32.test', 'Beton', 'X', '0700', null, null, 'ip-a');
+      raise exception 'FAIL: B32 limita pe IP nu s-a aplicat';
+    exception when sqlstate 'QR002' then raise notice 'PASS: B32 a 6-a cerere de pe acelasi IP -> QR002';
+    end;
+    -- Alt IP trece in continuare.
+    perform public.submit_quote_request('app.demo-b32.test', 'Beton', 'X', '0700', null, null, 'ip-b');
+    raise notice 'PASS: B32 alt IP nu e afectat de limita';
+  end $$;
+  reset role;
+
+  -- Staff-ul altei organizatii nu vede cererea.
+  set local role authenticated;
+  set local request.jwt.claims = '{"sub":"b0000000-0000-0000-0000-0000000032b2"}';
+  select pg_temp.assert_num('B32 adminul altei organizatii nu vede cererea', count(*), 0)
+    from public.quote_requests where id = :'quote_id';
+
+  -- Clientul organizatiei nu vede cererile.
+  set local request.jwt.claims = '{"sub":"b0000000-0000-0000-0000-0000000000b3"}';
+  select pg_temp.assert_num('B32 clientul nu vede cererile de oferta', count(*), 0)
+    from public.quote_requests;
+
+  -- Operatorul o rezolva: autorul si momentul sunt stampilate de trigger.
+  set local request.jwt.claims = '{"sub":"b0000000-0000-0000-0000-0000000000b2"}';
+  update public.quote_requests set status = 'handled' where id = :'quote_id';
+  select pg_temp.assert_eq('B32 rezolvata de operator', status || '|' || handled_by::text,
+                           'handled|b0000000-0000-0000-0000-0000000000b2')
+    from public.quote_requests where id = :'quote_id';
+  select pg_temp.assert_eq('B32 handled_at completat', (handled_at is not null)::text, 'true')
+    from public.quote_requests where id = :'quote_id';
+
+  -- Staff-ul schimba DOAR statusul, nu datele solicitantului.
+  do $$
+  begin
+    begin
+      update public.quote_requests set phone = '0799' where status = 'handled';
+      raise exception 'FAIL: B32 staff-ul a modificat telefonul';
+    exception when insufficient_privilege then raise notice 'PASS: B32 datele cererii nu se editeaza';
+    end;
+  end $$;
+
+  update public.quote_requests set status = 'new' where id = :'quote_id';
+  select pg_temp.assert_eq('B32 redeschisa -> handled_* golite',
+                           coalesce(handled_by::text, '') || '|' || (handled_at is null)::text, '|true')
+    from public.quote_requests where id = :'quote_id';
+rollback;
+
 select '*** TOATE TESTELE FUNCTIONALE DE BUSINESS AU TRECUT ***' as result;
