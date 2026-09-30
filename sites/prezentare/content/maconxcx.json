@@ -5,46 +5,94 @@
   "siteDomain": "maconxcx.ro",
   "theme": "industrial",
   "logo": null,
-  "tagline": "Echipamente de construcții în regim de abonament",
-  "description": "Folosești ce îți trebuie, cât îți trebuie: echipamentele se întorc la noi, se recondiționează și intră din nou în circuit.",
+  "tagline": "Beton, transport și agregate reciclate, din Țibănești pentru șantierele din regiune",
+  "description": "Preparăm beton în stație proprie, transportăm materiale și concasăm deșeurile de construcții direct la client, cu stație mobilă.",
   "about": {
-    "title": "Despre Macon XCX",
+    "title": "Peste 15 ani în transport și construcții",
     "paragraphs": [
-      "Text placeholder: cine suntem, de când activăm și ce facem. Se înlocuiește cu descrierea primită de la client.",
-      "Modelul de abonament ține produsele în uz cât mai mult timp; fiecare retur și fiecare recondiționare sunt înregistrate."
+      "MACON XCX SRL a fost înființată în 2010, cu transportul rutier de mărfuri ca activitate de bază. De atunci, firma a adăugat producția de beton, comerțul cu materiale de construcții și servicii pentru extracția mineralelor.",
+      "În 2025 a investit într-o stație nouă de betoane și într-o stație mobilă de concasare, ca să transforme deșeurile din construcții și demolări în agregate reciclate.",
+      "Parcul de utilaje include betoniere, excavatoare, buldoexcavatoare, încărcătoare frontale, camioane, autobasculante și utilaje de sortare."
     ]
   },
   "services": {
-    "title": "Ce oferim",
+    "title": "Patru servicii, un singur partener pe șantier",
     "items": [
       {
-        "title": "Abonamente",
-        "text": "Acces la echipamente pe perioada lucrării, fără costul achiziției."
+        "tag": "Stație proprie",
+        "title": "Beton",
+        "text": "Producție în stația proprie de betoane, cu livrare la șantier în betoniere."
       },
       {
-        "title": "Recondiționare",
-        "text": "Echipamentele returnate sunt verificate și readuse în stare de funcționare."
+        "tag": "Până la 24 t",
+        "title": "Transport",
+        "text": "Camioane și autobasculante pentru materiale, agregate și moloz."
       },
       {
-        "title": "Materiale",
-        "text": "Materiale de construcții livrate împreună cu documentele de trasabilitate."
+        "tag": "Stație mobilă",
+        "title": "Concasare pe șantier",
+        "text": "Deșeurile din construcții și demolări se procesează la client, fără costul transportului molozului."
+      },
+      {
+        "tag": "Comerț",
+        "title": "Materiale de construcții",
+        "text": "Materiale lemnoase și de construcții, plus agregate minerale."
       }
     ]
   },
-  "stats": [],
+  "stats": [
+    { "value": "Din 2010", "label": "pe piață" },
+    { "value": "24 t", "label": "capacitate pe vehicul" },
+    { "value": "2", "label": "puncte de lucru" }
+  ],
+  "circular": {
+    "title": "Molozul de pe șantier ajunge din nou în beton",
+    "intro": "Cu stația mobilă de concasare, deșeurile din construcții devin agregate reciclate, folosite apoi direct în rețetele de beton.",
+    "steps": [
+      {
+        "label": "Intrare",
+        "title": "Deșeuri din construcții și demolări",
+        "text": "Colectate de la client sau preluate pe șantier."
+      },
+      {
+        "label": "Procesare",
+        "title": "Concasare și sortare",
+        "text": "Stația mobilă lucrează la client sau în punctul de lucru."
+      },
+      {
+        "label": "Rezultat",
+        "title": "Agregate reciclate",
+        "text": "Fracții sortate, pentru umpluturi, drumuri și beton."
+      },
+      {
+        "label": "Livrare",
+        "title": "Beton cu agregat reciclat",
+        "text": "Rețete de beton care folosesc agregate reciclate în locul celor primare."
+      }
+    ]
+  },
+  "quote": {
+    "services": [
+      "Beton",
+      "Transport",
+      "Concasare pe șantier",
+      "Agregate reciclate",
+      "Materiale de construcții"
+    ]
+  },
   "portal": {
     "title": "Portalul clienților",
-    "text": "Abonamentele, comenzile și documentele, într-un singur loc.",
+    "text": "Comenzile, livrările și documentele, într-un singur loc.",
     "bullets": [
-      "Comenzi și abonamente gestionate online",
-      "Cereri de retur și garanție trimise din portal",
-      "Certificatele de trasabilitate pentru fiecare comandă"
+      "Comenzi trimise și urmărite online",
+      "Confirmarea recepției la livrare",
+      "Certificatul de trasabilitate pentru fiecare comandă"
     ]
   },
   "contact": {
     "email": "no-reply@maconxcx.ro",
     "phone": null,
-    "address": null,
+    "address": "Str. Poștașului nr. 11, sat Țibănești, comuna Țibănești, județul Iași",
     "hours": null
   },
   "legal": {

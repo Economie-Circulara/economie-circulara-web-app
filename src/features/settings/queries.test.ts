@@ -68,7 +68,9 @@ describe("listAvailableClientsForInvite", () => {
   function clientRow(overrides: Record<string, unknown> = {}) {
     return {
       id: "client-1",
+      clientType: "juridica",
       cui: "111",
+      cnp: null,
       name: "Firma A",
       regCom: null,
       isVatPayer: false,
@@ -97,7 +99,29 @@ describe("listAvailableClientsForInvite", () => {
 
     expect(from).toHaveBeenCalledWith("profiles");
     expect(not).toHaveBeenCalledWith("client_id", "is", null);
-    expect(result).toEqual([{ id: "client-2", name: "Firma B", cui: "111" }]);
+    expect(result).toEqual([{ id: "client-2", name: "Firma B", taxIdLabel: "CUI 111" }]);
+  });
+
+  it("persoana fizica apare fara CNP (0051)", async () => {
+    listClients.mockResolvedValue([
+      clientRow({
+        id: "client-3",
+        name: "Ion Popescu",
+        clientType: "fizica",
+        cui: null,
+        cnp: "1900101000006",
+      }),
+    ]);
+    const not = vi.fn().mockResolvedValue({ data: [], error: null });
+    createClient.mockResolvedValue({
+      from: vi.fn().mockReturnValue({ select: vi.fn().mockReturnValue({ not }) }),
+    });
+
+    const result = await listAvailableClientsForInvite();
+
+    expect(result).toEqual([
+      { id: "client-3", name: "Ion Popescu", taxIdLabel: "Persoană fizică" },
+    ]);
   });
 
   it("returneaza toate firmele cand niciuna nu are inca un utilizator", async () => {

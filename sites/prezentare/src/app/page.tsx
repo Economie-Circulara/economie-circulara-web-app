@@ -1,5 +1,6 @@
 import { getSite } from "@/lib/site";
 import { appLoginUrl, telHref } from "@/lib/links";
+import { QuoteForm } from "./quote-form";
 
 // Pasii de trasabilitate sunt aceiasi pentru toti tenantii: descriu ce face aplicatia.
 const TRACE_STEPS = [
@@ -20,7 +21,8 @@ const TRACE_STEPS = [
 export default async function HomePage() {
   const { content, branding } = await getSite();
   const loginUrl = appLoginUrl(content.appDomain);
-  const { contact, legal, euFunding } = content;
+  const { contact, legal, euFunding, circular, quote } = content;
+  const directContact = contact.phone ?? contact.email;
   const year = new Date().getFullYear();
 
   return (
@@ -39,12 +41,20 @@ export default async function HomePage() {
           <nav className="nav" aria-label="Secțiuni">
             <a href="#despre">Despre</a>
             <a href="#servicii">Servicii</a>
+            {circular && <a href="#economie-circulara">Economie circulară</a>}
             <a href="#trasabilitate">Trasabilitate</a>
             <a href="#contact">Contact</a>
           </nav>
-          <a className="btn btn-primary" href={loginUrl}>
-            Intră în cont
-          </a>
+          <div className="header-actions">
+            {quote && (
+              <a className="btn btn-primary" href="#oferta">
+                Cere ofertă
+              </a>
+            )}
+            <a className={quote ? "btn btn-outline" : "btn btn-primary"} href={loginUrl}>
+              Intră în cont
+            </a>
+          </div>
         </div>
       </header>
 
@@ -56,15 +66,38 @@ export default async function HomePage() {
               <h1>{content.tagline}</h1>
               <p className="lead">{content.description}</p>
               <div className="actions">
-                <a className="btn btn-primary" href={loginUrl}>
-                  Portalul clienților
-                </a>
+                {quote ? (
+                  <a className="btn btn-primary" href="#servicii">
+                    Vezi serviciile
+                  </a>
+                ) : (
+                  <a className="btn btn-primary" href={loginUrl}>
+                    Portalul clienților
+                  </a>
+                )}
                 <a className="btn btn-outline" href="#contact">
                   Contactează-ne
                 </a>
               </div>
+              {quote && content.stats.length > 0 && (
+                <ul className="facts">
+                  {content.stats.map((s) => (
+                    <li key={s.label}>
+                      <strong>{s.value}</strong> {s.label}
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
-            <CertificatePreview name={branding.name} />
+            {quote ? (
+              <QuoteForm
+                appDomain={content.appDomain}
+                services={quote.services}
+                fallbackContact={directContact}
+              />
+            ) : (
+              <CertificatePreview name={branding.name} />
+            )}
           </div>
         </section>
 
@@ -76,7 +109,8 @@ export default async function HomePage() {
                 <p key={p}>{p}</p>
               ))}
             </div>
-            {content.stats.length > 0 && (
+            {/* Cu formularul de oferta, cifrele sunt deja in hero. */}
+            {!quote && content.stats.length > 0 && (
               <div className="stats">
                 {content.stats.map((s) => (
                   <div className="stat" key={s.label}>
@@ -96,15 +130,40 @@ export default async function HomePage() {
               {content.services.items.map((s) => (
                 <article className="card" key={s.title}>
                   <div className="card-bar" aria-hidden="true" />
+                  {s.tag && <span className="card-tag">{s.tag}</span>}
                   <h3>{s.title}</h3>
                   <p>{s.text}</p>
+                  {quote && (
+                    <a className="card-link" href="#oferta">
+                      Cere ofertă
+                    </a>
+                  )}
                 </article>
               ))}
             </div>
           </div>
         </section>
 
-        <section id="trasabilitate" className="section">
+        {circular && (
+          <section id="economie-circulara" className="section">
+            <div className="container">
+              <h2>{circular.title}</h2>
+              <p className="section-intro">{circular.intro}</p>
+              <ol className="flow">
+                {circular.steps.map((s) => (
+                  <li className="flow-step" key={s.title}>
+                    <span className="flow-label">{s.label}</span>
+                    <h3>{s.title}</h3>
+                    <p>{s.text}</p>
+                  </li>
+                ))}
+              </ol>
+              {circular.note && <p className="flow-note">{circular.note}</p>}
+            </div>
+          </section>
+        )}
+
+        <section id="trasabilitate" className={circular ? "section section-alt" : "section"}>
           <div className="container">
             <h2>Trasabilitate de la lot la livrare</h2>
             <p className="section-intro">
@@ -200,7 +259,10 @@ export default async function HomePage() {
               {legal.cui && ` · CUI ${legal.cui}`}
               {legal.regCom && ` · ${legal.regCom}`}
             </p>
-            <a href={loginUrl}>{content.appDomain}</a>
+            <span className="footer-links">
+              {quote && <a href="/confidentialitate">Confidențialitate</a>}
+              <a href={loginUrl}>{content.appDomain}</a>
+            </span>
           </div>
         </div>
       </footer>

@@ -26,6 +26,7 @@ import {
   listSellableItemOptions,
 } from "@/features/orders/queries";
 import { listClients } from "@/features/clients/queries";
+import { createClientRecord } from "@/features/clients/service";
 import { createOrderWithItems } from "@/features/orders/service";
 import { planDelivery } from "@/features/deliveries/service";
 import { computeRouteBetween } from "@/features/routing/route-service";
@@ -81,6 +82,80 @@ describe("creeaza_client - validarea argumentelor propuse de model", () => {
     const vat = presentation.fields.find((f) => f.name === "platitor_tva");
     expect(vat?.kind).toBe("boolean");
     expect(vat?.value).toBe(true);
+  });
+});
+
+describe("creeaza_client - persoana fizica (0051)", () => {
+  it("cere CNP valid, ignora campurile de firma", () => {
+    const input = creeazaClient.parse({
+      tip: "fizica",
+      denumire: "Ion Popescu",
+      cnp: "190 0101 000006",
+      cui: "12345678",
+      platitor_tva: true,
+    });
+
+    expect(input).toMatchObject({
+      tip: "fizica",
+      cnp: "1900101000006",
+      cui: null,
+      reg_com: null,
+      platitor_tva: false,
+    });
+    expect(creeazaClient.summary?.(input)).toContain("persoană fizică");
+  });
+
+  it("refuza persoana fizica fara CNP sau cu CNP gresit, si un tip necunoscut", () => {
+    expect(() => creeazaClient.parse({ tip: "fizica", denumire: "Ion" })).toThrow(
+      InvalidToolArgumentsError,
+    );
+    expect(() =>
+      creeazaClient.parse({ tip: "fizica", denumire: "Ion", cnp: "1900101000000" }),
+    ).toThrow(InvalidToolArgumentsError);
+    expect(() => creeazaClient.parse({ tip: "pfa", denumire: "Ion", cui: "1" })).toThrow(
+      InvalidToolArgumentsError,
+    );
+  });
+
+  it("fara `tip` ramane firma (compatibil cu propunerile v1)", () => {
+    expect(creeazaClient.parse({ cui: "12345678", denumire: "ACME" }).tip).toBe("juridica");
+  });
+
+  it("cardul arata CNP, fara CUI / TVA", async () => {
+    const input = creeazaClient.parse({ tip: "fizica", denumire: "Ion", cnp: "1900101000006" });
+    const presentation = await creeazaClient.presentation?.(input, {} as never);
+    if (presentation?.renderer !== "generic") throw new Error("unreachable");
+    const names = presentation.fields.map((f) => f.name);
+    expect(names).toContain("cnp");
+    expect(names).not.toContain("cui");
+    expect(names).not.toContain("platitor_tva");
+  });
+
+  it("propunere -> confirmare -> executie: creeaza clientul persoana fizica", async () => {
+    vi.mocked(createClientRecord).mockResolvedValue({ id: "p1", name: "Ion Popescu" } as never);
+    // Utilizatorul corecteaza CNP-ul in card (override) inainte de confirmare.
+    const input = creeazaClient.parse({
+      ...{ tip: "fizica", denumire: "Ion Popescu", cnp: "1900101000006" },
+      cnp: "2900215123459",
+    });
+
+    const result = await creeazaClient.execute(input, {
+      userId: "u1",
+      role: "admin",
+      organizationId: "org-1",
+      clientId: null,
+    });
+
+    expect(createClientRecord).toHaveBeenCalledWith(
+      expect.objectContaining({
+        organizationId: "org-1",
+        clientType: "fizica",
+        cnp: "2900215123459",
+        cui: null,
+        name: "Ion Popescu",
+      }),
+    );
+    expect(result).toMatchObject({ client_id: "p1", link: "/clienti/p1" });
   });
 });
 

@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { clientTaxIdLabel } from "@/features/clients/labels";
 import type { ClientAddress } from "@/features/clients/types";
 import { getDeliveryGuardsForOrders } from "@/features/deliveries/queries";
 import type { ItemOption } from "@/features/items/types";
@@ -251,7 +252,7 @@ export async function getOrderDetail(id: string): Promise<OrderDetail | null> {
   const { data: order, error } = await supabase
     .from("orders")
     .select(
-      "id, client_id, order_number, order_type, status, created_by_admin, delivery_address_id, delivery_date, expected_return_date, notes, created_at, updated_at, clients(name, cui), client_addresses(address, label)",
+      "id, client_id, order_number, order_type, status, created_by_admin, delivery_address_id, delivery_date, expected_return_date, notes, created_at, updated_at, clients(name, cui, client_type), client_addresses(address, label)",
     )
     .eq("id", id)
     .maybeSingle();
@@ -277,7 +278,10 @@ export async function getOrderDetail(id: string): Promise<OrderDetail | null> {
   return {
     ...mapOrderRow(order),
     clientName: order.clients?.name ?? "-",
-    clientCui: order.clients?.cui ?? "-",
+    // „CUI …” la firme, „Persoană fizică” la persoane - nu CNP-ul (0051).
+    clientCui: order.clients
+      ? clientTaxIdLabel({ clientType: order.clients.client_type, cui: order.clients.cui })
+      : "-",
     deliveryAddressLabel: order.client_addresses?.label ?? null,
     deliveryAddress: order.client_addresses?.address ?? null,
     items,

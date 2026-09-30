@@ -2,11 +2,16 @@ import { describe, expect, it, vi } from "vitest";
 import type { ToolContext } from "../types";
 
 vi.mock("@/features/clients/queries", () => ({
-  listClients: vi
-    .fn()
-    .mockResolvedValue([
-      { id: "client-1", name: "ACME SRL", cui: "12345678", email: "contact@acme.ro" },
-    ]),
+  listClients: vi.fn().mockResolvedValue([
+    {
+      id: "client-1",
+      clientType: "juridica",
+      name: "ACME SRL",
+      cui: "12345678",
+      cnp: null,
+      email: "contact@acme.ro",
+    },
+  ]),
 }));
 
 vi.mock("@/features/items/queries", () => ({
@@ -83,11 +88,39 @@ describe("listeaza_clienti", () => {
       {
         client_id: "client-1",
         denumire: "ACME SRL",
+        tip: "juridica",
         cui: "12345678",
         email: "contact@acme.ro",
         link: "/clienti/client-1",
       },
     ]);
+  });
+
+  it("persoana fizica: `tip` fizica, fara CNP in raspuns (0051)", async () => {
+    vi.mocked(listClients).mockResolvedValueOnce([
+      {
+        id: "p1",
+        clientType: "fizica",
+        name: "Ion Popescu",
+        cui: null,
+        cnp: "1900101000006",
+        email: null,
+      },
+    ] as never);
+
+    const result = await listeazaClienti.execute({ cautare: null }, CTX);
+
+    expect(result).toEqual([
+      {
+        client_id: "p1",
+        denumire: "Ion Popescu",
+        tip: "fizica",
+        cui: null,
+        email: null,
+        link: "/clienti/p1",
+      },
+    ]);
+    expect(JSON.stringify(result)).not.toContain("1900101000006");
   });
 });
 

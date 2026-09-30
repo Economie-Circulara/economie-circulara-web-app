@@ -54,7 +54,7 @@ Un client = un singur utilizator (nu mai multi per firma).
 
 ## Clienti (firmele care cumpara)
 
-- Doar firme juridice (nu persoane fizice)
+- ~~Doar firme juridice (nu persoane fizice)~~ - schimbat 2026-09-30: si persoane fizice (nume + CNP), vezi `docs/plans/clienti-persoana-fizica.md`
 - La creare: lookup CUI in baze de date publice Romania -> precompletare date -> confirmare/editare manuala
 - Date minime: CUI, denumire, adresa sediu, registrul comertului, TVA, email, telefon, persoana contact
 - Pot avea mai multe adrese de livrare

@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { clientTaxIdLabel } from "@/features/clients/labels";
 import type { UserRole } from "@/features/auth/session";
 import { ORDER_STATUS_LABELS } from "@/features/orders/labels";
 import { listOrders } from "@/features/orders/queries";
@@ -55,7 +56,7 @@ async function searchOrders(
   };
 }
 
-/** Clienti (doar staff) - reutilizeaza `listClients({ search })` (name SAU cui). */
+/** Clienti (doar staff) - reutilizeaza `listClients({ search })` (name, cui SAU cnp). Sublabel fara CNP. */
 async function searchClients(query: string, limit: number): Promise<SearchResultGroup> {
   const rows = await listClients({ search: query });
 
@@ -66,7 +67,7 @@ async function searchClients(query: string, limit: number): Promise<SearchResult
       type: "client",
       id: row.id,
       label: row.name,
-      sublabel: row.cui,
+      sublabel: clientTaxIdLabel(row),
       href: `/clienti/${row.id}`,
     })),
   };
