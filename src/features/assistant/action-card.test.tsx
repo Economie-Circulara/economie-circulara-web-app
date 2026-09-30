@@ -110,6 +110,8 @@ describe("ActionCard - randerul order_draft", () => {
       id: "c1",
       name: "ACME SRL",
       cui: "111",
+      clientType: "juridica",
+      cnp: null,
       regCom: null,
       isVatPayer: false,
       hqAddress: null,

@@ -12,7 +12,7 @@ interface ClientiPageProps {
   searchParams: Promise<{ q?: string; arhivate?: string }>;
 }
 
-/** Ecranul Clienți - lista firmelor (doar staff), cu căutare după denumire/CUI. */
+/** Ecranul Clienți - lista clientilor - firme si persoane fizice (doar staff), cu căutare după denumire/CUI/CNP. */
 export default async function ClientiPage({ searchParams }: ClientiPageProps) {
   await requireRole(["admin", "operator"]);
   const params = await searchParams;
@@ -39,7 +39,12 @@ export default async function ClientiPage({ searchParams }: ClientiPageProps) {
           <label htmlFor="q" className="text-sm font-medium">
             Căutare
           </label>
-          <Input id="q" name="q" defaultValue={search ?? ""} placeholder="Denumire sau CUI..." />
+          <Input
+            id="q"
+            name="q"
+            defaultValue={search ?? ""}
+            placeholder="Denumire, CUI sau CNP..."
+          />
         </div>
         {/* Arhivatii sunt ascunsi implicit (migrarea 0035) - comutator explicit. */}
         <label className="flex h-9 items-center gap-2 text-sm">

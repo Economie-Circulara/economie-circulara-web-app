@@ -1,4 +1,6 @@
 import { normalizeCui } from "@/features/clients/cui-lookup";
+import { CLIENT_TYPE_LABELS } from "@/features/clients/labels";
+import type { ClientType } from "@/features/clients/types";
 import { createClientRecord } from "@/features/clients/service";
 import {
   listClientAddressesGrouped,
@@ -19,6 +21,8 @@ import { resultField } from "../result-summary";
 import type { ToolContext } from "../types";
 import { ATTACHMENT_WRITE_TOOLS } from "./attachment-write-tools";
 import { CATALOG_WRITE_TOOLS } from "./catalog-write-tools";
+import { parseClientType, parseCnp } from "./client-args";
+import { booleanField, infoField, textField } from "./fields";
 import { DOCUMENT_WRITE_TOOLS } from "./document-tools";
 import { ORDER_WRITE_TOOLS } from "./order-write-tools";
 import { PRODUCTION_WRITE_TOOLS } from "./production-tools";
@@ -46,7 +50,12 @@ import {
  */
 
 interface CreateClientToolInput {
-  cui: string;
+  /** `juridica` (firma, implicit) sau `fizica` (persoana fizica, 0051). */
+  tip: ClientType;
+  /** Doar la `juridica`. */
+  cui: string | null;
+  /** Doar la `fizica` - obligatoriu si valid. */
+  cnp: string | null;
   denumire: string;
   reg_com: string | null;
   adresa: string | null;
@@ -59,110 +68,110 @@ interface CreateClientToolInput {
 export const creeazaClient: AssistantTool<CreateClientToolInput> = {
   name: "creeaza_client",
   description:
-    "Propune crearea unui client nou în organizație. Caută întâi datele firmei cu " +
-    "`cauta_firma_dupa_cui` și completează câmpurile cu ce ai găsit. " +
+    "Propune crearea unui client nou în organizație: o FIRMĂ (`tip` = `juridica`, implicit) sau " +
+    "o PERSOANĂ FIZICĂ (`tip` = `fizica`). Pentru firmă caută întâi datele cu " +
+    "`cauta_firma_dupa_cui` și completează câmpurile cu ce ai găsit. Pentru persoană fizică " +
+    "cere utilizatorului numele complet și CNP-ul (obligatorii) - fără CUI, reg. com. sau TVA. " +
     "Acțiunea NU se execută până când utilizatorul nu o confirmă.",
   parameters: {
     type: "object",
     additionalProperties: false,
     properties: {
-      cui: { type: "string", description: "CUI-ul firmei." },
-      denumire: { type: "string", description: "Denumirea oficială." },
-      reg_com: { type: "string", description: "Nr. de înregistrare la Registrul Comerțului." },
-      adresa: { type: "string", description: "Adresa sediului social." },
+      tip: {
+        type: "string",
+        enum: ["juridica", "fizica"],
+        description: "juridica = firmă (implicit), fizica = persoană fizică.",
+      },
+      cui: { type: "string", description: "CUI-ul firmei (doar pentru `juridica`)." },
+      cnp: {
+        type: "string",
+        description: "CNP-ul persoanei (13 cifre, doar pentru `fizica`).",
+      },
+      denumire: {
+        type: "string",
+        description: "Denumirea oficială a firmei sau numele complet al persoanei.",
+      },
+      reg_com: {
+        type: "string",
+        description: "Nr. de înregistrare la Registrul Comerțului (doar firme).",
+      },
+      adresa: { type: "string", description: "Adresa sediului social / domiciliului." },
       email: { type: "string" },
       telefon: { type: "string" },
       persoana_contact: { type: "string" },
-      platitor_tva: { type: "boolean" },
+      platitor_tva: { type: "boolean", description: "Doar firme." },
     },
-    required: ["cui", "denumire"],
+    required: ["denumire"],
   },
   roles: ["admin", "operator"],
-  version: 1,
+  version: 2,
   kind: "write",
   parse: (args) => {
     const raw = asObject(args);
-    return {
-      cui: normalizeCui(requiredString(raw, "cui")),
+    const tip = parseClientType(raw);
+    const common = {
       denumire: requiredString(raw, "denumire"),
-      reg_com: optionalString(raw, "reg_com"),
       adresa: optionalString(raw, "adresa"),
       email: optionalString(raw, "email"),
       telefon: optionalString(raw, "telefon"),
       persoana_contact: optionalString(raw, "persoana_contact"),
+    };
+    if (tip === "fizica") {
+      // Campurile de firma se ignora (modelul le poate trimite goale sau din greseala).
+      return {
+        tip,
+        cui: null,
+        cnp: parseCnp(requiredString(raw, "cnp")),
+        reg_com: null,
+        platitor_tva: false,
+        ...common,
+      };
+    }
+    return {
+      tip,
+      cui: normalizeCui(requiredString(raw, "cui")),
+      cnp: null,
+      reg_com: optionalString(raw, "reg_com"),
       platitor_tva: optionalBoolean(raw, "platitor_tva"),
+      ...common,
     };
   },
-  summary: (input) => `Creează clientul „${input.denumire}" (CUI ${input.cui})`,
-  resultSummary: (input, result) =>
-    `Am adăugat clientul **${resultField(result, "denumire") ?? input.denumire}** (CUI ${input.cui}).`,
+  summary: (input) =>
+    input.tip === "fizica"
+      ? `Creează clientul persoană fizică „${input.denumire}"`
+      : `Creează clientul „${input.denumire}" (CUI ${input.cui})`,
+  resultSummary: (input, result) => {
+    const name = resultField(result, "denumire") ?? input.denumire;
+    return input.tip === "fizica"
+      ? `Am adăugat clientul persoană fizică **${name}**.`
+      : `Am adăugat clientul **${name}** (CUI ${input.cui}).`;
+  },
   presentation: async (input): Promise<CardPresentation> => ({
     renderer: "generic",
     fields: [
-      {
-        name: "denumire",
-        label: "Denumire",
-        displayValue: input.denumire,
-        editable: true,
-        kind: "text",
-        value: input.denumire,
-      },
-      {
-        name: "cui",
-        label: "CUI",
-        displayValue: input.cui,
-        editable: true,
-        kind: "text",
-        value: input.cui,
-      },
-      {
-        name: "reg_com",
-        label: "Nr. reg. com.",
-        displayValue: input.reg_com ?? "-",
-        editable: true,
-        kind: "text",
-        value: input.reg_com ?? "",
-      },
-      {
-        name: "adresa",
-        label: "Adresă sediu",
-        displayValue: input.adresa ?? "-",
-        editable: true,
-        kind: "text",
-        value: input.adresa ?? "",
-      },
-      {
-        name: "email",
-        label: "Email",
-        displayValue: input.email ?? "-",
-        editable: true,
-        kind: "text",
-        value: input.email ?? "",
-      },
-      {
-        name: "telefon",
-        label: "Telefon",
-        displayValue: input.telefon ?? "-",
-        editable: true,
-        kind: "text",
-        value: input.telefon ?? "",
-      },
-      {
-        name: "persoana_contact",
-        label: "Persoană de contact",
-        displayValue: input.persoana_contact ?? "-",
-        editable: true,
-        kind: "text",
-        value: input.persoana_contact ?? "",
-      },
-      {
-        name: "platitor_tva",
-        label: "Plătitor de TVA",
-        displayValue: input.platitor_tva ? "Da" : "Nu",
-        editable: true,
-        kind: "boolean",
-        value: input.platitor_tva ?? false,
-      },
+      infoField("tip", "Tip client", CLIENT_TYPE_LABELS[input.tip]),
+      textField(
+        "denumire",
+        input.tip === "fizica" ? "Nume și prenume" : "Denumire",
+        input.denumire,
+      ),
+      ...(input.tip === "fizica"
+        ? [textField("cnp", "CNP", input.cnp)]
+        : [
+            textField("cui", "CUI", input.cui),
+            textField("reg_com", "Nr. reg. com.", input.reg_com),
+          ]),
+      textField(
+        "adresa",
+        input.tip === "fizica" ? "Adresă domiciliu" : "Adresă sediu",
+        input.adresa,
+      ),
+      textField("email", "Email", input.email),
+      textField("telefon", "Telefon", input.telefon),
+      textField("persoana_contact", "Persoană de contact", input.persoana_contact),
+      ...(input.tip === "fizica"
+        ? []
+        : [booleanField("platitor_tva", "Plătitor de TVA", input.platitor_tva ?? false)]),
     ],
   }),
   execute: async (input, ctx: ToolContext) => {
@@ -171,7 +180,9 @@ export const creeazaClient: AssistantTool<CreateClientToolInput> = {
     }
     const client = await createClientRecord({
       organizationId: ctx.organizationId,
+      clientType: input.tip,
       cui: input.cui,
+      cnp: input.cnp,
       name: input.denumire,
       regCom: input.reg_com,
       hqAddress: input.adresa,
