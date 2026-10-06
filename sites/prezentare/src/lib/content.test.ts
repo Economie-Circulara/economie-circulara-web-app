@@ -26,6 +26,7 @@ describe("parseSiteContent", () => {
     expect(c.draft).toBe(false);
     expect(c.logo).toBeNull();
     expect(c.stats).toEqual([]);
+    expect(c.heroImages).toEqual([]);
     expect(c.euFunding).toBeNull();
     expect(c.contact).toEqual({
       email: "office@etora.ro",
@@ -51,6 +52,17 @@ describe("parseSiteContent", () => {
     expect(() =>
       parseSiteContent("etora", { ...valid(), services: { title: "S", items: [] } }),
     ).toThrow(/cel putin 1/);
+  });
+
+  it("heroImages: cai din public/ cu text alternativ", () => {
+    const img = { src: "/etora/hero/a.webp", alt: "Stația" };
+    expect(parseSiteContent("etora", { ...valid(), heroImages: [img] }).heroImages).toEqual([img]);
+    expect(() =>
+      parseSiteContent("etora", { ...valid(), heroImages: [{ ...img, src: "hero/a.webp" }] }),
+    ).toThrow(/heroImages\[0\]\.src/);
+    expect(() => parseSiteContent("etora", { ...valid(), heroImages: [{ src: img.src }] })).toThrow(
+      /heroImages\[0\]\.alt/,
+    );
   });
 
   it("cere email sau telefon", () => {

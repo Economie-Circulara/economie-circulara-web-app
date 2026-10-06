@@ -1,5 +1,6 @@
 import { getSite } from "@/lib/site";
 import { appLoginUrl, telHref } from "@/lib/links";
+import { HeroSlideshow } from "./hero-slideshow";
 import { QuoteForm } from "./quote-form";
 
 // Pasii de trasabilitate sunt aceiasi pentru toti tenantii: descriu ce face aplicatia.
@@ -21,7 +22,7 @@ const TRACE_STEPS = [
 export default async function HomePage() {
   const { content, branding } = await getSite();
   const loginUrl = appLoginUrl(content.appDomain);
-  const { contact, legal, euFunding, circular, quote } = content;
+  const { contact, legal, euFunding, circular, quote, heroImages } = content;
   const directContact = contact.phone ?? contact.email;
   const year = new Date().getFullYear();
 
@@ -59,9 +60,10 @@ export default async function HomePage() {
       </header>
 
       <main id="top">
-        <section className="hero">
+        <section className={heroImages.length > 0 ? "hero hero-photo" : "hero"}>
           <div className="container hero-inner">
-            <div>
+            <div className="hero-copy">
+              {heroImages.length > 0 && <HeroSlideshow images={heroImages} />}
               <span className="eyebrow">{branding.name}</span>
               <h1>{content.tagline}</h1>
               <p className="lead">{content.description}</p>
