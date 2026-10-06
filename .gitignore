@@ -48,3 +48,6 @@ src/lib/database.types.generated.ts
 # Date demo generate local (supabase/demo/README.md)
 .demo-artifacts/
 .demo-artifacts.json
+
+# Poze brute primite de la clienti (cele folosite pe site sunt in sites/*/public)
+/poze/

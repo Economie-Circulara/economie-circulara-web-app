@@ -7,6 +7,31 @@
   "logo": null,
   "tagline": "Beton, transport și agregate reciclate, din Țibănești pentru șantierele din regiune",
   "description": "Preparăm beton în stație proprie, transportăm materiale și concasăm deșeurile de construcții direct la client, cu stație mobilă.",
+  "heroImages": [
+    {
+      "src": "/maconxcx/hero/statie-1.webp",
+      "alt": "Stația de betoane Macon XCX, cu o autobetonieră la încărcare"
+    },
+    {
+      "src": "/maconxcx/hero/statie-2.webp",
+      "alt": "Stația de betoane și silozurile Macon XCX, văzute din curte"
+    },
+    {
+      "src": "/maconxcx/hero/statie-3.webp",
+      "alt": "Vedere aeriană a stației de betoane și a depozitului de agregate"
+    },
+    { "src": "/maconxcx/hero/statie-4.webp", "alt": "Silozurile de ciment Macon XCX" },
+    {
+      "src": "/maconxcx/hero/statie-5.webp",
+      "alt": "Vedere aeriană a stației de betoane din Țibănești"
+    },
+    {
+      "src": "/maconxcx/hero/statie-6.webp",
+      "alt": "Montajul malaxorului la stația de betoane Macon XCX"
+    },
+    { "src": "/maconxcx/hero/statie-7.webp", "alt": "Stația de betoane Macon XCX, văzută de sus" },
+    { "src": "/maconxcx/hero/statie-8.webp", "alt": "Buncărele de agregate ale stației de betoane" }
+  ],
   "about": {
     "title": "Peste 15 ani în transport și construcții",
     "paragraphs": [

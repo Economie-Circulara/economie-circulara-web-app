@@ -28,6 +28,12 @@ export interface SiteStat {
   label: string;
 }
 
+export interface SiteHeroImage {
+  /** Cale din `public/`, ex. `/maconxcx/hero/statie-1.webp` (latime ~1920px). */
+  src: string;
+  alt: string;
+}
+
 export interface SiteContent {
   /** Pagina nu e inca finala (texte placeholder) -> `noindex`. */
   draft: boolean;
@@ -45,6 +51,8 @@ export interface SiteContent {
   logoSquare: string | null;
   tagline: string;
   description: string;
+  /** Fotografii de fundal pentru hero (optional): una = fundal fix, mai multe = se succed lent. */
+  heroImages: SiteHeroImage[];
   about: { title: string; paragraphs: string[] };
   services: { title: string; items: SiteService[] };
   stats: SiteStat[];
@@ -190,6 +198,17 @@ export function parseSiteContent(tenant: string, raw: unknown): SiteContent {
     logoSquare,
     tagline: str(root.tagline, "tagline"),
     description: str(root.description, "description"),
+    heroImages:
+      root.heroImages === undefined || root.heroImages === null
+        ? []
+        : arr(root.heroImages, "heroImages", 0).map((item, i) => {
+            const img = obj(item, `heroImages[${i}]`);
+            return {
+              src:
+                localPath(img.src, `heroImages[${i}].src`) ?? fail(`heroImages[${i}].src lipseste`),
+              alt: str(img.alt, `heroImages[${i}].alt`),
+            };
+          }),
     about: {
       title: str(about.title, "about.title"),
       paragraphs: arr(about.paragraphs, "about.paragraphs", 1).map((p, i) =>
