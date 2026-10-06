@@ -436,7 +436,9 @@ p {
   padding: 4.5rem 0;
 }
 
-.section-flush {
+/* Lipita de sectiunea dinainte doar cand au acelasi fundal; dupa o sectiune `section-alt`
+   (cu alt fundal si linie de separare) isi pastreaza spatiul de sus. */
+.section:not(.section-alt) + .section-flush {
   padding-top: 0;
 }
 
