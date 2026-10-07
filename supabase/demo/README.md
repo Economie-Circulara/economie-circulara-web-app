@@ -106,3 +106,19 @@ supabase db query --linked -f supabase/demo/teardown-demo.sql
 
 După ștergere, pașii de rulare pot fi reluați (datele se regenerează relativ la data curentă -
 util înainte de o demonstrație, ca „luna aceasta” din dashboard să aibă activitate).
+
+## Etora „ca Macon": clonarea catalogului
+
+`clone-catalog.sql` copiază din organizația sursă (Macon) în cea țintă (Etora) **itemii,
+rețetele (cu direcție, procente, factori de conversie) și stocul curent** ca loturi de
+deschidere, prin `create_lot`. Nu copiază clienți, comenzi, procese, documente sau imagini
+(date reale ale altui tenant). Țintă goală obligatoriu (altfel refuză).
+
+```bash
+sed -e "s/__SOURCE_SLUG__/<slug-macon>/" -e "s/__TARGET_SLUG__/etora/" \
+    -e "s/__TARGET_ADMIN_EMAIL__/<email-admin-etora>/" supabase/demo/clone-catalog.sql > /tmp/clone.sql
+supabase db query --linked -f /tmp/clone.sql && rm /tmp/clone.sql
+```
+
+Dacă vrei și istoric (comenzi, procese, livrări, certificate), rulează apoi seed-ul de demo
+descris mai sus - dar el cere țintă goală, deci alege UNA dintre cele două căi.

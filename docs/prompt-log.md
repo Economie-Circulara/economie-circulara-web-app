@@ -4,6 +4,13 @@ Jurnal al sarcinilor lucrate de agenti AI in acest repo. Conform regulii 1.2 din
 [`AGENTS.md`](../AGENTS.md), la **fiecare commit** se adauga o intrare aici.
 Cele mai noi intrari sus.
 
+## 2026-10-07 — Claude Sonnet 5.5 (Claude Code) — Clonare catalog Macon -> Etora
+
+- **Cerut:** datele Etora sa fie ca cele din Macon.
+- **Facut:** `supabase/demo/clone-catalog.sql` - copiaza itemi, retete si stoc curent (loturi de
+  deschidere prin `create_lot`) intre organizatii; fara clienti/comenzi/documente (date reale).
+  README actualizat. Netestat pe DB real (fara acces la baza Macon / Docker Supabase).
+
 ## 2026-10-07 — Claude Sonnet 5.5 (Claude Code) — Date demo pentru Etora
 
 - **Cerut:** date demo în organizația Etora (duplicare din Macon sau script/prompt pentru regenerare).
