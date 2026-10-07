@@ -3,7 +3,7 @@
 -- de trasabilitate + țintele pentru documentele demo. Un singur rând, coloana `data`.
 -- Vezi supabase/demo/README.md.
 with org as (
-  select id, name, primary_color, secondary_color from public.organizations where slug = 'beton-circular'
+  select id, name, primary_color, secondary_color from public.organizations where slug = '__ORG_SLUG__'
 )
 select json_build_object(
   'organization', (select row_to_json(org) from org),

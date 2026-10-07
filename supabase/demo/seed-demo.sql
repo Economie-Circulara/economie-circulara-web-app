@@ -1,5 +1,5 @@
 -- =============================================================================
--- Date DEMO pentru recepție / prezentări - organizația "Beton Circular SRL (demo)"
+-- Date DEMO pentru recepție / prezentări - organizația demo (implicit "Beton Circular SRL (demo)"; vezi README pentru Etora)
 -- =============================================================================
 -- NU face parte din migrări și NU rulează la `db reset` (vezi supabase/seed.sql pentru
 -- seed-ul de dezvoltare). Se rulează MANUAL, o singură dată per mediu - vezi
@@ -55,13 +55,18 @@ end $$;
 do $$
 declare
   c_password constant text := '__DEMO_PASSWORD__';
-  c_slug     constant text := 'beton-circular';
-  c_domain   constant text := 'demo.lotculot.eu';
-  c_depot    constant text := 'Platforma Beton Circular, Str. Depozitelor nr. 7, Chitila, Ilfov';
+  -- Placeholder-ele se inlocuiesc la rulare (vezi README): implicit `beton-circular` /
+  -- `Beton Circular SRL (demo)` / `demo.lotculot.eu`; pentru Etora `etora` / `Etora` /
+  -- `demo.etora.ro`.
+  c_slug     constant text := '__ORG_SLUG__';
+  c_org_name constant text := '__ORG_NAME__';
+  c_domain   constant text := '__DEMO_DOMAIN__';
+  c_depot    constant text := 'Platforma ' || '__ORG_NAME__' || ', Str. Depozitelor nr. 7, Chitila, Ilfov';
 
   v_start date := current_date - 182;
   v_org   uuid := gen_random_uuid();
   v_ids   jsonb := '{}'::jsonb;
+  v_reuse boolean := false;
   v_events jsonb;
 
   e        record;
@@ -84,8 +89,19 @@ begin
   if c_password = '__DEMO_' || 'PASSWORD__' or length(c_password) < 12 then
     raise exception 'Inlocuieste placeholder-ul parolei cu o parola de minim 12 caractere (vezi supabase/demo/README.md).';
   end if;
-  if exists (select 1 from public.organizations where slug = c_slug) then
-    raise exception 'Organizatia demo "%" exista deja - ruleaza intai supabase/demo/teardown-demo.sql.', c_slug;
+  -- O organizatie existenta se REFOLOSESTE doar daca e complet goala (nicio data de
+  -- business) - altfel am amesteca datele demo cu cele reale.
+  select id into v_id from public.organizations where slug = c_slug;
+  if v_id is not null then
+    if exists (select 1 from public.items where organization_id = v_id)
+       or exists (select 1 from public.clients where organization_id = v_id)
+       or exists (select 1 from public.lots where organization_id = v_id)
+       or exists (select 1 from public.orders where organization_id = v_id)
+       or exists (select 1 from public.recipes where organization_id = v_id) then
+      raise exception 'Organizatia "%" exista deja si are date - ruleaza intai supabase/demo/teardown-demo.sql (doar pentru organizatii create de seed) sau foloseste o organizatie goala.', c_slug;
+    end if;
+    v_reuse := true;
+    v_org := v_id;
   end if;
   if exists (select 1 from auth.users where email like '%@' || c_domain) then
     raise exception 'Exista deja conturi @% - ruleaza intai supabase/demo/teardown-demo.sql.', c_domain;
@@ -102,9 +118,11 @@ begin
   -- ---------------------------------------------------------------------------
   -- 1. Organizatia + conturile
   -- ---------------------------------------------------------------------------
-  insert into public.organizations (id, name, slug, primary_color, secondary_color, email_from_name, created_at, updated_at)
-  values (v_org, 'Beton Circular SRL (demo)', c_slug, '#1f4e5f', '#d98e32', 'Beton Circular',
-          v_start - 30, v_start - 30);
+  if not v_reuse then
+    insert into public.organizations (id, name, slug, primary_color, secondary_color, email_from_name, created_at, updated_at)
+    values (v_org, c_org_name, c_slug, '#1f4e5f', '#d98e32', c_org_name,
+            v_start - 30, v_start - 30);
+  end if;
 
   -- Clientii (inainte de profiluri - profilurile de client au FK catre ei).
   for u in
@@ -161,6 +179,8 @@ begin
       ('U_DRUMURI', 'client.drumuri', 'Radu Stoica',             'client',      'C_DRUMURI')
     ) as t(k, local_part, full_name, role, client)
   loop
+    -- Organizatie refolosita: super-adminul platformei exista deja, nu-l dublam.
+    continue when v_reuse and u.role = 'super_admin';
     v_id := gen_random_uuid();
     insert into auth.users (
       instance_id, id, aud, role, email, encrypted_password,
@@ -712,7 +732,7 @@ begin
         insert into public.deliveries (organization_id, order_id, scheduled_date, carrier_name, vehicle_plate,
                                        driver_name, route_origin, route_destination, created_by, created_at, updated_at)
         select v_org, o.id, v_start + (j ->> 'sd')::int,
-               (array['Beton Circular - flotă proprie', 'Trans Agregate Logistic SRL', 'Rapid Cargo Ilfov SRL'])[1 + (abs(hashtext(o.id::text)) % 3)],
+               (array[c_org_name || ' - flotă proprie', 'Trans Agregate Logistic SRL', 'Rapid Cargo Ilfov SRL'])[1 + (abs(hashtext(o.id::text)) % 3)],
                (array['IF-27-BCR', 'IF-31-BCR', 'B-208-TAL', 'IF-09-RCI', 'B-714-TAL'])[1 + (abs(hashtext(o.id::text || 'p')) % 5)],
                (array['Gheorghe Ionescu', 'Marian Vlad', 'Cristian Neagu', 'Florin Dobre'])[1 + (abs(hashtext(o.id::text || 'd')) % 4)],
                c_depot, coalesce(a.address, c.hq_address, '-'),
