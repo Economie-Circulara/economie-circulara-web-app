@@ -36,9 +36,9 @@ describe("renderOrderStatusEmail", () => {
     expect(rendered.text).toContain(DATA.organizationName);
   });
 
-  it("mentioneaza certificatul de trasabilitate la inchiderea comenzii", () => {
+  it("mentioneaza fișa de trasabilitate la inchiderea comenzii", () => {
     const rendered = renderOrderStatusEmail(DATA, "closed");
-    expect(rendered.text.toLowerCase()).toContain("certificat");
+    expect(rendered.text.toLowerCase()).toContain("fișa de trasabilitate");
   });
 
   it("foloseste un text de rezerva cand comanda nu are numar alocat", () => {

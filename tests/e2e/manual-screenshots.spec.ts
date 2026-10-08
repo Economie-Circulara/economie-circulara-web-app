@@ -71,7 +71,7 @@ test("A. login + dashboard + sidebar + cautare globala (admin)", async ({ page }
     "Comenzi active",
     "De acceptat",
     "Livrate luna aceasta",
-    "Certificate emise",
+    "Fișe de trasabilitate emise",
   ]) {
     await expect.soft(page.getByText(kpi, { exact: false }).first()).toBeVisible();
   }
@@ -282,11 +282,11 @@ test("G. comanda admin -> trimite -> accepta -> livrare -> inchide -> certificat
   await expect(page.getByRole("button", { name: "Închide" })).toBeVisible({ timeout: 20_000 });
   await page.getByRole("button", { name: "Închide" }).click();
 
-  const cert = page.getByRole("link", { name: "Vezi certificat" });
+  const cert = page.getByRole("link", { name: "Vezi fișa de trasabilitate" });
   await expect(cert).toBeVisible({ timeout: 30_000 });
   await cert.click();
-  await expect(page).toHaveURL(/\/certificat$/);
-  await expect(page.getByRole("heading", { name: /Certificat de trasabilitate/ })).toBeVisible();
+  await expect(page).toHaveURL(/\/trasabilitate$/);
+  await expect(page.getByRole("heading", { name: /Fișă de trasabilitate/ })).toBeVisible();
   await shot(page, "admin-certificate");
 });
 
@@ -422,7 +422,7 @@ test("K. portal client: catalog, cos, comanda, retur, documente, certificat", as
   await shot(page, "client-orders");
 
   // Detaliul comenzii INCHISE a clientului (creata in testul G) - are "Repetă
-  // comanda", "Vezi certificat" si formularul de retur.
+  // comanda", "Vezi fișa de trasabilitate" si formularul de retur.
   await page.getByRole("link", { name: /CMD-/ }).first().click();
   await expect(page).toHaveURL(/\/comenzile-mele\/[0-9a-f-]+$/);
   await shot(page, "client-order-detail");
@@ -561,7 +561,7 @@ test("N. capturi read-only din datele demo curate", async ({ page }) => {
   await expect(page).toHaveURL(/\/comenzi\/[0-9a-f-]+$/);
   await shot(page, "admin-order-detail");
 
-  const cert = page.getByRole("link", { name: /Vezi certificat/ });
+  const cert = page.getByRole("link", { name: /Vezi fișa de trasabilitate/ });
   if (await cert.count()) {
     await cert.first().click();
     await shot(page, "admin-certificate");

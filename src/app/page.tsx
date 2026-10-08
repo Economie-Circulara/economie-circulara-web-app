@@ -33,7 +33,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 const CAPABILITIES = [
   {
-    title: "Certificat de trasabilitate",
+    title: "Fișă de trasabilitate",
     body: "La închiderea comenzii se generează automat un PDF care arată din ce loturi de materie primă — inclusiv reciclată — provine produsul livrat.",
   },
   {
@@ -50,7 +50,7 @@ const CAPABILITIES = [
   },
   {
     title: "Portal pentru clienți",
-    body: "Clientul vede catalogul, își trimite comenzile, urmărește statusul și descarcă documentele și certificatele comenzilor proprii.",
+    body: "Clientul vede catalogul, își trimite comenzile, urmărește statusul și descarcă documentele și fișele de trasabilitate ale comenzilor proprii.",
   },
   {
     title: "Rapoarte și conformitate",

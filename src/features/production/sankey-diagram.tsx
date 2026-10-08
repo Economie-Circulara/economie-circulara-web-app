@@ -38,7 +38,7 @@ export function SankeyDiagram({ data, className, height = 260 }: SankeyDiagramPr
     [data, height],
   );
   // Coloana maxima a graf-ului curent - folosita ca sa generalizam alinierea
-  // pentru un numar variabil de coloane (certificatul de trasabilitate, Task G,
+  // pentru un numar variabil de coloane (fișa de trasabilitate, Task G,
   // poate avea mai mult de 3 coloane in functie de adancimea lantului), fara sa
   // schimbam vizual layout-ul fix pe 3 coloane al proceselor de productie.
   const maxColumn = positioned.length > 0 ? Math.max(...positioned.map((n) => n.column)) : 0;

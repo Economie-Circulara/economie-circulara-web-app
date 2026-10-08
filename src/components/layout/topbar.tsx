@@ -31,7 +31,7 @@ const SEARCH_PATH_BY_ROLE: Partial<Record<UserRole, string>> = {
 const SEARCH_PLACEHOLDER_BY_ROLE: Partial<Record<UserRole, string>> = {
   admin: "Caută comenzi, loturi, clienți...",
   operator: "Caută comenzi, loturi, clienți...",
-  client: "Caută comenzi, certificate, produse...",
+  client: "Caută comenzi, fișe de trasabilitate, produse...",
 };
 
 /** Bara de sus a shell-ului: căutare globală (staff + client) + identitatea utilizatorului + delogare. */

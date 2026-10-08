@@ -66,7 +66,7 @@ export function DocumentUpload({ ownerType, ownerId, revalidatePath }: DocumentU
             <Input id={id} name="description" list={`${id}-suggestions`} placeholder="Contract" />
             <datalist id={`${id}-suggestions`}>
               <option value="Contract" />
-              <option value="Certificat" />
+              <option value="Declarație de conformitate" />
               <option value="Aviz" />
             </datalist>
           </>

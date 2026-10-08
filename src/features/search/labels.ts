@@ -6,7 +6,7 @@ export const SEARCH_GROUP_LABELS: Record<SearchResultType, string> = {
   client: "Clienți",
   lot: "Loturi",
   item: "Produse",
-  certificate: "Certificate",
+  certificate: "Fișe de trasabilitate",
 };
 
 /**

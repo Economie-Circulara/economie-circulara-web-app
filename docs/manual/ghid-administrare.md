@@ -21,7 +21,7 @@ deschide ecranul **"Setări organizație"**, cu formularul de configurare:
 ### 1.1 Identitate
 
 - **"Nume organizație"** (obligatoriu) - numele afișat în aplicație (sidebar,
-  ecranul de autentificare, antetul certificatelor și rapoartelor PDF).
+  ecranul de autentificare, antetul fișelor de trasabilitate și rapoartelor PDF).
 - **"Logo orizontal"** și **"Logo pătrat"** - două variante, oricare opțională
   (PNG, JPEG, WEBP, SVG sau GIF, max. 2MB), încărcate cu **"Încarcă"** (sau
   **"Înlocuiește"**, dacă există deja):
@@ -328,7 +328,7 @@ Supabase (regiunea EU) gestionează backup-urile automate ale bazei de date la
 nivel de proiect cloud (vezi planul Supabase folosit pentru proiect, în
 dashboard-ul Supabase -> Project Settings -> Backups, pentru frecvență și
 politica de retenție exactă a proiectului). Documentele (fișiere din Storage -
-documente de client, contracte arhivate, certificate PDF) sunt stocate în
+documente de client, contracte arhivate, fișe de trasabilitate PDF) sunt stocate în
 Supabase Storage, cu aceeași regiune și politică de backup ca baza de date.
 
 Recomandare operațională: înainte de orice migrare cu risc (ex. modificare de
@@ -342,7 +342,7 @@ recent din dashboard-ul Supabase.
 | `super_admin` | Toate organizațiile (fără organizație proprie) - doar `/platform` | `requireRole(["super_admin"])` + RLS |
 | `admin` | Organizația proprie - tot (business + setări + utilizatori) | `requireRole(["admin", ...])` + RLS pe `organization_id` |
 | `operator` | Organizația proprie - operațiuni (stoc, producție, comenzi, clienți), fără setări | `requireRole(["admin", "operator"])` + RLS |
-| `client` | Doar datele proprii (comenzile firmei lui, documentele ei, certificatele comenzilor ei) | `requireRole(["client"])` + politici RLS "conștiente de status" pe `orders`/`order_items`/`documents` |
+| `client` | Doar datele proprii (comenzile firmei lui, documentele ei, fișele de trasabilitate comenzilor ei) | `requireRole(["client"])` + politici RLS "conștiente de status" pe `orders`/`order_items`/`documents` |
 
 Izolarea multi-tenant este impusă **la nivel de bază de date** (Row Level
 Security), nu doar în interfață - orice extindere a aplicației care adaugă un

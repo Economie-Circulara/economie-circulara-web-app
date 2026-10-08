@@ -24,4 +24,4 @@ export const PLATFORM_NAME = "Lot cu Lot";
 
 /** O propozitie despre ce face platforma - folosita in `metadata.description`. */
 export const PLATFORM_DESCRIPTION =
-  "Platformă multi-tenant pentru trasabilitatea materialelor în economia circulară: loturi, procese, certificate de trasabilitate, avize și e-Transport.";
+  "Platformă multi-tenant pentru trasabilitatea materialelor în economia circulară: loturi, procese, fișe de trasabilitate, avize și e-Transport.";

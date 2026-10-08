@@ -50,7 +50,7 @@ export default async function ItemDetailPage({ params }: ItemDetailPageProps) {
               <ConfirmActionButton
                 triggerLabel="Arhivează"
                 title="Arhivezi acest material?"
-                description="Nu va mai apărea în liste și nu va mai putea fi ales în comenzi, rețete sau intrări de stoc. Istoricul (loturi, comenzi, certificate) rămâne neschimbat. Îl poți restaura oricând."
+                description="Nu va mai apărea în liste și nu va mai putea fi ales în comenzi, rețete sau intrări de stoc. Istoricul (loturi, comenzi, fișe de trasabilitate) rămâne neschimbat. Îl poți restaura oricând."
                 confirmLabel="Da, arhivează"
                 action={archiveItemAction.bind(null, item.id)}
               />

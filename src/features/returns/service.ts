@@ -293,7 +293,7 @@ function throwReturnRpcError(error: { code?: string; message: string } | null): 
  * fiecare linie + seteaza `status='accepted'` - atomic, prin RPC-ul Postgres
  * `accept_return_order` (vezi 0010_returns.sql). Nu invocă
  * `orders/notifications.ts#onOrderStatusChanged` (Task F, decizie deliberata):
- * acel hook genereaza automat certificatul de trasabilitate la `toStatus ===
+ * acel hook genereaza automat fișa de trasabilitate la `toStatus ===
  * 'closed'`, ceea ce nu are sens pt. o comanda-retur (nu e o vanzare livrata
  * clientului) - vezi nota din `actions.ts`.
  */

@@ -11,7 +11,7 @@ conformitatea cu Anexa 1 - finanțare europeană). Documentele descriu ecranele
 | Document | Pentru cine | Ce conține |
 | --- | --- | --- |
 | [`utilizare-admin-operator.md`](utilizare-admin-operator.md) | **Administrator** și **Operator** ai unei organizații | Ghid pas-cu-pas pentru activitatea zilnică: autentificare, dashboard, clienți, produse/rețete, stoc, producție/reciclare, comenzi, retur/garanție, livrări, rapoarte, căutare. |
-| [`utilizare-client.md`](utilizare-client.md) | **Client** (firma care cumpără) | Ghid pas-cu-pas pentru portalul clientului: autentificare, catalog, comenzi proprii, retur/garanție, documente și certificate. |
+| [`utilizare-client.md`](utilizare-client.md) | **Client** (firma care cumpără) | Ghid pas-cu-pas pentru portalul clientului: autentificare, catalog, comenzi proprii, retur/garanție, documente și fișe de trasabilitate. |
 | [`ghid-administrare.md`](ghid-administrare.md) | **Administrator de organizație** și **Super-admin de platformă** (+ echipa tehnică) | Configurarea organizației (identitate, white-label, domeniu, email), managementul utilizatorilor, administrarea multi-organizație (super-admin), și referințe tehnice de operare (Supabase, Vercel, migrări, backup). |
 | [`instruire.md`](instruire.md) | **Persoana responsabilă cu instruirea** utilizatorilor desemnați (Beneficiar) | Plan de sesiuni de instruire pe rol, agendă, durată estimată, checklist de competențe, materiale necesare. |
 
@@ -19,7 +19,7 @@ conformitatea cu Anexa 1 - finanțare europeană). Documentele descriu ecranele
 
 Ambele manuale de utilizare (`utilizare-admin-operator.md`, `utilizare-client.md`)
 urmăresc **fluxul complet al platformei**, de la crearea organizației până la
-certificatul de trasabilitate - același flux descris în
+fișa de trasabilitate - același flux descris în
 [`docs/handoff.md`](../handoff.md) și rezumat în [`docs/index.md`](../index.md):
 
 1. Creare organizație + useri
@@ -32,11 +32,11 @@ certificatul de trasabilitate - același flux descris în
    întâi -> loturi noi)
 7. Comandă (client sau admin)
 8. Acceptare comandă -> scădere stoc
-9. Livrare -> închidere -> generare certificat PDF automat
+9. Livrare -> închidere -> generare fișă de trasabilitate PDF automat
 
 Manualul admin/operator acoperă pașii 1-9 din perspectiva organizației; manualul
 clientului acoperă partea vizibilă lui din pașii 7-9 (plasare comandă, urmărire
-status, retur, descărcare documente/certificate).
+status, retur, descărcare documente/fișe de trasabilitate).
 
 ## Capturi de ecran
 
@@ -78,5 +78,5 @@ Cateva note de onestitate, ca sa nu existe asteptari gresite:
   aplicație ca fiind în pregătire (v2) - nu e un raport funcțional încă.
 
 Restul fluxurilor descrise (autentificare, clienți, produse, rețete, stoc,
-producție/reciclare, comenzi, retur/garanție, certificate, rapoarte, căutare,
+producție/reciclare, comenzi, retur/garanție, fișe de trasabilitate, rapoarte, căutare,
 portal client) sunt funcționale și documentate pe baza ecranelor reale.

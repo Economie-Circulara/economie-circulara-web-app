@@ -82,9 +82,7 @@ describe("Home", () => {
 
     it("descrie capabilitatile platformei", async () => {
       await renderHome();
-      expect(
-        screen.getByRole("heading", { name: "Certificat de trasabilitate" }),
-      ).toBeInTheDocument();
+      expect(screen.getByRole("heading", { name: "Fișă de trasabilitate" })).toBeInTheDocument();
       expect(
         screen.getByRole("heading", { name: "Livrări, avize și e-Transport" }),
       ).toBeInTheDocument();

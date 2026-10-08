@@ -196,7 +196,7 @@ export const CLIENT_NAV: NavItem[] = [
   { label: "Aport material", href: "/aport-nou", icon: "aport", roles: ["client"] },
   { label: "Comenzile mele", href: "/comenzile-mele", icon: "orders", roles: ["client"] },
   {
-    label: "Documente & Certificate",
+    label: "Documente",
     href: "/documente",
     icon: "documents",
     roles: ["client"],

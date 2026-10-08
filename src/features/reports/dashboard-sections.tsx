@@ -89,7 +89,7 @@ export function KpiRow({ dashboard, className }: SectionProps) {
         href="/comenzi?status=delivered"
       />
       <KpiCard
-        label="Certificate emise"
+        label="Fișe de trasabilitate emise"
         value={kpis.certificatesIssued}
         icon={FileCheck2}
         hint="Total, de la începutul activității"

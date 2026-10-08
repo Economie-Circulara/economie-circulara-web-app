@@ -27,7 +27,7 @@ export const MANUAL_DOCS: readonly ManualDoc[] = [
     file: "README.md",
     title: "Prezentare generală",
     description:
-      "Cine ce citește, fluxul complet al platformei de la organizație până la certificatul de trasabilitate și stadiul funcționalităților.",
+      "Cine ce citește, fluxul complet al platformei de la organizație până la fișa de trasabilitate și stadiul funcționalităților.",
     audience: "Toți utilizatorii organizației",
     roles: STAFF,
   },

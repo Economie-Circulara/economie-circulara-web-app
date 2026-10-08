@@ -369,7 +369,7 @@ p {
   background: color-mix(in oklch, var(--accent) 90%, black);
 }
 
-/* Cardul "certificat" din hero - ilustreaza lantul de loturi. */
+/* Cardul "fișă de trasabilitate" din hero - ilustreaza lantul de loturi. */
 .cert {
   margin: 0;
   background: var(--surface);

@@ -59,7 +59,7 @@ export function OrderList({ orders }: { orders: OrderListRow[] }) {
             <div className="flex flex-wrap items-center gap-2">
               {order.status === "closed" ? (
                 <Button asChild size="sm">
-                  <Link href={`/comenzile-mele/${order.id}/certificat`}>Certificat ⤓</Link>
+                  <Link href={`/comenzile-mele/${order.id}/trasabilitate`}>Trasabilitate ⤓</Link>
                 </Button>
               ) : null}
               {isFinished(order.status) ? (

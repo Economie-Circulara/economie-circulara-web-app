@@ -44,7 +44,7 @@ Ecranul **"Panou de control"** (prima pagină după logare) oferă o privire de 
 - **Comenzi active** - comenzi trimise, acceptate sau livrate (neînchise, neanulate).
 - **De acceptat** - comenzi trimise, în așteptarea acceptării.
 - **Livrate luna aceasta** - comenzi livrate în luna curentă.
-- **Certificate emise** - total, de la începutul activității.
+- **Fișe de trasabilitate emise** - total, de la începutul activității.
 
 Sub cele patru cifre, cardul **"Rapoarte operaționale"** face trimitere directă la
 pagina "Rapoarte" (link **"Vezi rapoarte"**).
@@ -81,7 +81,7 @@ Ecranul **"Clienți"** listează clienții existenți, cu o casetă **"Căutare"
    obligatorii, pentru facturare; CNP-ul se verifică - 13 cifre cu cifra de control
    corectă) și, opțional, **Adresă domiciliu**. Nu există CUI, Nr. Registrul
    Comerțului sau bifa de TVA. **CNP-ul e vizibil doar echipei organizației**, pe
-   pagina clientului: pe comenzi, avize, certificate și în portal clientul apare ca
+   pagina clientului: pe comenzi, avize, fișe de trasabilitate și în portal clientul apare ca
    **"Persoană fizică"**.
 3. Completează, opțional, secțiunea **"Contact"**: Email, Telefon, Persoană de
    contact, Note, și bifa **"Este și furnizor (materiale/deșeuri)"** dacă firma
@@ -110,7 +110,7 @@ Din listă, click pe o firmă deschide ecranul de detaliu, cu secțiunile:
   (etichetă sugerată "Contract") - platforma nu gestionează structurat perioade,
   obligații sau tarife contractuale, doar arhivează PDF-ul semnat.
   - Formular **"Încarcă document nou"**: alege **Fișier** (PDF, imagine sau Office,
-    max. 4MB) și, opțional, o **Etichetă** (sugestii: "Contract", "Certificat",
+    max. 4MB) și, opțional, o **Etichetă** (sugestii: "Contract", "Declarație de conformitate",
     "Aviz"), apoi apasă **"Încarcă"**.
   - Fiecare document din listă are butoanele **"Descarcă"** și **"Șterge"**
     (cu confirmare).
@@ -123,7 +123,7 @@ Din listă, click pe o firmă deschide ecranul de detaliu, cu secțiunile:
 ### 3.4 Arhivarea unui client
 
 Un client creat din greșeală (sau cu care nu mai lucrezi) **nu se șterge, se
-arhivează**: comenzile, documentele și certificatele lui trebuie să rămână pentru
+arhivează**: comenzile, documentele și fișele lui de trasabilitate trebuie să rămână pentru
 trasabilitate.
 
 - Pe ecranul de detaliu al clientului apasă **"Arhivează"** și confirmă în
@@ -175,7 +175,7 @@ Apasă **"Creează materialul"**.
 și rețete), se **arhivează**: pe ecranul lui apasă **"Arhivează"** și confirmă.
 Materialul arhivat nu mai apare în listă și nu mai poate fi ales nicăieri (comenzi,
 catalogul clientului, rețete, intrări de stoc, producție, asistent), dar istoricul -
-loturi, comenzi, certificate - îl afișează în continuare. Bifa **"Arată arhivate"**
+loturi, comenzi, fișe de trasabilitate - îl afișează în continuare. Bifa **"Arată arhivate"**
 din filtre îl readuce în listă (cu eticheta "Arhivat"), iar **"Restaurează"** îl
 face din nou utilizabil. Abonamentele se arhivează la fel, de pe ecranul lor.
 
@@ -405,8 +405,8 @@ statusul curent, atât în listă cât și în ecranul de detaliu):
 - **"Acceptă"** este momentul-cheie de business: **la acceptare se scade stocul**
   (se folosesc întâi loturile cele mai vechi, pentru fiecare linie a comenzii). La
   **"Anulează"**, dacă stocul fusese deja scăzut, acesta **se reface**.
-- **"Închide"** generează **automat** certificatul de trasabilitate PDF al
-  comenzii - nu există un buton separat "Generează certificat".
+- **"Închide"** generează **automat** fișa de trasabilitate (PDF) a
+  comenzii - nu există un buton separat "Generează fișa".
 
 ### 7.3 Crearea unei comenzi în numele clientului
 
@@ -439,8 +439,8 @@ fluxul de abonament/închiriere), linii de comandă, și un **traseu vizual al
 statusului** (Ciornă -> Trimisă -> Acceptată -> Livrată -> Închisă, sau "Anulată").
 
 Dacă o comandă a fost livrată/închisă, pot apărea butoanele **"Retur"** și
-**"Garanție"** (secțiunea 8). Dacă certificatul există deja, apare butonul
-**"Vezi certificat"**.
+**"Garanție"** (secțiunea 8). Dacă fișa de trasabilitate există deja, apare butonul
+**"Vezi fișa de trasabilitate"**.
 
 Pe o comandă de tip **Aport** aflată în Ciornă sau Trimisă, în locul butoanelor de
 tranziție apar **"Acceptă aport"** și **"Anulează"** (respingerea cererii): materialul adus de client intră în stoc ca lot nou, cu
@@ -610,7 +610,7 @@ configurabili per organizație, planificat ulterior).
 
 Bara de căutare din partea de sus a ecranului (disponibilă doar pentru
 Administrator/Operator) caută global în: **comenzi, clienți, loturi, produse și
-certificate**. Se introduce un termen și se apasă Enter (sau se navighează direct
+fișe de trasabilitate**. Se introduce un termen și se apasă Enter (sau se navighează direct
 la pagina **"Căutare"**), rezultatele apar grupate pe tip.
 
 ![bara de căutare din antet + pagina de rezultate grupate](img/admin-search-results.png)
@@ -706,7 +706,7 @@ Cum funcționează cardul:
 | Lot introdus din greșeală     | Anulare, doar dacă nu s-a consumat nimic din el       |
 | Livrare                       | Anulare, doar înainte de plecare                      |
 | Utilizator (staff)            | Dezactivare (doar Administratorul, nu pe sine)        |
-| Audit stoc, certificate, procese finalizate, comenzi livrate/închise | Nimic - nu se șterg niciodată (trasabilitate) |
+| Audit stoc, fișe de trasabilitate, procese finalizate, comenzi livrate/închise | Nimic - nu se șterg niciodată (trasabilitate) |
 
 Toate aceste acțiuni cer **confirmare** într-o fereastră care explică pe scurt ce
 se întâmplă.

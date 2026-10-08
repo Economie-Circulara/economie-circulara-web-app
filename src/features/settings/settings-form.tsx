@@ -160,8 +160,8 @@ export function SettingsForm({ org }: { org: CurrentOrg }) {
           <CardHeader>
             <CardTitle>Date firmă</CardTitle>
             <CardDescription>
-              Apar pe certificatul de trasabilitate, ca date ale emitentului. Fără CUI, certificatul
-              nu poate fi folosit comercial.
+              Apar pe fișa de trasabilitate, ca date ale emitentului. Fără CUI, fișa nu poate fi
+              folosită comercial.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">

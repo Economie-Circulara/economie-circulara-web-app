@@ -218,20 +218,18 @@ test.describe("Flux complet MVP (handoff.md, pasii 1-9)", () => {
       await expect(page.getByRole("button", { name: "Livrează" })).toBeVisible();
     });
 
-    await test.step("Pasul 9: livrare -> închidere -> certificat automat", async () => {
+    await test.step("Pasul 9: livrare -> închidere -> fișă de trasabilitate automată", async () => {
       await page.getByRole("button", { name: "Livrează" }).click();
       await expect(page.getByRole("button", { name: "Închide" })).toBeVisible();
 
       await page.getByRole("button", { name: "Închide" }).click();
-      const viewCertificate = page.getByRole("link", { name: "Vezi certificat" });
+      const viewCertificate = page.getByRole("link", { name: "Vezi fișa de trasabilitate" });
       await expect(viewCertificate).toBeVisible();
 
       await viewCertificate.click();
-      await expect(page).toHaveURL(/\/comenzi\/[0-9a-f-]+\/certificat$/);
-      await expect(
-        page.getByRole("heading", { name: "Certificat de trasabilitate" }),
-      ).toBeVisible();
-      await expect(page.getByText(/Nr\. CRT-\d{4}-\d{4}/)).toBeVisible();
+      await expect(page).toHaveURL(/\/comenzi\/[0-9a-f-]+\/trasabilitate$/);
+      await expect(page.getByRole("heading", { name: "Fișă de trasabilitate" })).toBeVisible();
+      await expect(page.getByText(/Nr\. TRS-\d{4}-\d{4}/)).toBeVisible();
       // .first(): titlul produsului apare atat in blocul "Produs(e) livrat(e)"
       // cat si ca eticheta de nod in diagrama Sankey a lantului de trasabilitate.
       await expect(page.getByText(ITEM_PRODUCT_TITLE, { exact: true }).first()).toBeVisible();

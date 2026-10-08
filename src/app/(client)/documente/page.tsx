@@ -8,12 +8,12 @@ import { DocumentList } from "@/features/documents/document-list";
 import { listDocuments } from "@/features/documents/service";
 import { listOrders } from "@/features/orders/queries";
 
-export const metadata = { title: "Documente & Certificate" };
+export const metadata = { title: "Documente" };
 
 const dateFormatter = new Intl.DateTimeFormat("ro-RO", { dateStyle: "medium" });
 
 /**
- * Ecranul "Documente & Certificate": documentele proprii ale firmei (contracte
+ * Ecranul "Documente": documentele proprii ale firmei (contracte
  * arhivate etc., `owner_type='client'`) + certificatele comenzilor inchise -
  * doar consultare/descarcare, fara upload (Task H, punctul 4). Comenzile si
  * certificatele sunt RLS-scoped la clientul curent, la fel ca in
@@ -45,10 +45,7 @@ export default async function DocumentePage() {
 
   return (
     <div className="space-y-8">
-      <PageHeader
-        title="Documente & Certificate"
-        description="Documentele firmei și certificatele de trasabilitate."
-      />
+      <PageHeader title="Documente" description="Documentele firmei și fișele de trasabilitate." />
 
       <section className="max-w-3xl space-y-3">
         <h2 className="text-lg font-semibold">Documente</h2>
@@ -56,12 +53,12 @@ export default async function DocumentePage() {
       </section>
 
       <section className="max-w-3xl space-y-3">
-        <h2 className="text-lg font-semibold">Certificate de trasabilitate</h2>
+        <h2 className="text-lg font-semibold">Fișe de trasabilitate</h2>
         {certificates.length === 0 ? (
           <EmptyState
             icon={<Award />}
-            title="Niciun certificat"
-            description="Certificatele apar automat la închiderea comenzilor livrate."
+            title="Nicio fișă de trasabilitate"
+            description="Fișele de trasabilitate apar automat la închiderea comenzilor livrate."
           />
         ) : (
           <ul className="divide-y rounded-lg border bg-card">
@@ -73,15 +70,15 @@ export default async function DocumentePage() {
                 <div>
                   <p className="text-sm font-medium">{certificate.number}</p>
                   <p className="text-xs text-muted-foreground">
-                    {order.orderNumber ?? "Comandă"} · emis{" "}
+                    {order.orderNumber ?? "Comandă"} · emisă{" "}
                     {dateFormatter.format(new Date(certificate.issuedAt))}
                   </p>
                 </div>
                 <Link
-                  href={`/comenzile-mele/${order.id}/certificat`}
+                  href={`/comenzile-mele/${order.id}/trasabilitate`}
                   className="text-sm font-medium text-accent hover:underline"
                 >
-                  Vezi certificat
+                  Vezi fișa de trasabilitate
                 </Link>
               </li>
             ))}

@@ -26,7 +26,7 @@ export interface CurrentOrg extends OrgBranding {
   emailReplyTo: string | null;
   /** Adresa de pe care pleaca efectiv emailurile (domeniu verificat), altfel `null` = adresa platformei. */
   emailSendingAddress: string | null;
-  /** Date de identificare fiscala (migrarea 0023) - afisate pe certificatul de trasabilitate. */
+  /** Date de identificare fiscala (migrarea 0023) - afisate pe fișa de trasabilitate. */
   cui: string | null;
   regCom: string | null;
   address: string | null;

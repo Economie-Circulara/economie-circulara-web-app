@@ -98,9 +98,9 @@ const TEMPLATES: Record<NotifiableOrderStatus, (data: OrderEmailData) => Templat
     intro: `Comanda dumneavoastră ${orderLabel(data.orderNumber)} a fost livrată.`,
   }),
   closed: (data) => ({
-    subject: `Comanda ${orderLabel(data.orderNumber)} a fost închisă - certificat disponibil`,
+    subject: `Comanda ${orderLabel(data.orderNumber)} a fost închisă - fișa de trasabilitate e disponibilă`,
     intro:
-      `Comanda dumneavoastră ${orderLabel(data.orderNumber)} a fost închisă. Certificatul de ` +
+      `Comanda dumneavoastră ${orderLabel(data.orderNumber)} a fost închisă. Fișa de ` +
       `trasabilitate a fost generat și este disponibil în portalul clienților.`,
   }),
   cancelled: (data) => {

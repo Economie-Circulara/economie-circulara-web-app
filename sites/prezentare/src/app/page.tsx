@@ -14,8 +14,8 @@ const TRACE_STEPS = [
     text: "Fiecare proces înregistrează din ce loturi a consumat și ce loturi noi a produs, cu pierderile reale.",
   },
   {
-    title: "Livrarea vine cu certificat",
-    text: "La închiderea comenzii se emite automat certificatul de trasabilitate: din ce este făcut produsul livrat.",
+    title: "Livrarea vine cu fișă de trasabilitate",
+    text: "La închiderea comenzii se emite automat fișa de trasabilitate: din ce este făcut produsul livrat.",
   },
 ];
 
@@ -169,8 +169,8 @@ export default async function HomePage() {
           <div className="container">
             <h2>Trasabilitate de la lot la livrare</h2>
             <p className="section-intro">
-              Știi exact din ce este făcut ce primești. Fiecare pas este înregistrat, iar
-              certificatul de trasabilitate îl dovedește.
+              Știi exact din ce este făcut ce primești. Fiecare pas este înregistrat, iar fișa de
+              trasabilitate îl dovedește.
             </p>
             <ol className="steps">
               {TRACE_STEPS.map((s) => (
@@ -272,7 +272,7 @@ export default async function HomePage() {
   );
 }
 
-/** Ilustratie: un certificat de trasabilitate simplificat (date de exemplu). */
+/** Ilustratie: o fișă de trasabilitate simplificată (date de exemplu). */
 function CertificatePreview({ name }: { name: string }) {
   const rows = [
     { label: "Lot materie primă reciclată", qty: "62%" },
@@ -280,9 +280,9 @@ function CertificatePreview({ name }: { name: string }) {
     { label: "Produs livrat · comanda CMD-0142", qty: "12,0 t" },
   ];
   return (
-    <figure className="cert" aria-label="Exemplu de certificat de trasabilitate">
+    <figure className="cert" aria-label="Exemplu de fișă de trasabilitate">
       <div className="cert-head">
-        <strong>Certificat de trasabilitate</strong>
+        <strong>Fișă de trasabilitate</strong>
         <span>{name}</span>
       </div>
       <div className="cert-body">

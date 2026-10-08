@@ -109,7 +109,7 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
             ) : null}
             {certificate ? (
               <Button asChild variant="outline">
-                <Link href={`/comenzi/${order.id}/certificat`}>Vezi certificat</Link>
+                <Link href={`/comenzi/${order.id}/trasabilitate`}>Vezi fișa de trasabilitate</Link>
               </Button>
             ) : null}
             {delivery ? (

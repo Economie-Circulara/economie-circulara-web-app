@@ -74,7 +74,7 @@ export default async function ClientDetailPage({ params, searchParams }: ClientD
             <ConfirmActionButton
               triggerLabel="Arhivează"
               title="Arhivezi acest client?"
-              description="Clientul nu va mai apărea în liste și nu va mai putea primi comenzi noi. Utilizatorul lui din portal nu se va mai putea loga. Comenzile, documentele și certificatele existente rămân neschimbate. Îl poți restaura oricând."
+              description="Clientul nu va mai apărea în liste și nu va mai putea primi comenzi noi. Utilizatorul lui din portal nu se va mai putea loga. Comenzile, documentele și fișele de trasabilitate existente rămân neschimbate. Îl poți restaura oricând."
               confirmLabel="Da, arhivează"
               action={archiveClientAction.bind(null, client.id)}
             />

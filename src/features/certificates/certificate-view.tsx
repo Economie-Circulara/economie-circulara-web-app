@@ -93,7 +93,7 @@ export function CertificateView({
               {issuerLine ? <p className="text-xs text-muted-foreground">{issuerLine}</p> : null}
             </div>
             <div className="text-right">
-              <p className="font-serif text-lg font-semibold">Certificat de trasabilitate</p>
+              <p className="font-serif text-lg font-semibold">Fișă de trasabilitate</p>
               <p className="mt-1 font-mono text-xs text-muted-foreground">Nr. {number}</p>
               <p className="font-mono text-xs text-muted-foreground">
                 Emis: {dateFormatter.format(new Date(issuedAt))}
@@ -193,7 +193,7 @@ export function CertificateView({
           <span>
             {issuerCredit
               ? `${orgName} · trasabilitate emisă de ${issuerCredit}`
-              : `${orgName} · certificat de trasabilitate`}
+              : `${orgName} · fișă de trasabilitate`}
           </span>
           <span>{number} · pagina 1/1</span>
         </div>

@@ -2,29 +2,27 @@ import { PLATFORM_NAME } from "@/lib/brand";
 import { issuerCreditFor } from "@/features/branding/tenant-profiles";
 import { notFound } from "next/navigation";
 import { PageHeader } from "@/components/page-header";
-import { getCurrentOrg } from "@/features/auth/queries";
 import { requireRole } from "@/features/auth/session";
+import { getCurrentOrg } from "@/features/auth/queries";
 import { CertificateView } from "@/features/certificates/certificate-view";
 import { getCertificateByOrderId } from "@/features/certificates/service";
 import { listDocuments } from "@/features/documents/service";
 import { getOrderDetail } from "@/features/orders/queries";
 
-export const metadata = { title: "Certificat de trasabilitate" };
+export const metadata = { title: "Fișă de trasabilitate" };
 
 interface CertificatePageProps {
   params: Promise<{ id: string }>;
 }
 
 /**
- * Certificatul unei comenzi proprii - acelasi `CertificateView` folosit si de
- * staff (`src/app/(admin)/comenzi/[id]/certificat/page.tsx`, Task G): componenta
- * randeaza doar din snapshot-ul inghetat, fara acces la stoc/procese live.
- * `getOrderDetail`/`getCertificateByOrderId`/`listDocuments` sunt toate RLS-scoped
- * la comenzile clientului curent (`certificates_client_select`,
- * `documents_client_select` din 0001_core_schema.sql).
+ * Ecranul "Certificat" (Task G, mockup docs/design/Lateris_Trace.dc.html) -
+ * doar staff. Certificatul se genereaza AUTOMAT la inchiderea comenzii (hook in
+ * `orders/notifications.ts`); aceasta pagina doar il afiseaza - daca nu exista
+ * inca (comanda nu a ajuns la `closed`, sau generarea a eșuat), 404.
  */
-export default async function ClientCertificatePage({ params }: CertificatePageProps) {
-  await requireRole(["client"]);
+export default async function CertificatePage({ params }: CertificatePageProps) {
+  await requireRole(["admin", "operator"]);
   const { id } = await params;
 
   const order = await getOrderDetail(id);
@@ -38,12 +36,12 @@ export default async function ClientCertificatePage({ params }: CertificatePageP
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Certificat de trasabilitate"
+        title="Fișă de trasabilitate"
         description={order.orderNumber ?? undefined}
         breadcrumbs={[
-          { label: "Comenzile mele", href: "/comenzile-mele" },
-          { label: order.orderNumber ?? "Comandă", href: `/comenzile-mele/${id}` },
-          { label: "Certificat" },
+          { label: "Comenzi", href: "/comenzi" },
+          { label: order.orderNumber ?? "Comandă", href: `/comenzi/${id}` },
+          { label: "Trasabilitate" },
         ]}
       />
 

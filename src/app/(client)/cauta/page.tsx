@@ -31,7 +31,7 @@ export default async function CautaPage({ searchParams }: CautaPageProps) {
         description={
           query
             ? `Rezultate pentru "${query}"`
-            : "Caută comenzi, certificate sau produse din catalog."
+            : "Caută comenzi, fișe de trasabilitate sau produse din catalog."
         }
       />
       <SearchResults query={query} groups={groups} />

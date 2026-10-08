@@ -1609,4 +1609,22 @@ begin;
     from public.quote_requests where id = :'quote_id';
 rollback;
 
+-- ===========================================================================
+-- B34: fisa de trasabilitate (0055) - numerele noi au prefixul TRS-, pe acelasi
+--      contor (secventa continua dupa numerele CRT- emise deja).
+-- ===========================================================================
+begin;
+  set local role authenticated;
+  set local request.jwt.claims = '{"sub":"b0000000-0000-0000-0000-0000000000b1"}';
+
+  select pg_temp.assert_eq('B34 numar nou cu prefix TRS',
+                           (public.generate_certificate_number(:org) ~ '^TRS-[0-9]{4}-[0-9]{4}$')::text,
+                           'true');
+  select public.generate_certificate_number(:org) as trs_number \gset
+  select pg_temp.assert_eq('B34 secventa continua pe acelasi contor',
+                           split_part(:'trs_number', '-', 3)::int::text, seq::text)
+    from public.certificate_counters
+   where organization_id = :org and year = extract(year from now())::int;
+rollback;
+
 select '*** TOATE TESTELE FUNCTIONALE DE BUSINESS AU TRECUT ***' as result;

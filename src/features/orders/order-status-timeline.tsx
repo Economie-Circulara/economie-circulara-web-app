@@ -27,7 +27,7 @@ const STATUS_EXPLANATIONS: Record<OrderStatus, string> = {
   sent: "Trimisă spre confirmare internă — nu înseamnă că a fost livrată.",
   accepted: "Comanda a fost confirmată, stocul necesar a fost rezervat.",
   delivered: "Marfa/abonamentul a ajuns la client.",
-  closed: "Comanda e închisă, certificatul a fost generat.",
+  closed: "Comanda e închisă, fișa de trasabilitate a fost generată.",
   cancelled: "Comanda a fost anulată, stocul rezervat a fost refăcut.",
 };
 

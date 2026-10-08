@@ -44,7 +44,7 @@ export default async function AbonamentDetailPage({ params }: AbonamentDetailPag
             <ConfirmActionButton
               triggerLabel="Arhivează"
               title="Arhivezi acest abonament?"
-              description="Nu va mai apărea în liste și nu va mai putea fi ales în comenzi. Istoricul (comenzi, certificate) rămâne neschimbat. Îl poți restaura oricând."
+              description="Nu va mai apărea în liste și nu va mai putea fi ales în comenzi. Istoricul (comenzi, fișe de trasabilitate) rămâne neschimbat. Îl poți restaura oricând."
               confirmLabel="Da, arhivează"
               action={archiveItemAction.bind(null, item.id)}
             />

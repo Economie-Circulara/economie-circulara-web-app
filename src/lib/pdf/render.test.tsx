@@ -16,7 +16,7 @@ function isPdf(buffer: Buffer): boolean {
 }
 
 describe("randare PDF (fara mock)", () => {
-  it("certificatul de trasabilitate se randeaza", async () => {
+  it("fișa de trasabilitate se randeaza", async () => {
     const buffer = await renderToBuffer(
       <CertificatePdfDocument
         certificateNumber="CRT-2026-0001"

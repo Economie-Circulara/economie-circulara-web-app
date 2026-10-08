@@ -76,7 +76,7 @@ export const cautaInManual: AssistantTool<{ intrebare: string }> = {
 export const cauta: AssistantTool<{ text: string }> = {
   name: "cauta",
   description:
-    "Caută în datele platformei (clienți, comenzi, produse, loturi, certificate) la care are acces " +
+    "Caută în datele platformei (clienți, comenzi, produse, loturi, fișe de trasabilitate) la care are acces " +
     "utilizatorul curent. Întoarce rezultate grupate pe tip.",
   parameters: {
     type: "object",

@@ -148,7 +148,7 @@ describe("globalSearch - rol staff (admin/operator)", () => {
       id: "cert-1",
       label: "CERT-2026-0001",
       sublabel: "CMD-2026-0001",
-      href: "/comenzi/order-1/certificat",
+      href: "/comenzi/order-1/trasabilitate",
     });
   });
 
@@ -247,7 +247,7 @@ describe("globalSearch - rol client", () => {
     const itemGroup = groups.find((g) => g.type === "item");
 
     expect(orderGroup?.results[0].href).toBe("/comenzile-mele/order-1");
-    expect(certGroup?.results[0].href).toBe("/comenzile-mele/order-1/certificat");
+    expect(certGroup?.results[0].href).toBe("/comenzile-mele/order-1/trasabilitate");
     expect(itemGroup?.results[0].href).toBe("/catalog");
   });
 });

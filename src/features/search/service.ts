@@ -169,7 +169,7 @@ async function searchCertificates(
     .select("id, number, order_id, orders(order_number)")
     .ilike("number", pattern)
     .limit(limit);
-  if (error) throw new Error("Nu am putut căuta certificatele.");
+  if (error) throw new Error("Nu am putut căuta fișele de trasabilitate.");
 
   const ordersPath = role === "client" ? "/comenzile-mele" : "/comenzi";
 
@@ -181,7 +181,7 @@ async function searchCertificates(
       id: row.id,
       label: row.number,
       sublabel: row.orders?.order_number ?? null,
-      href: `${ordersPath}/${row.order_id}/certificat`,
+      href: `${ordersPath}/${row.order_id}/trasabilitate`,
     })),
   };
 }

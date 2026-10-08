@@ -9,6 +9,22 @@ const nextConfig: NextConfig = {
     // Limitele per fisier raman sub el (max 4MB), ca sa incapa si restul formularului.
     serverActions: { bodySizeLimit: "4.5mb" },
   },
+  // „Certificat” a devenit „Fișă de trasabilitate” (2026-10-08): rutele vechi raman
+  // valide pentru linkurile deja trimise (emailuri, PDF-uri, favorite).
+  async redirects() {
+    return [
+      {
+        source: "/comenzi/:id/certificat",
+        destination: "/comenzi/:id/trasabilitate",
+        permanent: true,
+      },
+      {
+        source: "/comenzile-mele/:id/certificat",
+        destination: "/comenzile-mele/:id/trasabilitate",
+        permanent: true,
+      },
+    ];
+  },
   outputFileTracingIncludes: {
     "/*": ["./src/assets/fonts/**/*"],
     // Manualul din aplicatie citeste la request din `docs/manual/` (sursa unica de

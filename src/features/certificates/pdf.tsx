@@ -242,7 +242,7 @@ export function CertificatePdfDocument({
 }: CertificatePdfProps) {
   const issuerLine = formatIssuerLine(orgCui, orgRegCom, orgAddress);
   return (
-    <Document title={`Certificat ${certificateNumber}`}>
+    <Document title={`Fișă de trasabilitate ${certificateNumber}`}>
       <Page size="A4" style={styles.page}>
         <PdfDocumentHeader
           variant={headerVariant}
@@ -251,7 +251,7 @@ export function CertificatePdfDocument({
           paddingX={40}
           orgName={orgName}
           orgLines={issuerLine ? [tagline, issuerLine] : [tagline]}
-          title="Certificat de trasabilitate"
+          title="Fișă de trasabilitate"
           meta={[
             `Nr. ${certificateNumber}`,
             `Emis: ${dateFormatter.format(new Date(snapshot.generatedAt))}`,
@@ -313,7 +313,7 @@ export function CertificatePdfDocument({
           <View style={styles.footerRow}>
             <View style={{ flex: 1 }}>
               <Text style={{ fontSize: 10, fontWeight: 700, marginBottom: 4 }}>
-                Certificat generat automat
+                Fișă generată automat
               </Text>
               <Text style={{ fontSize: 8.5, color: "#6b7a70" }}>
                 Graful reflectă trasabilitatea inregistrată în platformă la data emiterii.
@@ -340,7 +340,7 @@ export function CertificatePdfDocument({
           label={
             issuerCredit
               ? `${orgName} · trasabilitate emisă de ${issuerCredit}`
-              : `${orgName} · certificat de trasabilitate`
+              : `${orgName} · fișă de trasabilitate`
           }
           note={footerNote}
         />

@@ -41,7 +41,7 @@ const SIGNED_URL_TTL_SECONDS = 60;
 /** Certificatul nu exista sau nu e accesibil apelantului (RLS pe `certificates`). */
 export class CertificateAccessError extends Error {
   constructor(public readonly certificateId: string) {
-    super("Certificat inexistent sau fără acces.");
+    super("Fișă de trasabilitate inexistentă sau fără acces.");
     this.name = "CertificateAccessError";
   }
 }
@@ -80,7 +80,7 @@ export async function generateCertificateNumber(organizationId: string): Promise
     p_org: organizationId,
   });
   if (error || !data) {
-    throw new Error(error?.message ?? "Nu am putut genera numărul certificatului.");
+    throw new Error(error?.message ?? "Nu am putut genera numărul fișei de trasabilitate.");
   }
   return data;
 }
@@ -93,7 +93,7 @@ export async function getCertificateByOrderId(orderId: string): Promise<Certific
     .select("id, organization_id, order_id, number, issued_at, pdf_path, traceability_snapshot")
     .eq("order_id", orderId)
     .maybeSingle();
-  if (error) throw new Error("Nu am putut verifica certificatul comenzii.");
+  if (error) throw new Error("Nu am putut verifica fișa de trasabilitate a comenzii.");
   return data ? mapCertificate(data) : null;
 }
 
@@ -136,7 +136,7 @@ export async function buildOrderTraceabilitySnapshot(
     .select("id, organization_id, order_number, clients(name, cui, client_type)")
     .eq("id", orderId)
     .maybeSingle();
-  if (error) throw new Error("Nu am putut încărca comanda pentru certificat.");
+  if (error) throw new Error("Nu am putut încărca comanda pentru fișa de trasabilitate.");
   if (!order) return null;
 
   const raw = await fetchOrderTraceabilityRawData(supabase, orderId);
@@ -268,7 +268,7 @@ export async function generateCertificateForOrder(
       contentType: "application/pdf",
       upsert: false,
     });
-  if (uploadError) throw new Error("Nu am putut încărca PDF-ul certificatului.");
+  if (uploadError) throw new Error("Nu am putut încărca PDF-ul fișei de trasabilitate.");
 
   const { data: inserted, error: insertError } = await admin
     .from("certificates")
@@ -286,7 +286,7 @@ export async function generateCertificateForOrder(
     await admin.storage.from(CERTIFICATES_BUCKET).remove([path]);
     const raceExisting = await getCertificateByOrderId(orderId);
     if (raceExisting) return { certificate: raceExisting, created: false };
-    throw new Error("Nu am putut salva certificatul.");
+    throw new Error("Nu am putut salva fișa de trasabilitate.");
   }
 
   return { certificate: mapCertificate(inserted), created: true };

@@ -23,7 +23,7 @@ folder ca suport de curs și se încheie cu un checklist de competențe verifica
 | --- | --- | --- |
 | S1 - Fundamente + Administrare | Administrator | 1-2 |
 | S2 - Operațiuni zilnice | Administrator + Operator | 2-5 |
-| S3 - Comenzi, retur/garanție, certificate | Administrator + Operator | 2-5 |
+| S3 - Comenzi, retur/garanție, fișe de trasabilitate | Administrator + Operator | 2-5 |
 | S4 - Portal client | Client (persoana de contact a fiecărei firme) | variabil, pe măsură ce firmele sunt onboardate |
 | S5 (opțional) - Super-admin platformă | Echipa care operează platforma (dacă distinctă de Beneficiar) | 1-2 |
 
@@ -38,7 +38,7 @@ folder ca suport de curs și se încheie cu un checklist de competențe verifica
 
 **Agendă:**
 
-1. (10 min) Context: ce este certificatul de trasabilitate, de ce contează,
+1. (10 min) Context: ce este fișa de trasabilitate, de ce contează,
    modelul multi-tenant (o organizație = firma; datele sunt izolate de alte
    organizații).
 2. (15 min) Autentificare: invitație -> setare parolă, resetare parolă, roluri
@@ -97,7 +97,7 @@ folder ca suport de curs și se încheie cu un checklist de competențe verifica
 
 ---
 
-## S3 - Producție/Reciclare, Comenzi, Retur/Garanție, Certificate (Administrator + Operator)
+## S3 - Producție/Reciclare, Comenzi, Retur/Garanție, Fișe de trasabilitate (Administrator + Operator)
 
 **Durată estimată:** 2,5 ore. (Sesiunea cea mai importantă - acoperă lanțul
 critic al demo-ului MVP, pașii 5-9 din flux.)
@@ -115,14 +115,14 @@ critic al demo-ului MVP, pașii 5-9 din flux.)
    îl reface.
 3. (20 min) Retur și garanție: fluxul de retur (readuce în stoc, după acceptare
    manuală) vs. garanție (retur + comandă de înlocuire automată).
-4. (20 min) Certificat de trasabilitate: generare automată la închiderea
+4. (20 min) Fișă de trasabilitate: generare automată la închiderea
    comenzii, conținut (lanț de trasabilitate, materiale și origine),
    tipărire/descărcare PDF.
 5. (10 min) Rapoarte: cele 6 rapoarte disponibile, export PDF/CSV.
 6. (10 min) Căutare globală.
 7. (20 min) Probă practică - scenariu complet: participantul pornește un
    proces de producție, creează o comandă, o acceptă, o livrează, o închide și
-   verifică certificatul generat automat.
+   verifică fișa de trasabilitate generată automat.
 
 **Checklist de competențe:**
 
@@ -131,7 +131,7 @@ critic al demo-ului MVP, pașii 5-9 din flux.)
 - [ ] Parcurge corect mașina de stări a unei comenzi (Trimite -> Acceptă -> Livrează -> Închide).
 - [ ] Explică de ce stocul scade la acceptare, nu la livrare.
 - [ ] Inițiază un retur și o garanție, și înțelege diferența dintre ele.
-- [ ] Găsește și descarcă certificatul unei comenzi închise.
+- [ ] Găsește și descarcă fișa de trasabilitate unei comenzi închise.
 - [ ] Exportă un raport (PDF și CSV).
 - [ ] Folosește căutarea globală pentru a găsi o comandă/client/lot.
 
@@ -156,7 +156,7 @@ onboardată (individual sau în grup, dacă mai multe firme sunt instruite simul
    adresă/dată de livrare.
 3. (10 min) Comenzile mele: urmărirea statusului, repetarea unei comenzi vechi.
 4. (5 min) Retur/garanție: cum se inițiază pe o comandă finalizată.
-5. (5 min) Documente & Certificate: descărcarea documentelor și certificatelor.
+5. (5 min) Documente: descărcarea documentelor și fișelor de trasabilitate.
 
 **Checklist de competențe:**
 
@@ -164,7 +164,7 @@ onboardată (individual sau în grup, dacă mai multe firme sunt instruite simul
 - [ ] Plasează o comandă din catalog, cu adresă de livrare aleasă.
 - [ ] Verifică statusul unei comenzi trimise.
 - [ ] Repetă o comandă anterioară.
-- [ ] Descarcă un certificat de trasabilitate.
+- [ ] Descarcă o fișă de trasabilitate.
 
 ---
 

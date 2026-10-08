@@ -414,7 +414,7 @@ interface ArchiveInput {
 const ARCHIVE_EFFECT: Record<ArchiveTarget, string> = {
   client:
     "Clientul dispare din liste și selecturi, iar contul lui din portal se blochează. " +
-    "Comenzile și certificatele rămân. Se poate restaura din pagina clientului.",
+    "Comenzile și fișele de trasabilitate rămân. Se poate restaura din pagina clientului.",
   item:
     "Produsul dispare din liste și selecturi (comenzi, rețete, producție). Istoricul rămâne. " +
     "Se poate restaura din pagina lui.",

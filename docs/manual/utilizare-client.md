@@ -5,15 +5,15 @@ a firmei care cumpără materiale/produse de la organizația care folosește Lat
 Trace. **Regulă de bază: un client = o singură firmă = un singur utilizator**;
 platforma nu suportă mai mulți useri per firmă client.
 
-Ca și client, ai acces **doar** la propriile comenzi, documente și certificate.
+Ca și client, ai acces **doar** la propriile comenzi, documente și fișe de trasabilitate.
 **Nu vezi stocul, procesele de producție/reciclare sau prețurile** - platforma nu
 afișează prețuri nicăieri (nu e un magazin online, ci suportul documentar/legal
 al relației cu organizația).
 
 Meniul din stânga are trei secțiuni: **Catalog**, **Comenzile mele**,
-**Documente & Certificate**.
+**Documente**.
 
-![meniul portalului client - Catalog, Comenzile mele, Documente & Certificate](img/client-sidebar.png)
+![meniul portalului client - Catalog, Comenzile mele, Documente](img/client-sidebar.png)
 
 ---
 
@@ -42,7 +42,7 @@ urmezi linkul primit pe email pentru a seta o parolă nouă.
 
 Dacă după logare vezi pagina **"Contul tău este dezactivat"**, organizația a
 suspendat accesul firmei tale în portal. Contactează organizația pentru a-l
-reactiva; comenzile și certificatele tale nu se pierd.
+reactiva; comenzile și fișele de trasabilitate tale nu se pierd.
 
 ---
 
@@ -120,7 +120,7 @@ codul UIT de e-Transport (după declarare) și dacă recepția a fost confirmat�
 Când marfa ajunge la tine, poți confirma chiar tu recepția, direct din cardul
 **"Transport"**: completezi **"Primit de"** (numele persoanei care a recepționat) și,
 opțional, observații, apoi **"Confirmă recepția"**. Comanda trece în **Livrată**.
-Închiderea comenzii (și emiterea certificatului de trasabilitate) rămâne la
+Închiderea comenzii (și emiterea fișei de trasabilitate) rămâne la
 organizație.
 
 Cererile de **aport** (material pe care îl aduci tu către organizație, din
@@ -171,9 +171,9 @@ materialului/echipamentului.
 
 ---
 
-## 5. Documente & Certificate
+## 5. Documente
 
-Ecranul **"Documente & Certificate"** are două secțiuni:
+Ecranul **"Documente"** are două secțiuni:
 
 ### 5.1 Documente
 
@@ -182,24 +182,24 @@ semnat, arhivat ca document - organizația nu gestionează structurat perioade
 sau clauze contractuale, doar arhivează PDF-ul). Poți doar **"Descarcă"** -
 nu poți încărca sau șterge documente din portalul client.
 
-### 5.2 Certificate de trasabilitate
+### 5.2 Fișe de trasabilitate
 
-Lista certificatelor emise pentru comenzile tale **închise**. Fiecare certificat
+Lista fișelor de trasabilitate emise pentru comenzile tale **închise**. Fiecare fișă
 apare automat imediat ce organizația închide comanda respectivă - nu trebuie să
-ceri nimic. Click pe **"Vezi certificat"** deschide certificatul complet, care
+ceri nimic. Click pe **"Vezi fișa de trasabilitate"** deschide fișa completă, care
 conține:
 
-- Numărul unic al certificatului și data emiterii.
+- Numărul unic al fișei de trasabilitate și data emiterii.
 - Datele comenzii (client, număr comandă, produse livrate cu cantități).
 - **Lanțul de trasabilitate** - o diagramă (surse -> loturi -> proces -> produs ->
   livrare) care arată exact din ce a fost făcut produsul primit, inclusiv
   ponderea materialelor reciclate/recondiționate.
 - Tabelul **"Materiale și origine"** - material, origine, sursă, pondere.
 
-Din ecranul certificatului poți apăsa **"Tipărește"** (printare directă din
-browser) sau **"Descarcă PDF"** (descarcă fișierul PDF al certificatului).
+Din ecranul fișei de trasabilitate poți apăsa **"Tipărește"** (printare directă din
+browser) sau **"Descarcă PDF"** (descarcă fișierul PDF al fișei de trasabilitate).
 
-![ecranul "Documente & Certificate" + certificatul deschis, cu diagrama de trasabilitate](img/client-documents.png)
+![ecranul "Documente" + fișa de trasabilitate deschis, cu diagrama de trasabilitate](img/client-documents.png)
 
 ---
 
@@ -210,7 +210,7 @@ browser) sau **"Descarcă PDF"** (descarcă fișierul PDF al certificatului).
 | Vedea catalogul (fără prețuri) și plasa comenzi | Vedea stocul sau procesele interne (producție/reciclare) ale organizației |
 | Vedea și urmări statusul comenzilor tale | Vedea comenzile altor clienți |
 | Cere retur sau garanție pe o comandă finalizată | Trimite mesaje pe comandă (nu există chat în platformă) |
-| Descărca documentele și certificatele proprii | Încărca sau șterge documente |
+| Descărca documentele și fișele de trasabilitate proprii | Încărca sau șterge documente |
 | Repeta o comandă anterioară | Crea alți utilizatori pentru firma ta (un singur cont per firmă client) |
 | Șterge propriile ciorne (comenzi netrimise) | Șterge o comandă deja trimisă |
 | Căuta în manual („Ajutor”) | Folosi asistentul AI (e disponibil doar echipei organizației) |

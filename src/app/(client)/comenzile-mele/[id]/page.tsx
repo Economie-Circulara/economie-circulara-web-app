@@ -90,7 +90,9 @@ export default async function ClientOrderDetailPage({ params }: OrderDetailPageP
           <>
             {order.status === "closed" ? (
               <Button asChild variant="outline">
-                <Link href={`/comenzile-mele/${order.id}/certificat`}>Vezi certificat</Link>
+                <Link href={`/comenzile-mele/${order.id}/trasabilitate`}>
+                  Vezi fișa de trasabilitate
+                </Link>
               </Button>
             ) : null}
             {isIntakeOrder || isReturnRequest ? null : <RepeatOrderButton items={order.items} />}

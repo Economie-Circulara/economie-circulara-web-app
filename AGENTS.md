@@ -96,8 +96,8 @@ confirmare, revendicare atomica a executiei).
 
 **Lateris Trace** - platforma web **multi-tenant** pentru **trasabilitatea
 materialelor in economia circulara**. Clientul platitor este firma
-producatoare/reciclatoare; selling point-ul este **certificatul de trasabilitate**
-care arata din ce loturi de materie prima (inclusiv reciclata) e facut un produs livrat.
+producatoare/reciclatoare; selling point-ul este **fisa de trasabilitate** (fost
+„certificat de trasabilitate” - vezi sectiunea 4) care arata din ce loturi de materie prima (inclusiv reciclata) e facut un produs livrat.
 
 Stack: **Next.js (App Router) + TypeScript**, **Supabase** (Postgres + Auth + Storage,
 EU), **shadcn/ui** retematizat, hosting **Vercel**. Roluri: super-admin, admin,
@@ -202,6 +202,14 @@ Testele unitare sunt **colocate** langa cod (`*.test.ts` / `*.test.tsx`).
   modelului AI) identificatorul se afiseaza prin `clientTaxIdLabel` /
   `clientTaxIdValue` (`src/features/clients/labels.ts`) = "Persoană fizică".
 - Certificatul PDF se genereaza **automat la inchiderea** comenzii.
+- **Documentul de la inchidere se numeste „Fisa de trasabilitate”, NU „certificat”**
+  (decizie 2026-10-08, intalnirea cu Macon XCX, pentru toate organizatiile): un
+  producator fara certificare nu poate emite „certificat” (de calitate), iar proiectul
+  depus la autoritate cere trasabilitate. Documentul de calitate al organizatiei e
+  **declaratia de conformitate**, pe care o INCARCA ea. Numerotarea noua e `TRS-<an>-<seq>`
+  (migrarea `0055`); numerele `CRT-` emise raman neschimbate. Redenumirea e de
+  prezentare: tabelul `certificates` si identificatorii din cod raman (ca la
+  „Abonament”). Orice text nou catre utilizator spune „fisa de trasabilitate”.
 - Clientul **nu** vede stocul si procesele interne - doar comenzile, documentele si
   certificatele proprii.
 - Pierderile/randamentul la productie se **inregistreaza**, nu se **valideaza**.

@@ -4,6 +4,18 @@ Jurnal al sarcinilor lucrate de agenti AI in acest repo. Conform regulii 1.2 din
 [`AGENTS.md`](../AGENTS.md), la **fiecare commit** se adauga o intrare aici.
 Cele mai noi intrari sus.
 
+## 2026-10-08 — Claude Opus 5.5 (Claude Code) — „Certificat” devine „Fișă de trasabilitate”
+
+- **Cerut:** dupa intalnirea cu Macon XCX - documentul generat la inchiderea comenzii
+  nu mai e „certificat” (Macon nu poate emite certificat de calitate), pentru toti
+  clientii platformei.
+- **Facut:** etichete UI, PDF, email la inchidere, cautare, dashboard, meniu
+  („Documente”), manual, site-urile de prezentare; rutele `.../certificat` ->
+  `.../trasabilitate` cu redirect permanent din `next.config.ts` (test); migrarea
+  `0055` - numerele noi `TRS-<an>-<seq>` pe acelasi contor (test B34 in
+  `business_flow.sql`); e2e actualizate; regula in AGENTS.md. Plan:
+  `docs/plans/macon-documente-comanda.md` (partea 1 din 3).
+
 ## 2026-09-30 — Claude Opus 5.5 (Claude Code) — Asistentul AI scos de la clienti
 
 - **Cerut:** asistentul AI sa fie disponibil doar staff-ului organizatiei (admin/operator),
