@@ -46,9 +46,10 @@ export interface DeliveryRecord {
   scheduledDate: string;
   /** Ora livrarii / inceperii turnarii, `HH:MM` (0056) - optionala. */
   scheduledTime: string | null;
-  carrierName: string;
-  vehiclePlate: string;
-  driverName: string;
+  /** Transportul e optional la planificare (0058); obligatoriu doar pt. e-Transport. */
+  carrierName: string | null;
+  vehiclePlate: string | null;
+  driverName: string | null;
   routeOrigin: string;
   routeDestination: string;
   /** Pomparea, text liber (0056) - apare pe aviz si in portal. */
@@ -81,8 +82,8 @@ export interface DeliveryListRow {
   orderNumber: string | null;
   clientName: string;
   scheduledDate: string;
-  carrierName: string;
-  vehiclePlate: string;
+  carrierName: string | null;
+  vehiclePlate: string | null;
   declarationStatus: DeliveryDeclarationStatus;
   uitCode: string | null;
   /** Ruta a fost calculata (nu doar text liber) - vezi Task X7. */
@@ -106,9 +107,9 @@ export interface PlanDeliveryInput {
   scheduledDate: string;
   /** `HH:MM`, optional. */
   scheduledTime?: string | null;
-  carrierName: string;
-  vehiclePlate: string;
-  driverName: string;
+  carrierName?: string | null;
+  vehiclePlate?: string | null;
+  driverName?: string | null;
   routeOrigin: string;
   routeDestination: string;
   pumping?: string | null;

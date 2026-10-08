@@ -67,6 +67,20 @@ function requireNonEmpty(value: string, field: string): string {
   return trimmed;
 }
 
+/**
+ * Campurile de transport lipsa, cu etichetele din UI - e-Transport le cere pe toate
+ * trei, desi la planificare sunt optionale (0058). Exportata pentru teste si UI.
+ */
+export function missingTransportFields(
+  delivery: Pick<DeliveryRecord, "carrierName" | "vehiclePlate" | "driverName">,
+): string[] {
+  const missing: string[] = [];
+  if (!delivery.carrierName?.trim()) missing.push("transportatorul");
+  if (!delivery.vehiclePlate?.trim()) missing.push("nr. de înmatriculare");
+  if (!delivery.driverName?.trim()) missing.push("șoferul");
+  return missing;
+}
+
 /** Text optional: spatiile se taie, sirul gol devine `null`. */
 function optionalText(value: string | null | undefined): string | null {
   const trimmed = value?.trim() ?? "";
@@ -97,9 +111,10 @@ export function parseScheduledTime(value: string | null | undefined): string | n
  */
 export async function planDelivery(input: PlanDeliveryInput): Promise<DeliveryRecord> {
   const scheduledDate = requireNonEmpty(input.scheduledDate, "Data programată");
-  const carrierName = requireNonEmpty(input.carrierName, "Transportator");
-  const vehiclePlate = requireNonEmpty(input.vehiclePlate, "Nr. înmatriculare");
-  const driverName = requireNonEmpty(input.driverName, "Șofer");
+  // Transportul e optional la planificare (0058) - se completeaza pe /livrari/[id].
+  const carrierName = optionalText(input.carrierName);
+  const vehiclePlate = optionalText(input.vehiclePlate);
+  const driverName = optionalText(input.driverName);
   const routeOrigin = requireNonEmpty(input.routeOrigin, "Punct de plecare");
   const routeDestination = requireNonEmpty(input.routeDestination, "Punct de sosire");
   const scheduledTime = parseScheduledTime(input.scheduledTime);
@@ -198,6 +213,14 @@ export async function declareETransport(deliveryId: string): Promise<DeliveryRec
     return detail;
   }
 
+  // Transportul e optional la planificare (0058), dar e-Transport il cere.
+  const missing = missingTransportFields(detail);
+  if (missing.length > 0) {
+    throw new DeliveryValidationError(
+      `Completează ${missing.join(", ")} înainte de declararea în e-Transport.`,
+    );
+  }
+
   const provider = getETransportProvider();
 
   try {
@@ -206,9 +229,9 @@ export async function declareETransport(deliveryId: string): Promise<DeliveryRec
       organizationId: detail.organizationId,
       orderNumber: detail.orderNumber,
       scheduledDate: detail.scheduledDate,
-      carrierName: detail.carrierName,
-      vehiclePlate: detail.vehiclePlate,
-      driverName: detail.driverName,
+      carrierName: detail.carrierName ?? "",
+      vehiclePlate: detail.vehiclePlate ?? "",
+      driverName: detail.driverName ?? "",
       routeOrigin: detail.routeOrigin,
       routeDestination: detail.routeDestination,
     });
@@ -412,4 +435,50 @@ export async function cancelDelivery(deliveryId: string, reason: string): Promis
     );
   }
   throw new Error(error.message ?? "Nu am putut anula livrarea.");
+}
+
+export interface UpdateDeliveryTransportInput {
+  deliveryId: string;
+  carrierName?: string | null;
+  vehiclePlate?: string | null;
+  driverName?: string | null;
+}
+
+/**
+ * Completeaza / corecteaza transportul unei livrari deja planificate (0058: la
+ * planificare e optional). Permis doar cat livrarea nu a plecat: nedeclarata la
+ * e-Transport (codul UIT e emis pe vehiculul declarat) si fara receptie confirmata.
+ */
+export async function updateDeliveryTransport(
+  input: UpdateDeliveryTransportInput,
+): Promise<DeliveryRecord> {
+  const supabase = await createClient();
+  const { data: current, error: currentError } = await supabase
+    .from("deliveries")
+    .select("id, declaration_status, received_at, cancelled_at")
+    .eq("id", input.deliveryId)
+    .maybeSingle();
+  if (currentError) throw new Error("Nu am putut încărca livrarea.");
+  if (!current || current.cancelled_at) throw new DeliveryNotFoundError();
+  if (current.declaration_status === "declared") {
+    throw new DeliveryValidationError(
+      "Livrarea e deja declarată în e-Transport - transportul nu se mai modifică.",
+    );
+  }
+  if (current.received_at) {
+    throw new DeliveryValidationError("Recepția e confirmată - transportul nu se mai modifică.");
+  }
+
+  const { data, error } = await supabase
+    .from("deliveries")
+    .update({
+      carrier_name: optionalText(input.carrierName),
+      vehicle_plate: optionalText(input.vehiclePlate),
+      driver_name: optionalText(input.driverName),
+    })
+    .eq("id", input.deliveryId)
+    .select(DELIVERY_CORE_COLUMNS)
+    .single();
+  if (error || !data) throw new Error(error?.message ?? "Nu am putut salva transportul.");
+  return mapDelivery(data);
 }

@@ -5,9 +5,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { RichNote } from "@/components/rich-note";
 import { PageHeader } from "@/components/page-header";
 import { requireRole } from "@/features/auth/session";
-import { cancelDeliveryAction } from "@/features/deliveries/actions";
+import { cancelDeliveryAction, updateDeliveryTransportAction } from "@/features/deliveries/actions";
 import { canCancelDelivery } from "@/features/deliveries/cancel";
 import { DeliveryActionsPanel } from "@/features/deliveries/delivery-actions-panel";
+import { DeliveryTransportFields } from "@/features/deliveries/delivery-transport-fields";
 import { getDeliveryDetail } from "@/features/deliveries/queries";
 import { ReceiptForm } from "@/features/deliveries/receipt-form";
 import { RoutePanel } from "@/features/deliveries/route-panel";
@@ -73,18 +74,16 @@ export default async function DeliveryDetailPage({ params }: DeliveryDetailPageP
               {dateFormatter.format(new Date(delivery.scheduledDate))}
               {delivery.scheduledTime ? `, ora ${delivery.scheduledTime}` : null}
             </p>
-            <p>
-              <span className="text-muted-foreground">Transportator: </span>
-              {delivery.carrierName}
-            </p>
-            <p>
-              <span className="text-muted-foreground">Vehicul: </span>
-              {delivery.vehiclePlate}
-            </p>
-            <p>
-              <span className="text-muted-foreground">Șofer: </span>
-              {delivery.driverName}
-            </p>
+            <DeliveryTransportFields
+              carrierName={delivery.carrierName}
+              vehiclePlate={delivery.vehiclePlate}
+              driverName={delivery.driverName}
+              saveAction={
+                delivery.declarationStatus !== "declared" && !delivery.receipt.receivedAt
+                  ? updateDeliveryTransportAction.bind(null, delivery.id)
+                  : undefined
+              }
+            />
             <p>
               <span className="text-muted-foreground">Rută: </span>
               {delivery.routeOrigin} {"->"} {delivery.routeDestination}

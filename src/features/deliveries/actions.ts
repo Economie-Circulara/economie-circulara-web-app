@@ -13,6 +13,7 @@ import {
   declareETransport,
   planDelivery,
   recalculateDeliveryRoute,
+  updateDeliveryTransport,
 } from "./service";
 import type { DeliveryRecord, PlanDeliveryRouteChoice } from "./types";
 
@@ -193,4 +194,33 @@ export async function cancelDeliveryAction(
   revalidatePath("/livrari");
   revalidatePath(`/comenzi/${orderId}`);
   redirect(`/comenzi/${orderId}`);
+}
+
+/**
+ * Completeaza / corecteaza transportul unei livrari (ecranul /livrari/[id]) - DOAR
+ * staff. Legata cu `.bind(null, deliveryId)`; regulile (nedeclarata, fara receptie)
+ * sunt in `updateDeliveryTransport`.
+ */
+export async function updateDeliveryTransportAction(
+  deliveryId: string,
+  _prev: DeliveryFormState,
+  formData: FormData,
+): Promise<DeliveryFormState> {
+  await requireRole(["admin", "operator"]);
+  if (!deliveryId) return { error: "Livrare invalidă." };
+
+  try {
+    await updateDeliveryTransport({
+      deliveryId,
+      carrierName: clean(formData.get("carrier_name")),
+      vehiclePlate: clean(formData.get("vehicle_plate")),
+      driverName: clean(formData.get("driver_name")),
+    });
+  } catch (err) {
+    return { error: errorMessage(err, "Nu am putut salva transportul.") };
+  }
+
+  revalidatePath(`/livrari/${deliveryId}`);
+  revalidatePath("/livrari");
+  return { error: null };
 }

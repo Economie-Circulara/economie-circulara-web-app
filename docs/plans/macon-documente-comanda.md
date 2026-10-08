@@ -121,3 +121,14 @@ oferta NU devine comanda (nu se face nimic acolo).
 - `rich-note.test.ts` (paragrafe, liste, bold, cazuri limita), randarea PDF.
 - `updateOrderNote` (statusuri permise/blocate), actiunea (rol).
 - `listDocumentsForOwners`, `OrderDocuments` cu documentele produselor.
+
+## Partea 7 - Transportul livrarii optional
+
+1. Migrarea `0058`: `carrier_name`, `vehicle_plate`, `driver_name` fara `not null`.
+2. `planDelivery` le accepta goale; `declareETransport` le cere pe toate trei
+   (`missingTransportFields`) inainte de apelul catre provider.
+3. `/livrari/[id]`: „Completează transportul” (`updateDeliveryTransport`) cat livrarea
+   e nedeclarata si fara receptie; avizul, lista si portalul afiseaza „-” / ascund
+   campurile goale.
+4. Asistent: `planifica_livrare` v2 - transportul devine optional (decizie `write`
+   existent, randerul `generic` neschimbat).

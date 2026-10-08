@@ -46,9 +46,10 @@ export function ClientDeliveryCard({
           label="Data programată"
           value={`${dateFormatter.format(new Date(delivery.scheduledDate))}${delivery.scheduledTime ? `, ora ${delivery.scheduledTime}` : ""}`}
         />
-        <Row label="Transportator" value={delivery.carrierName} />
-        <Row label="Vehicul" value={delivery.vehiclePlate} />
-        <Row label="Șofer" value={delivery.driverName} />
+        {/* Transportul poate lipsi la planificare (0058) - se arata doar ce e completat. */}
+        {delivery.carrierName ? <Row label="Transportator" value={delivery.carrierName} /> : null}
+        {delivery.vehiclePlate ? <Row label="Vehicul" value={delivery.vehiclePlate} /> : null}
+        {delivery.driverName ? <Row label="Șofer" value={delivery.driverName} /> : null}
         <Row label="Destinație" value={delivery.destination} />
         {delivery.pumping ? <Row label="Pompare" value={delivery.pumping} /> : null}
         {delivery.uitCode ? <Row label="Cod UIT (e-Transport)" value={delivery.uitCode} /> : null}

@@ -4,6 +4,17 @@ Jurnal al sarcinilor lucrate de agenti AI in acest repo. Conform regulii 1.2 din
 [`AGENTS.md`](../AGENTS.md), la **fiecare commit** se adauga o intrare aici.
 Cele mai noi intrari sus.
 
+## 2026-10-08 — Claude Opus 5.5 (Claude Code) — Transportul livrarii optional
+
+- **Cerut:** la livrare, numele soferului, nr. de inmatriculare si firma de transport sa
+  nu mai fie obligatorii.
+- **Facut:** migrarea `0058` (coloanele devin nullable; test B36); `planDelivery` le
+  accepta goale; `declareETransport` le cere inainte de provider
+  (`missingTransportFields`); pe `/livrari/[id]` „Completează transportul”
+  (`updateDeliveryTransport`, doar nedeclarata si fara receptie); aviz, lista, portal si
+  asistentul (`planifica_livrare` v2) trateaza valorile lipsa. Teste, manual, regula in
+  AGENTS.md. Plan: `docs/plans/macon-documente-comanda.md` (partea 7).
+
 ## 2026-10-08 — Claude Opus 5.5 (Claude Code) — Documente pe materiale/retete, propagate la comanda
 
 - **Cerut:** sa putem atasa unui material/retete un PDF sau o poza (ex. certificatul de

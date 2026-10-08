@@ -31,8 +31,16 @@ const columns: ColumnDef<DeliveryListRow>[] = [
     header: "Data programată",
     cell: ({ row }) => formatDate(row.original.scheduledDate),
   },
-  { accessorKey: "carrierName", header: "Transportator" },
-  { accessorKey: "vehiclePlate", header: "Vehicul" },
+  {
+    accessorKey: "carrierName",
+    header: "Transportator",
+    cell: ({ row }) => row.original.carrierName ?? "-",
+  },
+  {
+    accessorKey: "vehiclePlate",
+    header: "Vehicul",
+    cell: ({ row }) => row.original.vehiclePlate ?? "-",
+  },
   {
     id: "hasComputedRoute",
     header: "Rută",

@@ -264,7 +264,9 @@ export const anuleazaLivrare: AssistantTool<CancelDeliveryInput> = {
           "livrare",
           "Livrare",
           delivery
-            ? `${delivery.scheduledDate} · ${delivery.carrierName} · ${delivery.vehiclePlate}`
+            ? [delivery.scheduledDate, delivery.carrierName, delivery.vehiclePlate]
+                .filter(Boolean)
+                .join(" · ")
             : "Comanda nu are o livrare planificată",
         ),
         textField("motiv", "Motivul anulării", input.motiv),

@@ -217,6 +217,11 @@ Testele unitare sunt **colocate** langa cod (`*.test.ts` / `*.test.tsx`).
   pun manual**, pe avizul tiparit - PDF-ul are casute de semnatura si nu pretinde
   semnatura electronica. Ora si pomparea ajung la client prin `client_order_delivery`;
   observatiile livrarii raman interne.
+  - **Transportatorul, vehiculul si soferul sunt OPTIONALE la planificarea livrarii**
+    (decizie 2026-10-08, migrarea `0058`): se completeaza ulterior pe `/livrari/[id]`
+    cat livrarea e nedeclarata si fara receptie. **e-Transport le cere pe toate** -
+    `declareETransport` refuza inainte de provider (`missingTransportFields`). Orice
+    afisare trateaza valorile lipsa (`?? "-"` / rand ascuns).
   - **Nota de comanda = `orders.notes`, una singura, vazuta si de client** (decizie
     2026-10-08): staff-ul o editeaza de la ciorna pana la livrare (`canEditOrderNote`),
     nu dupa inchidere/anulare. Notele libere au **formatare minima, fara editor

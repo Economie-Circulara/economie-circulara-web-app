@@ -32,9 +32,9 @@ export interface ClientOrderDelivery {
   scheduledDate: string;
   /** `HH:MM` (0056), optional. */
   scheduledTime: string | null;
-  carrierName: string;
-  vehiclePlate: string;
-  driverName: string;
+  carrierName: string | null;
+  vehiclePlate: string | null;
+  driverName: string | null;
   destination: string;
   /** Pomparea (0056), text liber, optional. */
   pumping: string | null;

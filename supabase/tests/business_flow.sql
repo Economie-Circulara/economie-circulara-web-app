@@ -1655,4 +1655,26 @@ begin;
     and parameter_name = 'notes';
 rollback;
 
+-- ===========================================================================
+-- B36: transportul livrarii e optional la planificare (0058) - livrarea se
+--      salveaza fara transportator/vehicul/sofer, iar clientul o vede.
+-- ===========================================================================
+begin;
+  set local role authenticated;
+  set local request.jwt.claims = '{"sub":"b0000000-0000-0000-0000-0000000000b1"}';
+
+  insert into public.orders (id, organization_id, client_id, order_type, status, created_by)
+  values ('eeee0000-0000-0000-0000-00000000ee36', :org, :client_demo, 'material', 'accepted',
+          'b0000000-0000-0000-0000-0000000000b1');
+  insert into public.deliveries (organization_id, order_id, scheduled_date, route_origin,
+    route_destination)
+  values (:org, 'eeee0000-0000-0000-0000-00000000ee36', current_date, 'Statie', 'Santier');
+
+  set local request.jwt.claims = '{"sub":"b0000000-0000-0000-0000-0000000000b3"}';
+  select pg_temp.assert_eq('B36 livrare fara transport vizibila clientului',
+                           coalesce(carrier_name, 'null') || '|' || coalesce(vehicle_plate, 'null'),
+                           'null|null')
+  from public.client_order_delivery('eeee0000-0000-0000-0000-00000000ee36');
+rollback;
+
 select '*** TOATE TESTELE FUNCTIONALE DE BUSINESS AU TRECUT ***' as result;

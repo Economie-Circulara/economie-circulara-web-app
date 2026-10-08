@@ -63,10 +63,12 @@ import {
   DeliveryValidationError,
   confirmDeliveryReceipt,
   declareETransport,
+  missingTransportFields,
   parseScheduledTime,
   planDelivery,
   recalculateDeliveryRoute,
   renderAvizPdfBuffer,
+  updateDeliveryTransport,
 } from "./service";
 import type { DeliveryDetail, PlanDeliveryInput } from "./types";
 import { pdfBrandFor } from "@/features/branding/pdf-brand";
@@ -150,9 +152,23 @@ describe("parseScheduledTime", () => {
 });
 
 describe("planDelivery", () => {
-  it("respinge un camp obligatoriu lipsa", async () => {
-    await expect(planDelivery(validInput({ carrierName: "  " }))).rejects.toBeInstanceOf(
+  it("respinge un camp obligatoriu lipsa (ruta)", async () => {
+    await expect(planDelivery(validInput({ routeDestination: "  " }))).rejects.toBeInstanceOf(
       DeliveryValidationError,
+    );
+  });
+
+  it("planifica fara transportator, vehicul si sofer - optionale (0058)", async () => {
+    const { insert } = mockSupabaseForPlan({
+      order: { id: "order-1", organization_id: "org-1", status: "accepted" },
+      insertedRow: { id: "delivery-1", organization_id: "org-1", order_id: "order-1" },
+    });
+    getDeliveryByOrderId.mockResolvedValue(null);
+
+    await planDelivery(validInput({ carrierName: " ", vehiclePlate: null, driverName: undefined }));
+
+    expect(insert).toHaveBeenCalledWith(
+      expect.objectContaining({ carrier_name: null, vehicle_plate: null, driver_name: null }),
     );
   });
 
@@ -318,6 +334,19 @@ describe("declareETransport", () => {
     getDeliveryDetail.mockResolvedValue(null);
 
     await expect(declareETransport("delivery-x")).rejects.toBeInstanceOf(DeliveryNotFoundError);
+  });
+
+  it("refuza declararea fara transport complet, fara sa apeleze providerul (0058)", async () => {
+    getDeliveryDetail.mockResolvedValue(
+      deliveryDetail({ carrierName: null, vehiclePlate: "B 1 ABC", driverName: null }),
+    );
+    const declare = vi.fn();
+    getETransportProvider.mockReturnValue({ declare });
+
+    await expect(declareETransport("delivery-1")).rejects.toThrow(
+      "Completează transportatorul, șoferul înainte de declararea în e-Transport.",
+    );
+    expect(declare).not.toHaveBeenCalled();
   });
 
   it("e idempotent: nu apeleaza providerul daca livrarea e deja declarata", async () => {
@@ -593,6 +622,86 @@ describe("confirmDeliveryReceipt", () => {
 
     expect(result).toEqual(
       expect.objectContaining({ id: "delivery-1", received_by_name: "Ion Popescu" }),
+    );
+  });
+});
+
+describe("missingTransportFields", () => {
+  it("listeaza ce lipseste, cu etichetele din UI", () => {
+    expect(
+      missingTransportFields({ carrierName: null, vehiclePlate: " ", driverName: "Ion" }),
+    ).toEqual(["transportatorul", "nr. de înmatriculare"]);
+    expect(
+      missingTransportFields({ carrierName: "Macon", vehiclePlate: "IS 1 MAC", driverName: "Ion" }),
+    ).toEqual([]);
+  });
+});
+
+describe("updateDeliveryTransport", () => {
+  function mockDelivery(current: Record<string, unknown> | null) {
+    const update = vi.fn().mockReturnValue({
+      eq: vi.fn().mockReturnValue({
+        select: vi.fn().mockReturnValue({
+          single: vi.fn().mockResolvedValue({ data: { id: "delivery-1" }, error: null }),
+        }),
+      }),
+    });
+    const from = vi.fn().mockReturnValue({
+      select: vi.fn().mockReturnValue({
+        eq: vi.fn().mockReturnValue({
+          maybeSingle: vi.fn().mockResolvedValue({ data: current, error: null }),
+        }),
+      }),
+      update,
+    });
+    createClient.mockResolvedValue({ from });
+    return update;
+  }
+
+  const pending = {
+    id: "delivery-1",
+    declaration_status: "not_declared",
+    received_at: null,
+    cancelled_at: null,
+  };
+
+  it("completeaza transportul unei livrari nedeclarate (golurile devin null)", async () => {
+    const update = mockDelivery(pending);
+    await updateDeliveryTransport({
+      deliveryId: "delivery-1",
+      carrierName: " Macon XCX ",
+      vehiclePlate: "IS 12 MAC",
+      driverName: "",
+    });
+    expect(update).toHaveBeenCalledWith({
+      carrier_name: "Macon XCX",
+      vehicle_plate: "IS 12 MAC",
+      driver_name: null,
+    });
+  });
+
+  it("refuza dupa declararea e-Transport sau dupa receptie", async () => {
+    let update = mockDelivery({ ...pending, declaration_status: "declared" });
+    await expect(
+      updateDeliveryTransport({ deliveryId: "delivery-1", carrierName: "X" }),
+    ).rejects.toBeInstanceOf(DeliveryValidationError);
+    expect(update).not.toHaveBeenCalled();
+
+    update = mockDelivery({ ...pending, received_at: "2026-10-08T10:00:00Z" });
+    await expect(
+      updateDeliveryTransport({ deliveryId: "delivery-1", carrierName: "X" }),
+    ).rejects.toBeInstanceOf(DeliveryValidationError);
+    expect(update).not.toHaveBeenCalled();
+  });
+
+  it("livrare anulata sau inexistenta -> DeliveryNotFoundError", async () => {
+    mockDelivery({ ...pending, cancelled_at: "2026-10-08T10:00:00Z" });
+    await expect(updateDeliveryTransport({ deliveryId: "delivery-1" })).rejects.toBeInstanceOf(
+      DeliveryNotFoundError,
+    );
+    mockDelivery(null);
+    await expect(updateDeliveryTransport({ deliveryId: "delivery-x" })).rejects.toBeInstanceOf(
+      DeliveryNotFoundError,
     );
   });
 });

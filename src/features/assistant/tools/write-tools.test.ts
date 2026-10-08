@@ -340,10 +340,15 @@ describe("planifica_livrare - propunerea unei livrari pentru o comanda acceptata
     isDefault: true,
   };
 
-  it("cere campurile obligatorii si valideaza formatul datei", () => {
-    expect(() => planificaLivrare.parse({ order_id: "o1", data_programata: "2026-10-01" })).toThrow(
-      InvalidToolArgumentsError,
-    );
+  it("cere comanda si data, valideaza formatul datei; transportul e optional (0058)", () => {
+    expect(() => planificaLivrare.parse({ order_id: "o1" })).toThrow(InvalidToolArgumentsError);
+    const withoutTransport = planificaLivrare.parse({
+      order_id: "o1",
+      data_programata: "2026-10-01",
+    });
+    expect(withoutTransport.transportator).toBeNull();
+    expect(withoutTransport.nr_inmatriculare).toBeNull();
+    expect(withoutTransport.sofer).toBeNull();
     expect(() =>
       planificaLivrare.parse({
         order_id: "o1",

@@ -445,12 +445,12 @@ export type Database = {
           cancel_reason: string | null
           cancelled_at: string | null
           cancelled_by: string | null
-          carrier_name: string
+          carrier_name: string | null
           created_at: string
           created_by: string | null
           declaration_error: string | null
           declaration_status: Database["public"]["Enums"]["delivery_declaration_status"]
-          driver_name: string
+          driver_name: string | null
           id: string
           notes: string | null
           order_id: string
@@ -476,18 +476,18 @@ export type Database = {
           scheduled_time: string | null
           uit_code: string | null
           updated_at: string
-          vehicle_plate: string
+          vehicle_plate: string | null
         }
         Insert: {
           cancel_reason?: string | null
           cancelled_at?: string | null
           cancelled_by?: string | null
-          carrier_name: string
+          carrier_name?: string | null
           created_at?: string
           created_by?: string | null
           declaration_error?: string | null
           declaration_status?: Database["public"]["Enums"]["delivery_declaration_status"]
-          driver_name: string
+          driver_name?: string | null
           id?: string
           notes?: string | null
           order_id: string
@@ -513,18 +513,18 @@ export type Database = {
           scheduled_time?: string | null
           uit_code?: string | null
           updated_at?: string
-          vehicle_plate: string
+          vehicle_plate?: string | null
         }
         Update: {
           cancel_reason?: string | null
           cancelled_at?: string | null
           cancelled_by?: string | null
-          carrier_name?: string
+          carrier_name?: string | null
           created_at?: string
           created_by?: string | null
           declaration_error?: string | null
           declaration_status?: Database["public"]["Enums"]["delivery_declaration_status"]
-          driver_name?: string
+          driver_name?: string | null
           id?: string
           notes?: string | null
           order_id?: string
@@ -550,7 +550,7 @@ export type Database = {
           scheduled_time?: string | null
           uit_code?: string | null
           updated_at?: string
-          vehicle_plate?: string
+          vehicle_plate?: string | null
         }
         Relationships: [
           {
@@ -1976,8 +1976,8 @@ export type Database = {
       client_order_delivery: {
         Args: { p_order_id: string }
         Returns: {
-          carrier_name: string
-          driver_name: string
+          carrier_name: string | null
+          driver_name: string | null
           pumping: string | null
           received_at: string | null
           received_by_name: string | null
@@ -1985,7 +1985,7 @@ export type Database = {
           scheduled_date: string
           scheduled_time: string | null
           uit_code: string | null
-          vehicle_plate: string
+          vehicle_plate: string | null
         }[]
       }
       confirm_process: {

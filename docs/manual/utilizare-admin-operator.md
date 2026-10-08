@@ -561,7 +561,10 @@ Dintr-o comandă **acceptată** (ecranul `/comenzi/[id]`), butonul **"Planifică
 livrare"** deschide formularul:
 
 1. Completează **data programată** (opțional și **ora** - de ex. începerea
-   turnării), **transportatorul**, **numărul de înmatriculare** și **șoferul**.
+   turnării). **Transportatorul**, **numărul de înmatriculare** și **șoferul** sunt
+   opționale: dacă nu le știi încă, le completezi mai târziu din ecranul livrării
+   (butonul **"Completează transportul"**), cât timp livrarea nu e declarată în
+   e-Transport și recepția nu e confirmată. Declararea în e-Transport le cere pe toate.
    La **"Notă de comandă"** poți trece, opțional, **pomparea** (ex. „Pompă
    furnizor 36 m”) și **observații** libere (element turnat, persoana de la
    recepție etc.).

@@ -415,9 +415,9 @@ export const trimiteComanda: AssistantTool<{ order_id: string }> = {
 interface PlanDeliveryToolInput {
   order_id: string;
   data_programata: string;
-  transportator: string;
-  nr_inmatriculare: string;
-  sofer: string;
+  transportator: string | null;
+  nr_inmatriculare: string | null;
+  sofer: string | null;
   punct_plecare_id: string | null;
   punct_plecare: string | null;
   punct_sosire: string | null;
@@ -459,8 +459,9 @@ export const planificaLivrare: AssistantTool<PlanDeliveryToolInput> = {
   name: "planifica_livrare",
   description:
     "Propune planificarea livrării unei comenzi ACCEPTATE care nu are deja o livrare " +
-    "(verifică întâi cu `context_livrare`). Ai nevoie de dată, transportator, nr. de " +
-    "înmatriculare și șofer - cere-le utilizatorului dacă nu le-a spus. Punctul de plecare " +
+    "(verifică întâi cu `context_livrare`). Ai nevoie de dată; transportatorul, nr. de " +
+    "înmatriculare și șoferul sunt opționale (se pot completa ulterior, dar fără ele livrarea " +
+    "nu se poate declara în e-Transport) - folosește-le dacă utilizatorul le-a spus. Punctul de plecare " +
     "(`punct_plecare_id`, din `context_livrare`) și punctul de sosire se completează automat " +
     "cu stația implicită, respectiv adresa de livrare a comenzii, dacă nu le dai. " +
     "Acțiunea NU se execută până la confirmare.",
@@ -488,10 +489,11 @@ export const planificaLivrare: AssistantTool<PlanDeliveryToolInput> = {
         description: "Adresa de sosire. Lipsă = adresa de livrare a comenzii.",
       },
     },
-    required: ["order_id", "data_programata", "transportator", "nr_inmatriculare", "sofer"],
+    required: ["order_id", "data_programata"],
   },
   roles: ["admin", "operator"],
-  version: 1,
+  // v2 (2026-10-08, migrarea 0058): transportul a devenit optional.
+  version: 2,
   kind: "write",
   parse: (args) => {
     const raw = asObject(args);
@@ -505,9 +507,9 @@ export const planificaLivrare: AssistantTool<PlanDeliveryToolInput> = {
     return {
       order_id: requiredString(raw, "order_id"),
       data_programata: date,
-      transportator: requiredString(raw, "transportator"),
-      nr_inmatriculare: requiredString(raw, "nr_inmatriculare"),
-      sofer: requiredString(raw, "sofer"),
+      transportator: optionalString(raw, "transportator"),
+      nr_inmatriculare: optionalString(raw, "nr_inmatriculare"),
+      sofer: optionalString(raw, "sofer"),
       punct_plecare_id: optionalString(raw, "punct_plecare_id"),
       punct_plecare: optionalString(raw, "punct_plecare"),
       punct_sosire: optionalString(raw, "punct_sosire"),
@@ -549,26 +551,26 @@ export const planificaLivrare: AssistantTool<PlanDeliveryToolInput> = {
         {
           name: "transportator",
           label: "Transportator",
-          displayValue: input.transportator,
+          displayValue: input.transportator ?? "-",
           editable: true,
           kind: "text",
-          value: input.transportator,
+          value: input.transportator ?? "",
         },
         {
           name: "nr_inmatriculare",
           label: "Nr. înmatriculare",
-          displayValue: input.nr_inmatriculare,
+          displayValue: input.nr_inmatriculare ?? "-",
           editable: true,
           kind: "text",
-          value: input.nr_inmatriculare,
+          value: input.nr_inmatriculare ?? "",
         },
         {
           name: "sofer",
           label: "Șofer",
-          displayValue: input.sofer,
+          displayValue: input.sofer ?? "-",
           editable: true,
           kind: "text",
-          value: input.sofer,
+          value: input.sofer ?? "",
         },
         {
           name: "punct_plecare",

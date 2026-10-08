@@ -105,7 +105,8 @@ export function DeliveryForm({
         <CardHeader>
           <CardTitle>Detalii transport</CardTitle>
           <CardDescription>
-            Vehicul, șofer și rută - necesare pt. avizul de însoțire.
+            Transportatorul, vehiculul și șoferul sunt opționale acum - le poți completa și după,
+            din ecranul livrării. Sunt obligatorii doar pentru declararea în e-Transport.
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4 sm:grid-cols-2">
@@ -115,18 +116,14 @@ export function DeliveryForm({
           <FormField label="Ora" hint="Opțional - ex. începerea turnării.">
             {(id) => <Input id={id} name="scheduled_time" type="time" />}
           </FormField>
-          <FormField label="Transportator" required>
-            {(id) => <Input id={id} name="carrier_name" placeholder="Ex. Transport SRL" required />}
+          <FormField label="Transportator">
+            {(id) => <Input id={id} name="carrier_name" placeholder="Ex. Transport SRL" />}
           </FormField>
-          <FormField
-            label="Nr. înmatriculare"
-            required
-            hint="Identifică vehiculul (pregătit pt. monitorizare GPS, v2)."
-          >
-            {(id) => <Input id={id} name="vehicle_plate" placeholder="Ex. B 123 ABC" required />}
+          <FormField label="Nr. înmatriculare">
+            {(id) => <Input id={id} name="vehicle_plate" placeholder="Ex. B 123 ABC" />}
           </FormField>
-          <FormField label="Șofer" required>
-            {(id) => <Input id={id} name="driver_name" placeholder="Nume și prenume" required />}
+          <FormField label="Șofer">
+            {(id) => <Input id={id} name="driver_name" placeholder="Nume și prenume" />}
           </FormField>
         </CardContent>
       </Card>
