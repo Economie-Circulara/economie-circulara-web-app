@@ -48,14 +48,25 @@ lucrează doar pe un export JSON, iar urcarea se face cu Supabase CLI.
 Din rădăcina repo-ului, cu Supabase CLI autentificat și proiectul legat (`supabase link`).
 Pentru stack-ul local, înlocuiește `--linked` cu `--local`.
 
+Seed-ul are patru placeholder-e, înlocuite cu `sed` la rulare (parola NU se comite):
+`__DEMO_PASSWORD__`, `__ORG_SLUG__`, `__ORG_NAME__`, `__DEMO_DOMAIN__`. Valorile implicite
+(organizația demo clasică) sunt `beton-circular` / `Beton Circular SRL (demo)` /
+`demo.lotculot.eu`.
+
 ```bash
-# 1. Datele (parola NU se comite - fișierul temporar rămâne în afara repo-ului)
+# Variabile (exemplu: demo clasic; pentru Etora vezi sectiunea de mai jos)
 DEMO_PASSWORD='…minim 12 caractere…'
-sed "s/__DEMO_PASSWORD__/$DEMO_PASSWORD/" supabase/demo/seed-demo.sql > /tmp/seed-demo.sql
+ORG_SLUG='beton-circular'; ORG_NAME='Beton Circular SRL (demo)'; DEMO_DOMAIN='demo.lotculot.eu'
+fill() { sed -e "s/__DEMO_PASSWORD__/$DEMO_PASSWORD/" -e "s/__ORG_SLUG__/$ORG_SLUG/" \
+             -e "s/__ORG_NAME__/$ORG_NAME/" -e "s/__DEMO_DOMAIN__/$DEMO_DOMAIN/" "$1"; }
+
+# 1. Datele (fișierul temporar rămâne în afara repo-ului)
+fill supabase/demo/seed-demo.sql > /tmp/seed-demo.sql
 supabase db query --linked -f /tmp/seed-demo.sql && rm /tmp/seed-demo.sql
 
 # 2. Export + generare certificate/documente
-supabase db query --linked -f scripts/demo/export-demo-data.sql -o json > .demo-artifacts.json
+fill scripts/demo/export-demo-data.sql > /tmp/export-demo.sql
+supabase db query --linked -f /tmp/export-demo.sql -o json > .demo-artifacts.json
 JITI_JSX=1 JITI_ALIAS="{\"@\":\"$PWD/src\"}" pnpm exec jiti scripts/demo/build-demo-artifacts.tsx .demo-artifacts.json .demo-artifacts
 
 # 3. Fișierele în Storage (`cp -r` păstrează numele directorului = numele bucketului),
@@ -65,7 +76,24 @@ supabase --experimental storage cp -r .demo-artifacts/storage/documents ss:/// -
 supabase db query --linked -f .demo-artifacts/artifacts.sql
 ```
 
-`.demo-artifacts*` e în `.gitignore`.
+`.demo-artifacts*` e în `.gitignore`. `ORG_NAME` nu trebuie să conțină apostrof sau `/`.
+
+## Demo în organizația Etora (organizație existentă, goală)
+
+Aceleași date, încărcate direct în organizația `etora` (cea de pe `circular.etora.ro`),
+fără a copia date reale ale altui client:
+
+```bash
+ORG_SLUG='etora'; ORG_NAME='Etora'; DEMO_DOMAIN='demo.etora.ro'   # apoi pașii 1-3 de mai sus
+```
+
+- Seed-ul **refolosește** organizația doar dacă nu are NICIO dată (itemi, clienți, loturi,
+  comenzi, rețete) - altfel refuză și nu scrie nimic. Nu creează `super_admin` (există deja).
+- Conturile demo sunt `admin|operator|productie|client.bravo|…@demo.etora.ro` (aceeași
+  parolă); adminul real al Etora rămâne neatins.
+- `teardown-demo.sql` NU se folosește pe o organizație refolosită (ar șterge organizația
+  reală). Fă un snapshot/branch Supabase înainte; pentru curățare se șterg manual rândurile
+  de business ale organizației + conturile `@demo.etora.ro`.
 
 ## Ștergere
 
@@ -78,3 +106,19 @@ supabase db query --linked -f supabase/demo/teardown-demo.sql
 
 După ștergere, pașii de rulare pot fi reluați (datele se regenerează relativ la data curentă -
 util înainte de o demonstrație, ca „luna aceasta” din dashboard să aibă activitate).
+
+## Etora „ca Macon": clonarea catalogului
+
+`clone-catalog.sql` copiază din organizația sursă (Macon) în cea țintă (Etora) **itemii,
+rețetele (cu direcție, procente, factori de conversie) și stocul curent** ca loturi de
+deschidere, prin `create_lot`. Nu copiază clienți, comenzi, procese, documente sau imagini
+(date reale ale altui tenant). Țintă goală obligatoriu (altfel refuză).
+
+```bash
+sed -e "s/__SOURCE_SLUG__/<slug-macon>/" -e "s/__TARGET_SLUG__/etora/" \
+    -e "s/__TARGET_ADMIN_EMAIL__/<email-admin-etora>/" supabase/demo/clone-catalog.sql > /tmp/clone.sql
+supabase db query --linked -f /tmp/clone.sql && rm /tmp/clone.sql
+```
+
+Dacă vrei și istoric (comenzi, procese, livrări, certificate), rulează apoi seed-ul de demo
+descris mai sus - dar el cere țintă goală, deci alege UNA dintre cele două căi.

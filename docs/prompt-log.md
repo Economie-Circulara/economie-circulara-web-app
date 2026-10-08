@@ -4,6 +4,20 @@ Jurnal al sarcinilor lucrate de agenti AI in acest repo. Conform regulii 1.2 din
 [`AGENTS.md`](../AGENTS.md), la **fiecare commit** se adauga o intrare aici.
 Cele mai noi intrari sus.
 
+## 2026-10-07 — Claude Sonnet 5.5 (Claude Code) — Clonare catalog Macon -> Etora
+
+- **Cerut:** datele Etora sa fie ca cele din Macon.
+- **Facut:** `supabase/demo/clone-catalog.sql` - copiaza itemi, retete si stoc curent (loturi de
+  deschidere prin `create_lot`) intre organizatii; fara clienti/comenzi/documente (date reale).
+  README actualizat. Netestat pe DB real (fara acces la baza Macon / Docker Supabase).
+
+## 2026-10-07 — Claude Sonnet 5.5 (Claude Code) — Date demo pentru Etora
+
+- **Cerut:** date demo în organizația Etora (duplicare din Macon sau script/prompt pentru regenerare).
+- **Facut:** nu s-au copiat date reale Macon; `seed-demo.sql` și `export-demo-data.sql`
+  parametrizate (slug/nume/domeniu), mod de refolosire a unei organizații existente DOAR dacă e
+  goală; README cu rețeta Etora. Plan: `docs/plans/demo-data-etora.md`. Netestat pe DB real.
+
 ## 2026-09-30 — Claude Opus 5.5 (Claude Code) — Asistentul AI scos de la clienti
 
 - **Cerut:** asistentul AI sa fie disponibil doar staff-ului organizatiei (admin/operator),
