@@ -111,16 +111,19 @@ export interface DocumentListProps {
   canDelete?: boolean;
   /** Path de revalidat dupa stergere (ex. `/clienti/{id}`). */
   revalidatePath: string;
+  /** Textul starii goale - implicit cel pentru documentele atasate unui client. */
+  emptyDescription?: string;
 }
 
-export function DocumentList({ documents, canDelete = false, revalidatePath }: DocumentListProps) {
+export function DocumentList({
+  documents,
+  canDelete = false,
+  revalidatePath,
+  emptyDescription = "Documentele atașate (inclusiv contracte arhivate) apar aici.",
+}: DocumentListProps) {
   if (documents.length === 0) {
     return (
-      <EmptyState
-        icon={<FileText />}
-        title="Niciun document"
-        description="Documentele atașate (inclusiv contracte arhivate) apar aici."
-      />
+      <EmptyState icon={<FileText />} title="Niciun document" description={emptyDescription} />
     );
   }
 

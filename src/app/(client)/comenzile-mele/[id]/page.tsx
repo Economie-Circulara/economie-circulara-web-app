@@ -13,10 +13,14 @@ import {
 import { ClientDeliveryCard } from "@/features/client-portal/client-delivery-card";
 import { getClientOrderDelivery } from "@/features/client-portal/queries";
 import { getCertificateByOrderId } from "@/features/certificates/service";
-import { listDocuments, listOrganizationDocuments } from "@/features/documents/service";
+import {
+  listDocuments,
+  listDocumentsForOwners,
+  listOrganizationDocuments,
+} from "@/features/documents/service";
 import { RepeatOrderButton } from "@/features/client-portal/repeat-order-button";
 import { ORDER_STATUS_BADGE_STATUS, ORDER_STATUS_LABELS } from "@/features/orders/labels";
-import { OrderDocuments } from "@/features/orders/order-documents";
+import { OrderDocuments, groupProductDocuments } from "@/features/orders/order-documents";
 import { OrderNoteCard } from "@/features/orders/order-note-card";
 import { getOrderDetail } from "@/features/orders/queries";
 import { ReturnActions } from "@/features/returns/return-actions";
@@ -78,7 +82,7 @@ export default async function ClientOrderDetailPage({ params }: OrderDetailPageP
   // Sectiunea „Documente” (2026-10-08): fisa de trasabilitate (comanda inchisa), documentele
   // generale ale organizatiei si cele atasate comenzii - toate RLS-scoped la client.
   // Avizul nu apare aici: contine date interne (erorile e-Transport, 0041).
-  const [returnableItems, delivery, certificate, orderDocuments, generalDocuments] =
+  const [returnableItems, delivery, certificate, orderDocuments, generalDocuments, itemDocuments] =
     await Promise.all([
       isFinished(order.status) && allowedReturnFlows.length > 0
         ? getReturnableItems(order.id)
@@ -87,6 +91,10 @@ export default async function ClientOrderDetailPage({ params }: OrderDetailPageP
       order.status === "closed" ? getCertificateByOrderId(order.id) : Promise.resolve(null),
       listDocuments("order", order.id),
       listOrganizationDocuments(user.organizationId),
+      listDocumentsForOwners(
+        "item",
+        order.items.map((line) => line.itemId),
+      ),
     ]);
 
   return (
@@ -193,6 +201,7 @@ export default async function ClientOrderDetailPage({ params }: OrderDetailPageP
         traceabilityHref={certificate ? `/comenzile-mele/${order.id}/trasabilitate` : null}
         generalDocuments={generalDocuments}
         orderDocuments={orderDocuments}
+        productDocuments={groupProductDocuments(order.items, itemDocuments)}
         canManage={false}
         revalidatePath={`/comenzile-mele/${order.id}`}
       />

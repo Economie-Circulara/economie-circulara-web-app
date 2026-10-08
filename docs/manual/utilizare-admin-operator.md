@@ -192,6 +192,14 @@ bifa **"Vandabil"** dacă abonamentul trebuie să apară în catalogul clientulu
 
 Apasă **"Creează abonamentul"**.
 
+**Documentele unui produs.** Pe pagina unui material, a unui abonament sau a unei
+rețete, secțiunea **"Documente"** păstrează fișierele produsului - de exemplu
+**raportul de laborator al rețetei**, o fișă tehnică sau o poză (PDF, imagine sau
+document Office, max. 4MB). Documentele rețetei sunt ale produsului ei, deci apar și pe
+pagina materialului. Ele apar automat în secțiunea **"Documente"** a fiecărei comenzi
+care conține produsul. Dacă produsul e **vandabil**, le văd și clienții, în portal - nu
+încărca acolo documente interne.
+
 ### 4.3 Rețete
 
 Meniul **"Rețete"** listează rețetele definite pentru materiale. O rețetă

@@ -6,6 +6,8 @@ import { requireRole } from "@/features/auth/session";
 import { isChatProviderConfigured } from "@/features/assistant/provider";
 import { archiveRecipeAction, restoreRecipeAction } from "@/features/recipes/actions";
 import { getItemById, listItemOptions } from "@/features/items/queries";
+import { ItemDocumentsSection } from "@/features/documents/item-documents-section";
+import { listDocuments } from "@/features/documents/service";
 import { getRecipeByItemId } from "@/features/recipes/queries";
 import { RecipeEditor } from "@/features/recipes/recipe-editor";
 import { CreateRecipeButton } from "@/features/recipes/create-recipe-button";
@@ -39,7 +41,10 @@ export default async function RecipeEditorPage({ params }: RecipeEditorPageProps
     );
   }
 
-  const recipe = await getRecipeByItemId(itemId);
+  const [recipe, documents] = await Promise.all([
+    getRecipeByItemId(itemId),
+    listDocuments("item", itemId),
+  ]);
   const componentOptions = recipe
     ? await listItemOptions({ kind: "physical", excludeId: itemId })
     : [];
@@ -90,6 +95,13 @@ export default async function RecipeEditorPage({ params }: RecipeEditorPageProps
       ) : (
         <CreateRecipeButton itemId={itemId} />
       )}
+      {/* Documentele retetei = ale produsului ei (ex. raportul de laborator). */}
+      <ItemDocumentsSection
+        itemId={item.id}
+        documents={documents}
+        sellable={item.sellable}
+        revalidatePath={`/retete/${item.id}`}
+      />
     </div>
   );
 }

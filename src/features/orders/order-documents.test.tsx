@@ -9,7 +9,7 @@ vi.mock("@/features/documents/actions", () => ({
 }));
 
 import type { DocumentRecord } from "@/features/documents/types";
-import { OrderDocuments, type OrderDocumentsProps } from "./order-documents";
+import { OrderDocuments, groupProductDocuments, type OrderDocumentsProps } from "./order-documents";
 
 function doc(overrides: Partial<DocumentRecord> = {}): DocumentRecord {
   return {
@@ -106,5 +106,60 @@ describe("OrderDocuments", () => {
     render(<OrderDocuments {...props({ canManage: false })} />);
     expect(screen.getByText(/nu a publicat încă documente generale/)).toBeInTheDocument();
     expect(screen.queryByText(/Setări/)).not.toBeInTheDocument();
+  });
+});
+
+describe("groupProductDocuments", () => {
+  const lab = doc({
+    id: "d1",
+    ownerType: "item",
+    ownerId: "item-beton",
+    fileName: "Reteta 173.pdf",
+  });
+  const sheet = doc({
+    id: "d2",
+    ownerType: "item",
+    ownerId: "item-nisip",
+    fileName: "Fisa nisip.pdf",
+  });
+
+  it("grupeaza pe produs, in ordinea liniilor, fara duplicate si fara produse goale", () => {
+    const groups = groupProductDocuments(
+      [
+        { itemId: "item-beton", itemTitle: "Beton C25/30" },
+        { itemId: "item-pompa", itemTitle: "Pompare" },
+        { itemId: "item-beton", itemTitle: "Beton C25/30" },
+      ],
+      [lab, sheet],
+    );
+    expect(groups).toEqual([{ itemId: "item-beton", itemTitle: "Beton C25/30", documents: [lab] }]);
+  });
+});
+
+describe("OrderDocuments - documentele produselor", () => {
+  it("arata documentele fiecarui produs sub numele lui", () => {
+    render(
+      <OrderDocuments
+        {...props({
+          productDocuments: [
+            {
+              itemId: "item-beton",
+              itemTitle: "Beton C25/30",
+              documents: [
+                doc({ ownerType: "item", ownerId: "item-beton", fileName: "Reteta 173.pdf" }),
+              ],
+            },
+          ],
+        })}
+      />,
+    );
+    expect(screen.getByText(/Documentele produselor/)).toBeInTheDocument();
+    expect(screen.getByText("Beton C25/30")).toBeInTheDocument();
+    expect(screen.getByText("Reteta 173.pdf")).toBeInTheDocument();
+  });
+
+  it("fara documente de produs, subsectiunea nu apare", () => {
+    render(<OrderDocuments {...props()} />);
+    expect(screen.queryByText(/Documentele produselor/)).not.toBeInTheDocument();
   });
 });

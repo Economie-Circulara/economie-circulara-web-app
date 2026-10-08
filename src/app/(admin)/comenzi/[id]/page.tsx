@@ -7,7 +7,11 @@ import { PageHeader } from "@/components/page-header";
 import { requireRole } from "@/features/auth/session";
 import { getCertificateByOrderId } from "@/features/certificates/service";
 import { getDeliveryByOrderId } from "@/features/deliveries/queries";
-import { listDocuments, listOrganizationDocuments } from "@/features/documents/service";
+import {
+  listDocuments,
+  listDocumentsForOwners,
+  listOrganizationDocuments,
+} from "@/features/documents/service";
 import { AcceptIntakeButton } from "@/features/orders/accept-intake-button";
 import { deleteDraftOrderAction, updateOrderNoteAction } from "@/features/orders/actions";
 import {
@@ -15,7 +19,7 @@ import {
   ORDER_TYPE_DESCRIPTIONS,
   ORDER_TYPE_LABELS,
 } from "@/features/orders/labels";
-import { OrderDocuments } from "@/features/orders/order-documents";
+import { OrderDocuments, groupProductDocuments } from "@/features/orders/order-documents";
 import { OrderNoteCard } from "@/features/orders/order-note-card";
 import { OrderStatusActions } from "@/features/orders/order-status-actions";
 import { INTAKE_JOURNEY, OrderStatusTimeline } from "@/features/orders/order-status-timeline";
@@ -50,10 +54,14 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
 
   // Certificatul se genereaza automat la inchidere (hook in orders/notifications.ts,
   // Task G) - verificam daca exista deja ca sa afisam link-ul de vizualizare/descarcare.
-  const [certificate, orderDocuments, generalDocuments] = await Promise.all([
+  const [certificate, orderDocuments, generalDocuments, itemDocuments] = await Promise.all([
     order.status === "closed" ? getCertificateByOrderId(id) : Promise.resolve(null),
     listDocuments("order", id),
     listOrganizationDocuments(user.organizationId),
+    listDocumentsForOwners(
+      "item",
+      order.items.map((line) => line.itemId),
+    ),
   ]);
 
   // Task F (Retur & Garanție & Închiriere): daca aceasta comanda e ea insași o
@@ -249,6 +257,7 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
         traceabilityHref={certificate ? `/comenzi/${order.id}/trasabilitate` : null}
         generalDocuments={generalDocuments}
         orderDocuments={orderDocuments}
+        productDocuments={groupProductDocuments(order.items, itemDocuments)}
         canManage
         revalidatePath={`/comenzi/${order.id}`}
       />

@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { requireRole } from "@/features/auth/session";
 import { archiveItemAction, restoreItemAction } from "@/features/items/actions";
 import { getItemById } from "@/features/items/queries";
+import { ItemDocumentsSection } from "@/features/documents/item-documents-section";
+import { listDocuments } from "@/features/documents/service";
 import { ItemForm } from "@/features/items/item-form";
 
 export const metadata = { title: "Editează material" };
@@ -25,6 +27,7 @@ export default async function ItemDetailPage({ params }: ItemDetailPageProps) {
 
   const item = await getItemById(id);
   if (!item || item.kind !== "physical") notFound();
+  const documents = await listDocuments("item", item.id);
 
   return (
     <div className="space-y-6">
@@ -65,6 +68,12 @@ export default async function ItemDetailPage({ params }: ItemDetailPageProps) {
         </p>
       ) : null}
       <ItemForm item={item} fixedKind="physical" />
+      <ItemDocumentsSection
+        itemId={item.id}
+        documents={documents}
+        sellable={item.sellable}
+        revalidatePath={`/itemi/${item.id}`}
+      />
     </div>
   );
 }

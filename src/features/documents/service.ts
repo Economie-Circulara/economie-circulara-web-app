@@ -231,6 +231,31 @@ export async function listDocuments(
 }
 
 /**
+ * Documentele mai multor owneri de acelasi tip, intr-o singura interogare (ex.
+ * documentele produselor de pe liniile unei comenzi). RLS filtreaza in continuare:
+ * clientul vede doar documentele produselor VANDABILE (`documents_client_select`).
+ */
+export async function listDocumentsForOwners(
+  ownerType: DocumentOwnerType,
+  ownerIds: string[],
+): Promise<DocumentRecord[]> {
+  const ids = [...new Set(ownerIds)];
+  if (ids.length === 0) return [];
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("documents")
+    .select(
+      "id, owner_type, owner_id, file_name, file_path, mime_type, size_bytes, description, uploaded_by, created_at",
+    )
+    .eq("owner_type", ownerType)
+    .in("owner_id", ids)
+    .order("created_at", { ascending: false });
+
+  if (error) throw new Error("Nu am putut încărca documentele.");
+  return (data ?? []).map(mapDocument);
+}
+
+/**
  * Documentele generale ale organizatiei (declaratii de conformitate, 0057) - vizibile
  * staff-ului si tuturor clientilor ei (RLS `documents_client_select`).
  */

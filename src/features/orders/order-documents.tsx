@@ -4,6 +4,31 @@ import { DocumentList } from "@/features/documents/document-list";
 import { DocumentUpload } from "@/features/documents/document-upload";
 import type { DocumentRecord } from "@/features/documents/types";
 
+export interface ProductDocuments {
+  itemId: string;
+  itemTitle: string;
+  documents: DocumentRecord[];
+}
+
+/**
+ * Grupeaza documentele produselor pe liniile comenzii, in ordinea liniilor, fara
+ * duplicate (acelasi produs pe doua linii) si fara produsele care nu au documente.
+ */
+export function groupProductDocuments(
+  lines: { itemId: string; itemTitle: string }[],
+  documents: DocumentRecord[],
+): ProductDocuments[] {
+  const seen = new Set<string>();
+  const groups: ProductDocuments[] = [];
+  for (const line of lines) {
+    if (seen.has(line.itemId)) continue;
+    seen.add(line.itemId);
+    const own = documents.filter((doc) => doc.ownerType === "item" && doc.ownerId === line.itemId);
+    if (own.length > 0) groups.push({ ...line, documents: own });
+  }
+  return groups;
+}
+
 export interface OrderDocumentsProps {
   orderId: string;
   /**
@@ -17,6 +42,11 @@ export interface OrderDocumentsProps {
   generalDocuments: DocumentRecord[];
   /** Documentele atasate comenzii (ex. nota semnata, scanata). */
   orderDocuments: DocumentRecord[];
+  /**
+   * Documentele produselor de pe liniile comenzii (ex. raportul de laborator al
+   * retetei), grupate pe produs. Produsele fara documente nu apar.
+   */
+  productDocuments?: ProductDocuments[];
   /** Staff: poate incarca/sterge documente pe comanda. */
   canManage: boolean;
   revalidatePath: string;
@@ -26,7 +56,8 @@ export interface OrderDocumentsProps {
  * Sectiunea „Documente” a unei comenzi (decizie 2026-10-08, intalnirea cu Macon XCX):
  * in locul butonului „Vezi certificat”, toate documentele comenzii intr-un loc -
  * cele generate de platforma (aviz / nota de comanda, fisa de trasabilitate), cele
- * generale ale organizatiei (declaratia de conformitate) si cele atasate comenzii.
+ * generale ale organizatiei (declaratia de conformitate), cele ale produselor de pe
+ * linii (ex. raportul de laborator al retetei) si cele atasate comenzii.
  * Folosita si de staff (`/comenzi/[id]`), si de client (`/comenzile-mele/[id]`).
  */
 export function OrderDocuments({
@@ -35,6 +66,7 @@ export function OrderDocuments({
   traceabilityHref,
   generalDocuments,
   orderDocuments,
+  productDocuments = [],
   canManage,
   revalidatePath,
 }: OrderDocumentsProps) {
@@ -113,6 +145,20 @@ export function OrderDocuments({
           <DocumentList documents={generalDocuments} revalidatePath={revalidatePath} />
         )}
       </div>
+
+      {productDocuments.length > 0 ? (
+        <div className="space-y-3">
+          <h3 className="text-sm font-medium text-muted-foreground">
+            Documentele produselor (rapoarte de laborator, fișe tehnice)
+          </h3>
+          {productDocuments.map((group) => (
+            <div key={group.itemId} className="space-y-2">
+              <p className="text-sm font-medium">{group.itemTitle}</p>
+              <DocumentList documents={group.documents} revalidatePath={revalidatePath} />
+            </div>
+          ))}
+        </div>
+      ) : null}
 
       <div className="space-y-2">
         <h3 className="text-sm font-medium text-muted-foreground">Atașate comenzii</h3>

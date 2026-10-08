@@ -4,6 +4,18 @@ Jurnal al sarcinilor lucrate de agenti AI in acest repo. Conform regulii 1.2 din
 [`AGENTS.md`](../AGENTS.md), la **fiecare commit** se adauga o intrare aici.
 Cele mai noi intrari sus.
 
+## 2026-10-08 — Claude Opus 5.5 (Claude Code) — Documente pe materiale/retete, propagate la comanda
+
+- **Cerut:** sa putem atasa unui material/retete un PDF sau o poza (ex. certificatul de
+  la laborator), care apoi apare in „Documente” la comanda.
+- **Facut:** sectiunea „Documente” pe `/itemi/[id]`, `/abonamente/[id]` si
+  `/retete/[itemId]` (`ItemDocumentsSection`, owner = produsul; hint daca produsul e
+  vandabil, deci vizibil clientilor); `listDocumentsForOwners` (o interogare pentru
+  toate produsele unei comenzi); `OrderDocuments` arata „Documentele produselor”,
+  grupate pe produs (`groupProductDocuments`), la staff si in portal. Fara migrare
+  (`owner_type = 'item'` exista din 0001). Teste, manual, regula in AGENTS.md. Plan:
+  `docs/plans/macon-documente-comanda.md` (runda 2, partea 6).
+
 ## 2026-10-08 — Claude Opus 5.5 (Claude Code) — Nota de comanda editabila pe toata comanda
 
 - **Cerut:** nota de comanda sa poata fi vazuta, adaugata si editata pe comanda inca din

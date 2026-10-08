@@ -126,7 +126,8 @@ opțional, observații, apoi **"Confirmă recepția"**. Comanda trece în **Livr
 organizație.
 
 Tot pe detaliul comenzii, secțiunea **"Documente"** arată fișa de trasabilitate
-(după închiderea comenzii), declarațiile de conformitate ale organizației și
+(după închiderea comenzii), declarațiile de conformitate ale organizației,
+documentele produselor comandate (de exemplu raportul de laborator al unui beton) și
 documentele atașate de organizație comenzii tale (de exemplu nota de comandă semnată).
 
 Cererile de **aport** (material pe care îl aduci tu către organizație, din

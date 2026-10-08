@@ -22,6 +22,7 @@ import {
   deleteDocument,
   getDownloadUrl,
   listDocuments,
+  listDocumentsForOwners,
   listOrganizationDocuments,
   uploadDocument,
 } from "./service";
@@ -321,6 +322,33 @@ describe("uploadDocument - autorizare", () => {
 describe("listOrganizationDocuments", () => {
   it("intoarce lista goala fara organizatie (super-admin), fara interogare", async () => {
     await expect(listOrganizationDocuments(null)).resolves.toEqual([]);
+    expect(createClient).not.toHaveBeenCalled();
+  });
+});
+
+describe("listDocumentsForOwners", () => {
+  it("o singura interogare pentru toti ownerii, fara duplicate", async () => {
+    const order = vi.fn().mockResolvedValue({
+      data: [documentRow({ owner_type: "item", owner_id: "item-1" })],
+      error: null,
+    });
+    const inFilter = vi.fn().mockReturnValue({ order });
+    const eq = vi.fn().mockReturnValue({ in: inFilter });
+    const select = vi.fn().mockReturnValue({ eq });
+    const from = vi.fn().mockReturnValue({ select });
+    createClient.mockResolvedValue({ from });
+
+    const docs = await listDocumentsForOwners("item", ["item-1", "item-2", "item-1"]);
+
+    expect(from).toHaveBeenCalledTimes(1);
+    expect(eq).toHaveBeenCalledWith("owner_type", "item");
+    expect(inFilter).toHaveBeenCalledWith("owner_id", ["item-1", "item-2"]);
+    expect(docs).toHaveLength(1);
+    expect(docs[0].ownerId).toBe("item-1");
+  });
+
+  it("fara owneri nu interogheaza nimic", async () => {
+    await expect(listDocumentsForOwners("item", [])).resolves.toEqual([]);
     expect(createClient).not.toHaveBeenCalled();
   });
 });

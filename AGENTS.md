@@ -229,6 +229,11 @@ Testele unitare sunt **colocate** langa cod (`*.test.ts` / `*.test.tsx`).
   organizatiei. Comanda are o sectiune „Documente” (`orders/order-documents.tsx`, staff
   si portal): aviz (doar staff), fisa de trasabilitate, documente generale, documente
   atasate comenzii (ex. nota semnata, scanata).
+  - **Documentele unui produs (raport de laborator, fisa tehnica) se ataseaza
+    PRODUSULUI** (`owner_type = 'item'`; reteta nu are documente proprii - sunt ale
+    itemului ei) si apar automat in „Documente” la orice comanda care il contine
+    (`groupProductDocuments`). Clientul le vede doar pentru produsele VANDABILE (RLS
+    din 0001/0014) - UI-ul spune asta la upload.
 - **Upload-ul de documente trece prin clientul admin, deci RLS-ul de insert NU se
   aplica acolo**: regula „cine poate incarca ce” se impune explicit in
   `documents/service.ts#assertCanUpload` (clientul doar pe comenzile proprii,
