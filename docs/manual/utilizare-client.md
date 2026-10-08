@@ -124,6 +124,10 @@ opțional, observații, apoi **"Confirmă recepția"**. Comanda trece în **Livr
 Închiderea comenzii (și emiterea fișei de trasabilitate) rămâne la
 organizație.
 
+Tot pe detaliul comenzii, secțiunea **"Documente"** arată fișa de trasabilitate
+(după închiderea comenzii), declarațiile de conformitate ale organizației și
+documentele atașate de organizație comenzii tale (de exemplu nota de comandă semnată).
+
 Cererile de **aport** (material pe care îl aduci tu către organizație, din
 **"Aport material"**) apar tot aici, direct ca **Trimise** - organizația le acceptă
 la recepția materialului sau le respinge.
@@ -174,7 +178,9 @@ materialului/echipamentului.
 
 ## 5. Documente
 
-Ecranul **"Documente"** are două secțiuni:
+Ecranul **"Documente"** are trei secțiuni: documentele firmei tale, declarațiile de
+conformitate și documentele generale ale organizației (dacă le-a publicat) și fișele
+de trasabilitate.
 
 ### 5.1 Documente
 

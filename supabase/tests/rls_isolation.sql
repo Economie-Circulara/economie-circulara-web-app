@@ -424,4 +424,44 @@ begin;
     from public.orders where id = '0d0d0d0d-0000-0000-0000-0000000000e2';
 rollback;
 
+-- ===== TEST 21: documentele generale ale organizatiei (0057) - orice client al ei
+--       le vede, clientii altei organizatii nu; owner_id trebuie sa fie organizatia. =====
+begin;
+  insert into public.documents (organization_id, owner_type, owner_id, file_path, file_name) values
+    ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'organization', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+     'a/organization/declaratie.pdf', 'Declaratie conformitate A.pdf'),
+    ('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 'organization', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
+     'b/organization/declaratie.pdf', 'Declaratie conformitate B.pdf');
+
+  do $$
+  begin
+    begin
+      insert into public.documents (organization_id, owner_type, owner_id, file_path, file_name)
+      values ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'organization',
+              'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 'x.pdf', 'x.pdf');
+      raise exception 'FAIL: T21 document de organizatie legat de alta organizatie';
+    exception
+      when check_violation then raise notice 'PASS: T21 owner_id = organization_id impus de CHECK';
+    end;
+  end $$;
+
+  set local role authenticated;
+  set local request.jwt.claims = '{"sub":"22222222-2222-2222-2222-222222222222"}';
+  select pg_temp.assert('T21 client A vede declaratia Org A', count(*), 1)
+    from public.documents where owner_type = 'organization';
+  select pg_temp.assert('T21 client A NU vede declaratia Org B', count(*), 0)
+    from public.documents where organization_id = 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb';
+
+  set local request.jwt.claims = '{"sub":"33333333-3333-3333-3333-333333333333"}';
+  select pg_temp.assert('T21 client B vede doar declaratia Org B', count(*), 1)
+    from public.documents
+    where owner_type = 'organization' and organization_id = 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb';
+  select pg_temp.assert('T21 client B: total documente de organizatie vizibile', count(*), 1)
+    from public.documents where owner_type = 'organization';
+
+  set local request.jwt.claims = '{"sub":"11111111-1111-1111-1111-111111111111"}';
+  select pg_temp.assert('T21 admin A vede declaratia proprie', count(*), 1)
+    from public.documents where owner_type = 'organization';
+rollback;
+
 select '*** TOATE TESTELE RLS AU TRECUT ***' as result;

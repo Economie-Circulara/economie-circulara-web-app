@@ -4,6 +4,22 @@ Jurnal al sarcinilor lucrate de agenti AI in acest repo. Conform regulii 1.2 din
 [`AGENTS.md`](../AGENTS.md), la **fiecare commit** se adauga o intrare aici.
 Cele mai noi intrari sus.
 
+## 2026-10-08 — Claude Opus 5.5 (Claude Code) — Sectiunea „Documente” la comanda + declaratii de conformitate
+
+- **Cerut:** dupa intalnirea cu Macon XCX - „Vezi certificat” inlocuit cu o sectiune de
+  documente la comanda, inclusiv declaratia de conformitate, pe care o incarca
+  organizatia, generic (nu per comanda).
+- **Facut:** migrarea `0057` (`document_owner_type = 'organization'`, CHECK
+  owner_id = organization_id, clientii organizatiei le pot citi; test T21 in
+  `rls_isolation.sql`); Setari → „Documente generale” (doar admin);
+  `orders/order-documents.tsx` pe `/comenzi/[id]` si `/comenzile-mele/[id]` (aviz doar
+  la staff, fisa de trasabilitate, documente generale, documente atasate + upload la
+  staff); `/documente` in portal arata si documentele generale. Securitate:
+  `assertCanUpload` - upload-ul trecea prin clientul admin fara sa verifice tipul
+  ownerului, deci un client putea atasa fisiere firmei lui sau produselor din catalog;
+  acum doar pe comenzile proprii. Teste unitare, manual, reguli in AGENTS.md. Plan:
+  `docs/plans/macon-documente-comanda.md` (partea 3 din 3).
+
 ## 2026-10-08 — Claude Opus 5.5 (Claude Code) — Avizul tine loc de nota de comanda
 
 - **Cerut:** dupa intalnirea cu Macon XCX - nota de comanda (fara forma fixa) sa fie

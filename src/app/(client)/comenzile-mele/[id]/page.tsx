@@ -12,8 +12,11 @@ import {
 } from "@/features/client-portal/actions";
 import { ClientDeliveryCard } from "@/features/client-portal/client-delivery-card";
 import { getClientOrderDelivery } from "@/features/client-portal/queries";
+import { getCertificateByOrderId } from "@/features/certificates/service";
+import { listDocuments, listOrganizationDocuments } from "@/features/documents/service";
 import { RepeatOrderButton } from "@/features/client-portal/repeat-order-button";
 import { ORDER_STATUS_BADGE_STATUS, ORDER_STATUS_LABELS } from "@/features/orders/labels";
+import { OrderDocuments } from "@/features/orders/order-documents";
 import { getOrderDetail } from "@/features/orders/queries";
 import { ReturnActions } from "@/features/returns/return-actions";
 import { ORDER_LINK_TYPE_LABELS } from "@/features/returns/labels";
@@ -52,7 +55,7 @@ function isFinished(status: string): boolean {
  * cos care nu poate contine liniile lui (itemi de aport, adesea nevandabili).
  */
 export default async function ClientOrderDetailPage({ params }: OrderDetailPageProps) {
-  await requireRole(["client"]);
+  const user = await requireRole(["client"]);
   const { id } = await params;
 
   const order = await getOrderDetail(id);
@@ -71,12 +74,19 @@ export default async function ClientOrderDetailPage({ params }: OrderDetailPageP
   const allowedReturnFlows = ALLOWED_RETURN_FLOWS_BY_ORDER_TYPE[order.orderType];
   // Livrarea planificata de staff (0041): exista doar pe comenzi acceptate/livrate,
   // niciodata pe un aport (materialul vine de la client, nu pleaca spre el).
-  const [returnableItems, delivery] = await Promise.all([
-    isFinished(order.status) && allowedReturnFlows.length > 0
-      ? getReturnableItems(order.id)
-      : Promise.resolve([]),
-    isIntakeOrder || isReturnRequest ? Promise.resolve(null) : getClientOrderDelivery(order.id),
-  ]);
+  // Sectiunea „Documente” (2026-10-08): fisa de trasabilitate (comanda inchisa), documentele
+  // generale ale organizatiei si cele atasate comenzii - toate RLS-scoped la client.
+  // Avizul nu apare aici: contine date interne (erorile e-Transport, 0041).
+  const [returnableItems, delivery, certificate, orderDocuments, generalDocuments] =
+    await Promise.all([
+      isFinished(order.status) && allowedReturnFlows.length > 0
+        ? getReturnableItems(order.id)
+        : Promise.resolve([]),
+      isIntakeOrder || isReturnRequest ? Promise.resolve(null) : getClientOrderDelivery(order.id),
+      order.status === "closed" ? getCertificateByOrderId(order.id) : Promise.resolve(null),
+      listDocuments("order", order.id),
+      listOrganizationDocuments(user.organizationId),
+    ]);
 
   return (
     <div className="space-y-8">
@@ -88,13 +98,6 @@ export default async function ClientOrderDetailPage({ params }: OrderDetailPageP
         ]}
         actions={
           <>
-            {order.status === "closed" ? (
-              <Button asChild variant="outline">
-                <Link href={`/comenzile-mele/${order.id}/trasabilitate`}>
-                  Vezi fișa de trasabilitate
-                </Link>
-              </Button>
-            ) : null}
             {isIntakeOrder || isReturnRequest ? null : <RepeatOrderButton items={order.items} />}
             {/* Doar ciornele proprii se pot sterge (migrarea 0035). */}
             {order.status === "draft" ? (
@@ -187,6 +190,15 @@ export default async function ClientOrderDetailPage({ params }: OrderDetailPageP
           </ul>
         )}
       </section>
+
+      <OrderDocuments
+        orderId={order.id}
+        traceabilityHref={certificate ? `/comenzile-mele/${order.id}/trasabilitate` : null}
+        generalDocuments={generalDocuments}
+        orderDocuments={orderDocuments}
+        canManage={false}
+        revalidatePath={`/comenzile-mele/${order.id}`}
+      />
 
       {isFinished(order.status) && returnableItems.some((i) => i.returnableQuantity > 0) ? (
         <section className="space-y-3">

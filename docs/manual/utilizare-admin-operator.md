@@ -439,8 +439,17 @@ fluxul de abonament/închiriere), linii de comandă, și un **traseu vizual al
 statusului** (Ciornă -> Trimisă -> Acceptată -> Livrată -> Închisă, sau "Anulată").
 
 Dacă o comandă a fost livrată/închisă, pot apărea butoanele **"Retur"** și
-**"Garanție"** (secțiunea 8). Dacă fișa de trasabilitate există deja, apare butonul
-**"Vezi fișa de trasabilitate"**.
+**"Garanție"** (secțiunea 8).
+
+Secțiunea **"Documente"** strânge tot ce ține de comandă:
+
+- **Generate de platformă** - avizul de însoțire, care ține loc de notă de comandă
+  (după planificarea livrării, secțiunea 9), și **fișa de trasabilitate** (după
+  închiderea comenzii, link **"Vezi fișa de trasabilitate"**).
+- **Documente generale** - declarațiile de conformitate încărcate de administrator
+  în Setări (vezi [`ghid-administrare.md`](ghid-administrare.md), 1.4).
+- **Atașate comenzii** - fișiere încărcate pe comandă, de exemplu **nota de comandă
+  sau avizul semnat și ștampilat**, scanat după tipărire.
 
 Pe o comandă de tip **Aport** aflată în Ciornă sau Trimisă, în locul butoanelor de
 tranziție apar **"Acceptă aport"** și **"Anulează"** (respingerea cererii): materialul adus de client intră în stoc ca lot nou, cu

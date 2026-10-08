@@ -2136,7 +2136,7 @@ export type Database = {
     }
     Enums: {
       delivery_declaration_status: "not_declared" | "declared" | "failed"
-      document_owner_type: "client" | "order" | "item"
+      document_owner_type: "client" | "order" | "item" | "organization"
       item_kind: "physical" | "service"
       lot_provenance:
         | "purchase"
@@ -2321,7 +2321,7 @@ export const Constants = {
   public: {
     Enums: {
       delivery_declaration_status: ["not_declared", "declared", "failed"],
-      document_owner_type: ["client", "order", "item"],
+      document_owner_type: ["client", "order", "item", "organization"],
       item_kind: ["physical", "service"],
       lot_provenance: [
         "purchase",

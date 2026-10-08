@@ -16,10 +16,13 @@ vi.mock("@/features/auth/session", () => ({ requireUser, requireRole }));
 import {
   DocumentAccessError,
   DocumentOwnerNotFoundError,
+  DocumentPermissionError,
   InvalidFileError,
+  assertCanUpload,
   deleteDocument,
   getDownloadUrl,
   listDocuments,
+  listOrganizationDocuments,
   uploadDocument,
 } from "./service";
 
@@ -217,6 +220,22 @@ describe("deleteDocument", () => {
     expect(eqDelete).toHaveBeenCalledWith("id", "doc-1");
   });
 
+  it("operatorul NU poate sterge un document general al organizatiei (0057)", async () => {
+    requireRole.mockResolvedValue({ id: "user-2", role: "operator" });
+    const single = vi.fn().mockResolvedValue({
+      data: { file_path: "org-1/organization/org-1/d.pdf", owner_type: "organization" },
+      error: null,
+    });
+    const eq = vi.fn().mockReturnValue({ single });
+    const select = vi.fn().mockReturnValue({ eq });
+    const del = vi.fn();
+    createClient.mockResolvedValue({ from: vi.fn().mockReturnValue({ select, delete: del }) });
+
+    await expect(deleteDocument("doc-org")).rejects.toBeInstanceOf(DocumentPermissionError);
+    expect(createAdminClient).not.toHaveBeenCalled();
+    expect(del).not.toHaveBeenCalled();
+  });
+
   it("arunca DocumentAccessError cand documentul nu e accesibil", async () => {
     requireRole.mockResolvedValue({ id: "user-1", role: "admin" });
     const single = vi.fn().mockResolvedValue({ data: null, error: { message: "no rows" } });
@@ -225,5 +244,83 @@ describe("deleteDocument", () => {
     createClient.mockResolvedValue({ from: vi.fn().mockReturnValue({ select }) });
 
     await expect(deleteDocument("doc-x")).rejects.toBeInstanceOf(DocumentAccessError);
+  });
+});
+
+describe("assertCanUpload", () => {
+  const admin = { role: "admin" as const, organizationId: "org-1" };
+  const operator = { role: "operator" as const, organizationId: "org-1" };
+  const client = { role: "client" as const, organizationId: "org-1" };
+
+  it("documentele generale: doar adminul propriei organizatii", () => {
+    expect(() => assertCanUpload(admin, "organization", "org-1")).not.toThrow();
+    expect(() => assertCanUpload(admin, "organization", "org-2")).toThrow(DocumentPermissionError);
+    expect(() => assertCanUpload(operator, "organization", "org-1")).toThrow(
+      DocumentPermissionError,
+    );
+    expect(() => assertCanUpload(client, "organization", "org-1")).toThrow(DocumentPermissionError);
+  });
+
+  it("clientul ataseaza documente doar comenzilor (nu firmei, nu produselor din catalog)", () => {
+    expect(() => assertCanUpload(client, "order", "order-1")).not.toThrow();
+    expect(() => assertCanUpload(client, "client", "client-1")).toThrow(DocumentPermissionError);
+    expect(() => assertCanUpload(client, "item", "item-1")).toThrow(DocumentPermissionError);
+  });
+
+  it("staff-ul poate atasa pe client, comanda si produs", () => {
+    for (const ownerType of ["client", "order", "item"] as const) {
+      expect(() => assertCanUpload(operator, ownerType, "x")).not.toThrow();
+    }
+  });
+});
+
+describe("uploadDocument - autorizare", () => {
+  it("clientul care incearca un document pe un produs e oprit inainte de orice acces la storage", async () => {
+    requireUser.mockResolvedValue({ id: "user-c", role: "client", organizationId: "org-1" });
+    const file = new File(["x"], "f.pdf", { type: "application/pdf" });
+
+    await expect(
+      uploadDocument({ ownerType: "item", ownerId: "item-1", file }),
+    ).rejects.toBeInstanceOf(DocumentPermissionError);
+    expect(createClient).not.toHaveBeenCalled();
+    expect(createAdminClient).not.toHaveBeenCalled();
+  });
+
+  it("adminul incarca o declaratie de conformitate pe organizatie, fara lookup de owner", async () => {
+    requireUser.mockResolvedValue({ id: "user-1", role: "admin", organizationId: "org-1" });
+    const from = vi.fn();
+    createClient.mockResolvedValue({ from });
+
+    const upload = vi.fn().mockResolvedValue({ data: { path: "x" }, error: null });
+    const single = vi.fn().mockResolvedValue({
+      data: documentRow({ owner_type: "organization", owner_id: "org-1" }),
+      error: null,
+    });
+    const insert = vi.fn().mockReturnValue({ select: vi.fn().mockReturnValue({ single }) });
+    createAdminClient.mockReturnValue({
+      storage: { from: vi.fn().mockReturnValue({ upload }) },
+      from: vi.fn().mockReturnValue({ insert }),
+    });
+
+    const file = new File(["x"], "Declaratie.pdf", { type: "application/pdf" });
+    const doc = await uploadDocument({ ownerType: "organization", ownerId: "org-1", file });
+
+    expect(from).not.toHaveBeenCalled();
+    expect(upload.mock.calls[0][0]).toMatch(/^org-1\/organization\/org-1\//);
+    expect(insert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        organization_id: "org-1",
+        owner_type: "organization",
+        owner_id: "org-1",
+      }),
+    );
+    expect(doc.ownerType).toBe("organization");
+  });
+});
+
+describe("listOrganizationDocuments", () => {
+  it("intoarce lista goala fara organizatie (super-admin), fara interogare", async () => {
+    await expect(listOrganizationDocuments(null)).resolves.toEqual([]);
+    expect(createClient).not.toHaveBeenCalled();
   });
 });

@@ -7,6 +7,7 @@ import { PageHeader } from "@/components/page-header";
 import { requireRole } from "@/features/auth/session";
 import { getCertificateByOrderId } from "@/features/certificates/service";
 import { getDeliveryByOrderId } from "@/features/deliveries/queries";
+import { listDocuments, listOrganizationDocuments } from "@/features/documents/service";
 import { AcceptIntakeButton } from "@/features/orders/accept-intake-button";
 import { deleteDraftOrderAction } from "@/features/orders/actions";
 import {
@@ -14,6 +15,7 @@ import {
   ORDER_TYPE_DESCRIPTIONS,
   ORDER_TYPE_LABELS,
 } from "@/features/orders/labels";
+import { OrderDocuments } from "@/features/orders/order-documents";
 import { OrderStatusActions } from "@/features/orders/order-status-actions";
 import { INTAKE_JOURNEY, OrderStatusTimeline } from "@/features/orders/order-status-timeline";
 import { getOrderDetail } from "@/features/orders/queries";
@@ -39,7 +41,7 @@ function formatDate(iso: string | null): string {
 
 /** Ecranul de detaliu comandă (doar staff): client, livrare, linii, istoric status. */
 export default async function OrderDetailPage({ params }: OrderDetailPageProps) {
-  await requireRole(["admin", "operator"]);
+  const user = await requireRole(["admin", "operator"]);
   const { id } = await params;
 
   const order = await getOrderDetail(id);
@@ -47,7 +49,11 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
 
   // Certificatul se genereaza automat la inchidere (hook in orders/notifications.ts,
   // Task G) - verificam daca exista deja ca sa afisam link-ul de vizualizare/descarcare.
-  const certificate = order.status === "closed" ? await getCertificateByOrderId(id) : null;
+  const [certificate, orderDocuments, generalDocuments] = await Promise.all([
+    order.status === "closed" ? getCertificateByOrderId(id) : Promise.resolve(null),
+    listDocuments("order", id),
+    listOrganizationDocuments(user.organizationId),
+  ]);
 
   // Task F (Retur & Garanție & Închiriere): daca aceasta comanda e ea insași o
   // comanda-retur/garanție (are o legatura `order_links` catre o comanda
@@ -106,11 +112,6 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
                   action={deleteDraftOrderAction.bind(null, order.id)}
                 />
               </>
-            ) : null}
-            {certificate ? (
-              <Button asChild variant="outline">
-                <Link href={`/comenzi/${order.id}/trasabilitate`}>Vezi fișa de trasabilitate</Link>
-              </Button>
             ) : null}
             {delivery ? (
               <Button asChild variant="outline">
@@ -239,6 +240,16 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
           </ul>
         )}
       </section>
+
+      <OrderDocuments
+        orderId={order.id}
+        avizHref={delivery ? `/livrari/${delivery.id}/aviz` : null}
+        traceabilityHref={certificate ? `/comenzi/${order.id}/trasabilitate` : null}
+        generalDocuments={generalDocuments}
+        orderDocuments={orderDocuments}
+        canManage
+        revalidatePath={`/comenzi/${order.id}`}
+      />
 
       <section className="space-y-3">
         <h2 className="text-lg font-semibold">Istoric status</h2>

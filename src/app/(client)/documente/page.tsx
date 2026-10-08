@@ -5,7 +5,7 @@ import { PageHeader } from "@/components/page-header";
 import { requireRole } from "@/features/auth/session";
 import { getCertificateByOrderId } from "@/features/certificates/service";
 import { DocumentList } from "@/features/documents/document-list";
-import { listDocuments } from "@/features/documents/service";
+import { listDocuments, listOrganizationDocuments } from "@/features/documents/service";
 import { listOrders } from "@/features/orders/queries";
 
 export const metadata = { title: "Documente" };
@@ -14,7 +14,8 @@ const dateFormatter = new Intl.DateTimeFormat("ro-RO", { dateStyle: "medium" });
 
 /**
  * Ecranul "Documente": documentele proprii ale firmei (contracte
- * arhivate etc., `owner_type='client'`) + certificatele comenzilor inchise -
+ * arhivate etc., `owner_type='client'`) + documentele generale ale organizatiei
+ * (declaratii de conformitate, 0057) + fisele de trasabilitate ale comenzilor inchise -
  * doar consultare/descarcare, fara upload (Task H, punctul 4). Comenzile si
  * certificatele sunt RLS-scoped la clientul curent, la fel ca in
  * `/comenzile-mele`.
@@ -22,8 +23,9 @@ const dateFormatter = new Intl.DateTimeFormat("ro-RO", { dateStyle: "medium" });
 export default async function DocumentePage() {
   const user = await requireRole(["client"]);
 
-  const [clientDocuments, closedOrders] = await Promise.all([
+  const [clientDocuments, generalDocuments, closedOrders] = await Promise.all([
     user.clientId ? listDocuments("client", user.clientId) : Promise.resolve([]),
+    listOrganizationDocuments(user.organizationId),
     listOrders({ status: "closed" }),
   ]);
 
@@ -51,6 +53,20 @@ export default async function DocumentePage() {
         <h2 className="text-lg font-semibold">Documente</h2>
         <DocumentList documents={clientDocuments} canDelete={false} revalidatePath="/documente" />
       </section>
+
+      {/* Documentele generale ale organizatiei (declaratii de conformitate, 0057). */}
+      {generalDocuments.length > 0 ? (
+        <section className="max-w-3xl space-y-3">
+          <h2 className="text-lg font-semibold">
+            Declarații de conformitate și documente generale
+          </h2>
+          <DocumentList
+            documents={generalDocuments}
+            canDelete={false}
+            revalidatePath="/documente"
+          />
+        </section>
+      ) : null}
 
       <section className="max-w-3xl space-y-3">
         <h2 className="text-lg font-semibold">Fișe de trasabilitate</h2>

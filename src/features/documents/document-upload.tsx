@@ -13,14 +13,23 @@ export interface DocumentUploadProps {
   ownerId: string;
   /** Path de revalidat dupa upload (ex. `/clienti/{id}`). */
   revalidatePath: string;
+  /** Sugestiile pentru eticheta; prima e si placeholder-ul. */
+  suggestions?: string[];
 }
+
+const DEFAULT_SUGGESTIONS = ["Contract", "Declarație de conformitate", "Aviz"];
 
 /**
  * Formular reutilizabil de incarcare document, atasat unui owner (client/order/item).
  * Eticheta e text liber, cu sugestia "Contract" (decizie 2026-07: contractele
  * semnate se arhiveaza ca documente atasate clientului, fara gestiune structurata).
  */
-export function DocumentUpload({ ownerType, ownerId, revalidatePath }: DocumentUploadProps) {
+export function DocumentUpload({
+  ownerType,
+  ownerId,
+  revalidatePath,
+  suggestions = DEFAULT_SUGGESTIONS,
+}: DocumentUploadProps) {
   const [state, action, pending] = useActionState(uploadDocumentAction, initialDocumentActionState);
   const formRef = useRef<HTMLFormElement>(null);
   const wasPending = useRef(false);
@@ -57,17 +66,19 @@ export function DocumentUpload({ ownerType, ownerId, revalidatePath }: DocumentU
         </div>
       </div>
 
-      <FormField
-        label="Etichetă"
-        hint='Opțional - ex. "Contract" pentru contracte semnate arhivate.'
-      >
+      <FormField label="Etichetă" hint={`Opțional - ex. "${suggestions[0]}".`}>
         {(id) => (
           <>
-            <Input id={id} name="description" list={`${id}-suggestions`} placeholder="Contract" />
+            <Input
+              id={id}
+              name="description"
+              list={`${id}-suggestions`}
+              placeholder={suggestions[0]}
+            />
             <datalist id={`${id}-suggestions`}>
-              <option value="Contract" />
-              <option value="Declarație de conformitate" />
-              <option value="Aviz" />
+              {suggestions.map((suggestion) => (
+                <option key={suggestion} value={suggestion} />
+              ))}
             </datalist>
           </>
         )}

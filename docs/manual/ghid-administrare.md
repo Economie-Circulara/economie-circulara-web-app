@@ -73,6 +73,16 @@ Apasă **"Salvează setările"** pentru a confirma modificările.
 
 ![ecranul "Setări organizație" complet](img/admin-settings.png)
 
+### 1.4 Documente generale (declarații de conformitate)
+
+Sub setări, secțiunea **"Documente generale"** păstrează documentele valabile pentru
+toate comenzile: **declarația de conformitate**, fișe tehnice etc. Încarci PDF-ul
+(max. 4MB), cu o etichetă opțională, și îl poți șterge oricând. Documentele de aici
+apar automat în secțiunea **"Documente"** a fiecărei comenzi și în portalul
+clienților (ecranul **"Documente"**) - sunt vizibile **tuturor clienților**
+organizației, deci nu încărca aici documente interne. Doar administratorul le
+încarcă și le șterge.
+
 ---
 
 ## 2. Managementul utilizatorilor organizației (rol Administrator)

@@ -217,6 +217,18 @@ Testele unitare sunt **colocate** langa cod (`*.test.ts` / `*.test.tsx`).
   pun manual**, pe avizul tiparit - PDF-ul are casute de semnatura si nu pretinde
   semnatura electronica. Ora si pomparea ajung la client prin `client_order_delivery`;
   observatiile livrarii raman interne.
+- **Declaratia de conformitate e un document GENERAL al organizatiei, incarcat de ea**
+  (decizie 2026-10-08, migrarea `0057`): nu se genereaza si nu e per comanda.
+  `documents.owner_type = 'organization'` (`owner_id = organization_id`, CHECK); o
+  incarca/sterge DOAR adminul (Setari → Documente generale) si o vad TOTI clientii
+  organizatiei. Comanda are o sectiune „Documente” (`orders/order-documents.tsx`, staff
+  si portal): aviz (doar staff), fisa de trasabilitate, documente generale, documente
+  atasate comenzii (ex. nota semnata, scanata).
+- **Upload-ul de documente trece prin clientul admin, deci RLS-ul de insert NU se
+  aplica acolo**: regula „cine poate incarca ce” se impune explicit in
+  `documents/service.ts#assertCanUpload` (clientul doar pe comenzile proprii,
+  documentele de organizatie doar adminul). Orice tip nou de owner primeste regula lui
+  acolo, cu test.
 - Clientul **nu** vede stocul si procesele interne - doar comenzile, documentele si
   certificatele proprii.
 - Pierderile/randamentul la productie se **inregistreaza**, nu se **valideaza**.

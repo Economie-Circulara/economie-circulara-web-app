@@ -2,7 +2,12 @@ import type { Database } from "@/lib/database.types";
 
 export type DocumentOwnerType = Database["public"]["Enums"]["document_owner_type"];
 
-export const DOCUMENT_OWNER_TYPES: DocumentOwnerType[] = ["client", "order", "item"];
+export const DOCUMENT_OWNER_TYPES: DocumentOwnerType[] = [
+  "client",
+  "order",
+  "item",
+  "organization",
+];
 
 export function isDocumentOwnerType(value: string): value is DocumentOwnerType {
   return (DOCUMENT_OWNER_TYPES as string[]).includes(value);

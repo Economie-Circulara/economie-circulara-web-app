@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { requireRole, requireUser } from "@/features/auth/session";
+import { requireRole, requireUser, type SessionUser } from "@/features/auth/session";
 import type { Database } from "@/lib/database.types";
 import { validateFile } from "./validation";
 import type { DocumentOwnerType, DocumentRecord } from "./types";
@@ -33,6 +33,18 @@ export class InvalidFileError extends Error {
   }
 }
 
+/**
+ * Apelantul nu are voie sa incarce/stearga acest tip de document: documentele
+ * generale ale organizatiei (declaratii de conformitate, 0057) sunt ale adminului;
+ * clientul ataseaza documente DOAR comenzilor proprii (ca politica RLS de insert).
+ */
+export class DocumentPermissionError extends Error {
+  constructor(message = "Nu ai drept să modifici acest document.") {
+    super(message);
+    this.name = "DocumentPermissionError";
+  }
+}
+
 /** Documentul nu exista sau nu e accesibil apelantului (RLS pe `documents`). */
 export class DocumentAccessError extends Error {
   constructor(public readonly documentId: string) {
@@ -41,11 +53,42 @@ export class DocumentAccessError extends Error {
   }
 }
 
-const OWNER_TABLE: Record<DocumentOwnerType, "clients" | "orders" | "items"> = {
+const OWNER_TABLE: Record<
+  Exclude<DocumentOwnerType, "organization">,
+  "clients" | "orders" | "items"
+> = {
   client: "clients",
   order: "orders",
   item: "items",
 };
+
+/**
+ * Cine poate INCARCA un document pe un tip de owner. Upload-ul trece prin clientul
+ * admin (bucket fara politici, 0006), deci RLS-ul de insert de pe `documents` NU se
+ * aplica - regula se impune aici, explicit:
+ *  - documentele generale ale organizatiei: doar adminul ei (Setari);
+ *  - clientul: doar pe comenzile proprii (aceeasi regula ca `documents_client_insert`);
+ *    `resolveOwnerOrg` confirma prin RLS ca e comanda lui;
+ *  - staff-ul: restul tipurilor, in organizatia lui (tot prin `resolveOwnerOrg`).
+ * Exportata pentru teste.
+ */
+export function assertCanUpload(
+  user: Pick<SessionUser, "role" | "organizationId">,
+  ownerType: DocumentOwnerType,
+  ownerId: string,
+): void {
+  if (ownerType === "organization") {
+    if (user.role !== "admin" || user.organizationId !== ownerId) {
+      throw new DocumentPermissionError(
+        "Doar administratorul organizației poate încărca documente generale.",
+      );
+    }
+    return;
+  }
+  if (user.role === "client" && ownerType !== "order") {
+    throw new DocumentPermissionError("Poți atașa documente doar comenzilor tale.");
+  }
+}
 
 function mapDocument(row: Omit<DocumentRow, "organization_id">): DocumentRecord {
   return {
@@ -77,7 +120,7 @@ function buildStoragePath(
 }
 
 /**
- * Rezolva organizatia ownerului (client/order/item) folosind clientul
+ * Rezolva organizatia ownerului (client/order/item/organizatie) folosind clientul
  * utilizatorului curent - RLS ii limiteaza vizibilitatea la ce are voie sa vada,
  * deci un rand gasit aici inseamna acces valid, fara logica de autorizare
  * duplicata in acest modul.
@@ -87,6 +130,9 @@ async function resolveOwnerOrg(
   ownerType: DocumentOwnerType,
   ownerId: string,
 ): Promise<string> {
+  // Document general: ownerul ESTE organizatia (`assertCanUpload` a verificat deja ca
+  // e organizatia adminului curent) - nu e nimic de rezolvat.
+  if (ownerType === "organization") return ownerId;
   const table = OWNER_TABLE[ownerType];
   const { data, error } = await supabase
     .from(table)
@@ -121,6 +167,7 @@ export interface UploadDocumentInput {
  */
 export async function uploadDocument(input: UploadDocumentInput): Promise<DocumentRecord> {
   const user = await requireUser();
+  assertCanUpload(user, input.ownerType, input.ownerId);
   const supabase = await createClient();
   const orgId = await resolveOwnerOrg(supabase, input.ownerType, input.ownerId);
 
@@ -184,6 +231,17 @@ export async function listDocuments(
 }
 
 /**
+ * Documentele generale ale organizatiei (declaratii de conformitate, 0057) - vizibile
+ * staff-ului si tuturor clientilor ei (RLS `documents_client_select`).
+ */
+export async function listOrganizationDocuments(
+  organizationId: string | null,
+): Promise<DocumentRecord[]> {
+  if (!organizationId) return [];
+  return listDocuments("organization", organizationId);
+}
+
+/**
  * URL semnat, temporar, de descarcare pentru un document. Verifica intai RLS pe
  * randul `documents` (select cu clientul utilizatorului - daca nu returneaza
  * rand, apelantul nu are acces), apoi semneaza URL-ul cu clientul admin (bucketul
@@ -215,15 +273,21 @@ export async function getDownloadUrl(documentId: string): Promise<string> {
  * (politica `documents_staff_all` permite delete pentru staff din organizatie).
  */
 export async function deleteDocument(documentId: string): Promise<void> {
-  await requireRole(["admin", "operator"]);
+  const user = await requireRole(["admin", "operator"]);
   const supabase = await createClient();
 
   const { data, error } = await supabase
     .from("documents")
-    .select("file_path")
+    .select("file_path, owner_type")
     .eq("id", documentId)
     .single();
   if (error || !data) throw new DocumentAccessError(documentId);
+  // Documentele generale (declaratii de conformitate, 0057) le gestioneaza doar adminul.
+  if (data.owner_type === "organization" && user.role !== "admin") {
+    throw new DocumentPermissionError(
+      "Doar administratorul organizației poate șterge documente generale.",
+    );
+  }
 
   const admin = createAdminClient();
   await admin.storage.from(DOCUMENTS_BUCKET).remove([data.file_path]);
