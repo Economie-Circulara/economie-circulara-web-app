@@ -70,6 +70,7 @@ export default async function DeliveryDetailPage({ params }: DeliveryDetailPageP
             <p>
               <span className="text-muted-foreground">Data programată: </span>
               {dateFormatter.format(new Date(delivery.scheduledDate))}
+              {delivery.scheduledTime ? `, ora ${delivery.scheduledTime}` : null}
             </p>
             <p>
               <span className="text-muted-foreground">Transportator: </span>
@@ -87,6 +88,18 @@ export default async function DeliveryDetailPage({ params }: DeliveryDetailPageP
               <span className="text-muted-foreground">Rută: </span>
               {delivery.routeOrigin} {"->"} {delivery.routeDestination}
             </p>
+            {delivery.pumping ? (
+              <p>
+                <span className="text-muted-foreground">Pompare: </span>
+                {delivery.pumping}
+              </p>
+            ) : null}
+            {delivery.notes ? (
+              <p>
+                <span className="text-muted-foreground">Observații: </span>
+                {delivery.notes}
+              </p>
+            ) : null}
           </CardContent>
         </Card>
 

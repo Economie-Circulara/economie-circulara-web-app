@@ -110,10 +110,12 @@ describe("getClientOrderDelivery", () => {
       data: [
         {
           scheduled_date: "2026-10-04",
+          scheduled_time: "08:30:00",
           carrier_name: "Fan Courier",
           vehicle_plate: "B33GRD",
           driver_name: "Ionel Mihai",
           route_destination: "Iași, Strada Otilia Cazimir 1",
+          pumping: "Pompă furnizor 36 m",
           uit_code: null,
           received_at: null,
           received_by_name: null,
@@ -127,10 +129,12 @@ describe("getClientOrderDelivery", () => {
     expect(rpc).toHaveBeenCalledWith("client_order_delivery", { p_order_id: "order-1" });
     expect(delivery).toEqual({
       scheduledDate: "2026-10-04",
+      scheduledTime: "08:30",
       carrierName: "Fan Courier",
       vehiclePlate: "B33GRD",
       driverName: "Ionel Mihai",
       destination: "Iași, Strada Otilia Cazimir 1",
+      pumping: "Pompă furnizor 36 m",
       uitCode: null,
       receivedAt: null,
       receivedByName: null,

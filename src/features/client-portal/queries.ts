@@ -70,10 +70,12 @@ export async function getClientOrderDelivery(orderId: string): Promise<ClientOrd
   if (!row) return null;
   return {
     scheduledDate: row.scheduled_date,
+    scheduledTime: row.scheduled_time ? row.scheduled_time.slice(0, 5) : null,
     carrierName: row.carrier_name,
     vehiclePlate: row.vehicle_plate,
     driverName: row.driver_name,
     destination: row.route_destination,
+    pumping: row.pumping,
     uitCode: row.uit_code,
     receivedAt: row.received_at,
     receivedByName: row.received_by_name,

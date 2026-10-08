@@ -13,11 +13,14 @@ type DeliveryCoreRow = Pick<
   | "organization_id"
   | "order_id"
   | "scheduled_date"
+  | "scheduled_time"
   | "carrier_name"
   | "vehicle_plate"
   | "driver_name"
   | "route_origin"
   | "route_destination"
+  | "pumping"
+  | "notes"
   | "uit_code"
   | "declaration_status"
   | "declaration_error"
@@ -44,11 +47,15 @@ export function mapDelivery(row: DeliveryCoreRow): DeliveryRecord {
     organizationId: row.organization_id,
     orderId: row.order_id,
     scheduledDate: row.scheduled_date,
+    // Postgres intoarce `time` ca "HH:MM:SS"; in aplicatie lucram cu "HH:MM".
+    scheduledTime: row.scheduled_time ? row.scheduled_time.slice(0, 5) : null,
     carrierName: row.carrier_name,
     vehiclePlate: row.vehicle_plate,
     driverName: row.driver_name,
     routeOrigin: row.route_origin,
     routeDestination: row.route_destination,
+    pumping: row.pumping,
+    notes: row.notes,
     uitCode: row.uit_code,
     declarationStatus: row.declaration_status,
     declarationError: row.declaration_error,
@@ -77,7 +84,7 @@ export function mapDelivery(row: DeliveryCoreRow): DeliveryRecord {
 // `string` simplu, iar clientul Supabase tipat are nevoie de LITERALUL exact ca sa
 // infereze corect coloanele din `.select(...)` (altfel `GenericStringError`).
 // prettier-ignore
-export const DELIVERY_CORE_COLUMNS = "id, organization_id, order_id, scheduled_date, carrier_name, vehicle_plate, driver_name, route_origin, route_destination, uit_code, declaration_status, declaration_error, origin_site_id, route_distance_m, route_duration_s, route_polyline, route_alternatives, route_selected_index, route_selection, route_computed_at, received_at, received_by_name, receipt_notes, received_via_portal, created_at, updated_at";
+export const DELIVERY_CORE_COLUMNS = "id, organization_id, order_id, scheduled_date, scheduled_time, carrier_name, vehicle_plate, driver_name, route_origin, route_destination, pumping, notes, uit_code, declaration_status, declaration_error, origin_site_id, route_distance_m, route_duration_s, route_polyline, route_alternatives, route_selected_index, route_selection, route_computed_at, received_at, received_by_name, receipt_notes, received_via_portal, created_at, updated_at";
 const CORE_COLUMNS = DELIVERY_CORE_COLUMNS;
 
 /** Livrarea unei comenzi, daca a fost deja planificata (`null` altfel - unique(order_id)). */
@@ -143,7 +150,7 @@ export async function getDeliveryDetail(id: string): Promise<DeliveryDetail | nu
   const supabase = await createClient();
   const { data: delivery, error } = await supabase
     .from("deliveries")
-    .select(`${CORE_COLUMNS}, orders(order_number, clients(name, cui, client_type))`)
+    .select(`${CORE_COLUMNS}, orders(order_number, notes, clients(name, cui, client_type))`)
     .eq("id", id)
     .maybeSingle();
   if (error) throw new Error("Nu am putut incarca livrarea.");
@@ -154,6 +161,7 @@ export async function getDeliveryDetail(id: string): Promise<DeliveryDetail | nu
   return {
     ...mapDelivery(delivery),
     orderNumber: delivery.orders?.order_number ?? null,
+    orderNotes: delivery.orders?.notes ?? null,
     clientName: delivery.orders?.clients?.name ?? "-",
     // Persoana fizica: „Persoană fizică”, nu CNP-ul (date personale, 0051).
     clientCui: delivery.orders?.clients

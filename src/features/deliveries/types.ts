@@ -44,11 +44,17 @@ export interface DeliveryRecord {
   organizationId: string;
   orderId: string;
   scheduledDate: string;
+  /** Ora livrarii / inceperii turnarii, `HH:MM` (0056) - optionala. */
+  scheduledTime: string | null;
   carrierName: string;
   vehiclePlate: string;
   driverName: string;
   routeOrigin: string;
   routeDestination: string;
+  /** Pomparea, text liber (0056) - apare pe aviz si in portal. */
+  pumping: string | null;
+  /** Observatii libere ale livrarii (0056) - pe aviz, interne (nu in portal). */
+  notes: string | null;
   uitCode: string | null;
   declarationStatus: DeliveryDeclarationStatus;
   declarationError: string | null;
@@ -61,6 +67,8 @@ export interface DeliveryRecord {
 /** `DeliveryRecord` + datele comenzii/clientului necesare pt. ecranul de detaliu si avizul PDF. */
 export interface DeliveryDetail extends DeliveryRecord {
   orderNumber: string | null;
+  /** Observatiile comenzii (`orders.notes`) - preluate pe aviz, care tine loc de nota de comanda. */
+  orderNotes: string | null;
   clientName: string;
   clientCui: string;
   items: DeliveryItemLine[];
@@ -96,11 +104,15 @@ export interface PlanDeliveryRouteChoice {
 export interface PlanDeliveryInput {
   orderId: string;
   scheduledDate: string;
+  /** `HH:MM`, optional. */
+  scheduledTime?: string | null;
   carrierName: string;
   vehiclePlate: string;
   driverName: string;
   routeOrigin: string;
   routeDestination: string;
+  pumping?: string | null;
+  notes?: string | null;
   /** Prezent doar daca operatorul a folosit "Calculează rute" - optional, planificarea manuala ramane posibila. */
   route?: PlanDeliveryRouteChoice | null;
   /** Userul care planifica livrarea (ca `orders.created_by`/`documents.uploaded_by`). */

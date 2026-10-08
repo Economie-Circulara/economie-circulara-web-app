@@ -1627,4 +1627,32 @@ begin;
    where organization_id = :org and year = extract(year from now())::int;
 rollback;
 
+-- ===========================================================================
+-- B35: nota de comanda pe aviz (0056) - ora si pomparea ajung la client prin
+--      `client_order_delivery`; observatiile livrarii raman interne.
+-- ===========================================================================
+begin;
+  set local role authenticated;
+  set local request.jwt.claims = '{"sub":"b0000000-0000-0000-0000-0000000000b1"}';
+
+  insert into public.orders (id, organization_id, client_id, order_type, status, created_by)
+  values ('eeee0000-0000-0000-0000-00000000ee35', :org, :client_demo, 'material', 'accepted',
+          'b0000000-0000-0000-0000-0000000000b1');
+  insert into public.deliveries (organization_id, order_id, scheduled_date, scheduled_time,
+    carrier_name, vehicle_plate, driver_name, route_origin, route_destination, pumping, notes)
+  values (:org, 'eeee0000-0000-0000-0000-00000000ee35', current_date, '08:30', 'Macon',
+          'IS-01-MAC', 'Ion', 'Statie', 'Santier', 'Pompa furnizor 36 m', 'nota interna');
+
+  set local request.jwt.claims = '{"sub":"b0000000-0000-0000-0000-0000000000b3"}';
+  select pg_temp.assert_eq('B35 clientul vede ora si pomparea',
+                           scheduled_time::text || '|' || pumping, '08:30:00|Pompa furnizor 36 m')
+  from public.client_order_delivery('eeee0000-0000-0000-0000-00000000ee35');
+  select pg_temp.assert_num('B35 RPC-ul nu expune observatiile livrarii', count(*), 0)
+  from information_schema.parameters
+  where specific_schema = 'public'
+    and specific_name like 'client_order_delivery%'
+    and parameter_mode = 'OUT'
+    and parameter_name = 'notes';
+rollback;
+
 select '*** TOATE TESTELE FUNCTIONALE DE BUSINESS AU TRECUT ***' as result;

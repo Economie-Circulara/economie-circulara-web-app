@@ -44,12 +44,13 @@ export function ClientDeliveryCard({
       <CardContent className="space-y-1 text-sm">
         <Row
           label="Data programată"
-          value={dateFormatter.format(new Date(delivery.scheduledDate))}
+          value={`${dateFormatter.format(new Date(delivery.scheduledDate))}${delivery.scheduledTime ? `, ora ${delivery.scheduledTime}` : ""}`}
         />
         <Row label="Transportator" value={delivery.carrierName} />
         <Row label="Vehicul" value={delivery.vehiclePlate} />
         <Row label="Șofer" value={delivery.driverName} />
         <Row label="Destinație" value={delivery.destination} />
+        {delivery.pumping ? <Row label="Pompare" value={delivery.pumping} /> : null}
         {delivery.uitCode ? <Row label="Cod UIT (e-Transport)" value={delivery.uitCode} /> : null}
         <Row
           label="Recepție"

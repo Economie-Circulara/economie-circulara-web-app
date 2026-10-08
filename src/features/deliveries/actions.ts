@@ -66,11 +66,14 @@ export async function planDeliveryAction(
     const delivery = await planDelivery({
       orderId,
       scheduledDate: clean(formData.get("scheduled_date")),
+      scheduledTime: clean(formData.get("scheduled_time")),
       carrierName: clean(formData.get("carrier_name")),
       vehiclePlate: clean(formData.get("vehicle_plate")),
       driverName: clean(formData.get("driver_name")),
       routeOrigin: clean(formData.get("route_origin")),
       routeDestination: clean(formData.get("route_destination")),
+      pumping: clean(formData.get("pumping")),
+      notes: clean(formData.get("notes")),
       route: readRouteChoice(formData),
       createdBy: user.id,
     });

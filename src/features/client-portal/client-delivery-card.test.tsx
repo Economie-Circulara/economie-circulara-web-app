@@ -6,10 +6,12 @@ import type { ClientOrderDelivery } from "./types";
 function delivery(overrides: Partial<ClientOrderDelivery> = {}): ClientOrderDelivery {
   return {
     scheduledDate: "2026-10-04",
+    scheduledTime: null,
     carrierName: "Fan Courier",
     vehiclePlate: "B33GRD",
     driverName: "Ionel Mihai",
     destination: "Iași, Strada Otilia Cazimir 1",
+    pumping: null,
     uitCode: null,
     receivedAt: null,
     receivedByName: null,
@@ -25,6 +27,22 @@ describe("ClientDeliveryCard", () => {
     expect(screen.getByText("Ionel Mihai")).toBeInTheDocument();
     expect(screen.getByText("Iași, Strada Otilia Cazimir 1")).toBeInTheDocument();
     expect(screen.getByText("neconfirmată")).toBeInTheDocument();
+  });
+
+  it("afiseaza ora si pomparea cand sunt completate (0056)", () => {
+    render(
+      <ClientDeliveryCard
+        delivery={delivery({ scheduledTime: "08:30", pumping: "Pompă furnizor 36 m" })}
+      />,
+    );
+    expect(screen.getByText(/ora 08:30/)).toBeInTheDocument();
+    expect(screen.getByText("Pompă furnizor 36 m")).toBeInTheDocument();
+  });
+
+  it("nu afiseaza randul de pompare cand lipseste", () => {
+    render(<ClientDeliveryCard delivery={delivery()} />);
+    expect(screen.queryByText(/Pompare/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/ora /)).not.toBeInTheDocument();
   });
 
   it("ascunde codul UIT cand livrarea nu e declarata", () => {

@@ -63,6 +63,7 @@ import {
   DeliveryValidationError,
   confirmDeliveryReceipt,
   declareETransport,
+  parseScheduledTime,
   planDelivery,
   recalculateDeliveryRoute,
   renderAvizPdfBuffer,
@@ -78,11 +79,14 @@ function validInput(overrides: Partial<PlanDeliveryInput> = {}): PlanDeliveryInp
   return {
     orderId: "order-1",
     scheduledDate: "2026-08-01",
+    scheduledTime: null,
     carrierName: "Transport SRL",
     vehiclePlate: "B 123 ABC",
     driverName: "Ion Popescu",
     routeOrigin: "Depozit central",
     routeDestination: "Șantier Militari",
+    pumping: null,
+    notes: null,
     ...overrides,
   };
 }
@@ -108,22 +112,42 @@ function mockSupabaseForPlan(options: {
       };
     }
     if (table === "deliveries") {
-      return {
-        insert: vi.fn().mockReturnValue({
-          select: vi.fn().mockReturnValue({
-            single: vi.fn().mockResolvedValue({
-              data: options.insertedRow ?? null,
-              error: options.insertError ?? null,
-            }),
-          }),
-        }),
-      };
+      return { insert };
     }
     throw new Error(`Tabel neasteptat in test: ${table}`);
   });
+  const insert = vi.fn().mockReturnValue({
+    select: vi.fn().mockReturnValue({
+      single: vi.fn().mockResolvedValue({
+        data: options.insertedRow ?? null,
+        error: options.insertError ?? null,
+      }),
+    }),
+  });
   createClient.mockResolvedValue({ from });
-  return from;
+  return { from, insert };
 }
+
+describe("parseScheduledTime", () => {
+  it("accepta HH:MM si normalizeaza ora cu o cifra", () => {
+    expect(parseScheduledTime("08:30")).toBe("08:30");
+    expect(parseScheduledTime("8:05")).toBe("08:05");
+    expect(parseScheduledTime(" 23:59 ")).toBe("23:59");
+  });
+
+  it("intoarce null pentru camp gol (ora e optionala)", () => {
+    expect(parseScheduledTime("")).toBeNull();
+    expect(parseScheduledTime("   ")).toBeNull();
+    expect(parseScheduledTime(null)).toBeNull();
+    expect(parseScheduledTime(undefined)).toBeNull();
+  });
+
+  it("respinge orele invalide", () => {
+    for (const value of ["24:00", "12:60", "8", "ora 8", "08:30:00"]) {
+      expect(() => parseScheduledTime(value)).toThrow(DeliveryValidationError);
+    }
+  });
+});
 
 describe("planDelivery", () => {
   it("respinge un camp obligatoriu lipsa", async () => {
@@ -161,6 +185,51 @@ describe("planDelivery", () => {
     await expect(planDelivery(validInput())).rejects.toBeInstanceOf(DeliveryValidationError);
   });
 
+  it("salveaza ora, pomparea si observatiile (nota de comanda, 0056)", async () => {
+    const { insert } = mockSupabaseForPlan({
+      order: { id: "order-1", organization_id: "org-1", status: "accepted" },
+      insertedRow: { id: "delivery-1", organization_id: "org-1", order_id: "order-1" },
+    });
+    getDeliveryByOrderId.mockResolvedValue(null);
+
+    await planDelivery(
+      validInput({
+        scheduledTime: "7:45",
+        pumping: "  Pompă furnizor 36 m ",
+        notes: "Planșeu etaj 2",
+      }),
+    );
+
+    expect(insert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        scheduled_time: "07:45",
+        pumping: "Pompă furnizor 36 m",
+        notes: "Planșeu etaj 2",
+      }),
+    );
+  });
+
+  it("salveaza null pentru campurile optionale goale", async () => {
+    const { insert } = mockSupabaseForPlan({
+      order: { id: "order-1", organization_id: "org-1", status: "accepted" },
+      insertedRow: { id: "delivery-1", organization_id: "org-1", order_id: "order-1" },
+    });
+    getDeliveryByOrderId.mockResolvedValue(null);
+
+    await planDelivery(validInput({ scheduledTime: "", pumping: "   ", notes: "" }));
+
+    expect(insert).toHaveBeenCalledWith(
+      expect.objectContaining({ scheduled_time: null, pumping: null, notes: null }),
+    );
+  });
+
+  it("respinge o ora invalida inainte de orice citire din DB", async () => {
+    await expect(planDelivery(validInput({ scheduledTime: "25:00" }))).rejects.toBeInstanceOf(
+      DeliveryValidationError,
+    );
+    expect(createClient).not.toHaveBeenCalled();
+  });
+
   it("planifica livrarea cu succes cand comanda e acceptata si fara livrare existenta", async () => {
     mockSupabaseForPlan({
       order: { id: "order-1", organization_id: "org-1", status: "accepted" },
@@ -185,11 +254,14 @@ function deliveryDetail(overrides: Partial<DeliveryDetail> = {}): DeliveryDetail
     organizationId: "org-1",
     orderId: "order-1",
     scheduledDate: "2026-08-01",
+    scheduledTime: null,
     carrierName: "Transport SRL",
     vehiclePlate: "B 123 ABC",
     driverName: "Ion Popescu",
     routeOrigin: "Depozit central",
     routeDestination: "Șantier Militari",
+    pumping: null,
+    notes: null,
     uitCode: null,
     declarationStatus: "not_declared",
     declarationError: null,
@@ -212,6 +284,7 @@ function deliveryDetail(overrides: Partial<DeliveryDetail> = {}): DeliveryDetail
     createdAt: "2026-07-01T00:00:00.000Z",
     updatedAt: "2026-07-01T00:00:00.000Z",
     orderNumber: "CMD-2026-0001",
+    orderNotes: null,
     clientName: "Client SRL",
     clientCui: "RO123456",
     items: [{ itemId: "item-1", itemTitle: "Balast", unit: "tona", quantity: 12 }],

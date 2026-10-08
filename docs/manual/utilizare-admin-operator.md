@@ -536,8 +536,11 @@ e-Transport și dacă ruta a fost **calculată** sau introdusă **manual**.
 Dintr-o comandă **acceptată** (ecranul `/comenzi/[id]`), butonul **"Planifică
 livrare"** deschide formularul:
 
-1. Completează **data programată**, **transportatorul**, **numărul de
-   înmatriculare** și **șoferul**.
+1. Completează **data programată** (opțional și **ora** - de ex. începerea
+   turnării), **transportatorul**, **numărul de înmatriculare** și **șoferul**.
+   La **"Notă de comandă"** poți trece, opțional, **pomparea** (ex. „Pompă
+   furnizor 36 m”) și **observații** libere (element turnat, persoana de la
+   recepție etc.).
 2. La secțiunea **"Rută"**: alege un **punct de plecare** (o stație/depozit
    configurat în **Setări → Puncte de plecare**, secțiunea 9.2) - câmpul
    "Punct de plecare" (text) se precompletează automat cu adresa stației, iar
@@ -571,6 +574,11 @@ poate fi marcat **implicit** (preselectat la planificarea unei livrări noi).
   e-Transport (ANAF) prin serviciul terț **Socrate.io** (pentru transporturile
   care depășesc pragurile legale). Codul **UIT** rezultat se stochează pe
   livrare și apare pe avizul PDF printabil (buton **"Descarcă avizul (PDF)"**).
+- **Avizul ține loc de notă de comandă**: pe lângă transport și materiale, preia
+  ora, observațiile comenzii, pomparea și observațiile livrării. Are trei căsuțe -
+  **Furnizor**, **Delegat / Șofer**, **Beneficiar** - pentru ștampilă și semnătură
+  puse **de mână**, pe avizul tipărit (PDF-ul nu e semnat electronic). Pomparea și
+  ora apar și clientului în portal; observațiile livrării rămân interne.
 - **"Anulează livrarea"** (în antetul paginii) - apare **doar înainte de plecare**:
   cât livrarea nu e declarată în e-Transport (nu are cod UIT) și recepția nu e
   confirmată. Cere un motiv și confirmare. Livrarea anulată dispare din listă, iar

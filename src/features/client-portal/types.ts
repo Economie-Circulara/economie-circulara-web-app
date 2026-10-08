@@ -30,10 +30,14 @@ export interface CartLine {
  */
 export interface ClientOrderDelivery {
   scheduledDate: string;
+  /** `HH:MM` (0056), optional. */
+  scheduledTime: string | null;
   carrierName: string;
   vehiclePlate: string;
   driverName: string;
   destination: string;
+  /** Pomparea (0056), text liber, optional. */
+  pumping: string | null;
   uitCode: string | null;
   receivedAt: string | null;
   receivedByName: string | null;

@@ -15,6 +15,10 @@ const selectClassName =
   "flex h-9 w-full rounded-md border border-input bg-card px-3 py-1 text-sm shadow-xs outline-none " +
   "focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50";
 
+const textareaClassName =
+  "flex min-h-20 w-full rounded-md border border-input bg-card px-3 py-2 text-sm shadow-xs outline-none " +
+  "focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50";
+
 export interface DeliveryFormProps {
   orderId: string;
   orderNumber: string | null;
@@ -107,6 +111,9 @@ export function DeliveryForm({
           <FormField label="Data programată" required>
             {(id) => <Input id={id} name="scheduled_date" type="date" required />}
           </FormField>
+          <FormField label="Ora" hint="Opțional - ex. începerea turnării.">
+            {(id) => <Input id={id} name="scheduled_time" type="time" />}
+          </FormField>
           <FormField label="Transportator" required>
             {(id) => <Input id={id} name="carrier_name" placeholder="Ex. Transport SRL" required />}
           </FormField>
@@ -119,6 +126,32 @@ export function DeliveryForm({
           </FormField>
           <FormField label="Șofer" required>
             {(id) => <Input id={id} name="driver_name" placeholder="Nume și prenume" required />}
+          </FormField>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Notă de comandă</CardTitle>
+          <CardDescription>
+            Apar pe aviz, care ține loc de nota de comandă. Observațiile comenzii se preiau automat.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-4">
+          <FormField label="Pompare" hint="Opțional - apare și clientului în portal.">
+            {(id) => (
+              <Input
+                id={id}
+                name="pumping"
+                placeholder="Ex. Pompă furnizor 36 m / Pompă beneficiar"
+              />
+            )}
+          </FormField>
+          <FormField
+            label="Observații livrare"
+            hint="Opțional - ex. element turnat, persoana de la recepție. Nu apar în portal."
+          >
+            {(id) => <textarea id={id} name="notes" rows={3} className={textareaClassName} />}
           </FormField>
         </CardContent>
       </Card>

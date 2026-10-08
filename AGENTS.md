@@ -210,6 +210,13 @@ Testele unitare sunt **colocate** langa cod (`*.test.ts` / `*.test.tsx`).
   (migrarea `0055`); numerele `CRT-` emise raman neschimbate. Redenumirea e de
   prezentare: tabelul `certificates` si identificatorii din cod raman (ca la
   „Abonament”). Orice text nou catre utilizator spune „fisa de trasabilitate”.
+- **Avizul livrarii tine loc de „nota de comanda”** (decizie 2026-10-08, migrarea
+  `0056`): nota nu are forma fixa, deci NU se modeleaza structurat (fara campuri
+  dedicate de beton: clasa, ritm, element turnat). Avizul preia ora, observatiile
+  comenzii, pomparea si observatiile livrarii (text liber). **Stampila si semnatura se
+  pun manual**, pe avizul tiparit - PDF-ul are casute de semnatura si nu pretinde
+  semnatura electronica. Ora si pomparea ajung la client prin `client_order_delivery`;
+  observatiile livrarii raman interne.
 - Clientul **nu** vede stocul si procesele interne - doar comenzile, documentele si
   certificatele proprii.
 - Pierderile/randamentul la productie se **inregistreaza**, nu se **valideaza**.

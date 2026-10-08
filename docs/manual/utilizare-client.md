@@ -114,8 +114,9 @@ livrare, data de livrare, observațiile transmise și lista produselor comandate
 platformă).
 
 După ce organizația planifică livrarea, apare și cardul **"Transport"**: data
-programată, transportatorul, vehiculul (nr. de înmatriculare), șoferul, destinația,
-codul UIT de e-Transport (după declarare) și dacă recepția a fost confirmată.
+programată (și ora, dacă e stabilită), pomparea (dacă e cazul), transportatorul,
+vehiculul (nr. de înmatriculare), șoferul, destinația, codul UIT de e-Transport
+(după declarare) și dacă recepția a fost confirmată.
 
 Când marfa ajunge la tine, poți confirma chiar tu recepția, direct din cardul
 **"Transport"**: completezi **"Primit de"** (numele persoanei care a recepționat) și,

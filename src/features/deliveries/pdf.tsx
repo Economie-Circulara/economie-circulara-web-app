@@ -51,6 +51,33 @@ export function avizUitStatusText(
   return "Nedeclarat încă";
 }
 
+/** Data livrarii, cu ora daca exista (0056) - pura, testata in pdf.test.ts. */
+export function avizScheduleText(
+  delivery: Pick<DeliveryDetail, "scheduledDate" | "scheduledTime">,
+): string {
+  const date = dateFormatter.format(new Date(delivery.scheduledDate));
+  return delivery.scheduledTime ? `${date}, ora ${delivery.scheduledTime}` : date;
+}
+
+/**
+ * Randurile sectiunii „Observații” de pe aviz - avizul tine loc de nota de comanda
+ * (decizie 2026-10-08): observatiile comenzii, pomparea si observatiile livrarii,
+ * DOAR cele completate. Lista goala = sectiunea nu se afiseaza.
+ */
+export function avizObservationLines(
+  delivery: Pick<DeliveryDetail, "orderNotes" | "pumping" | "notes">,
+): { label: string; text: string }[] {
+  const lines: { label: string; text: string }[] = [];
+  const add = (label: string, value: string | null) => {
+    const text = value?.trim();
+    if (text) lines.push({ label, text });
+  };
+  add("Comandă", delivery.orderNotes);
+  add("Pompare", delivery.pumping);
+  add("Livrare", delivery.notes);
+  return lines;
+}
+
 const styles = StyleSheet.create({
   page: { paddingBottom: 48, fontSize: 10, fontFamily: PDF_FONT_FAMILY, color: "#1c2b20" },
   body: { paddingHorizontal: 40 },
@@ -88,15 +115,20 @@ const styles = StyleSheet.create({
   colMaterial: { flex: 3 },
   colQty: { flex: 1, textAlign: "right" },
   footerRow: { flexDirection: "row", justifyContent: "space-between", marginTop: 4 },
-  signatureBox: { width: 170, textAlign: "center" },
-  signatureLine: {
-    fontSize: 12,
-    fontStyle: "italic",
+  observationRow: { flexDirection: "row", marginBottom: 4 },
+  observationLabel: { width: 70, fontSize: 9, color: "#6b7a70" },
+  observationText: { flex: 1, fontSize: 9.5 },
+  signatureRow: { flexDirection: "row", gap: 16, marginTop: 28 },
+  signatureBox: { flex: 1 },
+  signatureTitle: { fontSize: 8, color: "#8a978f", textTransform: "uppercase", letterSpacing: 0.5 },
+  signatureName: { fontSize: 9.5, marginTop: 3, minHeight: 12 },
+  signatureSpace: {
+    height: 48,
     borderBottomWidth: 1,
     borderBottomColor: "#1c2b20",
-    paddingBottom: 6,
-    marginBottom: 6,
+    marginBottom: 4,
   },
+  signatureHint: { fontSize: 7.5, color: "#6b7a70" },
   pageFooter: {
     position: "absolute",
     bottom: 0,
@@ -129,6 +161,7 @@ export function AvizPdfDocument({
   tagline = DEFAULT_DOCUMENT_TAGLINE,
   footerNote = null,
 }: AvizPdfProps) {
+  const observations = avizObservationLines(delivery);
   return (
     <Document title={`Aviz ${delivery.orderNumber ?? delivery.id}`}>
       <Page size="A4" style={styles.page}>
@@ -142,7 +175,7 @@ export function AvizPdfDocument({
           title="Aviz de însoțire a mărfii"
           meta={[
             `Comandă ${delivery.orderNumber ?? "-"}`,
-            `Data livrare: ${dateFormatter.format(new Date(delivery.scheduledDate))}`,
+            `Data livrare: ${avizScheduleText(delivery)}`,
           ]}
         />
         <View style={styles.body}>
@@ -192,6 +225,18 @@ export function AvizPdfDocument({
             ) : null}
           </View>
 
+          {observations.length > 0 ? (
+            <View style={styles.table}>
+              <Text style={styles.sectionTitle}>Observații</Text>
+              {observations.map((line) => (
+                <View key={line.label} style={styles.observationRow}>
+                  <Text style={styles.observationLabel}>{line.label}</Text>
+                  <Text style={styles.observationText}>{line.text}</Text>
+                </View>
+              ))}
+            </View>
+          ) : null}
+
           <View style={styles.footerRow}>
             <View style={{ flex: 1 }}>
               <Text style={{ fontSize: 10, fontWeight: 700, marginBottom: 4 }}>
@@ -201,12 +246,25 @@ export function AvizPdfDocument({
                 Emis: {dateFormatter.format(new Date())}
               </Text>
             </View>
-            <View style={styles.signatureBox}>
-              <Text style={styles.signatureLine}>{orgName}</Text>
-              <Text style={{ fontSize: 8, color: "#6b7a70" }}>
-                Semnătură &amp; ștampilă electronică
-              </Text>
-            </View>
+          </View>
+
+          {/*
+            Stampila si semnatura se pun MANUAL, pe avizul tiparit (decizie 2026-10-08):
+            PDF-ul nu e semnat electronic, deci nu pretinde asta.
+          */}
+          <View style={styles.signatureRow} wrap={false}>
+            {[
+              { title: "Furnizor", name: orgName },
+              { title: "Delegat / Șofer", name: delivery.driverName },
+              { title: "Beneficiar", name: delivery.receipt.receivedByName ?? "" },
+            ].map((box) => (
+              <View key={box.title} style={styles.signatureBox}>
+                <Text style={styles.signatureTitle}>{box.title}</Text>
+                <Text style={styles.signatureName}>{box.name}</Text>
+                <View style={styles.signatureSpace} />
+                <Text style={styles.signatureHint}>Semnătură și ștampilă</Text>
+              </View>
+            ))}
           </View>
         </View>
 

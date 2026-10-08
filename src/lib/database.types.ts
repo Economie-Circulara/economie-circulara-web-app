@@ -452,9 +452,11 @@ export type Database = {
           declaration_status: Database["public"]["Enums"]["delivery_declaration_status"]
           driver_name: string
           id: string
+          notes: string | null
           order_id: string
           organization_id: string
           origin_site_id: string | null
+          pumping: string | null
           receipt_notes: string | null
           received_at: string | null
           received_by_name: string | null
@@ -471,6 +473,7 @@ export type Database = {
             | Database["public"]["Enums"]["route_selection_mode"]
             | null
           scheduled_date: string
+          scheduled_time: string | null
           uit_code: string | null
           updated_at: string
           vehicle_plate: string
@@ -486,9 +489,11 @@ export type Database = {
           declaration_status?: Database["public"]["Enums"]["delivery_declaration_status"]
           driver_name: string
           id?: string
+          notes?: string | null
           order_id: string
           organization_id: string
           origin_site_id?: string | null
+          pumping?: string | null
           receipt_notes?: string | null
           received_at?: string | null
           received_by_name?: string | null
@@ -505,6 +510,7 @@ export type Database = {
             | Database["public"]["Enums"]["route_selection_mode"]
             | null
           scheduled_date: string
+          scheduled_time?: string | null
           uit_code?: string | null
           updated_at?: string
           vehicle_plate: string
@@ -520,9 +526,11 @@ export type Database = {
           declaration_status?: Database["public"]["Enums"]["delivery_declaration_status"]
           driver_name?: string
           id?: string
+          notes?: string | null
           order_id?: string
           organization_id?: string
           origin_site_id?: string | null
+          pumping?: string | null
           receipt_notes?: string | null
           received_at?: string | null
           received_by_name?: string | null
@@ -539,6 +547,7 @@ export type Database = {
             | Database["public"]["Enums"]["route_selection_mode"]
             | null
           scheduled_date?: string
+          scheduled_time?: string | null
           uit_code?: string | null
           updated_at?: string
           vehicle_plate?: string
@@ -1969,10 +1978,12 @@ export type Database = {
         Returns: {
           carrier_name: string
           driver_name: string
+          pumping: string | null
           received_at: string | null
           received_by_name: string | null
           route_destination: string
           scheduled_date: string
+          scheduled_time: string | null
           uit_code: string | null
           vehicle_plate: string
         }[]

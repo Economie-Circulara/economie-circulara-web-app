@@ -4,6 +4,20 @@ Jurnal al sarcinilor lucrate de agenti AI in acest repo. Conform regulii 1.2 din
 [`AGENTS.md`](../AGENTS.md), la **fiecare commit** se adauga o intrare aici.
 Cele mai noi intrari sus.
 
+## 2026-10-08 — Claude Opus 5.5 (Claude Code) — Avizul tine loc de nota de comanda
+
+- **Cerut:** dupa intalnirea cu Macon XCX - nota de comanda (fara forma fixa) sa fie
+  acoperita de avizul generat din livrare; lipseau ora, pomparea si observatiile;
+  stampila/semnatura se pun manual pe documentul tiparit.
+- **Facut:** migrarea `0056` (`deliveries.scheduled_time`, `pumping`, `notes`; RPC-ul
+  `client_order_delivery` intoarce si ora + pomparea; test B35); formularul
+  `/livrari/nou` (sectiunea „Notă de comandă”), validarea orei in `planDelivery`;
+  avizul PDF: ora langa data, sectiunea „Observații” (comanda + pompare + livrare),
+  casute de semnatura Furnizor / Delegat-Șofer / Beneficiar in locul mentiunii de
+  semnatura electronica; afisare pe `/livrari/[id]` si in cardul din portal; teste
+  unitare; manual; regula in AGENTS.md. Plan: `docs/plans/macon-documente-comanda.md`
+  (partea 2 din 3).
+
 ## 2026-10-08 — Claude Opus 5.5 (Claude Code) — „Certificat” devine „Fișă de trasabilitate”
 
 - **Cerut:** dupa intalnirea cu Macon XCX - documentul generat la inchiderea comenzii

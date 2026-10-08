@@ -67,6 +67,26 @@ function requireNonEmpty(value: string, field: string): string {
   return trimmed;
 }
 
+/** Text optional: spatiile se taie, sirul gol devine `null`. */
+function optionalText(value: string | null | undefined): string | null {
+  const trimmed = value?.trim() ?? "";
+  return trimmed ? trimmed : null;
+}
+
+/**
+ * Ora livrarii (optionala, 0056): `HH:MM`, 00:00-23:59. Exportata pentru teste.
+ * Gol -> `null`; orice alt format -> eroare de validare (nu o ghicim).
+ */
+export function parseScheduledTime(value: string | null | undefined): string | null {
+  const trimmed = value?.trim() ?? "";
+  if (!trimmed) return null;
+  const match = /^([01]?\d|2[0-3]):([0-5]\d)$/.exec(trimmed);
+  if (!match) {
+    throw new DeliveryValidationError("Ora livrării trebuie să fie în formatul HH:MM (ex. 08:30).");
+  }
+  return `${match[1].padStart(2, "0")}:${match[2]}`;
+}
+
 /**
  * Planifica o livrare noua pt. o comanda ACCEPTATA: valideaza campurile + statusul
  * comenzii + absenta unei livrari existente (unique(order_id) - o comanda are cel
@@ -82,6 +102,7 @@ export async function planDelivery(input: PlanDeliveryInput): Promise<DeliveryRe
   const driverName = requireNonEmpty(input.driverName, "Șofer");
   const routeOrigin = requireNonEmpty(input.routeOrigin, "Punct de plecare");
   const routeDestination = requireNonEmpty(input.routeDestination, "Punct de sosire");
+  const scheduledTime = parseScheduledTime(input.scheduledTime);
 
   if (Number.isNaN(Date.parse(scheduledDate))) {
     throw new DeliveryValidationError("Data programată nu este validă.");
@@ -114,11 +135,15 @@ export async function planDelivery(input: PlanDeliveryInput): Promise<DeliveryRe
       organization_id: order.organization_id,
       order_id: order.id,
       scheduled_date: scheduledDate,
+      scheduled_time: scheduledTime,
       carrier_name: carrierName,
       vehicle_plate: vehiclePlate,
       driver_name: driverName,
       route_origin: routeOrigin,
       route_destination: routeDestination,
+      // Nota de comanda (0056): pomparea si observatiile libere, preluate pe aviz.
+      pumping: optionalText(input.pumping),
+      notes: optionalText(input.notes),
       created_by: input.createdBy ?? null,
       // Rezultatul planificarii optimizate a rutei (Task X7) - optional, prezent
       // doar daca operatorul a folosit "Calculează rute" (vezi PlanDeliveryRouteChoice).
