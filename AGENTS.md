@@ -217,6 +217,11 @@ Testele unitare sunt **colocate** langa cod (`*.test.ts` / `*.test.tsx`).
   pun manual**, pe avizul tiparit - PDF-ul are casute de semnatura si nu pretinde
   semnatura electronica. Ora si pomparea ajung la client prin `client_order_delivery`;
   observatiile livrarii raman interne.
+  - **Nota de comanda = `orders.notes`, una singura, vazuta si de client** (decizie
+    2026-10-08): staff-ul o editeaza de la ciorna pana la livrare (`canEditOrderNote`),
+    nu dupa inchidere/anulare. Notele libere au **formatare minima, fara editor
+    vizual**: randuri, liste `- `, `**ingrosat**`, parsate de `lib/text/rich-note.ts`
+    (fara HTML) si randate identic pe ecran (`RichNote`) si in PDF (`PdfRichNote`).
 - **Declaratia de conformitate e un document GENERAL al organizatiei, incarcat de ea**
   (decizie 2026-10-08, migrarea `0057`): nu se genereaza si nu e per comanda.
   `documents.owner_type = 'organization'` (`owner_id = organization_id`, CHECK); o

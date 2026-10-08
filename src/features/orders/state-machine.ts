@@ -86,3 +86,13 @@ export function canTransitionOrderInFlow(
 export function canAcceptIntake(status: OrderStatus): boolean {
   return status === "draft" || status === "sent";
 }
+
+/**
+ * Nota de comanda (`orders.notes`) se editeaza de staff pe toata durata comenzii -
+ * de la ciorna pana la livrare (decizie 2026-10-08): avizul (nota de comanda pe
+ * hartie) se genereaza din ea. Dupa inchidere/anulare comanda e istoric si nota
+ * ramane cum era.
+ */
+export function canEditOrderNote(status: OrderStatus): boolean {
+  return status !== "closed" && status !== "cancelled";
+}

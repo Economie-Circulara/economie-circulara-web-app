@@ -419,7 +419,7 @@ telefon/WhatsApp și înregistrate în platformă):
    această alegere se poate completa lista de materiale/abonamente, pentru că ea
    depinde de tip.
 3. Alege **Client**, opțional o **Adresă de livrare** (dependentă de client) și o
-   **Dată livrare**, opțional **Note**. La tipul **Abonament** apare în plus
+   **Dată livrare**, opțional **Notă de comandă**. La tipul **Abonament** apare în plus
    **"Retur estimat"** (data la care se așteaptă bunul înapoi).
 4. În secțiunea **"Linii comandă"**, alege un material sau abonament și o cantitate, apasă
    adaugă-linie; repetă pentru fiecare produs; poți șterge o linie adăugată.
@@ -437,6 +437,13 @@ explicație), client (CUI, notă "Creată de organizație în numele clientului"
 cazul), livrare (adresă, dată livrare, eventual "Retur estimat (închiriere)" pentru
 fluxul de abonament/închiriere), linii de comandă, și un **traseu vizual al
 statusului** (Ciornă -> Trimisă -> Acceptată -> Livrată -> Închisă, sau "Anulată").
+
+Cardul **"Notă de comandă"** ține ce s-a discutat cu clientul (lucrare, element
+turnat, ritm, persoana de la recepție). Se poate adăuga sau edita oricând, de la
+ciornă până la livrare (butonul **"Adaugă notă"** / **"Editează"**); după închidere
+sau anulare rămâne cum era. Nota apare pe aviz și clientului, în portal. Formatare
+simplă: rândurile se păstrează, „- ” la început de rând face o listă, iar
+`**text**` îngroașă textul.
 
 Dacă o comandă a fost livrată/închisă, pot apărea butoanele **"Retur"** și
 **"Garanție"** (secțiunea 8).

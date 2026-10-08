@@ -16,6 +16,7 @@ const {
   createOrderWithItems,
   sendOrder,
   setOrderStatus,
+  updateOrderNote,
 } = vi.hoisted(() => ({
   acceptIntakeOrder: vi.fn(),
   acceptOrder: vi.fn(),
@@ -23,6 +24,7 @@ const {
   createOrderWithItems: vi.fn(),
   sendOrder: vi.fn(),
   setOrderStatus: vi.fn(),
+  updateOrderNote: vi.fn(),
 }));
 vi.mock("./service", () => ({
   acceptIntakeOrder,
@@ -31,6 +33,7 @@ vi.mock("./service", () => ({
   createOrderWithItems,
   sendOrder,
   setOrderStatus,
+  updateOrderNote,
 }));
 
 const { redirect } = vi.hoisted(() => ({
@@ -52,6 +55,7 @@ import {
   createOrderAction,
   deliverOrderAction,
   sendOrderAction,
+  updateOrderNoteAction,
 } from "./actions";
 
 afterEach(() => {
@@ -374,5 +378,37 @@ describe("deliverOrderAction / closeOrderAction", () => {
 
     expect(state.error).toMatch(/accepted/);
     expect(setOrderStatus).not.toHaveBeenCalled();
+  });
+});
+
+describe("updateOrderNoteAction", () => {
+  it("cere rol de staff si salveaza nota, apoi revalideaza comanda", async () => {
+    requireRole.mockResolvedValue({ id: "u1", role: "operator", organizationId: "org-1" });
+    updateOrderNote.mockResolvedValue(undefined);
+
+    const result = await updateOrderNoteAction(
+      "order-1",
+      { error: null },
+      formData({ notes: "- planșeu" }),
+    );
+
+    expect(requireRole).toHaveBeenCalledWith(["admin", "operator"]);
+    expect(updateOrderNote).toHaveBeenCalledWith("order-1", "- planșeu");
+    expect(revalidatePath).toHaveBeenCalledWith("/comenzi/order-1");
+    expect(result).toEqual({ error: null });
+  });
+
+  it("intoarce mesajul serviciului (ex. comanda inchisa) fara revalidare", async () => {
+    requireRole.mockResolvedValue({ id: "u1", role: "admin", organizationId: "org-1" });
+    updateOrderNote.mockRejectedValue(new Error("Nota nu se mai poate modifica."));
+
+    const result = await updateOrderNoteAction(
+      "order-1",
+      { error: null },
+      formData({ notes: "x" }),
+    );
+
+    expect(result).toEqual({ error: "Nota nu se mai poate modifica." });
+    expect(revalidatePath).not.toHaveBeenCalled();
   });
 });

@@ -9,17 +9,18 @@ import { getCertificateByOrderId } from "@/features/certificates/service";
 import { getDeliveryByOrderId } from "@/features/deliveries/queries";
 import { listDocuments, listOrganizationDocuments } from "@/features/documents/service";
 import { AcceptIntakeButton } from "@/features/orders/accept-intake-button";
-import { deleteDraftOrderAction } from "@/features/orders/actions";
+import { deleteDraftOrderAction, updateOrderNoteAction } from "@/features/orders/actions";
 import {
   ORDER_STATUS_LABELS,
   ORDER_TYPE_DESCRIPTIONS,
   ORDER_TYPE_LABELS,
 } from "@/features/orders/labels";
 import { OrderDocuments } from "@/features/orders/order-documents";
+import { OrderNoteCard } from "@/features/orders/order-note-card";
 import { OrderStatusActions } from "@/features/orders/order-status-actions";
 import { INTAKE_JOURNEY, OrderStatusTimeline } from "@/features/orders/order-status-timeline";
 import { getOrderDetail } from "@/features/orders/queries";
-import { canAcceptIntake } from "@/features/orders/state-machine";
+import { canAcceptIntake, canEditOrderNote } from "@/features/orders/state-machine";
 import { AcceptReturnButton } from "@/features/returns/accept-return-button";
 import { ORDER_LINK_TYPE_LABELS } from "@/features/returns/labels";
 import { getReturnableItems, getReturnLinkForOrder } from "@/features/returns/queries";
@@ -210,15 +211,16 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
                 {formatDate(order.expectedReturnDate)}
               </p>
             ) : null}
-            {order.notes ? (
-              <p>
-                <span className="text-muted-foreground">Note: </span>
-                {order.notes}
-              </p>
-            ) : null}
           </CardContent>
         </Card>
       </div>
+
+      <OrderNoteCard
+        note={order.notes}
+        saveAction={
+          canEditOrderNote(order.status) ? updateOrderNoteAction.bind(null, order.id) : undefined
+        }
+      />
 
       <section className="space-y-3">
         <h2 className="text-lg font-semibold">Linii comandă</h2>

@@ -109,7 +109,8 @@ colorată lângă fiecare comandă din listă și, detaliat, pe ecranul ei.
 ### 3.2 Detaliul unei comenzi
 
 Click pe o comandă din listă deschide detaliul ei: statusul curent, adresa de
-livrare, data de livrare, observațiile transmise și lista produselor comandate
+livrare, data de livrare, **nota de comandă** (observațiile tale, completate eventual
+de organizație) și lista produselor comandate
 (denumire + cantitate + unitate de măsură - **fără prețuri**, ca peste tot în
 platformă).
 

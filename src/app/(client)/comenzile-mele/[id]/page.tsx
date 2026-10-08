@@ -17,6 +17,7 @@ import { listDocuments, listOrganizationDocuments } from "@/features/documents/s
 import { RepeatOrderButton } from "@/features/client-portal/repeat-order-button";
 import { ORDER_STATUS_BADGE_STATUS, ORDER_STATUS_LABELS } from "@/features/orders/labels";
 import { OrderDocuments } from "@/features/orders/order-documents";
+import { OrderNoteCard } from "@/features/orders/order-note-card";
 import { getOrderDetail } from "@/features/orders/queries";
 import { ReturnActions } from "@/features/returns/return-actions";
 import { ORDER_LINK_TYPE_LABELS } from "@/features/returns/labels";
@@ -144,12 +145,6 @@ export default async function ClientOrderDetailPage({ params }: OrderDetailPageP
               </span>
               {formatDate(order.deliveryDate)}
             </p>
-            {order.notes ? (
-              <p>
-                <span className="text-muted-foreground">Observații: </span>
-                {order.notes}
-              </p>
-            ) : null}
           </CardContent>
         </Card>
         {delivery ? (
@@ -163,6 +158,8 @@ export default async function ClientOrderDetailPage({ params }: OrderDetailPageP
           />
         ) : null}
       </div>
+
+      {order.notes ? <OrderNoteCard note={order.notes} /> : null}
 
       <section className="space-y-3">
         <h2 className="text-lg font-semibold">

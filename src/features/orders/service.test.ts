@@ -16,6 +16,7 @@ import {
   generateOrderNumber,
   sendOrder,
   setOrderStatus,
+  updateOrderNote,
 } from "./service";
 
 function orderRow(overrides: Record<string, unknown> = {}) {
@@ -454,5 +455,47 @@ describe("createOrderWithItems - referinte arhivate (migrarea 0035)", () => {
       }),
     ).rejects.toThrow(/Nisip vechi/);
     expect(ordersInsert).not.toHaveBeenCalled();
+  });
+});
+
+describe("updateOrderNote", () => {
+  function mockOrderForNote(status: string | null) {
+    const update = vi.fn().mockReturnValue({ eq: vi.fn().mockResolvedValue({ error: null }) });
+    const from = vi.fn().mockReturnValue({
+      select: vi.fn().mockReturnValue({
+        eq: vi.fn().mockReturnValue({
+          maybeSingle: vi.fn().mockResolvedValue({ data: status ? { status } : null, error: null }),
+        }),
+      }),
+      update,
+    });
+    createClient.mockResolvedValue({ from });
+    return update;
+  }
+
+  it.each(["draft", "sent", "accepted", "delivered"])(
+    "salveaza doar nota, taiata, pe o comanda %s",
+    async (status) => {
+      const update = mockOrderForNote(status);
+      await updateOrderNote("order-1", "  **Lucrare:** bloc P+4\n- planșeu  ");
+      expect(update).toHaveBeenCalledWith({ notes: "**Lucrare:** bloc P+4\n- planșeu" });
+    },
+  );
+
+  it("textul gol sterge nota", async () => {
+    const update = mockOrderForNote("accepted");
+    await updateOrderNote("order-1", "   ");
+    expect(update).toHaveBeenCalledWith({ notes: null });
+  });
+
+  it.each(["closed", "cancelled"])("refuza nota pe o comanda %s", async (status) => {
+    const update = mockOrderForNote(status);
+    await expect(updateOrderNote("order-1", "x")).rejects.toBeInstanceOf(OrderTransitionError);
+    expect(update).not.toHaveBeenCalled();
+  });
+
+  it("arunca OrderNotFoundError cand comanda nu e accesibila", async () => {
+    mockOrderForNote(null);
+    await expect(updateOrderNote("order-x", "x")).rejects.toBeInstanceOf(OrderNotFoundError);
   });
 });

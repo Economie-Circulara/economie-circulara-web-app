@@ -4,6 +4,17 @@ Jurnal al sarcinilor lucrate de agenti AI in acest repo. Conform regulii 1.2 din
 [`AGENTS.md`](../AGENTS.md), la **fiecare commit** se adauga o intrare aici.
 Cele mai noi intrari sus.
 
+## 2026-10-08 — Claude Opus 5.5 (Claude Code) — Nota de comanda editabila pe toata comanda
+
+- **Cerut:** nota de comanda sa poata fi vazuta, adaugata si editata pe comanda inca din
+  ciorna, ca sa fie usor de urmarit; o singura nota, vazuta si de client.
+- **Facut:** cardul „Notă de comandă” pe `/comenzi/[id]` (afisare formatata + editare
+  inline) si in portal (doar citire); `canEditOrderNote` (ciorna -> livrata),
+  `updateOrderNote` scrie DOAR `notes` si refuza comenzile inchise/anulate;
+  `updateOrderNoteAction` doar staff. Campul din formularul de comanda se numeste acum
+  „Notă de comandă”. Teste (state machine, service, action, card), manual, regula in
+  AGENTS.md. Plan: `docs/plans/macon-documente-comanda.md` (runda 2, partea 5).
+
 ## 2026-10-08 — Claude Opus 5.5 (Claude Code) — Formatare minima in note (aviz + ecran)
 
 - **Cerut:** observatiile de pe nota de comanda sa poata fi formatate (fara editor vizual

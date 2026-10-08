@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { buildInsufficientStockError } from "@/features/stock/service";
 import type { Database } from "@/lib/database.types";
 import type { Order, OrderLineInput, OrderStatus, OrderType } from "./types";
+import { canEditOrderNote } from "./state-machine";
 
 type OrderRow = Database["public"]["Tables"]["orders"]["Row"];
 
@@ -390,6 +391,35 @@ export async function updateOrder(input: UpdateOrderInput): Promise<Order> {
   }
 
   return mapOrder(order);
+}
+
+/**
+ * Actualizeaza DOAR nota de comanda (`orders.notes`) - staff, in orice status in care
+ * `canEditOrderNote` o permite (ciorna -> livrata). Spre deosebire de `updateOrder`
+ * (doar ciorna, rescrie si liniile), aici nu se atinge nimic altceva: nota nu are efect
+ * pe stoc. Textul gol sterge nota.
+ */
+export async function updateOrderNote(orderId: string, note: string | null): Promise<void> {
+  const supabase = await createClient();
+  const { data: existing, error: existingError } = await supabase
+    .from("orders")
+    .select("status")
+    .eq("id", orderId)
+    .maybeSingle();
+  if (existingError) throw new Error(existingError.message ?? "Nu am putut încărca comanda.");
+  if (!existing) throw new OrderNotFoundError(orderId);
+  if (!canEditOrderNote(existing.status)) {
+    throw new OrderTransitionError(
+      "Nota nu se mai poate modifica după închiderea sau anularea comenzii.",
+    );
+  }
+
+  const trimmed = note?.trim() ?? "";
+  const { error } = await supabase
+    .from("orders")
+    .update({ notes: trimmed ? trimmed : null })
+    .eq("id", orderId);
+  if (error) throw new Error(error.message ?? "Nu am putut salva nota de comandă.");
 }
 
 /**

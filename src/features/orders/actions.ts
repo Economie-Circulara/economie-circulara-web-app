@@ -17,6 +17,7 @@ import {
   sendOrder,
   setOrderStatus,
   updateOrder,
+  updateOrderNote,
 } from "./service";
 import { assertOrderTransition } from "./state-machine";
 import type { OrderLineInput, OrderStatus, OrderType } from "./types";
@@ -367,4 +368,26 @@ export async function deleteDraftOrderAction(orderId: string): Promise<OrderTran
 
   revalidatePath("/comenzi");
   redirect("/comenzi");
+}
+
+/**
+ * Salveaza nota de comanda (cardul „Notă de comandă” de pe `/comenzi/[id]`) - doar
+ * staff. Legata cu `.bind(null, orderId)`; regula de status e in `updateOrderNote`.
+ */
+export async function updateOrderNoteAction(
+  orderId: string,
+  _prev: OrderFormState,
+  formData: FormData,
+): Promise<OrderFormState> {
+  await requireRole(["admin", "operator"]);
+  if (!orderId) return { error: "Comandă invalidă." };
+
+  try {
+    await updateOrderNote(orderId, String(formData.get("notes") ?? ""));
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : "Nu am putut salva nota de comandă." };
+  }
+
+  revalidatePath(`/comenzi/${orderId}`);
+  return { error: null };
 }

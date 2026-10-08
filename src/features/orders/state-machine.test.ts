@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  canEditOrderNote,
   InvalidOrderTransitionError,
   assertOrderTransition,
   canAcceptIntake,
@@ -111,5 +112,18 @@ describe("canAcceptIntake", () => {
     expect(canAcceptIntake("sent")).toBe(true);
     expect(canAcceptIntake("accepted")).toBe(false);
     expect(canAcceptIntake("cancelled")).toBe(false);
+  });
+});
+
+describe("canEditOrderNote", () => {
+  it("nota se editeaza de la ciorna pana la livrare", () => {
+    for (const status of ["draft", "sent", "accepted", "delivered"] as const) {
+      expect(canEditOrderNote(status)).toBe(true);
+    }
+  });
+
+  it("comanda inchisa sau anulata e istoric - nota nu se mai schimba", () => {
+    expect(canEditOrderNote("closed")).toBe(false);
+    expect(canEditOrderNote("cancelled")).toBe(false);
   });
 });
