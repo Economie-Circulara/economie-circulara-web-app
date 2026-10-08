@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { FormField } from "@/components/form-field";
+import { RICH_NOTE_HINT } from "@/lib/text/rich-note";
 import { RoutePreview, type RoutePreviewState } from "@/features/routing/route-preview";
 import type { OrganizationSite } from "@/features/routing/site-types";
 import { initialDeliveryFormState } from "./action-state";
@@ -149,9 +150,9 @@ export function DeliveryForm({
           </FormField>
           <FormField
             label="Observații livrare"
-            hint="Opțional - ex. element turnat, persoana de la recepție. Nu apar în portal."
+            hint={`Opțional - ex. element turnat, persoana de la recepție. Nu apar în portal. ${RICH_NOTE_HINT}`}
           >
-            {(id) => <textarea id={id} name="notes" rows={3} className={textareaClassName} />}
+            {(id) => <textarea id={id} name="notes" rows={4} className={textareaClassName} />}
           </FormField>
         </CardContent>
       </Card>

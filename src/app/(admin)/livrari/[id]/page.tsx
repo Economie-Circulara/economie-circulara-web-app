@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ConfirmActionButton } from "@/components/confirm-action-button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { RichNote } from "@/components/rich-note";
 import { PageHeader } from "@/components/page-header";
 import { requireRole } from "@/features/auth/session";
 import { cancelDeliveryAction } from "@/features/deliveries/actions";
@@ -95,10 +96,10 @@ export default async function DeliveryDetailPage({ params }: DeliveryDetailPageP
               </p>
             ) : null}
             {delivery.notes ? (
-              <p>
-                <span className="text-muted-foreground">Observații: </span>
-                {delivery.notes}
-              </p>
+              <div>
+                <span className="text-muted-foreground">Observații:</span>
+                <RichNote text={delivery.notes} />
+              </div>
             ) : null}
           </CardContent>
         </Card>

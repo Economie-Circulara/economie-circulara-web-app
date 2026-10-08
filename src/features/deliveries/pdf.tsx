@@ -5,6 +5,7 @@ import type { DeliveryDetail } from "./types";
 import type { PdfHeaderVariant } from "@/features/branding/themes";
 import { DEFAULT_DOCUMENT_TAGLINE } from "@/features/branding/tenant-profiles";
 import { PdfDocumentFooter, PdfDocumentHeader } from "@/lib/pdf/document-chrome";
+import { PdfRichNote } from "@/lib/pdf/rich-note";
 
 /** Culori implicite (tema "forest" a mockup-ului), suprascrise de brandingul organizatiei - ca la certificat. */
 const DEFAULT_BRAND_COLOR = "#2b3a2f";
@@ -60,7 +61,8 @@ export function avizScheduleText(
 }
 
 /**
- * Randurile sectiunii „Observații” de pe aviz - avizul tine loc de nota de comanda
+ * Randurile sectiunii „Observații” de pe aviz (fiecare text se randeaza cu formatarea
+ * minima din `parseRichNote` - liste, ingrosat, randuri pastrate) - avizul tine loc de nota de comanda
  * (decizie 2026-10-08): observatiile comenzii, pomparea si observatiile livrarii,
  * DOAR cele completate. Lista goala = sectiunea nu se afiseaza.
  */
@@ -117,7 +119,6 @@ const styles = StyleSheet.create({
   footerRow: { flexDirection: "row", justifyContent: "space-between", marginTop: 4 },
   observationRow: { flexDirection: "row", marginBottom: 4 },
   observationLabel: { width: 70, fontSize: 9, color: "#6b7a70" },
-  observationText: { flex: 1, fontSize: 9.5 },
   signatureRow: { flexDirection: "row", gap: 16, marginTop: 28 },
   signatureBox: { flex: 1 },
   signatureTitle: { fontSize: 8, color: "#8a978f", textTransform: "uppercase", letterSpacing: 0.5 },
@@ -231,7 +232,7 @@ export function AvizPdfDocument({
               {observations.map((line) => (
                 <View key={line.label} style={styles.observationRow}>
                   <Text style={styles.observationLabel}>{line.label}</Text>
-                  <Text style={styles.observationText}>{line.text}</Text>
+                  <PdfRichNote text={line.text} />
                 </View>
               ))}
             </View>

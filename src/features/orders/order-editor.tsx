@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { FormField } from "@/components/form-field";
+import { RICH_NOTE_HINT } from "@/lib/text/rich-note";
 import type { Client, ClientAddress } from "@/features/clients/types";
 import { clientTaxIdLabel } from "@/features/clients/labels";
 import type { ItemOption } from "@/features/items/types";
@@ -282,7 +283,7 @@ export function OrderEditor({
             ) : null}
           </div>
 
-          <FormField label="Note" hint="Opțional.">
+          <FormField label="Notă de comandă" hint={`Opțional. ${RICH_NOTE_HINT}`}>
             {(id) => (
               <textarea
                 id={id}

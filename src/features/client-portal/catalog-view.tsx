@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { EmptyState } from "@/components/empty-state";
 import { FormField } from "@/components/form-field";
+import { RICH_NOTE_HINT } from "@/lib/text/rich-note";
 import type { ClientAddress } from "@/features/clients/types";
 import { KIND_LABELS } from "@/features/items/labels";
 import { initialClientOrderFormState } from "./action-state";
@@ -146,8 +147,8 @@ function CartPanel({ addresses, lines }: { addresses: ClientAddress[]; lines: Ca
               {(id) => <Input id={id} name="delivery_date" type="date" />}
             </FormField>
 
-            <FormField label="Observații" hint="Opțional.">
-              {(id) => <textarea id={id} name="notes" rows={2} className={textareaClassName} />}
+            <FormField label="Observații" hint={`Opțional. ${RICH_NOTE_HINT}`}>
+              {(id) => <textarea id={id} name="notes" rows={3} className={textareaClassName} />}
             </FormField>
 
             {state.error ? <p className="text-xs text-danger">{state.error}</p> : null}

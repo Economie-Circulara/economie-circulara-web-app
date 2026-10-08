@@ -4,6 +4,16 @@ Jurnal al sarcinilor lucrate de agenti AI in acest repo. Conform regulii 1.2 din
 [`AGENTS.md`](../AGENTS.md), la **fiecare commit** se adauga o intrare aici.
 Cele mai noi intrari sus.
 
+## 2026-10-08 — Claude Opus 5.5 (Claude Code) — Formatare minima in note (aviz + ecran)
+
+- **Cerut:** observatiile de pe nota de comanda sa poata fi formatate (fara editor vizual
+  daca e prea complicat) si sa arate frumos pe PDF.
+- **Facut:** `lib/text/rich-note.ts` - parser pur (randuri pastrate, liste cu `- `/`* `,
+  `**ingrosat**`), fara HTML; `RichNote` (ecran) si `PdfRichNote` (aviz) pe aceleasi
+  blocuri; aplicat pe observatiile de pe aviz si pe `/livrari/[id]`; hint cu sintaxa
+  sub campurile de note (comanda, livrare, portal). Teste pentru parser si randare.
+  Plan: `docs/plans/macon-documente-comanda.md` (runda 2, partea 4).
+
 ## 2026-10-08 — Claude Opus 5.5 (Claude Code) — Sectiunea „Documente” la comanda + declaratii de conformitate
 
 - **Cerut:** dupa intalnirea cu Macon XCX - „Vezi certificat” inlocuit cu o sectiune de

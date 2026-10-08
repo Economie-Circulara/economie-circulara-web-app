@@ -87,7 +87,7 @@ describe("randare PDF (fara mock)", () => {
           createdAt: "2026-09-01T10:00:00.000Z",
           updatedAt: "2026-09-01T10:00:00.000Z",
           orderNumber: "CMD-2026-0001",
-          orderNotes: "Planșeu etaj 2, ritm 20 mc/h",
+          orderNotes: "**Lucrare:** bloc P+4\n- planșeu etaj 2\n- ritm 20 mc/h",
           clientName: "Client Test SRL",
           clientCui: "RO1",
           items: [{ itemId: "i1", itemTitle: "Pavele eco", unit: "palet", quantity: 10 }],

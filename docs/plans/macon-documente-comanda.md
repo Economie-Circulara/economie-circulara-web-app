@@ -74,3 +74,50 @@ platforma la inchiderea comenzii nu trebuie sa se numeasca „certificat”.
   client doar pe comanda proprie), sectiunea de documente.
 - DB (`rls_isolation.sql`): clientul vede documentele organizatiei LUI, nu ale alteia;
   CHECK-ul owner_id = organization_id. `business_flow.sql`: numarul `TRS-`.
+
+---
+
+# Runda 2 (2026-10-08, dupa review)
+
+Decizii: observatiile raman text liber cu **formatare minima** (fara editor vizual);
+nota de comanda e **una singura** (`orders.notes`, vazuta si de client); cererea de
+oferta NU devine comanda (nu se face nimic acolo).
+
+## Partea 4 - Formatare minima in note
+
+1. `src/lib/text/rich-note.ts`: parser pur - paragrafe (randurile se pastreaza), liste
+   (randuri care incep cu `- ` sau `* `) si ingrosat (`**text**`). Fara HTML: textul
+   ramane text, deci nimic de curatat (XSS) si acelasi rezultat pe ecran si in PDF.
+2. `RichNote` (ecran) si `PdfRichNote` (PDF) randeaza blocurile parserului.
+3. Folosit pe aviz (observatiile comenzii si ale livrarii), pe comanda (staff + portal)
+   si pe `/livrari/[id]`. Textarea-urile au un hint cu sintaxa.
+
+## Partea 5 - Nota de comanda editabila pe toata comanda
+
+1. Card „Notă de comandă” pe `/comenzi/[id]`, vizibil din ciorna; staff-ul o editeaza
+   in `draft`/`sent`/`accepted`/`delivered`. Dupa `closed`/`cancelled` e blocata
+   (avizul se genereaza din ea; comanda inchisa e istoric).
+2. `updateOrderNote` (service) verifica statusul si scrie DOAR `notes`;
+   `updateOrderNoteAction` (doar staff).
+3. Portalul arata nota formatata, sub acelasi titlu.
+
+## Partea 6 - Documente pe materiale si retete, propagate la comanda
+
+1. Sectiunea „Documente” pe `/itemi/[id]`, `/abonamente/[id]` si `/retete/[itemId]`
+   (reteta = produsul ei, deci documentele produsului: ex. raportul de laborator).
+   `owner_type = 'item'` exista deja (0001), inclusiv citirea de catre client pentru
+   produsele VANDABILE - hint explicit in UI.
+2. `OrderDocuments`: subsectiunea „Documentele produselor” = documentele itemilor de pe
+   liniile comenzii (`listDocumentsForOwners`). Clientul vede doar ce permite RLS
+   (produse vandabile).
+
+## Impact asupra asistentului (regula 2.4)
+
+- **Decizia**: `none` - nota se editeaza din ecran; tool-urile existente de comanda
+  scriu deja `notes` la creare, nu se schimba.
+
+## Teste
+
+- `rich-note.test.ts` (paragrafe, liste, bold, cazuri limita), randarea PDF.
+- `updateOrderNote` (statusuri permise/blocate), actiunea (rol).
+- `listDocumentsForOwners`, `OrderDocuments` cu documentele produselor.
