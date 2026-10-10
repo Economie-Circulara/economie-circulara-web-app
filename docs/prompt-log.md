@@ -4,6 +4,18 @@ Jurnal al sarcinilor lucrate de agenti AI in acest repo. Conform regulii 1.2 din
 [`AGENTS.md`](../AGENTS.md), la **fiecare commit** se adauga o intrare aici.
 Cele mai noi intrari sus.
 
+## 2026-10-10 — Claude Opus 5.5 (Claude Code) — Flotă, etapa 1: module per organizatie
+
+- **Cerut:** feature flags din super-admin, ca modulul Flotă sa fie activat doar pentru
+  anumite organizatii (Etora); plus deciziile ramase din plan (operatorii gestioneaza
+  flota, alimentarile se corecteaza prin editare, capacitatea vehiculului).
+- **Facut:** migrarea `0055` (`organizations.enabled_modules` + CHECK, garda
+  super-admin extinsa, helper RLS `app.org_has_module`); `src/features/modules/`
+  (`MODULES`, `hasModule`, `requireModule`); `navForRole` filtreaza paginile de modul;
+  sectiunea „Module” in `/platform/<id>` (action + service); teste unitare + B34 in
+  `business_flow.sql`; regula in AGENTS.md, manual (ghid-administrare 3.3), plan
+  actualizat.
+
 ## 2026-10-10 — Claude Opus 5.5 (Claude Code) — Plan: module per organizatie + Flotă
 
 - **Cerut:** modul pentru monitorizarea consumului de combustibil (Etora): vehicule cu

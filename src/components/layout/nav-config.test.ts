@@ -3,6 +3,7 @@ import {
   CLIENT_NAV,
   STAFF_NAV,
   STAFF_NAV_FLUX,
+  filterStaffNav,
   flattenNavEntries,
   navForRole,
   type AppRole,
@@ -49,5 +50,34 @@ describe("asistentul AI in meniu", () => {
     const clientHrefs = hrefs(navForRole("client", layout));
     expect(clientHrefs).not.toContain("/asistent");
     expect(clientHrefs).toContain("/ajutor");
+  });
+});
+
+describe("paginile modulelor optionale", () => {
+  const nav = [
+    { label: "Comenzi", href: "/comenzi", icon: "orders", roles: ["admin", "operator"] },
+    {
+      key: "g",
+      label: "Grup",
+      items: [
+        {
+          label: "Flotă",
+          href: "/flota",
+          icon: "deliveries",
+          roles: ["admin", "operator"],
+          module: "fleet",
+        },
+      ],
+    },
+  ] satisfies Parameters<typeof filterStaffNav>[0];
+
+  it("ascunde pagina (si grupul ramas gol) cand modulul nu e activ", () => {
+    expect(hrefs(filterStaffNav(nav, "admin", []))).toEqual(["/comenzi"]);
+    expect(filterStaffNav(nav, "admin", []).map((e) => e.label)).toEqual(["Comenzi"]);
+  });
+
+  it("arata pagina cand modulul e activ, tot filtrata pe rol", () => {
+    expect(hrefs(filterStaffNav(nav, "operator", ["fleet"]))).toEqual(["/comenzi", "/flota"]);
+    expect(hrefs(filterStaffNav(nav, "client", ["fleet"]))).toEqual([]);
   });
 });

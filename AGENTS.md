@@ -473,6 +473,15 @@ Testele unitare sunt **colocate** langa cod (`*.test.ts` / `*.test.tsx`).
     contine exact rutele si rolurile din `STAFF_NAV` (verificat de `nav-config.test.ts`).
     O pagina noua in meniu se adauga in `STAFF_NAV` SI in `STAFF_NAV_FLUX`.
 
+- **Module optionale per organizatie (feature flags)** (decizie 2026-10-10, migrarea
+  `0055`, plan `docs/plans/flota-combustibil.md`): `organizations.enabled_modules`
+  (chei din `src/features/modules/modules.ts`, validate de CHECK - `modules.test.ts`
+  verifica sincronizarea). Le activeaza DOAR super-adminul (`/platform/<id>`, garda
+  `app.enforce_platform_managed_org_fields`). Un modul se impune pe TREI linii: meniu
+  (`NavItem.module`, filtrat in `navForRole`), rute + server actions
+  (`requireModule`, 404) si RLS (`app.org_has_module(org, key)` pe tabelele
+  modulului). Dezactivarea ASCUNDE datele, nu le sterge. Primul modul: `fleet` (Flotă).
+
 - **Cererile de oferta din site ajung pe email SI in aplicatie** (decizie 2026-09-30,
   migrarea `0052`, plan `docs/plans/site-cerere-oferta.md`): site-ul de prezentare e
   static, deci formularul trimite la `POST /api/public/cerere-oferta` pe domeniul

@@ -1,6 +1,6 @@
 # Plan: Module per organizatie + modulul „Flotă” (consum combustibil)
 
-Status: **propunere** (2026-10-10), de confirmat inainte de implementare.
+Status: **in lucru** (2026-10-10) - etapa 1 (module per organizatie) implementata.
 
 ## Context / nevoia
 

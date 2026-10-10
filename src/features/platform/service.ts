@@ -1,5 +1,6 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+import type { ModuleKey } from "@/features/modules/modules";
 import type { OrgStatus } from "./types";
 
 // Cod Postgres pentru violare de constraint UNIQUE (ex. `organizations.slug`).
@@ -70,6 +71,23 @@ export async function updateOrganizationAppearance(
     }
     throw new Error("Nu am putut salva setarile organizatiei.");
   }
+}
+
+/**
+ * Modulele optionale active ale unei organizatii (super-admin, migrarea 0055). Pe
+ * sesiunea super-adminului, ca `updateOrganizationAppearance`: garda din 0055 respinge
+ * schimbarea pentru oricine altcineva.
+ */
+export async function updateOrganizationModules(
+  organizationId: string,
+  modules: ModuleKey[],
+): Promise<void> {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("organizations")
+    .update({ enabled_modules: modules })
+    .eq("id", organizationId);
+  if (error) throw new Error("Nu am putut salva modulele organizatiei.");
 }
 
 /**
