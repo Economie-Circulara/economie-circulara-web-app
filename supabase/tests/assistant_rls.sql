@@ -408,4 +408,30 @@ begin;
     from public.assistant_conversations;
 rollback;
 
+-- ===========================================================================
+-- T16: modulul `assistant` (0055) - activ implicit; dezactivat de super-admin =>
+--      staff-ul organizatiei nu mai poate crea conversatii (app.can_use_assistant).
+-- ===========================================================================
+begin;
+  select pg_temp.assert('T16 asistentul e activ implicit', count(*), 1)
+    from public.organizations
+    where id = 'a0000000-0000-0000-0000-00000000000a' and 'assistant' = any (enabled_modules);
+
+  update public.organizations set enabled_modules = '{}'
+    where id = 'a0000000-0000-0000-0000-00000000000a';
+
+  set local role authenticated;
+  set local request.jwt.claims = '{"sub":"a2222222-2222-2222-2222-222222222222"}';
+  do $$
+  begin
+    begin
+      insert into public.assistant_conversations (organization_id, user_id, title)
+        values ('a0000000-0000-0000-0000-00000000000a', auth.uid(), 'Fara modul');
+      raise exception 'FAIL: T16 operatorul a creat o conversatie cu modulul dezactivat';
+    exception when insufficient_privilege then
+      raise notice 'PASS: T16 modul dezactivat => fara conversatii noi';
+    end;
+  end $$;
+rollback;
+
 select '*** TOATE TESTELE RLS DE ASISTENT AU TRECUT ***' as result;

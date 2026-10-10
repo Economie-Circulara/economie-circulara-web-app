@@ -1,3 +1,4 @@
+import type { ModuleKey } from "@/features/modules/modules";
 import type { Database } from "@/lib/database.types";
 import type { EmailDnsRecord, EmailDomainStatus } from "./email-domain";
 
@@ -12,6 +13,8 @@ export interface OrganizationSummary {
   theme: string;
   /** Organizarea meniului + panoului (`organizations.layout`). */
   layout: string;
+  /** Modulele optionale active (`organizations.enabled_modules`, 0055). */
+  enabledModules: ModuleKey[];
   status: OrgStatus;
   createdAt: string;
   /** Numar de profile (useri) legate de organizatie, indiferent de rol. */

@@ -1,3 +1,4 @@
+import { resolveModules } from "@/features/modules/modules";
 import { createClient } from "@/lib/supabase/server";
 import { parseStoredRecords, resolveEmailDomainStatus } from "./email-domain";
 import type { OrganizationSummary } from "./types";
@@ -43,6 +44,7 @@ export async function listOrganizations(): Promise<OrganizationSummary[]> {
     customDomain: org.custom_domain,
     theme: org.theme,
     layout: org.layout,
+    enabledModules: resolveModules(org.enabled_modules),
     status: org.status,
     createdAt: org.created_at,
     userCount: userCounts.get(org.id) ?? 0,

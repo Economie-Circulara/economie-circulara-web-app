@@ -8,6 +8,7 @@ import { removeOrganizationEmailDomainAction } from "@/features/platform/actions
 import { getEmailDomainProvider } from "@/features/platform/email-domain-provider";
 import { OrgAppearanceForm } from "@/features/platform/org-appearance-form";
 import { OrgEmailForm } from "@/features/platform/org-email-form";
+import { OrgModulesForm } from "@/features/platform/org-modules-form";
 import { getOrganizationSummary } from "@/features/platform/queries";
 
 export const metadata = { title: "Organizatie - Platforma" };
@@ -16,7 +17,7 @@ interface PageProps {
   params: Promise<{ id: string }>;
 }
 
-/** Tema vizuala, organizarea, domeniul propriu si emailul unei organizatii (super-admin). */
+/** Tema vizuala, organizarea, domeniul propriu, modulele si emailul unei organizatii (super-admin). */
 export default async function OrganizationPage({ params }: PageProps) {
   await requireRole(["super_admin"]);
   const { id } = await params;
@@ -41,6 +42,7 @@ export default async function OrganizationPage({ params }: PageProps) {
         layout={org.layout}
         customDomain={org.customDomain}
       />
+      <OrgModulesForm organizationId={org.id} enabledModules={org.enabledModules} />
       <OrgEmailForm
         organizationId={org.id}
         email={org.email}

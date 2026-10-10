@@ -1,19 +1,18 @@
 "use server";
 
-import { requireRole } from "@/features/auth/session";
-import { ASSISTANT_ROLES } from "./access";
 import {
   attachmentReference,
   MAX_ATTACHMENTS_PER_MESSAGE,
   type AttachmentMeta,
 } from "./attachment-rules";
 import { AttachmentError, getAttachment, registerAttachment } from "./attachments";
+import { requireAssistantUser } from "./guard";
 import { confirmAction, rejectAction, runAssistantTurn } from "./run";
 import type { AssistantTurn, ToolContext } from "./types";
 
-/** Contextul de tool pentru utilizatorul curent - doar rolurile cu asistent (fara client). */
+/** Contextul de tool pentru utilizatorul curent - roluri cu asistent + modulul activ. */
 async function currentContext(): Promise<ToolContext> {
-  const user = await requireRole(ASSISTANT_ROLES);
+  const user = await requireAssistantUser();
   return {
     userId: user.id,
     role: user.role,
