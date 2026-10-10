@@ -58,8 +58,7 @@ Decizii luate cu Bogdan (2026-10-10):
 - Optionale: `amount` (suma platita, RON - portita pt. cost), `odometer_km`,
   `station`, `notes`, `receipt_path` (bon in Storage, imagine/PDF, max 4MB -
   regula de upload prin server action), `created_by`.
-- Corectii: stergere doar de catre admin (nu e „istoric” de business ca
-  `stock_events`; e o evidenta introdusa manual). De confirmat - vezi intrebari.
+- Corectii: doar prin editare (nu se sterg).
 
 `fleet_trips` (estimarea per comanda - sursa unica pt. rapoarte)
 - `order_id` (unic pe trip-urile active - o comanda = un transport), `vehicle_id`,
@@ -135,9 +134,11 @@ Teste: unitare colocate pt. calcul (`estimatedLiters`), servicii, gating de modu
 `supabase/tests/business_flow.sql` pt. trip la planificare/anulare + RLS cu modul
 dezactivat (`rls_isolation.sql`).
 
-## Intrebari ramase deschise
+## Decizii suplimentare (2026-10-10)
 
-1. Cine gestioneaza vehiculele si alimentarile: si operatorii sau doar adminul?
-   (propunere: ambii adauga; arhivare vehicul / stergere alimentare doar admin)
-2. O alimentare gresita: se poate sterge (admin) sau doar corecta prin editare?
-3. Unitatea pentru „volum” (capacitate): tone / mc / liberă? (propunere: numar + UM text)
+- **Vehicule si alimentari: admin SI operator** le adauga/editeaza. Arhivarea
+  vehiculului: tot staff-ul (reversibila, ca la `items`).
+- **Alimentarile nu se sterg, se corecteaza prin editare** (`updated_at` /
+  `updated_by` pastrate pe rand).
+- **Capacitatea** (cat poate cara vehiculul, ex. 20 t sau 15 mc) e optionala si doar
+  informativa: numar + UM din lista `t` / `mc` / `kg` / `l`. Nu intra in calcule.
