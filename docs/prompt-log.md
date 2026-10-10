@@ -4,6 +4,17 @@ Jurnal al sarcinilor lucrate de agenti AI in acest repo. Conform regulii 1.2 din
 [`AGENTS.md`](../AGENTS.md), la **fiecare commit** se adauga o intrare aici.
 Cele mai noi intrari sus.
 
+## 2026-10-10 — Claude Opus 5.5 (Claude Code) — Modulul „Asistent AI” in feature flags
+
+- **Cerut:** asistentul AI sa fie si el un modul in super-admin, activ implicit; debifat
+  => dispare din meniu, 404, fara acces. Apoi PR.
+- **Facut:** cheia `assistant` in `MODULES` + `DEFAULT_MODULES`; migrarea `0055` -
+  default `{assistant}` (acopera si organizatiile existente), CHECK extins,
+  `app.can_use_assistant()` cere modulul (super-admin neafectat);
+  `requireAssistantUser` (`assistant/guard.ts`) pe pagini, ruta de atasamente si
+  server actions; `ASSISTANT_NAV_ITEM.module`; teste unitare + T16
+  (`assistant_rls.sql`) + B34 actualizat; AGENTS.md, manual, plan.
+
 ## 2026-10-10 — Claude Opus 5.5 (Claude Code) — Flotă, etapa 1: module per organizatie
 
 - **Cerut:** feature flags din super-admin, ca modulul Flotă sa fie activat doar pentru

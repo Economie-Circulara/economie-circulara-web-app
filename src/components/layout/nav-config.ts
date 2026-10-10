@@ -226,6 +226,7 @@ export const ASSISTANT_NAV_ITEM: NavItem = {
   href: "/asistent",
   icon: "assistant",
   roles: ASSISTANT_ROLES,
+  module: "assistant",
 };
 
 /**
@@ -262,7 +263,9 @@ export function navForRole(
   layout: NavLayoutKey = "standard",
   modules: readonly ModuleKey[] = [],
 ): NavEntry[] {
-  const shared = [ASSISTANT_NAV_ITEM, HELP_NAV_ITEM].filter((item) => item.roles.includes(role));
+  const shared = [ASSISTANT_NAV_ITEM, HELP_NAV_ITEM].filter(
+    (item) => item.roles.includes(role) && (!item.module || modules.includes(item.module)),
+  );
   if (role === "client") return [...(layout === "flux" ? CLIENT_NAV_FLUX : CLIENT_NAV), ...shared];
   const staffNav = layout === "flux" ? STAFF_NAV_FLUX : STAFF_NAV;
   return [...filterStaffNav(staffNav, role, modules), ...shared];

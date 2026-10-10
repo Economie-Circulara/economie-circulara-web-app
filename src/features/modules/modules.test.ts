@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { MODULE_KEYS, hasModule, isModuleKey, resolveModules } from "./modules";
+import { DEFAULT_MODULES, MODULE_KEYS, hasModule, isModuleKey, resolveModules } from "./modules";
 
 describe("modules", () => {
   it("recunoaste doar cheile definite", () => {
@@ -21,11 +21,15 @@ describe("modules", () => {
     expect(hasModule({ enabledModules: ["fleet"] }, "fleet")).toBe(true);
   });
 
+  const sql = readFileSync(join(process.cwd(), "supabase/migrations/0055_org_modules.sql"), "utf8");
+
+  it("asistentul AI e activ implicit (cod + default-ul coloanei)", () => {
+    expect(DEFAULT_MODULES).toEqual(["assistant"]);
+    const match = sql.match(/enabled_modules text\[\] not null default '\{([^}]*)\}'/);
+    expect(match?.[1].split(",").filter(Boolean)).toEqual([...DEFAULT_MODULES]);
+  });
+
   it("CHECK-ul din migrarea 0055 contine exact cheile din cod", () => {
-    const sql = readFileSync(
-      join(process.cwd(), "supabase/migrations/0055_org_modules.sql"),
-      "utf8",
-    );
     const match = sql.match(/enabled_modules <@ array\[([^\]]*)\]/);
     expect(match).not.toBeNull();
     const keys = [...match![1].matchAll(/'([^']+)'/g)].map((m) => m[1]).sort();

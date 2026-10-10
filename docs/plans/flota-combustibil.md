@@ -40,6 +40,10 @@ Decizii luate cu Bogdan (2026-10-10):
 - Meniu: `NavItem.module?: ModuleKey`; itemul apare doar daca modulul e activ.
   Se adauga in `STAFF_NAV` **si** `STAFF_NAV_FLUX` (testul `nav-config.test.ts`).
 - Dezactivarea unui modul **ascunde**, nu sterge datele (reactivarea le readuce).
+- **Modulul `assistant` (Asistent AI)** - adaugat la cererea lui Bogdan (2026-10-10):
+  activ implicit (si pe organizatiile existente, prin default-ul coloanei); debifat =>
+  dispare din meniu, `/asistent*` + server actions dau 404 (`requireAssistantUser`),
+  iar `app.can_use_assistant()` (0054) cere si modulul. Super-adminul nu e afectat.
 
 ## Partea 2 - Modulul „Flotă”
 

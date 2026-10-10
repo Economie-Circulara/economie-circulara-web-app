@@ -1,9 +1,8 @@
 import { notFound } from "next/navigation";
 import { PageHeader } from "@/components/page-header";
-import { requireRole } from "@/features/auth/session";
-import { ASSISTANT_ROLES } from "./access";
 import type { Bubble } from "./assistant-chat";
 import { AssistantChat } from "./assistant-chat";
+import { requireAssistantUser } from "./guard";
 import { ConversationSidebar, MobileConversationSidebar } from "./conversation-sidebar";
 import { isChatProviderConfigured } from "./provider";
 import { getQuotaStatus } from "./quota";
@@ -22,8 +21,9 @@ const SUGGESTIONS = [
  * `/asistent/[id]` (conversatie existenta), ca sa nu se dubleze data-loading-ul.
  */
 export async function AssistantPageContent({ conversationId }: { conversationId?: string }) {
-  // Clientul nu are asistent (ASSISTANT_ROLES) - e redirectionat la pagina lui.
-  const user = await requireRole(ASSISTANT_ROLES);
+  // Clientul nu are asistent (ASSISTANT_ROLES) - e redirectionat la pagina lui; o
+  // organizatie cu modulul `assistant` dezactivat primeste 404.
+  const user = await requireAssistantUser();
   const ctx = {
     userId: user.id,
     role: user.role,

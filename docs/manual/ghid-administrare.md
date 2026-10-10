@@ -180,10 +180,14 @@ Click pe numele organizației în listă -> ecranul organizației (`/platform/<i
   organizației. **"Scoate domeniul"** revine la adresa platformei. Pașii tehnici:
   `docs/setup.md`, secțiunea 3.2.
 
-- **Module** - funcționalități opționale, activate doar pentru organizațiile care
-  le folosesc (ex. **Flotă**: vehicule, alimentări, consum de combustibil estimat).
-  Bifează modulul și apasă **"Salveaza modulele"**. Un modul dezactivat dispare din
-  meniul organizației; datele lui rămân salvate și reapar la reactivare.
+- **Module** - funcționalități opționale, activate per organizație:
+  - **Asistent AI** - activ implicit pentru orice organizație. Debifat: asistentul
+    dispare din meniu, paginile lui nu mai sunt accesibile, iar staff-ul nu mai poate
+    porni conversații. Conversațiile vechi rămân salvate.
+  - **Flotă** - vehicule, alimentări, consum de combustibil estimat (inactiv implicit).
+
+  Bifează/debifează modulul și apasă **"Salveaza modulele"**. Un modul dezactivat
+  dispare din meniul organizației; datele lui rămân salvate și reapar la reactivare.
 
 Tema, organizarea, domeniul, domeniul de email și modulele pot fi schimbate **doar de
 super-admin** (impus și în baza de date) - adminul organizației nu le poate modifica.

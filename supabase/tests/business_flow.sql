@@ -1610,15 +1610,17 @@ begin;
 rollback;
 
 -- ===========================================================================
--- B34: modulele per organizatie (0055) - adminul NU si le poate activa singur
+-- B34: modulele per organizatie (0055) - asistentul activ implicit; adminul NU si le
+--      poate schimba singur
 --      (insufficient_privilege); `app.org_has_module` reflecta lista; o cheie
 --      necunoscuta e respinsa de CHECK.
 -- ===========================================================================
 begin;
-  select pg_temp.assert_eq('B34 implicit niciun modul',
-    app.org_has_module(:org, 'fleet')::text, 'false');
+  select pg_temp.assert_eq('B34 implicit: asistent da, flota nu',
+    app.org_has_module(:org, 'assistant')::text || '|' || app.org_has_module(:org, 'fleet')::text,
+    'true|false');
 
-  update public.organizations set enabled_modules = array['fleet'] where id = :org;
+  update public.organizations set enabled_modules = array['assistant', 'fleet'] where id = :org;
   select pg_temp.assert_eq('B34 modul activ (super-admin / service)',
     app.org_has_module(:org, 'fleet')::text, 'true');
 

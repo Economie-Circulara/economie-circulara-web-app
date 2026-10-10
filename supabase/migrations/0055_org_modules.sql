@@ -2,19 +2,24 @@
 -- 0055 - Module per organizatie (feature flags) - plan: docs/plans/flota-combustibil.md.
 --
 -- 1. `organizations.enabled_modules`: lista modulelor optionale active pentru
---    organizatie (cheile din src/features/modules/modules.ts). Implicit niciunul.
---    Primul modul: `fleet` (Flotă - vehicule, alimentari, consum estimat).
+--    organizatie (cheile din src/features/modules/modules.ts). Module:
+--    - `assistant` (Asistent AI) - ACTIV IMPLICIT: default-ul coloanei il pune si pe
+--      organizatiile existente, deci nimeni nu pierde asistentul la migrare;
+--    - `fleet` (Flotă - vehicule, alimentari, consum estimat) - inactiv implicit.
 -- 2. Modulele le activeaza DOAR super-adminul (garda din 0045/0046/0050 extinsa):
 --    altfel `organizations_update` (0001) ar lasa adminul organizatiei sa-si
 --    activeze singur un modul comercial.
 -- 3. `app.org_has_module(org, module)`: helper pentru RLS-ul tabelelor unui modul.
 --    Dezactivarea unui modul ASCUNDE datele (RLS), nu le sterge.
+-- 4. `app.can_use_assistant()` (0054) cere si modulul `assistant` pe organizatia
+--    userului (super-adminul, fara organizatie, ramane neafectat): o organizatie cu
+--    asistentul dezactivat nu mai poate scrie conversatii/mesaje/propuneri.
 -- =============================================================================
 
 alter table public.organizations
-  add column enabled_modules text[] not null default '{}'
+  add column enabled_modules text[] not null default '{assistant}'
     constraint organizations_enabled_modules_check
-    check (enabled_modules <@ array['fleet']::text[]);
+    check (enabled_modules <@ array['assistant', 'fleet']::text[]);
 
 comment on column public.organizations.enabled_modules is
   'Modulele optionale active (chei din src/features/modules/modules.ts). Doar super-admin.';
@@ -60,6 +65,20 @@ set search_path = public, pg_temp
 as $$
   select coalesce(
     (select module = any (enabled_modules) from public.organizations where id = org),
+    false
+  )
+$$;
+
+create or replace function app.can_use_assistant()
+returns boolean
+language sql
+stable
+security definer
+set search_path = public, pg_temp
+as $$
+  select coalesce(
+    app.role() = 'super_admin'
+      or (app.role() in ('admin', 'operator') and app.org_has_module(app.org_id(), 'assistant')),
     false
   )
 $$;

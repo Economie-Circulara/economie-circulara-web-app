@@ -480,7 +480,12 @@ Testele unitare sunt **colocate** langa cod (`*.test.ts` / `*.test.tsx`).
   `app.enforce_platform_managed_org_fields`). Un modul se impune pe TREI linii: meniu
   (`NavItem.module`, filtrat in `navForRole`), rute + server actions
   (`requireModule`, 404) si RLS (`app.org_has_module(org, key)` pe tabelele
-  modulului). Dezactivarea ASCUNDE datele, nu le sterge. Primul modul: `fleet` (Flotă).
+  modulului). Dezactivarea ASCUNDE datele, nu le sterge. Module: `assistant` (Asistent
+  AI) - **activ implicit** (default-ul coloanei + `DEFAULT_MODULES`, deci si pe
+  organizatiile existente); dezactivat => dispare din meniu, `/asistent*` si server
+  actions dau 404 (`requireAssistantUser`, garda unica a asistentului), iar in DB
+  `app.can_use_assistant()` cere modulul (super-adminul, fara organizatie, nu e
+  afectat). `fleet` (Flotă) - inactiv implicit.
 
 - **Cererile de oferta din site ajung pe email SI in aplicatie** (decizie 2026-09-30,
   migrarea `0052`, plan `docs/plans/site-cerere-oferta.md`): site-ul de prezentare e
