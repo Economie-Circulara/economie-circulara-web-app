@@ -4,6 +4,16 @@ Jurnal al sarcinilor lucrate de agenti AI in acest repo. Conform regulii 1.2 din
 [`AGENTS.md`](../AGENTS.md), la **fiecare commit** se adauga o intrare aici.
 Cele mai noi intrari sus.
 
+## 2026-10-10 — Claude Opus 5.5 (Claude Code) — Plan: module per organizatie + Flotă
+
+- **Cerut:** modul pentru monitorizarea consumului de combustibil (Etora): vehicule cu
+  consum, alimentari, vehicul ales la livrare, litri estimati per comanda din km;
+  activabil doar pentru anumite organizatii (feature flags din super-admin).
+- **Facut:** doar planul, cu deciziile clarificate - `docs/plans/flota-combustibil.md`
+  (module per organizatie, vehicule, jurnal alimentari cu bon, transport per comanda
+  dus-intors, livrari cu campuri de transport optionale, aport cu transport propriu,
+  tool-uri asistent read + write). Fara cod.
+
 ## 2026-09-30 — Claude Opus 5.5 (Claude Code) — Asistentul AI scos de la clienti
 
 - **Cerut:** asistentul AI sa fie disponibil doar staff-ului organizatiei (admin/operator),
