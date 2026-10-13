@@ -35,8 +35,12 @@ declare
   u record;
 begin
   -- Organizatie demo (cu tema white-label).
-  insert into public.organizations (id, name, slug, primary_color, secondary_color, email_from_name)
-  values (v_org, 'Lateris Demo', 'demo', '#1f5e3a', '#c8862b', 'Lateris Demo');
+  -- Modulele (0055): asistentul e implicit; Flota (0056) activata pe demo, ca paginile
+  -- ei sa intre in smoke-ul e2e.
+  insert into public.organizations (id, name, slug, primary_color, secondary_color, email_from_name,
+    enabled_modules)
+  values (v_org, 'Lateris Demo', 'demo', '#1f5e3a', '#c8862b', 'Lateris Demo',
+    array['assistant', 'fleet']);
 
   -- Punct de plecare demo (Task X7 - planificarea rutelor) - fara el, ecranul
   -- /livrari/nou nu poate propune "Calculează rute" (are nevoie de o origine).

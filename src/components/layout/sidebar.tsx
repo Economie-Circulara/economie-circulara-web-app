@@ -11,6 +11,7 @@ import {
   ChevronDown,
   Factory,
   FileText,
+  Fuel,
   History,
   Inbox,
   LayoutDashboard,
@@ -74,6 +75,7 @@ const NAV_ICONS: Record<NavIconName, LucideIcon> = {
   aport: Recycle,
   addresses: MapPinHouse,
   "quote-requests": Inbox,
+  fleet: Fuel,
 };
 
 export interface SidebarProps {

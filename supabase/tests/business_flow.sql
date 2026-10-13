@@ -1616,8 +1616,12 @@ rollback;
 --      necunoscuta e respinsa de CHECK.
 -- ===========================================================================
 begin;
+  -- Default-ul se verifica pe o organizatie NOUA: demo-ul din seed are si `fleet` (0056).
+  insert into public.organizations (id, name, slug)
+  values ('a0000000-0000-0000-0000-0000000000e4', 'Org noua B34', 'org-noua-b34');
   select pg_temp.assert_eq('B34 implicit: asistent da, flota nu',
-    app.org_has_module(:org, 'assistant')::text || '|' || app.org_has_module(:org, 'fleet')::text,
+    app.org_has_module('a0000000-0000-0000-0000-0000000000e4', 'assistant')::text || '|'
+      || app.org_has_module('a0000000-0000-0000-0000-0000000000e4', 'fleet')::text,
     'true|false');
 
   update public.organizations set enabled_modules = array['assistant', 'fleet'] where id = :org;
@@ -1647,6 +1651,110 @@ begin;
       when insufficient_privilege then raise notice 'PASS: B34 modulele doar de super-admin';
     end;
   end $$;
+rollback;
+
+-- ===========================================================================
+-- B35: Flota (0056) - vehicule + alimentari vizibile/scriibile DOAR cu modulul
+--      `fleet` activ; nr. de inmatriculare unic (normalizat); capacitate fara
+--      unitate respinsa; litri > 0; vehiculul alimentarii din aceeasi organizatie;
+--      fara stergere; autorul alimentarii si al arhivarii stampilat din sesiune.
+-- ===========================================================================
+begin;
+  -- O a doua organizatie, cu un vehicul al ei (scris ca postgres, peste RLS).
+  insert into public.organizations (id, name, slug, enabled_modules)
+  values ('a0000000-0000-0000-0000-0000000000f9', 'Alta firma B35', 'alta-b35', '{fleet}');
+  insert into public.vehicles (id, organization_id, name, consumption_l_per_100km)
+  values ('f1000000-0000-0000-0000-0000000000f9', 'a0000000-0000-0000-0000-0000000000f9',
+    'Camion strain', 30);
+
+  update public.organizations set enabled_modules = '{assistant}' where id = :org;
+
+  set local role authenticated;
+  set local request.jwt.claims = '{"sub":"b0000000-0000-0000-0000-0000000000b1"}';
+
+  do $$
+  begin
+    begin
+      insert into public.vehicles (organization_id, name, consumption_l_per_100km)
+        values ('a0000000-0000-0000-0000-0000000000a1', 'Fara modul', 30);
+      raise exception 'FAIL: B35 vehicul creat cu modulul dezactivat';
+    exception when insufficient_privilege then
+      raise notice 'PASS: B35 fara modul nu se pot crea vehicule';
+    end;
+  end $$;
+
+  -- Garda din 0055 citeste sesiunea: modulele le schimba "platforma" (fara user).
+  reset role;
+  set local request.jwt.claims = '{}';
+  update public.organizations set enabled_modules = '{assistant,fleet}' where id = :org;
+  set local role authenticated;
+  set local request.jwt.claims = '{"sub":"b0000000-0000-0000-0000-0000000000b1"}';
+
+  insert into public.vehicles (id, organization_id, name, plate, consumption_l_per_100km)
+  values ('f1000000-0000-0000-0000-0000000000a1', :org, 'Basculanta 1', 'IS 12 ABC', 32.5);
+  select pg_temp.assert_num('B35 adminul vede doar vehiculele organizatiei lui', count(*), 1)
+  from public.vehicles;
+
+  do $$
+  begin
+    begin
+      insert into public.vehicles (organization_id, name, plate, consumption_l_per_100km)
+        values ('a0000000-0000-0000-0000-0000000000a1', 'Dublura', 'is-12-abc', 30);
+      raise exception 'FAIL: B35 nr. de inmatriculare duplicat acceptat';
+    exception when unique_violation then
+      raise notice 'PASS: B35 nr. de inmatriculare unic (normalizat)';
+    end;
+    begin
+      insert into public.vehicles (organization_id, name, consumption_l_per_100km, capacity)
+        values ('a0000000-0000-0000-0000-0000000000a1', 'Fara UM', 30, 20);
+      raise exception 'FAIL: B35 capacitate fara unitate acceptata';
+    exception when check_violation then
+      raise notice 'PASS: B35 capacitatea cere unitatea';
+    end;
+    begin
+      insert into public.fuel_entries (organization_id, vehicle_id, filled_on, liters)
+        values ('a0000000-0000-0000-0000-0000000000a1', 'f1000000-0000-0000-0000-0000000000a1',
+          current_date, 0);
+      raise exception 'FAIL: B35 alimentare cu 0 litri acceptata';
+    exception when check_violation then
+      raise notice 'PASS: B35 litri > 0';
+    end;
+    begin
+      insert into public.fuel_entries (organization_id, vehicle_id, filled_on, liters)
+        values ('a0000000-0000-0000-0000-0000000000a1', 'f1000000-0000-0000-0000-0000000000f9',
+          current_date, 50);
+      raise exception 'FAIL: B35 alimentare pe vehiculul altei organizatii';
+    exception when foreign_key_violation then
+      raise notice 'PASS: B35 vehiculul alimentarii e din aceeasi organizatie';
+    end;
+    begin
+      delete from public.vehicles where id = 'f1000000-0000-0000-0000-0000000000a1';
+      raise exception 'FAIL: B35 vehicul sters';
+    exception when insufficient_privilege then
+      raise notice 'PASS: B35 vehiculele nu se sterg';
+    end;
+  end $$;
+
+  insert into public.fuel_entries (id, organization_id, vehicle_id, filled_on, liters, amount)
+  values ('f2000000-0000-0000-0000-0000000000a1', :org, 'f1000000-0000-0000-0000-0000000000a1',
+    current_date, 80.5, 603.75);
+  select pg_temp.assert_eq('B35 autorul alimentarii stampilat din sesiune', created_by::text,
+    'b0000000-0000-0000-0000-0000000000b1')
+  from public.fuel_entries where id = 'f2000000-0000-0000-0000-0000000000a1';
+
+  update public.vehicles set archived_at = now() where id = 'f1000000-0000-0000-0000-0000000000a1';
+  select pg_temp.assert_eq('B35 arhivarea stampileaza autorul', archived_by::text,
+    'b0000000-0000-0000-0000-0000000000b1')
+  from public.vehicles where id = 'f1000000-0000-0000-0000-0000000000a1';
+
+  -- Modul dezactivat din nou => datele raman, dar devin invizibile.
+  reset role;
+  set local request.jwt.claims = '{}';
+  update public.organizations set enabled_modules = '{assistant}' where id = :org;
+  set local role authenticated;
+  set local request.jwt.claims = '{"sub":"b0000000-0000-0000-0000-0000000000b1"}';
+  select pg_temp.assert_num('B35 modul oprit => alimentarile ascunse, nu sterse', count(*), 0)
+  from public.fuel_entries;
 rollback;
 
 select '*** TOATE TESTELE FUNCTIONALE DE BUSINESS AU TRECUT ***' as result;
