@@ -6,6 +6,7 @@ import { requireRole } from "@/features/auth/session";
 import { getOrganizationOrigin } from "@/features/auth/origin";
 import { isLayoutKey } from "@/features/branding/layouts";
 import { isThemeKey } from "@/features/branding/themes";
+import { isModuleKey, type ModuleKey } from "@/features/modules/modules";
 import { normalizeCustomDomain } from "./domain";
 import {
   EMAIL_DOMAIN_STATUS_LABELS,
@@ -29,11 +30,13 @@ import {
   inviteOrganizationAdmin,
   setOrganizationStatus,
   updateOrganizationAppearance,
+  updateOrganizationModules,
 } from "./service";
 import type {
   CreateOrganizationState,
   OrgAppearanceState,
   OrgEmailState,
+  OrgModulesState,
   OrgStatusState,
 } from "./form-state";
 
@@ -217,6 +220,33 @@ export async function updateOrganizationAppearanceAction(
   revalidatePath("/platform");
   revalidatePath(`/platform/${organizationId}`);
   return { error: null, message: "Setarile au fost salvate." };
+}
+
+/**
+ * Modulele optionale ale unei organizatii (super-admin, migrarea 0055). Un modul
+ * debifat ASCUNDE datele lui (RLS), nu le sterge - reactivarea le readuce.
+ */
+export async function updateOrganizationModulesAction(
+  _prev: OrgModulesState,
+  formData: FormData,
+): Promise<OrgModulesState> {
+  await requireRole(["super_admin"]);
+  const organizationId = clean(formData.get("organization_id"));
+  if (!organizationId) return { error: "Organizatie invalida.", message: null };
+
+  const requested = formData.getAll("modules").map((value) => String(value));
+  if (!requested.every(isModuleKey)) return { error: "Modul necunoscut.", message: null };
+  const modules = [...new Set(requested)] as ModuleKey[];
+
+  try {
+    await updateOrganizationModules(organizationId, modules);
+  } catch {
+    return { error: "Nu am putut salva modulele organizatiei.", message: null };
+  }
+
+  revalidatePath("/platform");
+  revalidatePath(`/platform/${organizationId}`);
+  return { error: null, message: "Modulele au fost salvate." };
 }
 
 const NO_EMAIL_PROVIDER_ERROR =

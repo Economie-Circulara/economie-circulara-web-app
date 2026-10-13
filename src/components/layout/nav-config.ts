@@ -1,4 +1,5 @@
 import { ASSISTANT_ROLES } from "@/features/assistant/access";
+import type { ModuleKey } from "@/features/modules/modules";
 
 export type AppRole = "super_admin" | "admin" | "operator" | "client";
 
@@ -39,6 +40,8 @@ export interface NavItem {
   href: string;
   icon: NavIconName;
   roles: AppRole[];
+  /** Pagina unui modul optional (0055) - apare doar daca organizatia are modulul activ. */
+  module?: ModuleKey;
 }
 
 /**
@@ -223,16 +226,26 @@ export const ASSISTANT_NAV_ITEM: NavItem = {
   href: "/asistent",
   icon: "assistant",
   roles: ASSISTANT_ROLES,
+  module: "assistant",
 };
 
-/** Filtreaza navigatia staff pe rol - pastreaza grupurile, dar le elimina daca raman fara copii. */
-function filterStaffNavForRole(nav: NavEntry[], role: AppRole): NavEntry[] {
+/**
+ * Filtreaza navigatia staff pe rol si pe modulele active ale organizatiei - pastreaza
+ * grupurile, dar le elimina daca raman fara copii.
+ */
+export function filterStaffNav(
+  nav: NavEntry[],
+  role: AppRole,
+  modules: readonly ModuleKey[],
+): NavEntry[] {
+  const visible = (item: NavItem) =>
+    item.roles.includes(role) && (!item.module || modules.includes(item.module));
   return nav.flatMap((entry): NavEntry[] => {
     if (isNavGroup(entry)) {
-      const items = entry.items.filter((item) => item.roles.includes(role));
+      const items = entry.items.filter(visible);
       return items.length > 0 ? [{ ...entry, items }] : [];
     }
-    return entry.roles.includes(role) ? [entry] : [];
+    return visible(entry) ? [entry] : [];
   });
 }
 
@@ -245,9 +258,15 @@ const CLIENT_NAV_FLUX: NavItem[] = [
   "/adresele-mele",
 ].map((href) => CLIENT_NAV.find((item) => item.href === href)!);
 
-export function navForRole(role: AppRole, layout: NavLayoutKey = "standard"): NavEntry[] {
-  const shared = [ASSISTANT_NAV_ITEM, HELP_NAV_ITEM].filter((item) => item.roles.includes(role));
+export function navForRole(
+  role: AppRole,
+  layout: NavLayoutKey = "standard",
+  modules: readonly ModuleKey[] = [],
+): NavEntry[] {
+  const shared = [ASSISTANT_NAV_ITEM, HELP_NAV_ITEM].filter(
+    (item) => item.roles.includes(role) && (!item.module || modules.includes(item.module)),
+  );
   if (role === "client") return [...(layout === "flux" ? CLIENT_NAV_FLUX : CLIENT_NAV), ...shared];
   const staffNav = layout === "flux" ? STAFF_NAV_FLUX : STAFF_NAV;
-  return [...filterStaffNavForRole(staffNav, role), ...shared];
+  return [...filterStaffNav(staffNav, role, modules), ...shared];
 }

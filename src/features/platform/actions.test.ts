@@ -8,11 +8,13 @@ const {
   inviteOrganizationAdmin,
   setOrganizationStatus,
   updateOrganizationAppearance,
+  updateOrganizationModules,
 } = vi.hoisted(() => ({
   createOrganizationRow: vi.fn(),
   inviteOrganizationAdmin: vi.fn(),
   setOrganizationStatus: vi.fn(),
   updateOrganizationAppearance: vi.fn(),
+  updateOrganizationModules: vi.fn(),
 }));
 vi.mock("./service", async () => {
   const actual = await vi.importActual<typeof import("./service")>("./service");
@@ -22,6 +24,7 @@ vi.mock("./service", async () => {
     inviteOrganizationAdmin,
     setOrganizationStatus,
     updateOrganizationAppearance,
+    updateOrganizationModules,
   };
 });
 
@@ -45,10 +48,12 @@ import {
   reactivateOrganizationAction,
   suspendOrganizationAction,
   updateOrganizationAppearanceAction,
+  updateOrganizationModulesAction,
 } from "./actions";
 import {
   initialCreateOrganizationState,
   initialOrgAppearanceState,
+  initialOrgModulesState,
   initialOrgStatusState,
 } from "./form-state";
 import {
@@ -303,5 +308,49 @@ describe("updateOrganizationAppearanceAction", () => {
     );
 
     expect(state.error).toMatch(/deja folosit/);
+  });
+});
+
+describe("updateOrganizationModulesAction", () => {
+  function modulesForm(organizationId: string, modules: string[]): FormData {
+    const fd = formData({ organization_id: organizationId });
+    for (const key of modules) fd.append("modules", key);
+    return fd;
+  }
+
+  it("salveaza modulele bifate (fara duplicate)", async () => {
+    updateOrganizationModules.mockResolvedValue(undefined);
+    const state = await updateOrganizationModulesAction(
+      initialOrgModulesState,
+      modulesForm("org-1", ["fleet", "fleet"]),
+    );
+    expect(requireRole).toHaveBeenCalledWith(["super_admin"]);
+    expect(updateOrganizationModules).toHaveBeenCalledWith("org-1", ["fleet"]);
+    expect(state).toEqual({ error: null, message: "Modulele au fost salvate." });
+    expect(revalidatePath).toHaveBeenCalledWith("/platform/org-1");
+  });
+
+  it("nicio bifa = toate modulele dezactivate", async () => {
+    updateOrganizationModules.mockResolvedValue(undefined);
+    await updateOrganizationModulesAction(initialOrgModulesState, modulesForm("org-1", []));
+    expect(updateOrganizationModules).toHaveBeenCalledWith("org-1", []);
+  });
+
+  it("respinge un modul necunoscut fara sa scrie", async () => {
+    const state = await updateOrganizationModulesAction(
+      initialOrgModulesState,
+      modulesForm("org-1", ["fleet", "contabilitate"]),
+    );
+    expect(state.error).toMatch(/necunoscut/);
+    expect(updateOrganizationModules).not.toHaveBeenCalled();
+  });
+
+  it("intoarce eroarea serviciului ca mesaj", async () => {
+    updateOrganizationModules.mockRejectedValue(new Error("db"));
+    const state = await updateOrganizationModulesAction(
+      initialOrgModulesState,
+      modulesForm("org-1", ["fleet"]),
+    );
+    expect(state.error).toMatch(/Nu am putut salva/);
   });
 });

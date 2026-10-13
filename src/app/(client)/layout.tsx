@@ -19,7 +19,7 @@ export default async function ClientLayout({ children }: { children: React.React
   const org = await getCurrentOrg();
   const orgName = org?.name ?? PLATFORM_NAME;
   const logoUrl = inlineLogoOf(org);
-  const items = navForRole(user.role, resolveLayoutKey(org?.layout));
+  const items = navForRole(user.role, resolveLayoutKey(org?.layout), org?.enabledModules);
 
   return (
     <AppShell

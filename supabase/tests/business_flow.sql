@@ -1609,4 +1609,44 @@ begin;
     from public.quote_requests where id = :'quote_id';
 rollback;
 
+-- ===========================================================================
+-- B34: modulele per organizatie (0055) - asistentul activ implicit; adminul NU si le
+--      poate schimba singur
+--      (insufficient_privilege); `app.org_has_module` reflecta lista; o cheie
+--      necunoscuta e respinsa de CHECK.
+-- ===========================================================================
+begin;
+  select pg_temp.assert_eq('B34 implicit: asistent da, flota nu',
+    app.org_has_module(:org, 'assistant')::text || '|' || app.org_has_module(:org, 'fleet')::text,
+    'true|false');
+
+  update public.organizations set enabled_modules = array['assistant', 'fleet'] where id = :org;
+  select pg_temp.assert_eq('B34 modul activ (super-admin / service)',
+    app.org_has_module(:org, 'fleet')::text, 'true');
+
+  do $$
+  begin
+    begin
+      update public.organizations set enabled_modules = array['contabilitate']
+        where id = 'a0000000-0000-0000-0000-0000000000a1';
+      raise exception 'FAIL: B34 CHECK-ul a acceptat un modul necunoscut';
+    exception
+      when check_violation then raise notice 'PASS: B34 modul necunoscut respins';
+    end;
+  end $$;
+
+  set local role authenticated;
+  set local request.jwt.claims = '{"sub":"b0000000-0000-0000-0000-0000000000b1"}';
+  do $$
+  begin
+    begin
+      update public.organizations set enabled_modules = '{}'
+        where id = 'a0000000-0000-0000-0000-0000000000a1';
+      raise exception 'FAIL: B34 adminul si-a schimbat modulele';
+    exception
+      when insufficient_privilege then raise notice 'PASS: B34 modulele doar de super-admin';
+    end;
+  end $$;
+rollback;
+
 select '*** TOATE TESTELE FUNCTIONALE DE BUSINESS AU TRECUT ***' as result;

@@ -4,6 +4,39 @@ Jurnal al sarcinilor lucrate de agenti AI in acest repo. Conform regulii 1.2 din
 [`AGENTS.md`](../AGENTS.md), la **fiecare commit** se adauga o intrare aici.
 Cele mai noi intrari sus.
 
+## 2026-10-10 — Claude Opus 5.5 (Claude Code) — Modulul „Asistent AI” in feature flags
+
+- **Cerut:** asistentul AI sa fie si el un modul in super-admin, activ implicit; debifat
+  => dispare din meniu, 404, fara acces. Apoi PR.
+- **Facut:** cheia `assistant` in `MODULES` + `DEFAULT_MODULES`; migrarea `0055` -
+  default `{assistant}` (acopera si organizatiile existente), CHECK extins,
+  `app.can_use_assistant()` cere modulul (super-admin neafectat);
+  `requireAssistantUser` (`assistant/guard.ts`) pe pagini, ruta de atasamente si
+  server actions; `ASSISTANT_NAV_ITEM.module`; teste unitare + T16
+  (`assistant_rls.sql`) + B34 actualizat; AGENTS.md, manual, plan.
+
+## 2026-10-10 — Claude Opus 5.5 (Claude Code) — Flotă, etapa 1: module per organizatie
+
+- **Cerut:** feature flags din super-admin, ca modulul Flotă sa fie activat doar pentru
+  anumite organizatii (Etora); plus deciziile ramase din plan (operatorii gestioneaza
+  flota, alimentarile se corecteaza prin editare, capacitatea vehiculului).
+- **Facut:** migrarea `0055` (`organizations.enabled_modules` + CHECK, garda
+  super-admin extinsa, helper RLS `app.org_has_module`); `src/features/modules/`
+  (`MODULES`, `hasModule`, `requireModule`); `navForRole` filtreaza paginile de modul;
+  sectiunea „Module” in `/platform/<id>` (action + service); teste unitare + B34 in
+  `business_flow.sql`; regula in AGENTS.md, manual (ghid-administrare 3.3), plan
+  actualizat.
+
+## 2026-10-10 — Claude Opus 5.5 (Claude Code) — Plan: module per organizatie + Flotă
+
+- **Cerut:** modul pentru monitorizarea consumului de combustibil (Etora): vehicule cu
+  consum, alimentari, vehicul ales la livrare, litri estimati per comanda din km;
+  activabil doar pentru anumite organizatii (feature flags din super-admin).
+- **Facut:** doar planul, cu deciziile clarificate - `docs/plans/flota-combustibil.md`
+  (module per organizatie, vehicule, jurnal alimentari cu bon, transport per comanda
+  dus-intors, livrari cu campuri de transport optionale, aport cu transport propriu,
+  tool-uri asistent read + write). Fara cod.
+
 ## 2026-09-30 — Claude Opus 5.5 (Claude Code) — Asistentul AI scos de la clienti
 
 - **Cerut:** asistentul AI sa fie disponibil doar staff-ului organizatiei (admin/operator),

@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { canSendFromOrgDomain } from "@/features/notifications/sender";
+import { resolveModules, type ModuleKey } from "@/features/modules/modules";
 import type { TenantHint } from "./tenant";
 
 export interface OrgBranding {
@@ -20,6 +21,8 @@ export interface OrgBranding {
 export interface CurrentOrg extends OrgBranding {
   /** Organizarea meniului + panoului (`organizations.layout`, 0046). */
   layout: string;
+  /** Modulele optionale active (`organizations.enabled_modules`, 0055). */
+  enabledModules: ModuleKey[];
   emailFromName: string | null;
   emailFromAddress: string | null;
   /** Adresa de raspuns a emailurilor (0050) - o seteaza adminul organizatiei. */
@@ -54,7 +57,7 @@ export async function getCurrentOrg(): Promise<CurrentOrg | null> {
   const { data: org } = await supabase
     .from("organizations")
     .select(
-      "id, name, slug, custom_domain, logo_url, logo_square_url, primary_color, secondary_color, theme, layout, email_from_name, email_from_address, email_reply_to, email_domain, email_domain_status, cui, reg_com, address",
+      "id, name, slug, custom_domain, logo_url, logo_square_url, primary_color, secondary_color, theme, layout, enabled_modules, email_from_name, email_from_address, email_reply_to, email_domain, email_domain_status, cui, reg_com, address",
     )
     .eq("id", profile.organization_id)
     .single();
@@ -71,6 +74,7 @@ export async function getCurrentOrg(): Promise<CurrentOrg | null> {
     secondaryColor: org.secondary_color,
     theme: org.theme,
     layout: org.layout,
+    enabledModules: resolveModules(org.enabled_modules),
     emailFromName: org.email_from_name,
     emailFromAddress: org.email_from_address,
     emailReplyTo: org.email_reply_to,

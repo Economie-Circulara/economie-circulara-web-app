@@ -8,6 +8,8 @@ const requireRole = vi.fn(async (roles: string[]) => {
   return user;
 });
 vi.mock("@/features/auth/session", () => ({ requireRole }));
+// Modulul `assistant` activ (garda e testata separat in guard.test.ts).
+vi.mock("@/features/modules/guard", () => ({ requireModule: vi.fn() }));
 
 vi.mock("./attachments", () => ({
   AttachmentError: class extends Error {},

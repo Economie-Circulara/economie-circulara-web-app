@@ -1196,6 +1196,7 @@ export type Database = {
           email_from_address: string | null
           email_from_name: string | null
           email_reply_to: string | null
+          enabled_modules: string[]
           id: string
           layout: string
           logo_square_url: string | null
@@ -1225,6 +1226,7 @@ export type Database = {
           email_from_address?: string | null
           email_from_name?: string | null
           email_reply_to?: string | null
+          enabled_modules?: string[]
           id?: string
           layout?: string
           logo_square_url?: string | null
@@ -1254,6 +1256,7 @@ export type Database = {
           email_from_address?: string | null
           email_from_name?: string | null
           email_reply_to?: string | null
+          enabled_modules?: string[]
           id?: string
           layout?: string
           logo_square_url?: string | null

@@ -54,3 +54,11 @@ export interface OrgEmailState {
 }
 
 export const initialOrgEmailState: OrgEmailState = { error: null, message: null };
+
+/** Sectiunea „Module” din `/platform/<id>` (feature flags per organizatie, 0055). */
+export interface OrgModulesState {
+  error: string | null;
+  message: string | null;
+}
+
+export const initialOrgModulesState: OrgModulesState = { error: null, message: null };

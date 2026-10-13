@@ -46,7 +46,7 @@ export default async function HelpLayout({ children }: { children: React.ReactNo
   }
 
   const org = await getCurrentOrg();
-  const items = navForRole(user.role, resolveLayoutKey(org?.layout));
+  const items = navForRole(user.role, resolveLayoutKey(org?.layout), org?.enabledModules);
   const orgName = org?.name ?? PLATFORM_NAME;
   const logoUrl = inlineLogoOf(org);
 

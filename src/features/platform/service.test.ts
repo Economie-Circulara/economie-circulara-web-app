@@ -14,6 +14,7 @@ import {
   createOrganizationRow,
   inviteOrganizationAdmin,
   setOrganizationStatus,
+  updateOrganizationModules,
 } from "./service";
 
 afterEach(() => {
@@ -149,5 +150,29 @@ describe("setOrganizationStatus", () => {
     mockSession({ message: "RLS denied" });
 
     await expect(setOrganizationStatus("org-1", "suspended")).rejects.toThrow();
+  });
+});
+
+describe("updateOrganizationModules", () => {
+  function mockUpdate(error: unknown) {
+    const eq = vi.fn().mockResolvedValue({ error });
+    const update = vi.fn().mockReturnValue({ eq });
+    const from = vi.fn().mockReturnValue({ update });
+    createClient.mockResolvedValue({ from });
+    return { from, update, eq };
+  }
+
+  it("scrie lista de module pe organizatie, pe sesiunea super-adminului", async () => {
+    const { from, update, eq } = mockUpdate(null);
+    await updateOrganizationModules("org-1", ["fleet"]);
+    expect(from).toHaveBeenCalledWith("organizations");
+    expect(update).toHaveBeenCalledWith({ enabled_modules: ["fleet"] });
+    expect(eq).toHaveBeenCalledWith("id", "org-1");
+    expect(createAdminClient).not.toHaveBeenCalled();
+  });
+
+  it("arunca o eroare clara cand DB-ul refuza (ex. garda din 0055)", async () => {
+    mockUpdate({ code: "42501", message: "insufficient_privilege" });
+    await expect(updateOrganizationModules("org-1", [])).rejects.toThrow(/modulele/);
   });
 });
