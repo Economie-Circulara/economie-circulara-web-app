@@ -1616,8 +1616,12 @@ rollback;
 --      necunoscuta e respinsa de CHECK.
 -- ===========================================================================
 begin;
+  -- Default-ul se verifica pe o organizatie NOUA: demo-ul din seed are si `fleet` (0056).
+  insert into public.organizations (id, name, slug)
+  values ('a0000000-0000-0000-0000-0000000000e4', 'Org noua B34', 'org-noua-b34');
   select pg_temp.assert_eq('B34 implicit: asistent da, flota nu',
-    app.org_has_module(:org, 'assistant')::text || '|' || app.org_has_module(:org, 'fleet')::text,
+    app.org_has_module('a0000000-0000-0000-0000-0000000000e4', 'assistant')::text || '|'
+      || app.org_has_module('a0000000-0000-0000-0000-0000000000e4', 'fleet')::text,
     'true|false');
 
   update public.organizations set enabled_modules = array['assistant', 'fleet'] where id = :org;

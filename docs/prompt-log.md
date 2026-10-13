@@ -4,6 +4,12 @@ Jurnal al sarcinilor lucrate de agenti AI in acest repo. Conform regulii 1.2 din
 [`AGENTS.md`](../AGENTS.md), la **fiecare commit** se adauga o intrare aici.
 Cele mai noi intrari sus.
 
+## 2026-10-13 — Claude Opus 5.5 (Claude Code) — Fix CI: B34 dupa seed-ul cu Flotă
+
+- **Cerut:** CI `migrations` rosu pe PR #91 (B34: „implicit: asistent da, flota nu”).
+- **Facut:** seed-ul demo are acum si modulul `fleet`, deci B34 verifica default-ul
+  coloanei pe o organizatie NOUA creata in tranzactia testului, nu pe demo.
+
 ## 2026-10-13 — Claude Opus 5.5 (Claude Code) — Flotă, etapa 3: vehicule si alimentari
 
 - **Cerut:** dupa merge-ul etapei 1, activarea modulului Flotă nu arata nimic (paginile
