@@ -154,9 +154,9 @@ export function AvizPdfDocument({
             </View>
             <View style={styles.infoCol}>
               <Text style={styles.infoLabel}>Transportator</Text>
-              <Text style={styles.infoValue}>{delivery.carrierName}</Text>
-              <Text style={styles.infoSub}>Vehicul: {delivery.vehiclePlate}</Text>
-              <Text style={styles.infoSub}>Șofer: {delivery.driverName}</Text>
+              <Text style={styles.infoValue}>{delivery.carrierName ?? "—"}</Text>
+              <Text style={styles.infoSub}>Vehicul: {delivery.vehiclePlate ?? "—"}</Text>
+              <Text style={styles.infoSub}>Șofer: {delivery.driverName ?? "—"}</Text>
             </View>
             <View style={styles.infoCol}>
               <Text style={styles.infoLabel}>Rută</Text>

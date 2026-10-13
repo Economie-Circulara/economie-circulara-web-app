@@ -64,8 +64,10 @@ import {
   confirmDeliveryReceipt,
   declareETransport,
   planDelivery,
+  missingETransportFields,
   recalculateDeliveryRoute,
   renderAvizPdfBuffer,
+  updateDeliveryTransport,
 } from "./service";
 import type { DeliveryDetail, PlanDeliveryInput } from "./types";
 import { pdfBrandFor } from "@/features/branding/pdf-brand";
@@ -126,9 +128,41 @@ function mockSupabaseForPlan(options: {
 }
 
 describe("planDelivery", () => {
-  it("respinge un camp obligatoriu lipsa", async () => {
-    await expect(planDelivery(validInput({ carrierName: "  " }))).rejects.toBeInstanceOf(
+  it("respinge un camp obligatoriu lipsa (punctul de sosire)", async () => {
+    await expect(planDelivery(validInput({ routeDestination: "  " }))).rejects.toBeInstanceOf(
       DeliveryValidationError,
+    );
+  });
+
+  it("transportatorul, vehiculul si soferul sunt optionale (0057) - salvate ca null", async () => {
+    const from = mockSupabaseForPlan({
+      order: { id: "order-1", organization_id: "org-1", status: "accepted" },
+      insertedRow: { id: "delivery-1" },
+    });
+    getDeliveryByOrderId.mockResolvedValue(null);
+
+    await planDelivery(
+      validInput({ carrierName: "  ", vehiclePlate: undefined, driverName: null }),
+    );
+
+    const deliveriesCall = from.mock.results.find((r) => r.value.insert)?.value;
+    expect(deliveriesCall.insert).toHaveBeenCalledWith(
+      expect.objectContaining({ carrier_name: null, vehicle_plate: null, driver_name: null }),
+    );
+  });
+
+  it("normalizeaza nr. de inmatriculare la majuscule", async () => {
+    const from = mockSupabaseForPlan({
+      order: { id: "order-1", organization_id: "org-1", status: "accepted" },
+      insertedRow: { id: "delivery-1" },
+    });
+    getDeliveryByOrderId.mockResolvedValue(null);
+
+    await planDelivery(validInput({ vehiclePlate: " is 12 abc " }));
+
+    const deliveriesCall = from.mock.results.find((r) => r.value.insert)?.value;
+    expect(deliveriesCall.insert).toHaveBeenCalledWith(
+      expect.objectContaining({ vehicle_plate: "IS 12 ABC" }),
     );
   });
 
@@ -241,6 +275,35 @@ function mockSupabaseForUpdate(options: {
 }
 
 describe("declareETransport", () => {
+  it("fara transportator / nr. de inmatriculare: failed cu mesaj clar, providerul NU e apelat", async () => {
+    getDeliveryDetail.mockResolvedValue(
+      deliveryDetail({ carrierName: null, vehiclePlate: null, driverName: null }),
+    );
+    const declare = vi.fn();
+    getETransportProvider.mockReturnValue({ declare });
+    const from = mockSupabaseForUpdate({ updatedRow: { id: "delivery-1" } });
+
+    await declareETransport("delivery-1");
+
+    expect(declare).not.toHaveBeenCalled();
+    const updateCall = from.mock.results[0]?.value.update as ReturnType<typeof vi.fn>;
+    expect(updateCall).toHaveBeenCalledWith({
+      declaration_status: "failed",
+      declaration_error: expect.stringMatching(/transportatorul și numărul de înmatriculare/),
+    });
+  });
+
+  it("soferul lipsa nu blocheaza declararea", async () => {
+    getDeliveryDetail.mockResolvedValue(deliveryDetail({ driverName: null }));
+    const declare = vi.fn().mockResolvedValue({ uit: "MOCK-UIT-1" });
+    getETransportProvider.mockReturnValue({ declare });
+    mockSupabaseForUpdate({ updatedRow: { id: "delivery-1" } });
+
+    await declareETransport("delivery-1");
+
+    expect(declare).toHaveBeenCalledWith(expect.objectContaining({ driverName: "" }));
+  });
+
   it("arunca DeliveryNotFoundError cand livrarea nu exista", async () => {
     getDeliveryDetail.mockResolvedValue(null);
 
@@ -521,5 +584,84 @@ describe("confirmDeliveryReceipt", () => {
     expect(result).toEqual(
       expect.objectContaining({ id: "delivery-1", received_by_name: "Ion Popescu" }),
     );
+  });
+});
+
+describe("missingETransportFields", () => {
+  it("numeste ce lipseste; complet = null", () => {
+    expect(missingETransportFields({ carrierName: "T", vehiclePlate: "B 1 A" })).toBeNull();
+    expect(missingETransportFields({ carrierName: null, vehiclePlate: "B 1 A" })).toMatch(
+      /completează transportatorul \(/,
+    );
+    expect(missingETransportFields({ carrierName: "T", vehiclePlate: null })).toMatch(
+      /numărul de înmatriculare/,
+    );
+  });
+});
+
+describe("updateDeliveryTransport", () => {
+  it("completeaza transportul inainte de plecare si reseteaza un esec de declarare", async () => {
+    getDeliveryDetail.mockResolvedValue(
+      deliveryDetail({ vehiclePlate: null, declarationStatus: "failed", declarationError: "x" }),
+    );
+    const from = mockSupabaseForUpdate({ updatedRow: { id: "delivery-1" } });
+
+    await updateDeliveryTransport({
+      deliveryId: "delivery-1",
+      carrierName: " Transport SRL ",
+      vehiclePlate: "is 12 abc",
+      driverName: "",
+    });
+
+    const updateCall = from.mock.results[0]?.value.update as ReturnType<typeof vi.fn>;
+    expect(updateCall).toHaveBeenCalledWith({
+      carrier_name: "Transport SRL",
+      vehicle_plate: "IS 12 ABC",
+      driver_name: null,
+      declaration_status: "not_declared",
+      declaration_error: null,
+    });
+  });
+
+  it("nu atinge statusul de declarare cand nu era esuat", async () => {
+    getDeliveryDetail.mockResolvedValue(deliveryDetail());
+    const from = mockSupabaseForUpdate({ updatedRow: { id: "delivery-1" } });
+
+    await updateDeliveryTransport({
+      deliveryId: "delivery-1",
+      carrierName: "T",
+      vehiclePlate: "B 1 A",
+      driverName: "Ion",
+    });
+
+    const updateCall = from.mock.results[0]?.value.update as ReturnType<typeof vi.fn>;
+    expect(updateCall.mock.calls[0][0]).not.toHaveProperty("declaration_status");
+  });
+
+  it("refuza dupa plecare (declarata sau receptionata)", async () => {
+    getDeliveryDetail.mockResolvedValue(
+      deliveryDetail({ declarationStatus: "declared", uitCode: "UIT-1" }),
+    );
+    await expect(
+      updateDeliveryTransport({
+        deliveryId: "delivery-1",
+        carrierName: "T",
+        vehiclePlate: "B 1 A",
+        driverName: null,
+      }),
+    ).rejects.toBeInstanceOf(DeliveryValidationError);
+    expect(createClient).not.toHaveBeenCalled();
+  });
+
+  it("livrare inexistenta", async () => {
+    getDeliveryDetail.mockResolvedValue(null);
+    await expect(
+      updateDeliveryTransport({
+        deliveryId: "x",
+        carrierName: null,
+        vehiclePlate: null,
+        driverName: null,
+      }),
+    ).rejects.toBeInstanceOf(DeliveryNotFoundError);
   });
 });

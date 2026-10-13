@@ -44,9 +44,10 @@ export interface DeliveryRecord {
   organizationId: string;
   orderId: string;
   scheduledDate: string;
-  carrierName: string;
-  vehiclePlate: string;
-  driverName: string;
+  /** Optional (0057) - obligatoriu doar la declararea e-Transport. */
+  carrierName: string | null;
+  vehiclePlate: string | null;
+  driverName: string | null;
   routeOrigin: string;
   routeDestination: string;
   uitCode: string | null;
@@ -73,8 +74,8 @@ export interface DeliveryListRow {
   orderNumber: string | null;
   clientName: string;
   scheduledDate: string;
-  carrierName: string;
-  vehiclePlate: string;
+  carrierName: string | null;
+  vehiclePlate: string | null;
   declarationStatus: DeliveryDeclarationStatus;
   uitCode: string | null;
   /** Ruta a fost calculata (nu doar text liber) - vezi Task X7. */
@@ -96,9 +97,10 @@ export interface PlanDeliveryRouteChoice {
 export interface PlanDeliveryInput {
   orderId: string;
   scheduledDate: string;
-  carrierName: string;
-  vehiclePlate: string;
-  driverName: string;
+  /** Optionale (0057): transportator / nr. de inmatriculare / sofer. */
+  carrierName?: string | null;
+  vehiclePlate?: string | null;
+  driverName?: string | null;
   routeOrigin: string;
   routeDestination: string;
   /** Prezent doar daca operatorul a folosit "Calculează rute" - optional, planificarea manuala ramane posibila. */

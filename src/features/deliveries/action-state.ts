@@ -6,3 +6,14 @@ export interface DeliveryFormState {
 }
 
 export const initialDeliveryFormState: DeliveryFormState = { error: null };
+
+/** Formularul „Editează transportul” (/livrari/[id], 0057). */
+export interface DeliveryTransportState {
+  error: string | null;
+  message: string | null;
+}
+
+export const initialDeliveryTransportState: DeliveryTransportState = {
+  error: null,
+  message: null,
+};

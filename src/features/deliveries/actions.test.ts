@@ -3,13 +3,15 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 const { requireRole } = vi.hoisted(() => ({ requireRole: vi.fn() }));
 vi.mock("@/features/auth/session", () => ({ requireRole }));
 
-const { planDelivery, declareETransport } = vi.hoisted(() => ({
+const { planDelivery, declareETransport, updateDeliveryTransport } = vi.hoisted(() => ({
   planDelivery: vi.fn(),
   declareETransport: vi.fn(),
+  updateDeliveryTransport: vi.fn(),
 }));
 vi.mock("./service", () => ({
   planDelivery,
   declareETransport,
+  updateDeliveryTransport,
   DeliveryValidationError: class DeliveryValidationError extends Error {},
   DeliveryOrderNotFoundError: class DeliveryOrderNotFoundError extends Error {},
   DeliveryNotFoundError: class DeliveryNotFoundError extends Error {},
@@ -25,8 +27,12 @@ vi.mock("next/navigation", () => ({ redirect }));
 const { revalidatePath } = vi.hoisted(() => ({ revalidatePath: vi.fn() }));
 vi.mock("next/cache", () => ({ revalidatePath }));
 
-import { declareETransportAction, planDeliveryAction } from "./actions";
-import { initialDeliveryFormState } from "./action-state";
+import {
+  declareETransportAction,
+  planDeliveryAction,
+  updateDeliveryTransportAction,
+} from "./actions";
+import { initialDeliveryFormState, initialDeliveryTransportState } from "./action-state";
 
 afterEach(() => {
   vi.clearAllMocks();
@@ -150,5 +156,43 @@ describe("declareETransportAction", () => {
     const result = await declareETransportAction("delivery-1");
 
     expect(result).toEqual({ delivery: null, error: "Socrate.io indisponibil" });
+  });
+});
+
+describe("updateDeliveryTransportAction", () => {
+  it("doar staff; trimite campurile (goale = sterse) si revalideaza livrarea", async () => {
+    requireRole.mockResolvedValue({ id: "u1", role: "operator" });
+    updateDeliveryTransport.mockResolvedValue({ id: "delivery-1" });
+
+    const state = await updateDeliveryTransportAction(
+      initialDeliveryTransportState,
+      formData({
+        delivery_id: "delivery-1",
+        carrier_name: "T",
+        vehicle_plate: "",
+        driver_name: "",
+      }),
+    );
+
+    expect(requireRole).toHaveBeenCalledWith(["admin", "operator"]);
+    expect(updateDeliveryTransport).toHaveBeenCalledWith({
+      deliveryId: "delivery-1",
+      carrierName: "T",
+      vehiclePlate: "",
+      driverName: "",
+    });
+    expect(state).toEqual({ error: null, message: "Transportul a fost salvat." });
+    expect(revalidatePath).toHaveBeenCalledWith("/livrari/delivery-1");
+  });
+
+  it("eroarea serviciului (ex. livrare plecata) ajunge in formular", async () => {
+    requireRole.mockResolvedValue({ id: "u1", role: "admin" });
+    updateDeliveryTransport.mockRejectedValue(new Error("Livrarea a plecat deja."));
+
+    const state = await updateDeliveryTransportAction(
+      initialDeliveryTransportState,
+      formData({ delivery_id: "delivery-1" }),
+    );
+    expect(state.error).toBe("Livrarea a plecat deja.");
   });
 });

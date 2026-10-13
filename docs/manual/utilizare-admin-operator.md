@@ -536,8 +536,12 @@ e-Transport și dacă ruta a fost **calculată** sau introdusă **manual**.
 Dintr-o comandă **acceptată** (ecranul `/comenzi/[id]`), butonul **"Planifică
 livrare"** deschide formularul:
 
-1. Completează **data programată**, **transportatorul**, **numărul de
-   înmatriculare** și **șoferul**.
+1. Completează **data programată**. **Transportatorul**, **numărul de
+   înmatriculare** și **șoferul** sunt opționale la planificare - dacă nu le știi
+   încă, le completezi mai târziu din ecranul livrării (**„Editează transportul”**,
+   cât livrarea nu a plecat). Pentru **declararea e-Transport** sunt necesare
+   transportatorul și numărul de înmatriculare; fără ele declararea se oprește cu un
+   mesaj care spune ce lipsește.
 2. La secțiunea **"Rută"**: alege un **punct de plecare** (o stație/depozit
    configurat în **Setări → Puncte de plecare**, secțiunea 9.2) - câmpul
    "Punct de plecare" (text) se precompletează automat cu adresa stației, iar
@@ -707,8 +711,9 @@ Cum funcționează cardul:
 - După o confirmare reușită, asistentul poate continua singur spre pasul următor
   al cererii inițiale (ex. "adaugă clientul X și o comandă cu Y" - după ce
   confirmi clientul, propune imediat comanda).
-- La **planificarea unei livrări** (secțiunea 9), asistentul cere data,
-  transportatorul, nr. de înmatriculare și șoferul; punctul de plecare (stația
+- La **planificarea unei livrări** (secțiunea 9), asistentul cere data și te întreabă
+  de transportator, nr. de înmatriculare și șofer (opționale, necesare însă pentru
+  e-Transport); punctul de plecare (stația
   implicită a organizației) și cel de sosire (adresa de livrare a comenzii) se
   completează singure și rămân editabile în card. Dacă pleci dintr-o stație
   configurată, **ruta recomandată se calculează automat** și se salvează pe livrare

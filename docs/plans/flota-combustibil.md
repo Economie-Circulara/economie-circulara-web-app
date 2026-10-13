@@ -1,9 +1,9 @@
 # Plan: Module per organizatie + modulul „Flotă” (consum combustibil)
 
 Status: **in lucru** - etapa 1 (module per organizatie) livrata 2026-10-13 (PR #90);
-etapa 3 (vehicule + alimentari) in lucru, adusa INAINTEA etapei 2 ca modulul Flotă sa
-aiba ceva vizibil imediat ce e activat (feedback 2026-10-13: „am activat Flota si nu
-vad nimic”).
+etapa 3 (vehicule + alimentari) livrata 2026-10-13 (PR #91), adusa INAINTEA etapei 2
+ca modulul Flotă sa aiba ceva vizibil imediat ce e activat (feedback 2026-10-13: „am
+activat Flota si nu vad nimic”); etapa 2 in PR #92.
 
 ## Context / nevoia
 
@@ -132,7 +132,11 @@ filtreaza dupa rol **si** modul - extindere `toolsForRole`).
 ## Etape (fiecare = commit/PR coerent)
 
 1. Module per organizatie (migrare, helper, `/platform/<id>`, meniu, teste).
-2. Livrari: campuri optionale + validare e-Transport la declarare.
+2. Livrari: campuri optionale + validare e-Transport la declarare. Migrarea `0057`;
+   in plus fata de planul initial: **„Editează transportul”** pe `/livrari/[id]` (cat
+   livrarea nu a plecat) - altfel o livrare planificata fara nr. de inmatriculare n-ar
+   mai fi putut fi declarata niciodata. Asistent: `planifica_livrare` v2 (transportul
+   optional).
 3. Flota: vehicule + alimentari (migrare, ecrane, bon in Storage, teste). **Facuta
    inaintea etapei 2.** Migrarea `0056_fleet.sql`; ecrane `/flota`, `/flota/nou`,
    `/flota/[id]`, `/flota/alimentari`, `/flota/alimentari/nou`,

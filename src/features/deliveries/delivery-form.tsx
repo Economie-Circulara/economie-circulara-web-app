@@ -107,18 +107,20 @@ export function DeliveryForm({
           <FormField label="Data programată" required>
             {(id) => <Input id={id} name="scheduled_date" type="date" required />}
           </FormField>
-          <FormField label="Transportator" required>
-            {(id) => <Input id={id} name="carrier_name" placeholder="Ex. Transport SRL" required />}
+          <FormField
+            label="Transportator"
+            hint="Opțional la planificare - necesar pentru declararea e-Transport."
+          >
+            {(id) => <Input id={id} name="carrier_name" placeholder="Ex. Transport SRL" />}
           </FormField>
           <FormField
             label="Nr. înmatriculare"
-            required
-            hint="Identifică vehiculul (pregătit pt. monitorizare GPS, v2)."
+            hint="Opțional la planificare - necesar pentru declararea e-Transport."
           >
-            {(id) => <Input id={id} name="vehicle_plate" placeholder="Ex. B 123 ABC" required />}
+            {(id) => <Input id={id} name="vehicle_plate" placeholder="Ex. B 123 ABC" />}
           </FormField>
-          <FormField label="Șofer" required>
-            {(id) => <Input id={id} name="driver_name" placeholder="Nume și prenume" required />}
+          <FormField label="Șofer" hint="Opțional.">
+            {(id) => <Input id={id} name="driver_name" placeholder="Nume și prenume" />}
           </FormField>
         </CardContent>
       </Card>

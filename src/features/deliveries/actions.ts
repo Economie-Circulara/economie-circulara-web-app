@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { requireRole } from "@/features/auth/session";
-import type { DeliveryFormState } from "./action-state";
+import type { DeliveryFormState, DeliveryTransportState } from "./action-state";
 import {
   DeliveryNotFoundError,
   DeliveryOrderNotFoundError,
@@ -13,6 +13,7 @@ import {
   declareETransport,
   planDelivery,
   recalculateDeliveryRoute,
+  updateDeliveryTransport,
 } from "./service";
 import type { DeliveryRecord, PlanDeliveryRouteChoice } from "./types";
 
@@ -190,4 +191,32 @@ export async function cancelDeliveryAction(
   revalidatePath("/livrari");
   revalidatePath(`/comenzi/${orderId}`);
   redirect(`/comenzi/${orderId}`);
+}
+
+/**
+ * Completeaza / corecteaza transportatorul, nr. de inmatriculare si soferul (0057) -
+ * DOAR staff, doar cat livrarea nu a plecat (garda in `updateDeliveryTransport`).
+ */
+export async function updateDeliveryTransportAction(
+  _prev: DeliveryTransportState,
+  formData: FormData,
+): Promise<DeliveryTransportState> {
+  await requireRole(["admin", "operator"]);
+  const deliveryId = clean(formData.get("delivery_id"));
+  if (!deliveryId) return { error: "Livrare invalidă.", message: null };
+
+  try {
+    await updateDeliveryTransport({
+      deliveryId,
+      carrierName: clean(formData.get("carrier_name")),
+      vehiclePlate: clean(formData.get("vehicle_plate")),
+      driverName: clean(formData.get("driver_name")),
+    });
+  } catch (err) {
+    return { error: errorMessage(err, "Nu am putut salva transportul."), message: null };
+  }
+
+  revalidatePath("/livrari");
+  revalidatePath(`/livrari/${deliveryId}`);
+  return { error: null, message: "Transportul a fost salvat." };
 }

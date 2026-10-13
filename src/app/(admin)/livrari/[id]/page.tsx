@@ -10,6 +10,7 @@ import { DeliveryActionsPanel } from "@/features/deliveries/delivery-actions-pan
 import { getDeliveryDetail } from "@/features/deliveries/queries";
 import { ReceiptForm } from "@/features/deliveries/receipt-form";
 import { RoutePanel } from "@/features/deliveries/route-panel";
+import { TransportForm } from "@/features/deliveries/transport-form";
 import { getCurrentOrg } from "@/features/auth/queries";
 import { pdfBrandFor } from "@/features/branding/pdf-brand";
 
@@ -73,20 +74,31 @@ export default async function DeliveryDetailPage({ params }: DeliveryDetailPageP
             </p>
             <p>
               <span className="text-muted-foreground">Transportator: </span>
-              {delivery.carrierName}
+              {delivery.carrierName ?? "—"}
             </p>
             <p>
               <span className="text-muted-foreground">Vehicul: </span>
-              {delivery.vehiclePlate}
+              {delivery.vehiclePlate ?? "—"}
             </p>
             <p>
               <span className="text-muted-foreground">Șofer: </span>
-              {delivery.driverName}
+              {delivery.driverName ?? "—"}
             </p>
             <p>
               <span className="text-muted-foreground">Rută: </span>
               {delivery.routeOrigin} {"->"} {delivery.routeDestination}
             </p>
+            {/* Transportul se poate completa / corecta doar inainte de plecare (0057). */}
+            {canCancelDelivery(delivery) ? (
+              <div className="pt-3">
+                <TransportForm
+                  deliveryId={delivery.id}
+                  carrierName={delivery.carrierName}
+                  vehiclePlate={delivery.vehiclePlate}
+                  driverName={delivery.driverName}
+                />
+              </div>
+            ) : null}
           </CardContent>
         </Card>
 

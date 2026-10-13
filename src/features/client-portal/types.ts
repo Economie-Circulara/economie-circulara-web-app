@@ -30,9 +30,9 @@ export interface CartLine {
  */
 export interface ClientOrderDelivery {
   scheduledDate: string;
-  carrierName: string;
-  vehiclePlate: string;
-  driverName: string;
+  carrierName: string | null;
+  vehiclePlate: string | null;
+  driverName: string | null;
   destination: string;
   uitCode: string | null;
   receivedAt: string | null;

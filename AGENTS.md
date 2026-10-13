@@ -224,6 +224,14 @@ Testele unitare sunt **colocate** langa cod (`*.test.ts` / `*.test.tsx`).
   programata, transportator, vehicul, sofer, destinatie, cod UIT, receptie. Erorile
   e-Transport, ruta calculata, punctul de plecare si notele de receptie raman interne.
   Orice camp nou expus clientului se adauga in RPC, nu printr-o politica de SELECT.
+- **Transportatorul, nr. de inmatriculare si soferul sunt OPTIONALE la planificarea
+  livrarii** (decizie 2026-10-10, migrarea `0057`, plan `docs/plans/flota-combustibil.md`):
+  o livrare se poate planifica fara ele (transport extern inca necunoscut) si se
+  completeaza din `/livrari/[id]` („Editează transportul”, `updateDeliveryTransport`)
+  DOAR cat livrarea nu a plecat (`hasDeliveryDeparted`). **Declararea e-Transport le cere**
+  (transportator + nr. de inmatriculare, `missingETransportFields`): fara ele declararea
+  devine `failed` cu mesaj clar, fara apel la provider; soferul ramane optional.
+  Oriunde se afiseaza, lipsa lor se arata ca „—”.
 - **Clientul poate confirma RECEPTIA livrarii din portal, dar NU inchide comanda**
   (decizie 2026-09-25, migrarea `0047`): RPC `client_confirm_delivery_receipt`
   (security definer, comanda proprie `accepted`, livrare activa neconfirmata, nume
