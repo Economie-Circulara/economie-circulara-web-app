@@ -93,3 +93,12 @@ describe("paginile modulelor optionale", () => {
     expect(hrefs(filterStaffNav(nav, "client", ["fleet"]))).toEqual([]);
   });
 });
+
+describe("pagina Flotă (modulul `fleet`)", () => {
+  it.each(["standard", "flux"] as const)("apare doar cu modulul activ (%s)", (layout) => {
+    expect(hrefs(navForRole("admin", layout, ["assistant"]))).not.toContain("/flota");
+    expect(hrefs(navForRole("admin", layout, ["assistant", "fleet"]))).toContain("/flota");
+    expect(hrefs(navForRole("operator", layout, ["fleet"]))).toContain("/flota");
+    expect(hrefs(navForRole("client", layout, ["fleet"]))).not.toContain("/flota");
+  });
+});

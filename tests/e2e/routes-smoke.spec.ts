@@ -31,11 +31,18 @@ const PASSWORD = "password123";
  * pot grupa itemii sub un `NavGroup` (sidebar pliabil) - `flattenNavEntries()` le
  * aduce la lista plata de pagini, la fel ca inainte de grupare.
  */
+/** Modulele activate pe organizatia demo in `supabase/seed.sql`. */
+const DEMO_MODULES = ["assistant", "fleet"] as const;
+
 const staffNavRoutes = flattenNavEntries(STAFF_NAV).map((item) => item.href);
 
 /** Sub-rute care nu apar in sidebar (formulare de creare, căutare, auth). */
 const STAFF_EXTRA_ROUTES = [
   "/comenzi/nou",
+  // Modulul Flota (activ pe demo).
+  "/flota/nou",
+  "/flota/alimentari",
+  "/flota/alimentari/nou",
   // `/livrari/nou` NU e in lista: cere `?orderId=` (altfel `notFound()`, prin
   // design) - e acoperit de fluxul din `mvp-flow.spec.ts`.
   "/stoc/nou",
@@ -103,7 +110,7 @@ test.describe("Smoke de randare pe toate rutele", () => {
   test("admin vede toate rutele staff", async ({ page }) => {
     await login(page, "admin@demo.local");
     for (const route of [
-      ...flattenNavEntries(navForRole("admin")).map((item) => item.href),
+      ...flattenNavEntries(navForRole("admin", "standard", DEMO_MODULES)).map((item) => item.href),
       ...STAFF_EXTRA_ROUTES,
       ...ADMIN_ONLY_ROUTES,
     ]) {
@@ -113,7 +120,9 @@ test.describe("Smoke de randare pe toate rutele", () => {
 
   test("operator vede rutele staff fara Setari", async ({ page }) => {
     await login(page, "operator@demo.local");
-    const operatorNav = flattenNavEntries(navForRole("operator")).map((item) => item.href);
+    const operatorNav = flattenNavEntries(navForRole("operator", "standard", DEMO_MODULES)).map(
+      (item) => item.href,
+    );
     for (const route of [...operatorNav, ...STAFF_EXTRA_ROUTES]) {
       await expectRenders(page, route);
     }

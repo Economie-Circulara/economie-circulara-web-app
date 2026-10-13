@@ -638,6 +638,92 @@ export type Database = {
           },
         ]
       }
+      fuel_entries: {
+        Row: {
+          amount: number | null
+          created_at: string
+          created_by: string | null
+          filled_on: string
+          id: string
+          liters: number
+          notes: string | null
+          odometer_km: number | null
+          organization_id: string
+          receipt_file_name: string | null
+          receipt_mime_type: string | null
+          receipt_path: string | null
+          station: string | null
+          updated_at: string
+          updated_by: string | null
+          vehicle_id: string
+        }
+        Insert: {
+          amount?: number | null
+          created_at?: string
+          created_by?: string | null
+          filled_on: string
+          id?: string
+          liters: number
+          notes?: string | null
+          odometer_km?: number | null
+          organization_id: string
+          receipt_file_name?: string | null
+          receipt_mime_type?: string | null
+          receipt_path?: string | null
+          station?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          vehicle_id: string
+        }
+        Update: {
+          amount?: number | null
+          created_at?: string
+          created_by?: string | null
+          filled_on?: string
+          id?: string
+          liters?: number
+          notes?: string | null
+          odometer_km?: number | null
+          organization_id?: string
+          receipt_file_name?: string | null
+          receipt_mime_type?: string | null
+          receipt_path?: string | null
+          station?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          vehicle_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fuel_entries_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fuel_entries_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fuel_entries_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fuel_entries_vehicle_fkey"
+            columns: ["vehicle_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
+            referencedColumns: ["id", "organization_id"]
+          },
+        ]
+      }
       items: {
         Row: {
           archived_at: string | null
@@ -1769,6 +1855,85 @@ export type Database = {
             columns: ["process_id"]
             isOneToOne: false
             referencedRelation: "processes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vehicles: {
+        Row: {
+          archived_at: string | null
+          archived_by: string | null
+          capacity: number | null
+          capacity_unit: string | null
+          consumption_l_per_100km: number
+          created_at: string
+          created_by: string | null
+          default_driver_name: string | null
+          fuel_type: string | null
+          id: string
+          name: string
+          notes: string | null
+          organization_id: string
+          plate: string | null
+          updated_at: string
+          vehicle_type: string | null
+        }
+        Insert: {
+          archived_at?: string | null
+          archived_by?: string | null
+          capacity?: number | null
+          capacity_unit?: string | null
+          consumption_l_per_100km: number
+          created_at?: string
+          created_by?: string | null
+          default_driver_name?: string | null
+          fuel_type?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          organization_id: string
+          plate?: string | null
+          updated_at?: string
+          vehicle_type?: string | null
+        }
+        Update: {
+          archived_at?: string | null
+          archived_by?: string | null
+          capacity?: number | null
+          capacity_unit?: string | null
+          consumption_l_per_100km?: number
+          created_at?: string
+          created_by?: string | null
+          default_driver_name?: string | null
+          fuel_type?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          organization_id?: string
+          plate?: string | null
+          updated_at?: string
+          vehicle_type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vehicles_archived_by_fkey"
+            columns: ["archived_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vehicles_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vehicles_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]

@@ -33,7 +33,8 @@ export type NavIconName =
   | "stations"
   | "aport"
   | "addresses"
-  | "quote-requests";
+  | "quote-requests"
+  | "fleet";
 
 export interface NavItem {
   label: string;
@@ -86,6 +87,13 @@ export const STAFF_NAV: NavEntry[] = [
     items: [
       { label: "Comenzi", href: "/comenzi", icon: "orders", roles: ["admin", "operator"] },
       { label: "Livrări", href: "/livrari", icon: "deliveries", roles: ["admin", "operator"] },
+      {
+        label: "Flotă",
+        href: "/flota",
+        icon: "fleet",
+        roles: ["admin", "operator"],
+        module: "fleet",
+      },
       {
         label: "Cereri de ofertă",
         href: "/cereri-oferta",
@@ -168,6 +176,7 @@ export const STAFF_NAV_FLUX: NavEntry[] = [
       staffItem("/cereri-oferta"),
       staffItem("/comenzi"),
       staffItem("/livrari"),
+      staffItem("/flota"),
       staffItem("/clienti"),
     ],
   },
