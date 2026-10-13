@@ -4,6 +4,18 @@ Jurnal al sarcinilor lucrate de agenti AI in acest repo. Conform regulii 1.2 din
 [`AGENTS.md`](../AGENTS.md), la **fiecare commit** se adauga o intrare aici.
 Cele mai noi intrari sus.
 
+## 2026-10-13 — Claude Opus 5.5 (Claude Code) — Merge `main` in etapa 2 (dupa PR #91)
+
+- **Cerut:** dupa merge-ul PR #91, aducerea `main` in PR #92.
+- **Facut:** conflicte doar in documentatie si `business_flow.sql` - pastrate ambele
+  parti (B35 apoi B36; planul cu etapele 2 si 3; intrarile din prompt-log).
+
+## 2026-10-13 — Claude Opus 5.5 (Claude Code) — Merge `main` in etapa 2 (dupa PR #91)
+
+- **Cerut:** rezolvarea conflictelor pe PR #92 dupa merge-ul PR #91.
+- **Facut:** conflicte doar in documentatie si `business_flow.sql` - pastrate ambele
+  parti (B35 apoi B36; planul cu etapele 2 si 3; intrarile din prompt-log).
+
 ## 2026-10-13 — Claude Opus 5.5 (Claude Code) — Flotă, etapa 2: transport optional pe livrare
 
 - **Cerut:** (din planul Flotă, decizia 9) campurile transportator / nr. de
@@ -14,6 +26,26 @@ Cele mai noi intrari sus.
   `/livrari/[id]` cat livrarea nu a plecat (reseteaza un `failed`); afisare „—” in
   lista, detaliu, aviz PDF, portalul clientului; asistent `planifica_livrare` v2 +
   system prompt; teste unitare + B36; manual, AGENTS.md, plan.
+
+## 2026-10-13 — Claude Opus 5.5 (Claude Code) — Fix CI: B34 dupa seed-ul cu Flotă
+
+- **Cerut:** CI `migrations` rosu pe PR #91 (B34: „implicit: asistent da, flota nu”).
+- **Facut:** seed-ul demo are acum si modulul `fleet`, deci B34 verifica default-ul
+  coloanei pe o organizatie NOUA creata in tranzactia testului, nu pe demo.
+- **Tot aici:** smoke-ul e2e de rute (o bucla per rol) primeste limita de 120s - cu
+  rutele `/flota` adaugate, pe desktop depasea implicitul de 30s si trecea doar la retry.
+
+## 2026-10-13 — Claude Opus 5.5 (Claude Code) — Flotă, etapa 3: vehicule si alimentari
+
+- **Cerut:** dupa merge-ul etapei 1, activarea modulului Flotă nu arata nimic (paginile
+  nu existau inca); „continua cu ce crezi ca trebuie, dar hai sa facem treaba”.
+- **Facut:** etapa 3 adusa inaintea etapei 2. Migrarea `0056` (`vehicles`,
+  `fuel_entries`, RLS staff + modulul `fleet`, fara DELETE, nr. de inmatriculare unic
+  normalizat, FK compus vehicul-organizatie, bucket privat `fleet-receipts`);
+  `src/features/fleet/` (validare cu virgula romaneasca, servicii, actiuni cu garda de
+  modul, upload/URL semnat pentru bon, totaluri); ecranele `/flota*`; „Flotă” in meniu
+  (ambele organizari); seed demo cu modulul activ + rutele in smoke-ul e2e; teste
+  unitare + B35 in `business_flow.sql`; manual (9.4 + anexa), AGENTS.md, plan.
 
 ## 2026-10-10 — Claude Opus 5.5 (Claude Code) — Modulul „Asistent AI” in feature flags
 

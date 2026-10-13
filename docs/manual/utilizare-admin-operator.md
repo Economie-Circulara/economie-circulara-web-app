@@ -581,6 +581,29 @@ poate fi marcat **implicit** (preselectat la planificarea unei livrări noi).
   comanda rămâne acceptată și poate fi planificată din nou. După declarare sau
   recepție, livrarea nu se mai poate anula.
 
+### 9.4 Flotă și alimentări (modul opțional)
+
+Pagina **Flotă** apare în meniu (lângă Livrări) doar dacă modulul a fost activat
+pentru organizația ta de administratorul platformei. O folosesc atât
+Administratorul, cât și Operatorul.
+
+- **Vehicule** (`Flotă` → **+ Adaugă vehicul**): obligatorii sunt doar un **nume**
+  (ex. „Basculanta 1”) și **consumul mediu** în litri la 100 km. Opțional: număr de
+  înmatriculare (nu se poate repeta în flotă), tip, combustibil, șofer obișnuit,
+  capacitate (cât poate căra - informativ) și note. Un vehicul scos din uz se
+  **arhivează** (reversibil): dispare din listă și nu mai poate fi ales la
+  alimentări noi, dar alimentările lui rămân.
+- **Alimentări** (`Flotă` → **Jurnal alimentări** → **+ Adaugă alimentare**, sau
+  **+ Alimentare** din pagina vehiculului): vehiculul, data și **litrii** sunt
+  obligatorii; suma plătită, kilometrii la bord și benzinăria sunt opționale. Poți
+  atașa **bonul** - o poză (de pe telefon o poți face direct cu camera) sau un PDF, max
+  4MB. Bonul se deschide din coloana **Bon**.
+- O alimentare **nu se șterge**: dacă ai greșit, deschide-o (click pe dată) și
+  corectează-o. Tot acolo poți înlocui sau scoate bonul.
+- Pagina unui vehicul și jurnalul arată **totaluri**: numărul de alimentări, litrii,
+  suma plătită (cu mențiune când nu toate alimentările au sumă) și ultima alimentare.
+  Jurnalul se filtrează pe vehicul și pe perioadă.
+
 ---
 
 ## 10. Rapoarte
@@ -710,6 +733,8 @@ Cum funcționează cardul:
 | Comandă trimisă / acceptată   | Anulare                                               |
 | Lot introdus din greșeală     | Anulare, doar dacă nu s-a consumat nimic din el       |
 | Livrare                       | Anulare, doar înainte de plecare                      |
+| Vehicul (Flotă)               | Arhivare (reversibilă)                                |
+| Alimentare (Flotă)            | Nu se șterge - se corectează prin editare             |
 | Utilizator (staff)            | Dezactivare (doar Administratorul, nu pe sine)        |
 | Audit stoc, certificate, procese finalizate, comenzi livrate/închise | Nimic - nu se șterg niciodată (trasabilitate) |
 

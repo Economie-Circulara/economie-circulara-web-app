@@ -494,6 +494,15 @@ Testele unitare sunt **colocate** langa cod (`*.test.ts` / `*.test.tsx`).
   actions dau 404 (`requireAssistantUser`, garda unica a asistentului), iar in DB
   `app.can_use_assistant()` cere modulul (super-adminul, fara organizatie, nu e
   afectat). `fleet` (Flotă) - inactiv implicit.
+- **Flota (modulul `fleet`, migrarea `0056`, plan `docs/plans/flota-combustibil.md`)**:
+  vehiculele si alimentarile le gestioneaza **admin SI operator**; vehiculul se
+  **arhiveaza** (nu se sterge), iar o **alimentare nu se sterge niciodata - se
+  corecteaza prin editare** (decizie 2026-10-10; fara politica de DELETE in DB). Doar
+  numele si consumul (L/100 km) sunt obligatorii pe vehicul; data + litrii pe
+  alimentare, suma (lei) e optionala - platforma masoara in primul rand VOLUMUL de
+  combustibil. Bonurile stau in bucketul PRIVAT `fleet-receipts` (fara politici pe
+  `storage.objects`), deschise doar prin URL semnat dupa citirea randului prin RLS.
+  Orice tabel nou al modulului cere in RLS `app.org_has_module(organization_id, 'fleet')`.
 
 - **Cererile de oferta din site ajung pe email SI in aplicatie** (decizie 2026-09-30,
   migrarea `0052`, plan `docs/plans/site-cerere-oferta.md`): site-ul de prezentare e

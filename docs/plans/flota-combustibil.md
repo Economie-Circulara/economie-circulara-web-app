@@ -1,6 +1,9 @@
 # Plan: Module per organizatie + modulul „Flotă” (consum combustibil)
 
-Status: **in lucru** (2026-10-10) - etapa 1 (module per organizatie) implementata.
+Status: **in lucru** - etapa 1 (module per organizatie) livrata 2026-10-13 (PR #90);
+etapa 3 (vehicule + alimentari) livrata 2026-10-13 (PR #91), adusa INAINTEA etapei 2
+ca modulul Flotă sa aiba ceva vizibil imediat ce e activat (feedback 2026-10-13: „am
+activat Flota si nu vad nimic”); etapa 2 in PR #92.
 
 ## Context / nevoia
 
@@ -134,7 +137,11 @@ filtreaza dupa rol **si** modul - extindere `toolsForRole`).
    livrarea nu a plecat) - altfel o livrare planificata fara nr. de inmatriculare n-ar
    mai fi putut fi declarata niciodata. Asistent: `planifica_livrare` v2 (transportul
    optional).
-3. Flota: vehicule + alimentari (migrare, ecrane, bon in Storage, teste).
+3. Flota: vehicule + alimentari (migrare, ecrane, bon in Storage, teste). **Facuta
+   inaintea etapei 2.** Migrarea `0056_fleet.sql`; ecrane `/flota`, `/flota/nou`,
+   `/flota/[id]`, `/flota/alimentari`, `/flota/alimentari/nou`,
+   `/flota/alimentari/[id]` (+ `/bon`). Asistent AI in aceasta etapa: **none** - tool-urile
+   `flota_*` / `adauga_*` raman pentru etapa 5, cand exista si estimarea pe transporturi.
 4. Trip-uri: livrare cu vehicul + aport cu transport propriu + afisare estimare.
 5. Raport combustibil + tool-uri asistent + manual.
 
