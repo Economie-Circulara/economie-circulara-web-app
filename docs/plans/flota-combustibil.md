@@ -129,7 +129,11 @@ filtreaza dupa rol **si** modul - extindere `toolsForRole`).
 ## Etape (fiecare = commit/PR coerent)
 
 1. Module per organizatie (migrare, helper, `/platform/<id>`, meniu, teste).
-2. Livrari: campuri optionale + validare e-Transport la declarare.
+2. Livrari: campuri optionale + validare e-Transport la declarare. Migrarea `0057`;
+   in plus fata de planul initial: **„Editează transportul”** pe `/livrari/[id]` (cat
+   livrarea nu a plecat) - altfel o livrare planificata fara nr. de inmatriculare n-ar
+   mai fi putut fi declarata niciodata. Asistent: `planifica_livrare` v2 (transportul
+   optional).
 3. Flota: vehicule + alimentari (migrare, ecrane, bon in Storage, teste).
 4. Trip-uri: livrare cu vehicul + aport cu transport propriu + afisare estimare.
 5. Raport combustibil + tool-uri asistent + manual.

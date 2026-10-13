@@ -9,11 +9,11 @@ const dateTimeFormatter = new Intl.DateTimeFormat("ro-RO", {
   timeStyle: "short",
 });
 
-function Row({ label, value }: { label: string; value: string }) {
+function Row({ label, value }: { label: string; value: string | null }) {
   return (
     <p>
       <span className="text-muted-foreground">{label}: </span>
-      {value}
+      {value ?? "—"}
     </p>
   );
 }

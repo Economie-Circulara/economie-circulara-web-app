@@ -1649,4 +1649,30 @@ begin;
   end $$;
 rollback;
 
+-- ===========================================================================
+-- B36: livrare fara transportator / nr. de inmatriculare / sofer (0057) - se poate
+--      planifica; datele se completeaza ulterior (inainte de e-Transport).
+-- ===========================================================================
+begin;
+  set local role authenticated;
+  set local request.jwt.claims = '{"sub":"b0000000-0000-0000-0000-0000000000b1"}';
+
+  insert into public.orders (id, organization_id, client_id, order_type, status, created_by)
+  values ('eeee0000-0000-0000-0000-00000000ee36', :org, :client_demo, 'material', 'accepted',
+    'b0000000-0000-0000-0000-0000000000b1');
+  insert into public.deliveries (id, organization_id, order_id, scheduled_date,
+    route_origin, route_destination)
+  values ('dddd0000-0000-0000-0000-00000000dd36', :org, 'eeee0000-0000-0000-0000-00000000ee36',
+    current_date, 'Depozit', 'Santier');
+  select pg_temp.assert_eq('B36 livrare fara date de transport',
+    coalesce(carrier_name, '-') || '|' || coalesce(vehicle_plate, '-') || '|' || coalesce(driver_name, '-'),
+    '-|-|-')
+  from public.deliveries where id = 'dddd0000-0000-0000-0000-00000000dd36';
+
+  update public.deliveries set carrier_name = 'Transport SRL', vehicle_plate = 'IS 12 ABC'
+  where id = 'dddd0000-0000-0000-0000-00000000dd36';
+  select pg_temp.assert_eq('B36 transport completat ulterior', vehicle_plate, 'IS 12 ABC')
+  from public.deliveries where id = 'dddd0000-0000-0000-0000-00000000dd36';
+rollback;
+
 select '*** TOATE TESTELE FUNCTIONALE DE BUSINESS AU TRECUT ***' as result;

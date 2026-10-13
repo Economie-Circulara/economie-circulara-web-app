@@ -4,6 +4,17 @@ Jurnal al sarcinilor lucrate de agenti AI in acest repo. Conform regulii 1.2 din
 [`AGENTS.md`](../AGENTS.md), la **fiecare commit** se adauga o intrare aici.
 Cele mai noi intrari sus.
 
+## 2026-10-13 — Claude Opus 5.5 (Claude Code) — Flotă, etapa 2: transport optional pe livrare
+
+- **Cerut:** (din planul Flotă, decizia 9) campurile transportator / nr. de
+  inmatriculare / sofer sa nu mai fie obligatorii pe livrare.
+- **Facut:** migrarea `0057` (coloanele devin nullable); planificarea le accepta goale
+  (nr. normalizat la majuscule); declararea e-Transport cere transportatorul + nr. de
+  inmatriculare (`failed` cu mesaj, fara apel la provider); „Editează transportul” pe
+  `/livrari/[id]` cat livrarea nu a plecat (reseteaza un `failed`); afisare „—” in
+  lista, detaliu, aviz PDF, portalul clientului; asistent `planifica_livrare` v2 +
+  system prompt; teste unitare + B36; manual, AGENTS.md, plan.
+
 ## 2026-10-10 — Claude Opus 5.5 (Claude Code) — Modulul „Asistent AI” in feature flags
 
 - **Cerut:** asistentul AI sa fie si el un modul in super-admin, activ implicit; debifat
