@@ -6,10 +6,11 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { requireRole } from "@/features/auth/session";
 import { archiveVehicleAction, restoreVehicleAction } from "@/features/fleet/actions";
-import { summarizeFuelEntries } from "@/features/fleet/calc";
+import { odometerStats, summarizeFuelEntries } from "@/features/fleet/calc";
 import { FuelEntriesTable } from "@/features/fleet/fuel-entries-table";
 import { FuelSummaryCards } from "@/features/fleet/fuel-summary";
 import { vehicleLabel } from "@/features/fleet/labels";
+import { OdometerSummary } from "@/features/fleet/odometer-summary";
 import { getVehicle, listFuelEntries } from "@/features/fleet/queries";
 import { VehicleForm } from "@/features/fleet/vehicle-form";
 import { requireModule } from "@/features/modules/guard";
@@ -71,6 +72,10 @@ export default async function VehiclePage({ params }: VehiclePageProps) {
       ) : null}
 
       <FuelSummaryCards summary={summarizeFuelEntries(entries)} />
+      <OdometerSummary
+        stats={odometerStats(entries)}
+        declaredConsumption={vehicle.consumptionLPer100km}
+      />
 
       <section className="space-y-3">
         <h2 className="text-base font-semibold">Alimentări</h2>

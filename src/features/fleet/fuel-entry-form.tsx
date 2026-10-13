@@ -39,6 +39,8 @@ export function FuelEntryForm({
     entry ? updateFuelEntryAction : createFuelEntryAction,
     initialFleetFormState,
   );
+  // Obligatoriu la alimentarile noi si la cele care il aveau deja (vezi actions.ts).
+  const odometerRequired = !entry || entry.odometerKm !== null;
   // La editare, vehiculul alimentarii ramane in lista chiar daca intre timp a fost arhivat.
   const options =
     entry && !vehicles.some((v) => v.id === entry.vehicleId)
@@ -111,12 +113,17 @@ export function FuelEntryForm({
                 />
               )}
             </FormField>
-            <FormField label="Km la bord" hint="Opțional.">
+            <FormField
+              label="Kilometraj la bord (km)"
+              required={odometerRequired}
+              hint="Din el se calculează km parcurși și consumul real."
+            >
               {(id) => (
                 <Input
                   id={id}
                   name="odometer_km"
                   inputMode="numeric"
+                  required={odometerRequired}
                   defaultValue={entry?.odometerKm !== null && entry ? String(entry.odometerKm) : ""}
                 />
               )}

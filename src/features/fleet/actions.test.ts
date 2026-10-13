@@ -54,7 +54,12 @@ function form(fields: Record<string, string | File>): FormData {
 }
 
 const RECEIPT = { path: "org-1/new-bon.jpg", fileName: "bon.jpg", mimeType: "image/jpeg" };
-const fuelFields = { vehicle_id: "v1", filled_on: "2026-10-12", liters: "80" };
+const fuelFields = {
+  vehicle_id: "v1",
+  filled_on: "2026-10-12",
+  liters: "80",
+  odometer_km: "120500",
+};
 
 beforeEach(() => {
   mocks.requireRole.mockResolvedValue({ id: "u1", role: "operator", organizationId: "org-1" });
@@ -143,10 +148,52 @@ describe("createFuelEntryAction", () => {
   });
 });
 
+describe("kilometrajul obligatoriu", () => {
+  it("alimentare noua fara kilometraj => eroare, nimic salvat", async () => {
+    const { odometer_km: _omit, ...withoutOdometer } = fuelFields;
+    const state = await createFuelEntryAction(initialFleetFormState, form(withoutOdometer));
+    expect(state.error).toMatch(/kilometrajul/);
+    expect(mocks.createFuelEntry).not.toHaveBeenCalled();
+  });
+
+  it("o alimentare veche fara kilometraj se poate corecta tot fara el", async () => {
+    mocks.getFuelEntry.mockResolvedValue({
+      id: "f0",
+      vehicleId: "v1",
+      odometerKm: null,
+      receipt: null,
+    });
+    mocks.updateFuelEntry.mockResolvedValue({ id: "f0" });
+    const { odometer_km: _omit, ...withoutOdometer } = fuelFields;
+    const state = await updateFuelEntryAction(
+      initialFleetFormState,
+      form({ ...withoutOdometer, id: "f0" }),
+    );
+    expect(state.error).toBeNull();
+  });
+
+  it("o alimentare cu kilometraj nu il poate pierde la corectare", async () => {
+    mocks.getFuelEntry.mockResolvedValue({
+      id: "f1",
+      vehicleId: "v1",
+      odometerKm: 120000,
+      receipt: null,
+    });
+    const { odometer_km: _omit, ...withoutOdometer } = fuelFields;
+    const state = await updateFuelEntryAction(
+      initialFleetFormState,
+      form({ ...withoutOdometer, id: "f1" }),
+    );
+    expect(state.error).toMatch(/kilometrajul/);
+    expect(mocks.updateFuelEntry).not.toHaveBeenCalled();
+  });
+});
+
 describe("updateFuelEntryAction", () => {
   const existing = {
     id: "f1",
     vehicleId: "v1",
+    odometerKm: 120000,
     receipt: { path: "org-1/old-bon.jpg", fileName: "old.jpg", mimeType: "image/jpeg" },
   };
 

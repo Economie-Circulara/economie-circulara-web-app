@@ -4,6 +4,16 @@ Jurnal al sarcinilor lucrate de agenti AI in acest repo. Conform regulii 1.2 din
 [`AGENTS.md`](../AGENTS.md), la **fiecare commit** se adauga o intrare aici.
 Cele mai noi intrari sus.
 
+## 2026-10-13 — Claude Opus 5.5 (Claude Code) — Flotă: kilometrajul la alimentare
+
+- **Cerut:** „ar trebui sa se monitorizeze si kilometrajul” -> „kilometrajul la
+  alimentare”.
+- **Facut:** kilometrajul de bord obligatoriu la alimentarile noi (si pastrat la
+  corectare cand exista), verificat sa creasca in timp per vehicul; consum real din
+  alimentari (presupune plinul) - pe pagina vehiculului (kilometraj curent, km
+  parcursi, consum real vs. declarat, alerta > 15%), pe fiecare alimentare (km + consum)
+  si in lista de vehicule. Fara migrare. Teste unitare, manual, AGENTS.md, plan.
+
 ## 2026-10-13 — Claude Opus 5.5 (Claude Code) — Merge `main` in etapa 2 (dupa PR #91)
 
 - **Cerut:** dupa merge-ul PR #91, aducerea `main` in PR #92.

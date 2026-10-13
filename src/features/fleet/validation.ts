@@ -65,7 +65,20 @@ export function parseVehicleForm(formData: FormData): ParseResult<VehicleInput> 
   };
 }
 
-export function parseFuelEntryForm(formData: FormData, today: string): ParseResult<FuelEntryInput> {
+export interface FuelEntryParseOptions {
+  /**
+   * Kilometrajul de bord e obligatoriu la alimentarile NOI (cerere 2026-10-13) - din el
+   * se calculeaza km parcursi si consumul real. La corectarea unei alimentari vechi,
+   * introduse inainte de regula, ramane optional.
+   */
+  requireOdometer?: boolean;
+}
+
+export function parseFuelEntryForm(
+  formData: FormData,
+  today: string,
+  options: FuelEntryParseOptions = {},
+): ParseResult<FuelEntryInput> {
   const vehicleId = text(formData, "vehicle_id");
   if (!vehicleId) return { ok: false, error: "Alege vehiculul." };
 
@@ -86,6 +99,9 @@ export function parseFuelEntryForm(formData: FormData, today: string): ParseResu
   const odometer = parseDecimalField(text(formData, "odometer_km"));
   if (odometer === undefined || (odometer !== null && !Number.isInteger(odometer))) {
     return { ok: false, error: "Kilometrajul trebuie să fie un număr întreg." };
+  }
+  if (odometer === null && options.requireOdometer) {
+    return { ok: false, error: "Completează kilometrajul de bord (km) de la alimentare." };
   }
 
   return {

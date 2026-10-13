@@ -105,6 +105,17 @@ describe("parseFuelEntryForm", () => {
     expect(parseFuelEntryForm(form({ ...base, odometer_km: "12,5" }), TODAY).ok).toBe(false);
   });
 
+  it("kilometrajul e obligatoriu doar cand se cere (alimentari noi)", () => {
+    expect(parseFuelEntryForm(form(base), TODAY, { requireOdometer: true })).toEqual({
+      ok: false,
+      error: expect.stringMatching(/kilometrajul/),
+    });
+    const ok = parseFuelEntryForm(form({ ...base, odometer_km: "120 500" }), TODAY, {
+      requireOdometer: true,
+    });
+    expect(ok.ok && ok.value.odometerKm).toBe(120500);
+  });
+
   it("respinge vehicul lipsa, litri <= 0, data invalida sau din viitor", () => {
     expect(parseFuelEntryForm(form({ ...base, vehicle_id: "" }), TODAY).ok).toBe(false);
     expect(parseFuelEntryForm(form({ ...base, liters: "0" }), TODAY).ok).toBe(false);

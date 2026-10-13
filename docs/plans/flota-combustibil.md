@@ -142,6 +142,16 @@ filtreaza dupa rol **si** modul - extindere `toolsForRole`).
    `/flota/[id]`, `/flota/alimentari`, `/flota/alimentari/nou`,
    `/flota/alimentari/[id]` (+ `/bon`). Asistent AI in aceasta etapa: **none** - tool-urile
    `flota_*` / `adauga_*` raman pentru etapa 5, cand exista si estimarea pe transporturi.
+3b. **Kilometrajul la alimentare** (cerere 2026-10-13, „ar trebui sa se monitorizeze si
+   kilometrajul” -> „kilometrajul la alimentare”): `odometer_km` devine **obligatoriu la
+   alimentarile noi** (cele vechi raman editabile fara el) si trebuie sa fie coerent in
+   timp per vehicul (nu mai mic decat la o alimentare anterioara, nu mai mare decat la una
+   ulterioara). Din alimentarile cu kilometraj se calculeaza, presupunand **plinul la
+   fiecare alimentare**: km parcursi intre alimentari, consumul real pe fiecare alimentare
+   si pe perioada (litrii alimentarilor 2..n / km intre prima si ultima * 100), comparat
+   cu consumul declarat (abatere > 15% = semnalata). Afisat pe pagina vehiculului si in
+   lista de vehicule (kilometraj curent, consum real). Fara migrare. Asistent: none.
+   Compararea km reali vs. km estimati din comenzi vine in etapa 4.
 4. Trip-uri: livrare cu vehicul + aport cu transport propriu + afisare estimare.
 5. Raport combustibil + tool-uri asistent + manual.
 
