@@ -594,10 +594,19 @@ Administratorul, cât și Operatorul.
   **arhivează** (reversibil): dispare din listă și nu mai poate fi ales la
   alimentări noi, dar alimentările lui rămân.
 - **Alimentări** (`Flotă` → **Jurnal alimentări** → **+ Adaugă alimentare**, sau
-  **+ Alimentare** din pagina vehiculului): vehiculul, data și **litrii** sunt
-  obligatorii; suma plătită, kilometrii la bord și benzinăria sunt opționale. Poți
-  atașa **bonul** - o poză (de pe telefon o poți face direct cu camera) sau un PDF, max
-  4MB. Bonul se deschide din coloana **Bon**.
+  **+ Alimentare** din pagina vehiculului): vehiculul, data, **litrii** și
+  **kilometrajul de bord** sunt obligatorii; suma plătită și benzinăria sunt opționale.
+  Kilometrajul trebuie să crească în timp: nu poate fi mai mic decât la o alimentare
+  anterioară a aceluiași vehicul (sau mai mare decât la una ulterioară). Poți atașa
+  **bonul** - o poză (de pe telefon o poți face direct cu camera) sau un PDF, max 4MB.
+  Bonul se deschide din coloana **Bon**.
+- **Kilometraj și consum real**: din alimentările cu kilometraj, pagina vehiculului
+  arată **kilometrajul curent**, **km parcurși** și **consumul real** (L/100 km) față
+  de cel declarat - cu avertisment dacă diferența trece de 15%. În lista alimentărilor
+  vehiculului apar km parcurși și consumul de la fiecare alimentare la următoarea.
+  Calculul presupune că la fiecare alimentare se face **plinul**; altfel valorile pe o
+  singură alimentare variază, dar media pe o perioadă rămâne corectă. Lista de vehicule
+  arată și ea kilometrajul curent și consumul real.
 - O alimentare **nu se șterge**: dacă ai greșit, deschide-o (click pe dată) și
   corectează-o. Tot acolo poți înlocui sau scoate bonul.
 - Pagina unui vehicul și jurnalul arată **totaluri**: numărul de alimentări, litrii,

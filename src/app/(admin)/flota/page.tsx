@@ -2,7 +2,8 @@ import Link from "next/link";
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { requireRole } from "@/features/auth/session";
-import { listVehicles } from "@/features/fleet/queries";
+import { odometerStats } from "@/features/fleet/calc";
+import { listFuelEntries, listVehicles } from "@/features/fleet/queries";
 import { VehiclesTable } from "@/features/fleet/vehicles-table";
 import { requireModule } from "@/features/modules/guard";
 
@@ -17,7 +18,17 @@ export default async function FlotaPage({ searchParams }: FlotaPageProps) {
   await requireRole(["admin", "operator"]);
   await requireModule("fleet");
   const includeArchived = (await searchParams).arhivate === "1";
-  const vehicles = await listVehicles({ includeArchived });
+  const [vehicles, entries] = await Promise.all([
+    listVehicles({ includeArchived }),
+    listFuelEntries(),
+  ]);
+  // Kilometrajul curent si consumul real per vehicul (date simple pentru tabelul client).
+  const stats = Object.fromEntries(
+    vehicles.map((vehicle) => {
+      const s = odometerStats(entries.filter((e) => e.vehicleId === vehicle.id));
+      return [vehicle.id, { currentKm: s.currentKm, realConsumption: s.realConsumption }];
+    }),
+  );
 
   return (
     <div className="space-y-6">
@@ -50,7 +61,7 @@ export default async function FlotaPage({ searchParams }: FlotaPageProps) {
           Filtrează
         </Button>
       </form>
-      <VehiclesTable vehicles={vehicles} />
+      <VehiclesTable vehicles={vehicles} stats={stats} />
     </div>
   );
 }

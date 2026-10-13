@@ -114,7 +114,7 @@ export async function createFuelEntryAction(
   formData: FormData,
 ): Promise<FleetFormState> {
   const user = await requireFleetStaff();
-  const parsed = parseFuelEntryForm(formData, todayInRomania());
+  const parsed = parseFuelEntryForm(formData, todayInRomania(), { requireOdometer: true });
   if (!parsed.ok) return { error: parsed.error, message: null };
 
   const file = receiptFile(formData);
@@ -139,7 +139,11 @@ export async function updateFuelEntryAction(
   const existing = id ? await getFuelEntry(id) : null;
   if (!existing) return { error: "Alimentarea nu există.", message: null };
 
-  const parsed = parseFuelEntryForm(formData, todayInRomania());
+  // O alimentare care avea kilometraj nu il mai poate pierde la corectare; cele vechi,
+  // introduse fara el, se pot corecta si asa.
+  const parsed = parseFuelEntryForm(formData, todayInRomania(), {
+    requireOdometer: existing.odometerKm !== null,
+  });
   if (!parsed.ok) return { error: parsed.error, message: null };
 
   // Bonul: fisier nou -> inlocuieste; bifa "scoate bonul" -> null; altfel neschimbat.

@@ -5,11 +5,14 @@ import { Fuel } from "lucide-react";
 import type { ColumnDef } from "@tanstack/react-table";
 import { DataTable } from "@/components/data-table";
 import { EmptyState } from "@/components/empty-state";
-import { pricePerLiter } from "./calc";
-import { formatAmount, formatDay, formatLiters, vehicleLabel } from "./labels";
+import { consumptionPerEntry, pricePerLiter, type EntryConsumption } from "./calc";
+import { formatAmount, formatConsumption, formatDay, formatLiters, vehicleLabel } from "./labels";
 import type { FuelEntry } from "./types";
 
-function buildColumns(showVehicle: boolean): ColumnDef<FuelEntry>[] {
+function buildColumns(
+  showVehicle: boolean,
+  perEntry: Map<string, EntryConsumption> | null,
+): ColumnDef<FuelEntry>[] {
   const columns: ColumnDef<FuelEntry>[] = [
     {
       accessorKey: "filledOn",
@@ -56,6 +59,29 @@ function buildColumns(showVehicle: boolean): ColumnDef<FuelEntry>[] {
       header: "Km la bord",
       cell: ({ row }) => row.original.odometerKm?.toLocaleString("ro-RO") ?? "—",
     },
+  );
+  // Pe pagina unui vehicul: km de la alimentarea anterioara si consumul pe interval.
+  if (perEntry) {
+    columns.push(
+      {
+        id: "kmSincePrevious",
+        header: "Km parcurși",
+        cell: ({ row }) => {
+          const km = perEntry.get(row.original.id)?.kmSincePrevious;
+          return km !== null && km !== undefined ? km.toLocaleString("ro-RO") : "—";
+        },
+      },
+      {
+        id: "consumption",
+        header: "Consum",
+        cell: ({ row }) => {
+          const value = perEntry.get(row.original.id)?.consumption;
+          return value !== null && value !== undefined ? formatConsumption(value) : "—";
+        },
+      },
+    );
+  }
+  columns.push(
     {
       accessorKey: "station",
       header: "Benzinărie",
@@ -98,5 +124,7 @@ export function FuelEntriesTable({
       />
     );
   }
-  return <DataTable columns={buildColumns(showVehicle)} data={entries} pageSize={20} />;
+  // Km / consum per alimentare au sens doar pe un singur vehicul (pagina lui).
+  const perEntry = showVehicle ? null : consumptionPerEntry(entries);
+  return <DataTable columns={buildColumns(showVehicle, perEntry)} data={entries} pageSize={20} />;
 }

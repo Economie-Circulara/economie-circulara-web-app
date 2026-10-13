@@ -5,6 +5,7 @@ vi.mock("@/lib/supabase/server", () => ({ createClient }));
 
 import {
   FleetValidationError,
+  assertOdometerConsistent,
   createFuelEntry,
   createVehicle,
   setVehicleArchived,
@@ -18,13 +19,15 @@ function mockSupabase(results: Record<string, Array<{ data: unknown; error: unkn
   const from = vi.fn((table: string) => {
     const result = results[table]?.shift() ?? { data: null, error: null };
     const builder: Record<string, unknown> = {};
-    for (const method of ["select", "insert", "update", "eq", "is", "order"]) {
+    for (const method of ["select", "insert", "update", "eq", "is", "not", "order"]) {
       builder[method] = vi.fn((...args: unknown[]) => {
         calls.push({ table, method, args });
         return builder;
       });
     }
     builder.single = vi.fn().mockResolvedValue(result);
+    // Interogarile fara .single()/.maybeSingle() (lista de kilometraje) se asteapta direct.
+    builder.then = (resolve: (value: unknown) => void) => resolve(result);
     builder.maybeSingle = vi.fn().mockResolvedValue(result);
     return builder;
   });
@@ -184,5 +187,46 @@ describe("updateFuelEntry", () => {
       receipt_file_name: null,
       receipt_mime_type: null,
     });
+  });
+});
+
+describe("assertOdometerConsistent", () => {
+  const history = {
+    fuel_entries: [
+      {
+        data: [
+          { id: "f1", filled_on: "2026-10-01", odometer_km: 100_000 },
+          { id: "f2", filled_on: "2026-10-10", odometer_km: 101_000 },
+        ],
+        error: null,
+      },
+    ],
+  };
+
+  it("accepta un kilometraj intre alimentarea anterioara si cea ulterioara", async () => {
+    mockSupabase(structuredClone(history));
+    await expect(assertOdometerConsistent("v1", "2026-10-05", 100_400)).resolves.toBeUndefined();
+  });
+
+  it("respinge un kilometraj mai mic decat la o alimentare anterioara", async () => {
+    mockSupabase(structuredClone(history));
+    await expect(assertOdometerConsistent("v1", "2026-10-05", 99_000)).rejects.toThrow(
+      /mai mic decât la o alimentare anterioară/,
+    );
+  });
+
+  it("respinge un kilometraj mai mare decat la o alimentare ulterioara", async () => {
+    mockSupabase(structuredClone(history));
+    await expect(assertOdometerConsistent("v1", "2026-10-05", 102_000)).rejects.toThrow(
+      /mai mare decât la o alimentare ulterioară/,
+    );
+  });
+
+  it("la corectare se ignora alimentarea insasi; fara kilometraj nu se verifica nimic", async () => {
+    mockSupabase(structuredClone(history));
+    await expect(
+      assertOdometerConsistent("v1", "2026-10-10", 100_500, "f2"),
+    ).resolves.toBeUndefined();
+    await expect(assertOdometerConsistent("v1", "2026-10-05", null)).resolves.toBeUndefined();
   });
 });

@@ -93,6 +93,50 @@ async function assertVehicleUsable(vehicleId: string, keepVehicleId?: string): P
   }
 }
 
+/** Formatul romanesc pentru km in mesaje (ex. „120.500 km”). */
+function km(value: number): string {
+  return `${value.toLocaleString("ro-RO")} km`;
+}
+
+/**
+ * Kilometrajul trebuie sa creasca in timp pe acelasi vehicul (cerere 2026-10-13): nu mai
+ * mic decat la o alimentare din ZILE anterioare, nu mai mare decat la una din zile
+ * ulterioare (in aceeasi zi ordinea nu se poate stabili, deci nu se compara). Fara el,
+ * km parcursi si consumul real ar iesi negative sau absurde.
+ */
+export async function assertOdometerConsistent(
+  vehicleId: string,
+  filledOn: string,
+  odometerKm: number | null,
+  excludeEntryId?: string,
+): Promise<void> {
+  if (odometerKm === null) return;
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("fuel_entries")
+    .select("id, filled_on, odometer_km")
+    .eq("vehicle_id", vehicleId)
+    .not("odometer_km", "is", null);
+  if (error) throw new Error("Nu am putut verifica kilometrajul.");
+
+  const others = (data ?? []).filter((row) => row.id !== excludeEntryId);
+  const before = others.filter((row) => row.filled_on < filledOn);
+  const after = others.filter((row) => row.filled_on > filledOn);
+  const maxBefore = Math.max(...before.map((row) => row.odometer_km ?? 0));
+  const minAfter = Math.min(...after.map((row) => row.odometer_km ?? Infinity));
+
+  if (before.length > 0 && odometerKm < maxBefore) {
+    throw new FleetValidationError(
+      `Kilometrajul (${km(odometerKm)}) e mai mic decât la o alimentare anterioară (${km(maxBefore)}).`,
+    );
+  }
+  if (after.length > 0 && odometerKm > minAfter) {
+    throw new FleetValidationError(
+      `Kilometrajul (${km(odometerKm)}) e mai mare decât la o alimentare ulterioară (${km(minAfter)}).`,
+    );
+  }
+}
+
 function fuelEntryRow(input: FuelEntryInput) {
   return {
     vehicle_id: input.vehicleId,
@@ -119,6 +163,7 @@ export async function createFuelEntry(
   receipt: FuelReceipt | null,
 ): Promise<FuelEntry> {
   await assertVehicleUsable(input.vehicleId);
+  await assertOdometerConsistent(input.vehicleId, input.filledOn, input.odometerKm);
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("fuel_entries")
@@ -140,6 +185,7 @@ export async function updateFuelEntry(
   receipt: FuelReceipt | null | undefined,
 ): Promise<FuelEntry> {
   await assertVehicleUsable(input.vehicleId, previousVehicleId);
+  await assertOdometerConsistent(input.vehicleId, input.filledOn, input.odometerKm, id);
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("fuel_entries")

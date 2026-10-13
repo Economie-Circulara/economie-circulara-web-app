@@ -503,6 +503,13 @@ Testele unitare sunt **colocate** langa cod (`*.test.ts` / `*.test.tsx`).
   combustibil. Bonurile stau in bucketul PRIVAT `fleet-receipts` (fara politici pe
   `storage.objects`), deschise doar prin URL semnat dupa citirea randului prin RLS.
   Orice tabel nou al modulului cere in RLS `app.org_has_module(organization_id, 'fleet')`.
+  **Kilometrajul de bord e obligatoriu la alimentarile noi** (decizie 2026-10-13; cele
+  vechi raman corectabile fara el, dar o alimentare care il are nu il mai pierde) si
+  trebuie sa creasca in timp per vehicul (`assertOdometerConsistent`, comparat doar cu
+  ZILE diferite). Consumul real (`odometerStats`, `consumptionPerEntry` in
+  `src/features/fleet/calc.ts`) presupune **plinul la fiecare alimentare**: litrii
+  alimentarilor 2..n / km intre prima si ultima; abatere > 15% fata de consumul declarat
+  = semnalata.
 
 - **Cererile de oferta din site ajung pe email SI in aplicatie** (decizie 2026-09-30,
   migrarea `0052`, plan `docs/plans/site-cerere-oferta.md`): site-ul de prezentare e
