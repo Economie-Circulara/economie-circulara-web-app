@@ -101,6 +101,11 @@ async function expectRenders(page: Page, path: string): Promise<void> {
 }
 
 test.describe("Smoke de randare pe toate rutele", () => {
+  // Fiecare test parcurge TOATE rutele unui rol intr-o bucla; implicitul de 30s nu
+  // mai ajunge pe un runner rece (prima compilare a fiecarei pagini) odata cu
+  // paginile modulului Flotă - limita se da per bucla, nu per ruta.
+  test.describe.configure({ timeout: 120_000 });
+
   test("rute publice (nelogat)", async ({ page }) => {
     for (const route of PUBLIC_ROUTES) {
       await expectRenders(page, route);

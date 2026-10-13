@@ -9,6 +9,8 @@ Cele mai noi intrari sus.
 - **Cerut:** CI `migrations` rosu pe PR #91 (B34: „implicit: asistent da, flota nu”).
 - **Facut:** seed-ul demo are acum si modulul `fleet`, deci B34 verifica default-ul
   coloanei pe o organizatie NOUA creata in tranzactia testului, nu pe demo.
+- **Tot aici:** smoke-ul e2e de rute (o bucla per rol) primeste limita de 120s - cu
+  rutele `/flota` adaugate, pe desktop depasea implicitul de 30s si trecea doar la retry.
 
 ## 2026-10-13 — Claude Opus 5.5 (Claude Code) — Flotă, etapa 3: vehicule si alimentari
 
